@@ -16,8 +16,7 @@
 
 \usage{
 summary(obj, ...)
-print(summary.likGRF.obj, ...)
-print(obj, ...)
+print(obj, digits = "default", ...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -31,10 +30,11 @@ print(obj, ...)
 }
 
 \details{
-  The model specification with values of fixed and estimated parameters is printed
-  by \code{summary.likGRF}.
+  A detailed summary of a object of the class \code{likGRF} is produced by
+  by \code{summary.likGRF} and printed by \code{print.summary.likGRF}.
+  This includes model specification with values of fixed and estimated parameters. 
   A simplified summary of the parameter estimation is printed by
-  \code{print.summary.likGRF}. 
+  \code{print.likGRF}. 
 }
 
 \value{

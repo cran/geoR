@@ -20,12 +20,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        trend = "cte", ini.cov.pars, fix.nugget = FALSE, nugget = 0,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
-       cov.model = c("matern", "exponential", "gaussian",
-                     "spherical", "circular","cubic", "wave",
-                     "powered.exponential", "cauchy", "gneiting",
-                     "gneiting.matern", "pure.nugget"),
-       method = "ML", components = FALSE, nospatial = TRUE,
-       limits = likfit.limits(), messages.screen = TRUE, ...)
+       cov.model = "matern", method = "ML", components = FALSE,
+       nospatial = TRUE, limits = likfit.limits(),
+       print.pars = FALSE, messages.screen = TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -74,7 +71,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     otherwise as the initial value for the
     minimization algorithm. Defaults to
     \eqn{0.5}. This parameter is valid only if the covariance function is one
-    of: \code{"matern"}, \code{"powered.exponential"}, \code{"gneiting"} or
+    of: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} or
     \code{"gneiting.matern"}.  For more details on covariance functions
     see documentation for \code{\link{cov.spatial}}.  }
   \item{fix.lambda}{logical, indicating whether the Box-Cox transformation parameter
@@ -116,7 +113,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     details on anisotropy correction.  }
   \item{cov.model}{a string specifying the model for the correlation
     function. For further details see 
-    documentation for \code{\link{cov.spatial}}. }
+    documentation for \code{\link{cov.spatial}}.
+      Defaults are equivalent to the \emph{exponential} model.  }
   \item{method}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
@@ -126,8 +124,12 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     model without spatial component are included in the output.  }
   \item{limits}{values defining lower and upper limits for the model
     parameters used in the numerical minimization.
-    The auxiliary function \code{likfit.limits()} is called to set the limits.  }
-  \item{messages.screen}{logical indications whether
+    The auxiliary function \code{likfit.limits()} is called to set the
+    limits.  }
+  \item{print.pars}{logical. If \code{TRUE} the parameters and the value
+  of the negative log-likelihood (up to a constant) are printed each
+  time the function to be minimised is called.  }
+  \item{messages.screen}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
   \item{\dots}{additional parameters to be passed to the minimization
@@ -208,7 +210,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     and \eqn{\phi}{phi}, respectively.  }
   \item{kappa}{value of the smoothness parameter. Valid only if 
     the correlation function is one of: \code{"matern"},
-    \code{"powered.exponential"}, \code{"gneiting"}
+    \code{"powered.exponential"}, \code{"cauchy"}
     or \code{"gneiting.matern"}.  }
   \item{beta}{estimate of mean parameter \eqn{\beta}{beta}.
     This can be a scalar or vector depending on the
@@ -275,11 +277,11 @@ lines(reml, lty = 2)
 \testonly{
 if(is.R()) data(s100)
 ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2)
-ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug=T, nug=0.2)
+ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug=TRUE, nug=0.2)
 ml <- likfit(s100, data=exp(s100$data), ini=c(0.5, 0.5), nug=0.2, fix.lambda=F)
 ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiR = F)
 ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiA = F, fix.psiR = F)
-ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=T, kappa=2)
+ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=TRUE, kappa=2)
 ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=F)
 
 }

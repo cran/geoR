@@ -6,7 +6,6 @@
            nugget.values,
            nugget.rel.values,
            lambda.values,
-           uni.only = TRUE,
            sillrange.values = TRUE,
            sillnugget.values = TRUE,
            rangenugget.values = TRUE, 
@@ -16,6 +15,7 @@
            rangelambda.values = TRUE, 
            nuggetlambda.values = FALSE,
            nugget.rellambda.values = FALSE,
+           uni.only = TRUE,
            bi.only = FALSE,
            minimisation.function = c("optim", "nlmP"), ...)
 {
@@ -133,7 +133,7 @@
   ##
   ## 2. data preparation
   ##
-  trend <- as.matrix(obj.likfit$trend.matrix)
+  trend <- trend.spatial(trend=obj.likfit$trend, coords=coords)
   data <- as.vector(data)
   dimnames(trend) <- list(NULL, NULL)
   if(obj.likfit$transform.info$fix.lambda == TRUE) {

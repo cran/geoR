@@ -82,7 +82,7 @@ coords.aniso(coords, aniso.pars, reverse = FALSE)
 %\seealso{ ~~objects to SEE ALSO as \code{\link{~~fun~~}}, ~~~ }
 
 \examples{
-par.mf <- par()$mfrow
+op <- par(no.readonly = TRUE)
 par(mfrow=c(3,2))
 par(mar=c(2.5,0,0,0))
 par(mgp=c(2,.5,0))
@@ -112,7 +112,7 @@ coordsE <- coords.aniso(coords, aniso.pars=c(0, 5))
 plot(c(-1.5, 1.5), c(-1.5, 1.5), xlab="", ylab="", type="n")
 text(coordsE[,1], coordsE[,2], 1:nrow(coords))
 ##
-par(mfrow=par.mf)
+par(op)
 }
 
 \keyword{spatial}

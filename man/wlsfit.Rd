@@ -11,15 +11,12 @@
 }
 
 \usage{
-wlsfit(vario, ini.cov.pars,
-       cov.model = c("exponential", "matern", "gaussian",
-                     "spherical", "circular", "cubic", "wave",
-                     "powered.exponential", "cauchy", "gneiting",
-                     "gneiting.matern", "pure.nugget"),
-       fix.nugget = FALSE, nugget = 0, kappa = NULL,
+wlsfit(vario, ini.cov.pars, cov.model = "matern",
+       fix.nugget = FALSE, nugget = 0, kappa = 0.5,
        simul.number = NULL, max.dist = "all",
-       minimisation.function = c("optim", "nlm"),  lower = 0,
-       weight = c("npairs", "cressie"), messages.screen = TRUE)
+       minimisation.function = c("optim", "nlm"),
+       lower = 0, weight = c("npairs", "cressie"),
+       messages.screen = TRUE, ...)
 
 }
 
@@ -33,8 +30,8 @@ wlsfit(vario, ini.cov.pars,
     parameter). See \code{DETAILS} below.  }
   \item{cov.model}{a string with the name of the correlation
     function. For further details see documentation for
-    \code{\link{cov.spatial}}. Defaults to 
-    \code{"exponential"}.  }
+    \code{\link{cov.spatial}}.
+    Defaults are equivalent to the \emph{exponential} model.  }
   \item{fix.nugget}{logical, indicating whether the parameter
     \eqn{\tau^2}{tau^2} (nugget variance) should be regarded as fixed
     (\code{fix.nugget = TRUE}) or should
@@ -45,7 +42,7 @@ wlsfit(vario, ini.cov.pars,
     minimization algorithm if \code{fix.nugget = FALSE}. 
     Defaults to zero.  }
   \item{kappa}{fixed value of the smoothness parameter, only required by
-    the following correlation functions: \code{"matern"}, \code{"powered.exponential"}, \code{"gneiting"}
+    the following correlation functions: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"}
     and \code{"gneiting.matern"}.  }
   \item{simul.number}{number of simulation. To be used when the object passed to the
     argument \code{vario} has empirical variograms for more than one
@@ -125,6 +122,10 @@ wlsfit(vario, ini.cov.pars,
   \item{message}{status messages returned by the function.  }
   \item{method}{a string \code{"WLS"} indicating the
     estimation method.  }
+  \item{fix.nugget}{logical indicating whether the nugget parameter was
+    fixed.  }
+  \item{lambda}{transformation parameters inherith from the object
+    provided in the argument \code{vario}.  }
   \item{call}{the function call.  }
  
 }

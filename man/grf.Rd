@@ -17,11 +17,8 @@
 
 \usage{
 grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)), 
-    xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
-    cov.model = c("exponential", "matern", "gaussian",
-                  "spherical", "circular", "cubic", "wave",
-                  "powered.exponential", "cauchy", "gneiting",
-                  "gneiting.matern", "pure.nugget"),
+    xlims = c(0, 1), ylims = c(0, 1), nsim = 1,
+    cov.model = "matern",
     cov.pars = stop("cov. parameters (sigmasq and phi) needed"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     method = c("cholesky", "svd", "eigen", "circular.embedding"),
@@ -42,8 +39,8 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   to \eqn{[0,1]}.  }
   \item{nsim}{Number of simulations. Defaults to 1.}
   \item{cov.model}{correlation function. See \code{\link{cov.spatial}} for
-    further details. Defaults
-    to \code{"exponential"}.  }
+    further details. Defaults are equivalent to the 
+    \emph{exponential} model.  }
   \item{cov.pars}{a vector with 2 elements or an \eqn{n \times 2}{n x 2}
     matrix with values of  the covariance parameters
     \eqn{\sigma^2}{sigma^2} (partial sill) and \eqn{\phi}{phi} (range
@@ -54,8 +51,8 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
     are in the first column and the values of \eqn{\phi}{phi} are in the second.  }
   \item{kappa}{additional smoothness parameter required only for the
     following correlation 
-    functions: \code{"matern"}, \code{"powered.exponential"}, \code{"gneiting"} 
-     and \code{"gneiting.matern"}. More details on the documentation for the
+    functions: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} 
+     and  \code{"gneiting.matern"}. More details on the documentation for the
     function \code{\link{cov.spatial}}.  }
   \item{nugget}{the value of the nugget effect parameter \eqn{\tau^2}{tau^2}.}
   \item{lambda}{value of the Box-Cox transformation parameter. The value \eqn{\lambda

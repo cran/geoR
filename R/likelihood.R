@@ -1,9 +1,7 @@
 "likfit.old" <-
   function (geodata, coords=geodata$coords, data=geodata$data, trend = "cte",
             ini, fix.nugget = FALSE, nugget = 0, 
-            cov.model = c("matern", "exponential", "gaussian", "spherical",
-              "circular", "cubic", "wave", "powered.exponential",
-              "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
+            cov.model = "matern",
             kappa = 0.5, fix.lambda = TRUE, lambda = 1, method = "ML", 
             predicted = FALSE, residuals = FALSE, 
             minimisation.function = c("optim","nlmP", "nlm"),
@@ -11,7 +9,11 @@
             messages.screen = TRUE, ...) 
 {
   call.fc <- match.call()
-  cov.model <- match.arg(cov.model)
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   if (cov.model=="pure.nugget"){
     if(fix.nugget == TRUE) ini <- rep(0,2)
     else
@@ -62,6 +64,8 @@
     method <- "RML"
   if(method == "ML" | method == "ml")
     method <- "ML"
+  if(method == "ML" & cov.model == "power")
+    stop("\n\"power\" model can only be used with method=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   xmat <- trend.spatial(trend=trend, coords=coords)
   fit.ols <- lm(z ~ xmat + 0)
   trend.ols <- list(coefficients = fit.ols$coefficients)

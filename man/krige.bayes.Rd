@@ -131,7 +131,7 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
       
       \item{kappa}{additional smoothness parameter. Only used if the
 	correlation function is one of: \code{"matern"},
-	\code{"powered.exponential"}, \code{"gneiting"} or
+	\code{"powered.exponential"}, \code{"cauchy"} or
 	\code{"gneiting.matern"}. In the current implementation this
 	parameter is always regarded as fixed during the Bayesian analysis.  }
       
@@ -379,8 +379,10 @@ lines(ex.bayes, max.dist=1.2, summ="median", lty=2)
 lines(ex.bayes, max.dist=1.2, summ="mean", lwd=2, lty=2)
 #
 # Ploting prediction some results
-par.mf <- par()$mfrow
+op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
+par(mar=c(3,3,1,1))
+par(mgp = c(2,1,0))
 image.krige.bayes(ex.bayes, loc=ex.grid, main="predicted values")
 image.krige.bayes(ex.bayes, val="moments.variance",
                   loc=ex.grid, main="prediction variance")
@@ -390,7 +392,7 @@ image.krige.bayes(ex.bayes, val= "simulation", number.col=1,
 image.krige.bayes(ex.bayes, val= "simulation", number.col=2,
                   loc=ex.grid,
      main="another simulation from \nthe predictive distribution")
-par(mfrow=par.mf)
+par(op)
 }
 
 \keyword{spatial}

@@ -130,14 +130,18 @@ points.geodata(geodata, coords=geodata$coords, data=geodata$data,
 
 \examples{
 if(is.R()) data(s100)
-points.geodata(s100, xlab="Coord X", ylab="Coord Y")
-points.geodata(s100, xlab="Coord X", ylab="Coord Y",
-               pt.size="rank.prop")
-points.geodata(s100, xlab="Coord X", ylab="Coord Y", cex.max=1.7,
+op <- par(no.readonly = TRUE)
+par(mfrow=c(2,2))
+par(mar=c(3,3,1,1))
+par(mgp = c(2,1,0))
+points(s100, xlab="Coord X", ylab="Coord Y")
+points(s100, xlab="Coord X", ylab="Coord Y", pt.size="rank.prop")
+points(s100, xlab="Coord X", ylab="Coord Y", cex.max=1.7,
                col=gray(seq(1, 0.1, l=100)), pt.siz="equal")
                # the function gray() works only for R
-points.geodata(s100, pt.sizes="quintile", xlab="Coord X",
+points(s100, pt.sizes="quintile", xlab="Coord X",
                ylab="Coord Y")
+par(op)
 }
 
 \keyword{spatial}

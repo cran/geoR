@@ -16,11 +16,7 @@
 
 \usage{
 varcov.spatial(coords = NULL, dists.lowertri = NULL,
-               cov.model = c("exponential", "matern", "gaussian",
-                      "spherical", "circular", "cubic", "wave",
-                      "powered.exponential", "cauchy", "gneiting",
-                      "gneiting.matern", "pure.nugget"),
-               kappa = NULL, nugget = 0,
+               cov.model = "matern", kappa = 0.5, nugget = 0,
                cov.pars = stop("no cov.pars argument"), 
                inv = FALSE, det = FALSE,
                func.inv = c("cholesky", "eigen", "svd", "solve"),
@@ -40,10 +36,11 @@ varcov.spatial(coords = NULL, dists.lowertri = NULL,
     the argument \code{coords} should be provided instead.}
   \item{cov.model}{a string indicating the type of the correlation
     function. More details in the
-    documentation for \code{\link{cov.spatial}}.  }
+    documentation for \code{\link{cov.spatial}}.
+    Defaults are equivalent to the \emph{exponential} model.  }
   \item{kappa}{values of the additional smoothness parameter, only required by
     the following correlation
-    functions: \code{"matern"}, \code{"powered.exponential"}, \code{"gneiting"} and
+    functions: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} and
     \code{"gneiting.matern"}.  }
   \item{nugget}{the value of the nugget parameter \eqn{\tau^2}{tau^2}.  }
   \item{cov.pars}{a vector with 2 elements or an \eqn{ns \times 2} matrix with

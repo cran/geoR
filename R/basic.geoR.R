@@ -1,11 +1,8 @@
 "grf" <-
   function(n, grid = "irreg",
            nx = round(sqrt(n)), ny = round(sqrt(n)),
-           nsim = 1, xlims = c(0, 1), ylims = c(0, 1),
-           cov.model = c("exponential", "matern",
-             "gaussian", "spherical", "circular", "cubic", "wave",
-             "powered.exponential", 
-             "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
+           xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
+           cov.model = "matern",
            cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
            method = c("cholesky", "svd", "eigen", "circular.embedding"),
@@ -16,7 +13,11 @@
   ##
   call.fc <- match.call()
   method <- match.arg(method)
-  cov.model <- match.arg(cov.model)
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   if(!is.null(kappa))
     if(cov.model == "matern" & kappa == 0.5) cov.model <- "exponential"
   rseed <- .Random.seed
@@ -186,7 +187,7 @@
   return(list(nst = cov.nst, nugget = cov.nugget, cov.structures = cov.message))
 }
 "grf.aux2" <-
-  function (xlim, ylim, step, cov.model, phi, kappa = NULL) 
+  function (xlim, ylim, step, cov.model, phi, kappa = 0.5) 
 {
   if(!is.null(kappa))
     if (cov.model == "matern" & kappa == 0.5) {
@@ -525,12 +526,14 @@ function(pars)
 ###  return(result, madtonormalQQ(normaltomad(params)),params)
   return(result)
 }
+
 "plot.variogram" <-
-  function (obj, max.dist = max(obj$u), scaled = FALSE,
+  function (obj, max.dist = max(obj$u), ylim = "default",
+            scaled = FALSE,
             var.lines = FALSE, envelope.obj = NULL,
-            bin.cloud = FALSE, ylim = "default", ...) 
+            bin.cloud = FALSE, type = NULL, ...) 
 {
-  if(!exists("type", envir=sys.frame(1))){
+  if(is.null(type)){
     if (obj$output.type == "bin") type <- "b"
     if (obj$output.type == "smooth") type <- "l"
     if (obj$output.type == "cloud") type <- "p"
@@ -718,282 +721,122 @@ function(pars)
   return(result)
 }
 
-"points.geodata" <- 
-  function(geodata, coords = geodata$coords, data = geodata$data, data.col = 1,
-           pt.sizes = c("data.proportional", "rank.proportional",
-             "quintiles", "quartiles", "deciles", "equal"),
-           cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
-           round.quantiles = FALSE, graph.pars = FALSE,  ...)
+"points.geodata" <-
+  function (geodata, coords = geodata$coords, data = geodata$data, 
+            data.col = 1, pt.sizes = c("data.proportional",
+                            "rank.proportional", "quintiles",
+                            "quartiles", "deciles", "equal"),
+            cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
+            round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
   pt.sizes <- match.arg(pt.sizes)
-  if(add.to.plot == FALSE) {
-    coords.lims <- apply(coords,2,range)
+  if (add.to.plot == FALSE) {
+    coords.lims <- apply(coords, 2, range)
     coords.diff <- diff(coords.lims)
-    if(coords.diff[1] != coords.diff[2]){
+    if (coords.diff[1] != coords.diff[2]) {
       coords.diff.diff <- abs(diff(as.vector(coords.diff)))
       ind.min <- which(coords.diff == min(coords.diff))
-      coords.lims[,ind.min] <- coords.lims[,ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
+      coords.lims[, ind.min] <- coords.lims[, ind.min] + 
+        c(-coords.diff.diff, coords.diff.diff)/2
     }
-    par(pty="s")
-    plot(apply(coords, 2, range), type = "n", xlim=coords.lims[,1], ylim=coords.lims[,2], ...)
+    par(pty = "s")
+    plot(apply(coords, 2, range), type = "n", xlim = coords.lims[, 
+                                                1], ylim = coords.lims[, 2], ...)
   }
-  if(missing(cex.min))
+  if (missing(cex.min)) 
     cex.min <- 0.5
-  if(missing(cex.max))
+  if (missing(cex.max)) 
     cex.max <- 1.5
-  if(is.matrix(data))
+  if (is.matrix(data)) 
     data <- as.vector(data[, data.col])
   graph.list <- list()
-  if(pt.sizes == "quintiles" | pt.sizes == "quartiles" | pt.sizes == "deciles") {
-    r.col <- rainbow(13)
-    if(pt.sizes == "quintiles") {
+  if (pt.sizes == "quintiles" | pt.sizes == "quartiles" | pt.sizes == 
+      "deciles") {
+    if (pt.sizes == "quintiles") {
       n.quant <- 5
-      if(missing(col.seq))
-        col.seq <- r.col[c(10,7,5,3,1)]
+      if (missing(col.seq)) 
+        col.seq <- c("blue", "green", "yellow", "orange3", "red2") 
     }
-    if(pt.sizes == "quartiles") {
+    if (pt.sizes == "quartiles") {
       n.quant <- 4
-      if(missing(col.seq))
-        col.seq <- r.col[c(10,5,3,1)]
+      if (missing(col.seq)) 
+        col.seq <- c("blue", "green", "yellow", "red") 
     }
-    if(pt.sizes == "deciles") {
+    if (pt.sizes == "deciles") {
       n.quant <- 10
-      if(missing(col.seq))
-        col.seq <- r.col[10:1]
+      if (missing(col.seq)) 
+        col.seq <- rainbow(13)[10:1]
     }
-    if(missing(pch.seq))
+    if (missing(pch.seq)) 
       pch.seq <- rep(21, n.quant)
     cex.pt <- seq(cex.min, cex.max, l = n.quant)
-    data.quantile <- quantile(data, probs = seq(0, 1, by = 
-                                      (1/n.quant)))
-    if (round.quantiles == TRUE){
+    data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
+    if (round.quantiles == TRUE) {
       data.quantile[1] <- floor(data.quantile[1])
-      data.quantile[n.quant+1] <- ceiling(data.quantile[n.quant+1])
+      data.quantile[n.quant + 1] <- ceiling(data.quantile[n.quant + 1])
       data.quantile <- round(data.quantile)
     }
     graph.list$quantiles <- data.quantile
     graph.list$cex <- cex.pt
     graph.list$col <- col.seq
     graph.list$pch <- pch.seq
-    data.quantile[1] <- 0.9 * data.quantile[1]
-    for(i in 1:n.quant){
-      if(add.to.plot)
-        points(coords[((data > data.quantile[i]) &
-                       (data <= data.quantile[i + 1])),  ],
-               pch = 21, cex = cex.pt[i], bg = col.seq[i], ...)
-      else
-        points(coords[((data > data.quantile[i]) &
-                       (data <= data.quantile[i + 1])),  ],
-               pch = 21, cex = cex.pt[i], bg = col.seq[i])
-    }
+    graph.list$data.group <- cut(data, breaks=data.quantile, include.l=T)
+    if (add.to.plot) 
+      points(coords, pch = 21, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
+    else
+      points(coords, pch = 21, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)])
   }
-  else{
-    if(missing(pch.seq))
+  else {
+    if (missing(pch.seq)) 
       pch.seq <- 21
-    if(missing(col.seq))
+    if (missing(col.seq)) 
       col.seq <- 0
-    n <- length(data)    
-    coords.order <- coords[order(data),  ]
+    n <- length(data)
+    coords.order <- coords[order(data), ]
     data.order <- data[order(data)]
-    if(pt.sizes == "rank.proportional") {
+    if (pt.sizes == "rank.proportional") {
       data.quantile <- range(data.order)
       pt.size <- seq(cex.min, cex.max, l = n)
       graph.list$cex <- range(pt.size)
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
-      if(length(col.seq) == 1) col.seq <- rep(col.seq, n)
-      for(i in 1:n){
-        if(add.to.plot)
-          points(coords.order[i,  , drop = FALSE], cex = pt.size[i], 
+      if (length(col.seq) == 1) 
+        col.seq <- rep(col.seq, n)
+      for (i in 1:n) {
+        if (add.to.plot) 
+          points(coords.order[i, , drop = FALSE], cex = pt.size[i], 
                  pch = pch.seq, bg = col.seq[i], ...)
-        else
-          points(coords.order[i,  , drop = FALSE], cex = pt.size[i], 
-                 pch = pch.seq, bg = col.seq[i])
+        else points(coords.order[i, , drop = FALSE], 
+                    cex = pt.size[i], pch = pch.seq, bg = col.seq[i])
       }
     }
-    if(pt.sizes == "data.proportional") {
+    if (pt.sizes == "data.proportional") {
       r.y <- range(data.order)
-      size <- cex.min + ((data.order - r.y[1]) * (cex.max - cex.min))/(r.y[2] - r.y[1])
+      size <- cex.min + ((data.order - r.y[1]) * (cex.max - 
+                                                  cex.min))/(r.y[2] - r.y[1])
       graph.list$cex <- c(cex.min, cex.max)
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
-      if(length(col.seq) == 1) col.seq <- rep(col.seq, n)
-      for(i in 1:n){
-        if(add.to.plot)
-          points(coords.order[i,  , drop = FALSE], cex = pt.size[i], 
-                 pch = pch.seq, bg = col.seq[i],	...)
-        else
-          points(coords.order[i,  , drop = FALSE], cex = size[i], 
-                 pch = pch.seq, bg = col.seq[i])
+      if (length(col.seq) == 1) 
+        col.seq <- rep(col.seq, n)
+      for (i in 1:n) {
+        if (add.to.plot) 
+          points(coords.order[i, , drop = FALSE], cex = pt.size[i], 
+                 pch = pch.seq, bg = col.seq[i], ...)
+        else points(coords.order[i, , drop = FALSE], 
+                    cex = size[i], pch = pch.seq, bg = col.seq[i])
       }
     }
-    if(pt.sizes == "equal"){
-      if(add.to.plot)
-        points(coords, pch = pch.seq, bg=col.seq, cex=cex.max, ...)
-      else
-        points(coords, pch = pch.seq, bg=col.seq, cex=cex.max)
+    if (pt.sizes == "equal") {
+      if (add.to.plot) 
+        points(coords, pch = pch.seq, bg = col.seq, cex = cex.max, 
+               ...)
+      else points(coords, pch = pch.seq, bg = col.seq, 
+                  cex = cex.max)
     }
   }
-  if (graph.pars == TRUE)
+  if (graph.pars == TRUE) 
     return(graph.list)
-  else
-    return(invisible())
-}
-
-"variog" <-
-  function(geodata, coords=geodata$coords, data=geodata$data, 
-           uvec = "default", trend = "cte", lambda = 1, 
-           option = c("bin", "cloud", "smooth"), 
-           estimator.type = c("classical", "modulus"), 
-           nugget.tolerance = 0, max.dist = NULL, pairs.min = 2, 
-           bin.cloud = FALSE, ...) 
-{
-  if(is.R()) require(mva)
-  if(is.R()) require(modreg)
-  ##
-  ## reading and checking input
-  ##
-  call.fc <- match.call()
-  coords <- as.matrix(coords)
-  data <- as.matrix(data)
-  data.var <- apply(data, 2, var)
-  n.data <- nrow(coords)
-  n.datasets <- ncol(data)
-  if(ncol(data) == 1)
-    data <- as.vector(data)
-  option <- match.arg(option)
-  ##
-  ## estimator type (allowing for the previous option "robust")
-  ##
-  if(estimator.type == "robust") estimator.type <- "modulus"
-  estimator.type <- match.arg(estimator.type)
-  if(estimator.type == "modulus") estimator.type <- "robust"
-  ##
-  ## Box-Cox transformation
-  ##
-  if (lambda != 1){
-    if (lambda == 0) data <- log(data)
-    else data <- ((data^lambda) - 1)/lambda
-  }
-  ##
-  ## Removing OLS trend
-  ##
-  xmat <- trend.spatial(trend=trend, coords=coords)
-  if(trend != "cte"){
-    if(is.vector(data)){
-      data <- lm(data ~ xmat + 0)$residuals
-      names(data) <- NULL
-    }
-    else{
-      only.res <- function(y, x){lm(y ~ x + 0)$residuals}
-      data <- apply(data,2,only.res, x=xmat)
-    }
-  }
-  u <- as.vector(dist(as.matrix(coords)))
-  ##
-  if(option == "bin" & bin.cloud == FALSE){
-    if(!is.null(max.dist))
-      umax <- max(u[u < max.dist])
-    else umax <- max(u)
-      if (all(uvec == "default")) 
-      uvec <- seq(0, umax, l = 15)
-    ubin <- c(0, uvec)
-    nvec <- length(ubin)
-    d <- 0.5 * diff(ubin[2:nvec])
-    bins.lim <- c(0, (ubin[2:(nvec - 1)] + d),(d[nvec - 2] + ubin[nvec]))
-    if (uvec[1] == 0 & nugget.tolerance == 0) 
-      uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-    if (nugget.tolerance > 0){
-      bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim > nugget.tolerance])
-      uvec <- c(0, (bins.lim[-(1:2)] - 0.5*diff(bins.lim)[-1]))
-    }
-    nbins <- length(bins.lim) - 1
-    if(is.null(max.dist)) max.dist <- max(bins.lim)
-    bin.f <- function(data){
-      cbin <- vbin <- sdbin <- rep(0,nbins)
-      result <- .C("binit",
-                   as.integer(n.data),
-                   as.double(as.vector(coords[,1])),
-                   as.double(as.vector(coords[,2])),
-                   as.double(as.vector(data)),
-                   as.integer(nbins),
-                   as.double(as.vector(bins.lim)),
-                   as.integer(estimator.type == "robust"),
-                   as.double(max.dist),
-                   cbin = as.integer(cbin),
-                   vbin = as.double(vbin),
-                   as.integer(TRUE),
-                   sdbin = as.double(sdbin)
-                   )[c("vbin", "cbin", "sdbin")]
-    }
-    result <- array(unlist(lapply(as.data.frame(data),bin.f)), dim=c(nbins, 3, n.datasets))
-    indp <- (result[,2,1] >= pairs.min)
-    result <- list(u = uvec[indp], v = result[indp,1,], n = result[indp,2,1],
-                   sd = result[indp,3,], bins.lim = bins.lim, ind.bin = indp)
-  }
-  else{
-    if (is.matrix(data)) {
-      v <- matrix(0, nrow = length(u), ncol = ncol(data))
-      for (i in 1:ncol(data)) {
-        v[, i] <- as.vector(dist(data[, i]))
-        if (estimator.type == "robust") 
-          v[, i] <- v[, i]^(0.5)
-        else v[, i] <- (v[, i]^2)/2
-      }
-      if (!is.null(max.dist)) {
-        v <- v[u <= max.dist, ]
-        u <- u[u <= max.dist]
-      }
-    }
-    else {
-      v <- as.vector(dist(data))
-      if (estimator.type == "robust") 
-        v <- v^(0.5)
-      else v <- (v^2)/2
-      if (is.numeric(max.dist)) {
-        v <- v[u <= max.dist]
-        u <- u[u <= max.dist]
-      }
-    }
-    if (option == "cloud") {
-      result <- list(u = u, v = v)
-    }
-    if (option == "bin") {
-      if(!is.null(max.dist))
-        umax <- max(u[u < max.dist])
-      else umax <- max(u)
-      result <- rfm.bin(cloud = list(u = u, v = v),
-                        estimator.type = estimator.type, 
-                        uvec = uvec, nugget.tolerance = nugget.tolerance, 
-                        bin.cloud = bin.cloud, max.dist = umax, ...)
-      indp <- rep(TRUE, length(u))
-      if (pairs.min > 0) {
-        indp <- (result$n >= pairs.min)
-        if (is.matrix(result$v)) {
-          result$v <- result$v[indp, ]
-          result$sd <- result$sd[indp, ]
-        }
-        else {
-          result$v <- result$v[indp]
-          result$sd <- result$sd[indp]
-        }
-        result$u <- result$u[indp]
-        result$n <- result$n[indp]
-      }
-      result$ind.bin <- indp
-    }
-    if (option == "smooth") {
-      if(is.R()) require(modreg)
-      if (is.matrix(v)) 
-        stop("smooth not yet available for several variables")
-      temp <- ksmooth(u, v, ...)
-      result <- list(u = temp[[1]], v = temp[[2]])
-    }
-  }
-  result <- c(result, list(var.mark = data.var, output.type = option,
-                           estimator.type = estimator.type, n.data = n.data,
-                           lambda = lambda, trend = trend, call = call.fc))
-  class(result) <- "variogram"
-  return(result)
+  else return(invisible())
 }
 

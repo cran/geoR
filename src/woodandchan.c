@@ -1,9 +1,12 @@
-#include "math.h" 
-#include "stdio.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <R.h>
 
 #define TWOPI 6.28318530717959
 
-fastfourier(data,nn,ndim,isign)
+
+void fastfourier(data,nn,ndim,isign)
    /* taken from the book
       Numerical Recipes in Pascal
       W.H. Press, B.P. Flannery, S.A, Teukolsky, W.T.Vetterling
@@ -149,7 +152,7 @@ double besselK1(double x)/* Press&Flannery&Teukolsky&Vetterling, pp 197ff */
 double besselK(long n, double x) /* Press et al, pp 197ff */
 /* returns the modified Bessel function K_n(x) for positive x, n >= 2 */
 { long j;  double bk, bkm, bkp, tox;
-  if (n < 0) {printf("Index nu less than 0 in besselK");return;} 
+  if (n < 0) error("Index nu less than 0 in besselK"); 
   else if (n==0) {return besselK0(x);} 
   else if (n==1) {return besselK1(x);}
   tox = 2.0/x;  bkm = besselK0(x);   bk  = besselK1(x);
@@ -157,7 +160,7 @@ double besselK(long n, double x) /* Press et al, pp 197ff */
   return bk;
 }
 
-besselKproc(n,x,K)
+void besselKproc(n,x,K)
    int *n; double *x,*K;
 {
    long nn;
@@ -203,7 +206,7 @@ double whittlematern(double x)
   return ans;
 }
 
-Xwhittlematern(x,nx,phi,nu)
+void Xwhittlematern(x,nx,phi,nu)
   double *x,*phi,*nu;
   long *nx;
 { long i,j; double ans,y;
@@ -262,7 +265,7 @@ double holeeffect(double x){
 /*           CIRCULANT EMBEDDING METHOD (1994) ALGORITHM             */
 /*  (it will always be refered to the paper of Wood & Chan 1994)     */
 /*********************************************************************/
-woodandchan(covnr,nn,ln,step,param,lparam,res, m)
+void woodandchan(covnr,nn,ln,step,param,lparam,res, m)
   /* covnr : the implemented covariance functions have numbers, see below
      nn    : vector of the number of points in each direction
      ln    : length(nn) == dimension of the randon field
@@ -287,24 +290,23 @@ woodandchan(covnr,nn,ln,step,param,lparam,res, m)
   double *step,*res,*param;
   int    *covnr,*nn, *ln, *m, *lparam;
 { 
-  int     dim, isign, i,j, mtot, maxm,*halfm, Ntot, k, kk, first,
+  int     dim, i,j, mtot, maxm,*halfm, Ntot, k, kk, first,
           positivedefinite,*cumm,*index,halfmtot,zeroORmiddle,
           lastnonzeroORmiddle,modtot,m0eq0;
-  double *c,*invn2,UU,VV,XX,YY,h,invsqrttwo,minuslogran,ran,ran2pi,
-         epsilon,invsqrtmtot;
+  double *c,*invn2,UU,VV,XX,YY,h,invsqrttwo, epsilon,invsqrtmtot;
   double (*cov)(double);
 
-  
+  mtot=0;
+  c=0;
+
   dim= *ln;    /* just renaming */
   switch (dim) {
     case 1 : maxm = 67108864; break;
     case 2 : maxm = 8192; break;
     case 3 : maxm = 256; break;
     case 4 : maxm = 64; break;
+    default: error("dim (%d) is too large", dim); return;
   }
-  ran = pow( (double) 2, (double) -31); /* factor to get a r.v in [0,1] */
-  minuslogran = -log(ran);
-  ran2pi = TWOPI * ran;
   invsqrttwo = 1/sqrt(2.0);
   epsilon = 1e-7;
   m0eq0 = m[0]==0;
@@ -363,7 +365,7 @@ woodandchan(covnr,nn,ln,step,param,lparam,res, m)
   while (!positivedefinite){
     cumm[0]=1; for(i=0;i<dim-1;i++){cumm[i+1]=cumm[i] * m[i];} 
     mtot=cumm[dim-1] * m[dim-1]; 
-printf("\n mtot=%d ",mtot);
+    Rprintf("\n mtot=%d ",mtot);
     /* meaning of following variable c, see eq. (3.8) */
     if ((c =(double*) malloc(2*sizeof(double) * mtot)) ==0){m[0]=0;return;}
     for (i=0;i<mtot;i++){ /* fill in c(h) column-wise*/
@@ -385,7 +387,7 @@ printf("\n mtot=%d ",mtot);
     while ((i<mtot)&&(positivedefinite=(c[2*i]>=0 && fabs(c[2*i+1])<epsilon)))
       {i++;}
     if (!positivedefinite) {
-      printf(" nonpos %d  %f %f  ",i,c[2*i],c[2*i+1]);
+      Rprintf(" nonpos %d  %f %f  ",i,c[2*i],c[2*i+1]);
       free(c);
       for (i=0;i<dim;i++) {
         m[i] <<= 1; 
@@ -399,6 +401,8 @@ printf("\n mtot=%d ",mtot);
   halfmtot =  mtot /2;
   for(i=0;i<dim;i++){index[i]=0;}
   modtot = cumm[dim-1] * (halfm[dim-1]+1); 
+
+  GetRNGstate();
 
   for (i=0; i<modtot; i++) { /* about half of the loop is clearly unnecessary, 
           as pairs of r.v. are created, see inequality * below; 
@@ -447,8 +451,8 @@ printf("\n mtot=%d ",mtot);
       if (zeroORmiddle){ /* step 2 of Prop. 3 */
         if (i<halfmtot) { 
         /* create two Gaussian random variables XX & YY  with variance 1/2 */ 
-          UU = sqrt(minuslogran-(log((double) random())));
-          VV = ((double) random()) * ran2pi;
+          UU = sqrt(-log(unif_rand()));
+          VV = unif_rand() * TWOPI;
           XX = UU * sin(VV);
           YY = UU * cos(VV);
           
@@ -457,8 +461,8 @@ printf("\n mtot=%d ",mtot);
           c[2*kk] = sqrt(c[2*kk]) * YY; c[2*kk+1]=0.0;
 	}
       } else { /* step 3 of Prop. 3 */
-        UU = sqrt(minuslogran-(log((double) random())));
-        VV = ((double) random()) * ran2pi;
+        UU = sqrt(-log(unif_rand()));
+        VV = unif_rand() * TWOPI;
         XX = UU * sin(VV);
         YY = UU * cos(VV);
         c[2*i+1]=c[2*i]=sqrt(c[2*i]); c[2*i]*=XX; c[2*i+1]*=YY;
@@ -468,6 +472,8 @@ printf("\n mtot=%d ",mtot);
     k=0; while((k<dim) && (++index[k]>=m[k])) {index[k++]=0;}
   }
 
+  PutRNGstate();
+  
   fastfourier(c,m,dim,-1);
 
   /* now we correct the result of the fastfourier transformation
@@ -481,7 +487,7 @@ printf("\n mtot=%d ",mtot);
     kk=0;for (k=0; k<dim; k++){kk+=cumm[k] * index[k];}
     res[i]=c[2*kk]*invsqrtmtot;
     if ((fabs(c[2*kk+1])>epsilon) && (first)){
-       printf("IMAGINARY PART <> 0"); first=0;}
+       Rprintf("IMAGINARY PART <> 0"); first=0;}
     k=0; while((k<dim) && (++index[k]>=nn[k])) {index[k++]=0;}
   }
   free(halfm); free(cumm); free(invn2); free(index); free(c);

@@ -1,7 +1,7 @@
 ".First.lib" <-
-  function(lib="~/.Rlibs/geoR/R/geoR", pkg="geoR")
+  function(lib, pkg)
 {
-  library.dynam("geoR.so", package=pkg, lib.loc=lib)
+  library.dynam("geoR", package = pkg, lib.loc = lib)  
   cat("\n")
   cat("------------------------------------------------\n")
   cat("geoR: a package for geostatistical analysis in R\n")

@@ -1,12 +1,12 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
-1) Implement directional variograms
-
-2) Create summary functions for:
+1) Create summary functions for:
 	proflik??
 	krige.bayes
 	others ???
+
+2) kappa estimation in  wlsfit and olsfit
 
 3) Initial search grid for  "wlsfit" and "olsfit"
 
@@ -20,4 +20,15 @@ Things to be done and/or checked in the package geoR
 
 8) Implement "glsfit"
 
+9) Check whether is possible to make a more extensive use of the QR 
+decomposition throughout the package, in particular in "varcov.spatial" and 
+the "likfit" functions.
+
+10) power model ?
+
+11) generalized covariances
+
+12) use function matplot for multiple plots in plot.variogram, plot.grf
+
+13) Pocket plots including moving windows 
 

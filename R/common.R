@@ -19,9 +19,9 @@
 
 "cov.spatial" <-
   function(obj, cov.model = c("exponential", "matern", "gaussian", "spherical",
-                  "circular", "cubic", "wave", "powered.exponential",
+                  "circular", "cubic", "wave", "power", "powered.exponential",
                   "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
-           kappa, cov.pars = stop("no cov.pars argument provided"))
+           cov.pars = stop("no cov.pars argument provided"), kappa)
 {
   ##
   ## checking/reading input
@@ -30,7 +30,7 @@
   if(cov.model == "matern" | cov.model == "powered.exponential" | 
      cov.model == "cauchy" | cov.model == "gneiting.matern"){
     if(missing(kappa))
-      stop("for matern, powered.exponential, cauchy, gneiting and gneiting.matern covariance functions the parameter kappa must be provided")
+      stop("for matern, powered.exponential, cauchy and gneiting.matern covariance functions the parameter kappa must be provided")
     if(cov.model == "gneiting.matern" & length(kappa) != 2)
       stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
     if((cov.model == "matern" | cov.model == "powered.exponential" | 
@@ -75,6 +75,7 @@
                                                3.5 * (obj.sc^5) -
                                                0.75 * (obj.sc^7))), 0)
                   },
+                  power = (obj)^phi,
                   powered.exponential = {
                     if(kappa > 2 | kappa <= 0)
                       stop("for power exponential correlation model the parameter kappa must be in the intervel (0,2]"
@@ -107,7 +108,7 @@
 
 "cor.number" <- 
   function(cov.model= c("exponential", "matern", "gaussian",
-             "spherical", "circular", "cubic", "wave",
+             "spherical", "circular", "cubic", "wave", "power",
              "powered.exponential", "cauchy", "gneiting",
              "gneiting.matern", "pure.nugget"))
 {
@@ -122,12 +123,13 @@
                       gaussian = as.integer(4),
                       wave = as.integer(5),
                       cubic = as.integer(6),
-                      powered.exponential = as.integer(7),
-                      cauchy = as.integer(8),
-                      gneiting = as.integer(9),
-                      circular = as.integer(10),
-                      matern = as.integer(11),
-                      gneiting.matern = as.integer(12),
+                      power = as.integer(7),
+                      powered.exponential = as.integer(8),
+                      cauchy = as.integer(9),
+                      gneiting = as.integer(10),
+                      circular = as.integer(11),
+                      matern = as.integer(12),
+                      gneiting.matern = as.integer(13),
                       stop("wrong or no specification of cov.model")
                       )
   return(cornumber)
@@ -137,6 +139,7 @@
   function(file, header = FALSE, coords.col= 1:2, data.col = 3,
            data.names = NULL, covar.col = NULL, covar.names = "header", ...)
 {
+  call.fc <- match.call()
   obj <- read.table(file = file, header = header, ...)
   if(covar.names == "header"){
     if(!is.null(covar.col)){
@@ -147,6 +150,7 @@
   }
   res <- as.geodata(obj = obj, coords.col = coords.col, data.col = data.col,
                     covar.col = covar.col, covar.names = covar.names)
+  res$call <- call.fc
   return(res)
 }
 
@@ -188,6 +192,9 @@
         names(res[[3]]) <- covar.names
     }
   }
+  require(mva)
+  if(min(dist(res$coords)) < 1e-12)
+    cat("WARNING: there are data at coincident locations, several geoR functions will not work\n") 
   class(res) <- "geodata"
   return(res)
 }
@@ -264,8 +271,6 @@ function (obj, max.dist = max(obj$u), type = "o", scaled = FALSE, ...)
 "lines.variomodel" <-
 function (obj, max.dist = obj$max.dist, n.points = 100, scaled = FALSE,...)
 {
-  if (scaled) 
-    obj$v <- obj$v/obj$var.mark
   if (is.null(max.dist)) 
     stop("argument max.dist needed for this object")
   if (obj$cov.model == "matern" | obj$cov.model == "powered.exponential" | 
@@ -276,6 +281,11 @@ function (obj, max.dist = obj$max.dist, n.points = 100, scaled = FALSE,...)
   if (is.vector(obj$cov.pars)) 
     sill.total <- obj$nugget + obj$cov.pars[1]
   else sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
+  if (scaled){
+    if(is.vector(obj$cov.model)) obj$cov.model[1] <-  obj$cov.model[1]/sill.total
+    else obj$cov.model[,1] <-  obj$cov.model[,1]/sill.total
+    sill.total <- 1
+  }
   if (obj$cov.pars[2] < 1e-12)
     gamma <- rep(sill.total, n.points)
   else
@@ -321,17 +331,19 @@ function(obj, sim.number = 1, ...)
 {
   coords <- as.matrix(coords)
   n <- nrow(coords)
-  rotation <- aniso.pars[1]
-  ratio <- aniso.pars[2]
-  if(ratio < 1){
-    ratio <- round(ratio, dig=8)
-    if(ratio < 1)
+  if(length(aniso.pars) != 2)
+    stop("argument aniso.pars must be a vector with 2 elementsm the anisotropy angle and anisotropy ratio, respectively")
+  psiA <- aniso.pars[1]
+  psiR <- aniso.pars[2]
+  if(psiR < 1){
+    psiR <- round(psiR, dig=8)
+    if(psiR < 1)
       stop("anisotropy ratio must be greater than 1")
   }
-  rm <- matrix(c(cos(rotation), -sin(rotation),
-                 sin(rotation), cos(rotation)),
+  rm <- matrix(c(cos(psiA), -sin(psiA),
+                 sin(psiA), cos(psiA)),
                ncol = 2)
-  tm <- diag(c(1, 1/ratio))
+  tm <- diag(c(1, 1/psiR))
   if(reverse)
     coords.mod <- coords %*% solve(rm %*% tm)
   else
@@ -642,304 +654,301 @@ function(obj, sim.number = 1, ...)
 }
 
 "varcov.spatial" <-
-  function(coords = NULL, dists.lowertri = NULL,
-           cov.model = c("exponential","matern", "gaussian", "spherical",
-             "circular", "cubic", "wave", "powered.exponential",
-             "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
-           kappa = NULL, nugget = 0, cov.pars = stop("no cov.pars argument"),
-           inv = FALSE, det = FALSE,
-           func.inv = c("cholesky", "eigen", "svd", "solve"),
-           scaled = FALSE, only.decomposition = FALSE, sqrt.inv = FALSE,
-           try.another.decomposition = TRUE, only.inv.lower.diag = FALSE)
+  function (coords = NULL, dists.lowertri = NULL, cov.model = "matern",
+            kappa = 0.5, nugget = 0, cov.pars = stop("no cov.pars argument"), 
+            inv = FALSE, det = FALSE,
+            func.inv = c("cholesky", "eigen", "svd", "solve"),
+            scaled = FALSE, only.decomposition = FALSE, 
+            sqrt.inv = FALSE, try.another.decomposition = TRUE,
+            only.inv.lower.diag = FALSE) 
 {
-  if(is.R()) require(mva)
+  if (is.R()) 
+    require(mva)
   func.inv <- match.arg(func.inv)
-  cov.model <- match.arg(cov.model)
-  if(only.inv.lower.diag) inv <- TRUE
-  if(is.null(coords) & is.null(dists.lowertri))
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
+  if (only.inv.lower.diag) 
+    inv <- TRUE
+  if (is.null(coords) & is.null(dists.lowertri)) 
     stop("one of the arguments, coords or dists.lowertri must be provided")
-  if(!is.null(coords) & !is.null(dists.lowertri))
+  if (!is.null(coords) & !is.null(dists.lowertri)) 
     stop("only ONE argument, either coords or dists.lowertri must be provided")
-  if(!is.null(coords))
+  if (!is.null(coords)) 
     n <- nrow(coords)
-  if(!is.null(dists.lowertri)){
+  if (!is.null(dists.lowertri)) {
     n <- as.integer(round(0.5 * (1 + sqrt(1 + 8 * length(dists.lowertri)))))
   }
   tausq <- nugget
-  if(is.vector(cov.pars)){
+  if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]
     phi <- cov.pars[2]
   }
-  else{
+  else {
     sigmasq <- cov.pars[, 1]
     phi <- cov.pars[, 2]
   }
-  if(!is.null(coords)) {
+##  print(c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa))
+  if (!is.null(coords)) {
     dists.lowertri <- as.vector(dist(coords))
   }
-  if(round(1e12*min(dists.lowertri)) == 0)
+  if (round(1e+12 * min(dists.lowertri)) == 0) 
     warning("Two or more pairs of data at coincident (or very close) locations. \nThis can cause matrices operations to crash!\n")
-  ##
-  ## Building the covariance matrix
-  ##
   varcov <- matrix(0, n, n)
-  if(scaled) {
-    if(all(phi < 1e-12))
-      varcov <- diag(x=(1 + (tausq/sum(sigmasq))),n)
-    else{
-      if(is.vector(cov.pars))
+  if (scaled) {
+    if (all(phi < 1e-12)) 
+      varcov <- diag(x = (1 + (tausq/sum(sigmasq))), n)
+    else {
+      if (is.vector(cov.pars)) 
         cov.pars.sc <- c(1, phi)
       else cov.pars.sc <- cbind(1, phi)
-      covvec <- cov.spatial(obj = dists.lowertri, cov.model = 
-                            cov.model, kappa = kappa, cov.pars = cov.pars.sc)
+      covvec <- cov.spatial(obj = dists.lowertri, cov.model = cov.model, 
+                            kappa = kappa, cov.pars = cov.pars.sc)
       varcov[lower.tri(varcov)] <- covvec
       varcov <- t(varcov)
       varcov[lower.tri(varcov)] <- covvec
-      if(is.R()){
-        remove("covvec")
-        ##gc(verbose=FALSE)
-      }
-      else remove("covvec", frame=sys.nframe())
+      if (is.R()) remove("covvec")
+      else remove("covvec", frame = sys.nframe())
       diag(varcov) <- 1 + (tausq/sum(sigmasq))
     }
   }
   else {
-    if(all(sigmasq < 1e-10) | all(phi < 1e-10)){
-      varcov <- diag(x=(tausq + sum(sigmasq)), n)
+    if (all(sigmasq < 1e-10) | all(phi < 1e-10)) {
+      varcov <- diag(x = (tausq + sum(sigmasq)), n)
     }
-    else{
-      covvec <- cov.spatial(obj = dists.lowertri, cov.model = 
-                            cov.model, kappa = kappa, cov.pars = cov.pars)
+    else {
+      covvec <- cov.spatial(obj = dists.lowertri, cov.model = cov.model, 
+                            kappa = kappa, cov.pars = cov.pars)
       varcov[lower.tri(varcov)] <- covvec
       varcov <- t(varcov)
       varcov[lower.tri(varcov)] <- covvec
-      if(is.R()){
-        remove("covvec")
-        ##gc(verbose=FALSE)
-      }
-      else remove("covvec", frame=sys.nframe())
+      if (is.R()) remove("covvec")
+      else remove("covvec", frame = sys.nframe())
       diag(varcov) <- tausq + sum(sigmasq)
     }
   }
-  ##
-  ## Computing decompositions, inverses and determinants
-  ## 
-  ##  if(test.decomp == TRUE & func.inv == "cholesky"){
-  ##    varcov.eig <- eigen(varcov, symmetric = TRUE, only.values = TRUE))
-  ##    if(any(varcov.eig$val < 1e-12)){
-  ##      ##      func.inv <- "eigen"
-  ##      diag(varcov) <- 1.0001 * diag(varcov)
-  ##    }
-  ##  }
-  if(inv | det | only.decomposition | sqrt.inv | only.inv.lower.diag) {
-    if(func.inv == "cholesky") {
+  if (inv | det | only.decomposition | sqrt.inv | only.inv.lower.diag) {
+    if (func.inv == "cholesky") {
+      options(show.error.messages = FALSE)
       varcov.sqrt <- try(chol(varcov))
-      if(!is.numeric(varcov.sqrt)){
-        if(try.another.decomposition) func.inv <- "eigen"
-        else{print(varcov.sqrt[1]);stop()}
+      options(show.error.messages = TRUE)
+      if (!is.numeric(varcov.sqrt)) {
+        if (try.another.decomposition) 
+          func.inv <- "eigen"
+        else {
+          print(varcov.sqrt[1])
+          stop()
+        }
       }
-      else{
-        if(only.decomposition | inv)
-          if(is.R()){remove("varcov")}
-          else remove("varcov", frame=sys.nframe())          
-        if(only.decomposition == FALSE) {
-          if(det)
+      else {
+        if (only.decomposition | inv) 
+          if (is.R()) remove("varcov")
+          else remove("varcov", frame = sys.nframe())
+        if (only.decomposition == FALSE) {
+          if (det) 
             cov.logdeth <- sum(log(diag(varcov.sqrt)))
-          if(sqrt.inv)
+          if (sqrt.inv) 
             inverse.sqrt <- solve(varcov.sqrt)
-          if(inv) {
-            if(is.R()){
+          if (inv) {
+            if (is.R()) {
               invcov <- chol2inv(varcov.sqrt)
-              if(!sqrt.inv) remove("varcov.sqrt")
-              ##  gc(verbose=FALSE)
+              if (!sqrt.inv)
+                remove("varcov.sqrt")
             }
-            else{
+            else {
               invcov.sqrt <- solve.upper(varcov.sqrt)
               invcov <- invcov.sqrt %*% t(invcov.sqrt)
-              if(!sqrt.inv) remove("varcov.sqrt", frame=sys.nframe())
+              if (!sqrt.inv) 
+                remove("varcov.sqrt", frame = sys.nframe())
             }
           }
         }
       }
     }
-    if(func.inv == "svd") {
+    if (func.inv == "svd") {
       varcov.svd <- svd(varcov, nv = 0)
+      options(show.error.messages = FALSE)
       cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))))
-      if(!is.numeric(cov.logdeth)){
-        if(try.another.decomposition) func.inv <- "eigen"
-        else{print(cov.logdeth[1]);stop()}
-      }
-      else{
-        if(only.decomposition | inv)
-          if(is.R()){remove("varcov")}
-          else remove("varcov", frame=sys.nframe())          
-        if(only.decomposition)
-          varcov.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$
-                                               u) * sqrt(varcov.svd$d)))
-        if(inv){
-          invcov <- t(varcov.svd$u %*% (t(varcov.svd$
-                                          u) * (1/varcov.svd$d)))
+      options(show.error.messages = TRUE)
+      if (is.numeric(cov.logdeth)) {
+        if (try.another.decomposition) 
+          func.inv <- "eigen"
+        else {
+          print(cov.logdeth[1])
+          stop()
         }
-        if(sqrt.inv)
-          inverse.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$
-                                                u) * (1/sqrt(varcov.svd$d))))
+      }
+      else {
+        if (only.decomposition | inv) 
+          if (is.R())  remove("varcov")
+          else remove("varcov", frame = sys.nframe())
+        if (only.decomposition) 
+          varcov.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
+                                             sqrt(varcov.svd$d)))
+        if (inv) {
+          invcov <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
+                                        (1/varcov.svd$d)))
+        }
+        if (sqrt.inv) 
+          inverse.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
+                                              (1/sqrt(varcov.svd$d))))
       }
     }
-    if(func.inv == "solve") {
-      if(det)
-        stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n"
-             )
+    if (func.inv == "solve") {
+      if (det) 
+        stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
+      options(show.error.messages = FALSE)
       invcov <- try(solve(varcov))
-      if(!is.numeric(cov.logdeth)){
-        if(try.another.decomposition) func.inv <- "eigen"
-        else{print(invcov[1]);stop()}
+      options(show.error.messages = TRUE)
+      if (is.numeric(cov.logdeth)) {
+        if (try.another.decomposition) 
+          func.inv <- "eigen"
+        else {
+          print(invcov[1])
+          stop()
+        }
       }
-      if(is.R()){remove("varcov")}
-      else remove("varcov", frame=sys.nframe())          
+      if (is.R()) remove("varcov")
+      else remove("varcov", frame = sys.nframe())
     }
-    if(func.inv == "eigen") {
-      ##      if(!exists("varcov.eig"))
-      varcov.eig <- eigen(varcov, symmetric = TRUE)
+    if (func.inv == "eigen") {
+      options(show.error.messages = FALSE)
+      varcov.eig <- try(eigen(varcov, symmetric = TRUE))
       cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
-      if(!is.numeric(cov.logdeth)){
+      options(show.error.messages = TRUE)
+      if (!is.numeric(cov.logdeth) | is.numeric(varcov.eig)) {
         diag(varcov) <- 1.0001 * diag(varcov)
-        varcov.eig <- eigen(varcov, symmetric = TRUE)
-        cov.logdeth <- sum(log(sqrt(varcov.eig$val)))
+        options(show.error.messages = FALSE)
+        varcov.eig <- try(eigen(varcov, symmetric = TRUE))
+        cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
+        options(show.error.messages = TRUE)
+        if (!is.numeric(cov.logdeth) | !is.numeric(varcov.eig)) {
+          return(list(crash.parms = c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa)))
+        }
       }
-      else{
-        if(only.decomposition | inv)
-          if(is.R()){remove("varcov")}
-          else remove("varcov", frame=sys.nframe())          
-        if(only.decomposition)
-          varcov.sqrt <- (varcov.eig$vec %*%
-                          diag(sqrt(varcov.eig$val)) %*%
+      else {
+        if (only.decomposition | inv) 
+          if (is.R()) remove("varcov")
+          else remove("varcov", frame = sys.nframe())
+        if (only.decomposition) 
+          varcov.sqrt <- (varcov.eig$vec %*% diag(sqrt(varcov.eig$val)) %*% 
                           t(varcov.eig$vec))
-        if(inv)
-          invcov <- (varcov.eig$vec %*% diag(1/varcov.eig$val) %*%
+        if (inv) 
+          invcov <- (varcov.eig$vec %*% diag(1/varcov.eig$val) %*% 
                      t(varcov.eig$vec))
-        if(sqrt.inv)
-          inverse.sqrt <- (varcov.eig$vec %*% diag(1/sqrt(varcov.eig$val)) %*%
+        if (sqrt.inv) 
+          inverse.sqrt <- (varcov.eig$vec %*% diag(1/sqrt(varcov.eig$val)) %*% 
                            t(varcov.eig$vec))
       }
     }
   }
-  ##
-  ## Preparing output
-  ##
-  if(only.decomposition == FALSE) {
-    if(det) {
-      if(inv) {
-	if(only.inv.lower.diag)
-	  result <- list(lower.inverse = invcov[
-                           lower.tri(invcov)], 
-			 diag.inverse = diag(invcov),
-			 log.det.to.half = cov.logdeth)
-        else result <- list(inverse = invcov, 
-                            log.det.to.half = cov.logdeth)
+  if (only.decomposition == FALSE) {
+    if (det) {
+      if (inv) {
+        if (only.inv.lower.diag) 
+          result <- list(lower.inverse = invcov[lower.tri(invcov)], 
+                         diag.inverse = diag(invcov), log.det.to.half = cov.logdeth)
+        else result <- list(inverse = invcov, log.det.to.half = cov.logdeth)
       }
       else {
-	result <- list(varcov = varcov, log.det.to.half
-		       = cov.logdeth)
+        result <- list(varcov = varcov, log.det.to.half = cov.logdeth)
       }
-      if(sqrt.inv)
-	result$sqrt.inverse <- inverse.sqrt
+      if (sqrt.inv) 
+        result$sqrt.inverse <- inverse.sqrt
     }
-    else{
-      if(inv){
-	if(only.inv.lower.diag)
-	  result <- list(lower.inverse = invcov[lower.tri(invcov)],
-			 diag.inverse = diag(invcov))
-        else{
-          if(sqrt.inv)
-            result <- list(inverse=invcov, sqrt.inverse = inverse.sqrt)
-          else
-            result <- list(inverse=invcov)
+    else {
+      if (inv) {
+        if (only.inv.lower.diag) 
+          result <- list(lower.inverse = invcov[lower.tri(invcov)], 
+                         diag.inverse = diag(invcov))
+        else {
+          if (sqrt.inv) 
+            result <- list(inverse = invcov, sqrt.inverse = inverse.sqrt)
+          else result <- list(inverse = invcov)
         }
       }
-      else
-	result <- list(varcov=varcov)
+      else result <- list(varcov = varcov)
     }
   }
-  else result <- list(sqrt.varcov=varcov.sqrt)
+  else result <- list(sqrt.varcov = varcov.sqrt)
+  result$crash.parms <- NULL
   return(result)
 }
 
 "plot.geodata" <-
-  function (geodata, coords = geodata$coords, data = geodata$data,
-            trend = "cte", lambda=1, col.data = 1, window.new = FALSE,
-            weights.divide = NULL, ...) 
+  function (geodata, coords = geodata$coords, data = geodata$data, 
+            trend = "cte", lambda = 1, col.data = 1,
+            weights.divide = NULL, window.new = FALSE, ...) 
 {
-  if(is.R()) par.ori <- par(no.readonly=TRUE)
+  if (is.R()) 
+    par.ori <- par(no.readonly = TRUE)
   else par.ori <- par()
   on.exit(par(par.ori))
   coords <- as.matrix(geodata$coords)
   data <- as.matrix(data)
   data <- data[, col.data]
-  if (window.new){
-    if(is.R()) X11()
+  if (window.new) {
+    if (is.R()) 
+      X11()
     else trellis.device()
   }
-  if (lambda != 1){
-    if(lambda == 0)
+  if (lambda != 1) {
+    if (lambda == 0) 
       data <- log(data)
-    else
-      data <- ((data^lambda)-1)/lambda
+    else data <- ((data^lambda) - 1)/lambda
   }
-  if(!is.null(weights.divide)){
-    if(length(weights.divide) != length(data))
+  if (!is.null(weights.divide)) {
+    if (length(weights.divide) != length(data)) 
       stop("length of weights.divide must be equals to the length of data")
     data <- data/weights.divide
   }
   par(mfrow = c(2, 2))
-  par(mar = c(4, 4, 0, .5))
+  par(mar = c(4, 4, 0, 0.5))
   data.quantile <- quantile(data)
-  coords.lims <- apply(coords,2,range)
+  coords.lims <- apply(coords, 2, range)
   coords.diff <- diff(coords.lims)
-  if(coords.diff[1] != coords.diff[2]){
+  if (coords.diff[1] != coords.diff[2]) {
     coords.diff.diff <- abs(diff(as.vector(coords.diff)))
     ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[,ind.min] <- coords.lims[,ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
+    coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
+                                                         coords.diff.diff)/2
   }
   par(pty = "s")
-  plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", xlim=coords.lims[,1], ylim=coords.lims[,2])
-  if(length(unique(data.quantile)) == length(data.quantile)) {
-    if(is.R()){
-      points(coords[(data <= data.quantile[2]), ], cex = 0.4, col = "blue")
-      points(coords[((data > data.quantile[2]) & (data <= data.quantile[3])), 
-                    ], cex = 0.6, col = "green")
-      points(coords[((data > data.quantile[3]) & (data <= data.quantile[4])), 
-                    ], cex = 0.9, col = "yellow")
-      points(coords[(data > data.quantile[4]), ], cex = 1.2, col = "red")
-    }
-    else{
-      points(coords[(data <= data.quantile[2]),  ], pch = 1, cex = 
-             0.59999999999999998, col = 2)
-      points(coords[((data > data.quantile[2]) & (data <= 
-                                                  data.quantile[3])),  ], pch = 2, cex = 
-             1.3999999999999999, col = 4)
-      points(coords[((data > data.quantile[3]) & (data <= 
-                                                  data.quantile[4])),  ], pch = 3, cex = 1.7, col = 7)
-      points(coords[(data > data.quantile[4]),  ], pch = 4, cex = 2,
-             col = 8)
-    }    
+  plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
+       xlim = coords.lims[, 1], ylim = coords.lims[, 2])
+  if (is.R()) {
+    data.cut <- cut(data, breaks=quantile(data), include.l=TRUE, labels=FALSE)
+#    points(coords, cex = c(0.4,0.6, 0.9, 1.2)[data.cut], pch=21, bg=c("blue", "green", "yellow2", "red")[data.cut])
+    points(coords, pch = (1:4)[data.cut], col=c("blue", "green", "yellow2", "red")[data.cut])
   }
   else {
-    points(coords, pch = 16)
+    points(coords[(data <= data.quantile[2]), ], pch = 1, 
+           cex = 0.6, col = 2)
+    points(coords[((data > data.quantile[2]) & (data <= 
+                                                data.quantile[3])), ], pch = 2, cex = 1.4, col = 4)
+    points(coords[((data > data.quantile[3]) & (data <= 
+                                                data.quantile[4])), ], pch = 3, cex = 1.7, col = 7)
+    points(coords[(data > data.quantile[4]), ], pch = 4, 
+           cex = 2, col = 8)
   }
   par(pty = "m")
-  if(is.R()) par(mar = c(4, 4, 1, 1))
+  if (is.R()) 
+    par(mar = c(4, 4, 1, 1))
   else par(mar = c(0, 1, 0, 0.5))
-###  plot(variog(coords=coords, data=data, trend=trend,...))
-  if(is.R()){
-    if(require(scatterplot3d) == FALSE){
+  if (is.R()) {
+    if (require(scatterplot3d) == FALSE) {
       hist(data)
       warning("plot.geodata: a 3d plot will be draw instead of the histogram if the package \"scatterplot3d\" is available")
     }
-    else
-      scatterplot3d(x=coords[,1], y=coords[,2], z=data, box=F, type="h", pch=16, xlab = "Coord X", ylab = "Coord Y",  ...)
+    else scatterplot3d(x = coords[, 1], y = coords[, 2], 
+                       z = data, box = F, type = "h", pch = 16, xlab = "Coord X", 
+                       ylab = "Coord Y", ...)
   }
   else xyzplot(coords = coords, data = data, ...)
-  if(!is.R()) par(mar = c(5, 5, 1, 0.5))
+  if (!is.R()) 
+    par(mar = c(5, 5, 1, 0.5))
   plot(coords[, 1], data, xlab = "Coord X", cex = 1)
   plot(coords[, 2], data, xlab = "Coord Y", cex = 1)
   return(invisible())
@@ -971,7 +980,7 @@ function(obj, sim.number = 1, ...)
 }  
 
 "summary.variomodel" <-
-  function(obj, ...)
+  function(obj)
 {
   summ.lik <- list()
   if(obj$method == "OLS")
@@ -998,6 +1007,8 @@ function(obj, sim.number = 1, ...)
 "print.summary.variomodel" <-
   function(obj, digits = "default", ...)
 {
+  if(class(obj) != "summary.variomodel")
+    stop("object is not of the class \"summary.variomodel\"")
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
   cat("Summary of the parameter estimation\n")
@@ -1020,8 +1031,8 @@ function(obj, sim.number = 1, ...)
   cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(obj$spatial.component[2], dig=digits)))
   if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
      obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern"){
-    cat(paste("\n      (fixed) extra parameter kappa = ", obj$spatial.component.extra))
-    if(obj$cov.model == "matern" & round((1e12 *kappa)  == 0.5))
+    cat(paste("\n      (fixed) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
+    if(obj$cov.model == "matern" & (round(obj$spatial.component.extra, digits = digits)  == 0.5))
       cat(" (exponential)")
   }
   cat("\n")
@@ -1029,7 +1040,7 @@ function(obj, sim.number = 1, ...)
   cat("\n")  
   cat("Parameter of the error component:")
   if(obj$fix.nugget)
-    cat(paste("\n      (fixed) nugget =", obj$nugget.component))
+    cat(paste("\n      (fixed) nugget =", round(obj$nugget.component, digits = digits)))
   else
     cat(paste("\n      (estimated) nugget = ", round(obj$nugget.component, dig=digits)))
   cat("\n")

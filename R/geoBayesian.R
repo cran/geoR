@@ -2,7 +2,7 @@
   function(geodata, coords=geodata$coords, data=geodata$data, locations = "no",
            model = model.control(
              trend.d = "cte", trend.l = "cte",
-             cov.model = "exponential",
+             cov.model = "matern",
              kappa = 0.5, aniso.pars = NULL, lambda = 1), 
            prior = prior.control(
              beta.prior = c("flat", "normal", "fixed"),
@@ -1391,16 +1391,17 @@ function(x, cutoff)
 
 "model.control" <-
   function(trend.d = "cte", trend.l = "cte",
-           cov.model = c("exponential", "matern", "gaussian",
-             "spherical", "circular", "cubic", "wave",
-             "powered.exponential", "cauchy", "gneiting",
-             "gneiting.matern", "pure.nugget"),
+           cov.model = "matern",
            kappa=0.5, aniso.pars=NULL, lambda=1) 
 {
-  cov.model <- match.arg(cov.model)
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   return(list(trend.d = trend.d, trend.l = trend.l,
-           cov.model = cov.model,
-           kappa=kappa, aniso.pars=aniso.pars, lambda=lambda))
+              cov.model = cov.model,
+              kappa=kappa, aniso.pars=aniso.pars, lambda=lambda))
 }
 
 "prior.control" <-

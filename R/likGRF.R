@@ -6,13 +6,11 @@
             fix.lambda = TRUE, lambda = 1, 
             fix.psiA = TRUE, psiA = 0, 
             fix.psiR = TRUE, psiR = 1, 
-            cov.model = c("matern", "exponential", "gaussian",
-              "spherical", "circular", "cubic", "wave",
-              "powered.exponential", "cauchy", "gneiting",
-              "gneiting.matern", "pure.nugget"),
+            cov.model = "matern",
             method = "ML",
             components = FALSE, nospatial = TRUE,
-            limits = likfit.limits(), messages.screen = TRUE, ...) 
+            limits = likfit.limits(), 
+            print.pars = FALSE, messages.screen = TRUE, ...) 
 {
   ##
   ## Checking input
@@ -20,14 +18,21 @@
   if(is.R()) require(mva)
   call.fc <- match.call()
   temp.list <- list()
+  temp.list$print.pars <- print.pars
   ##
-  cov.model <- match.arg(cov.model)
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   temp.list$cov.model <- cov.model
   ##
-  if (method == "REML" | method == "reml" | method == "rml") 
+  if(method == "REML" | method == "reml" | method == "rml") 
     method <- "RML"
   if(method == "ML" | method == "ml")
     method <- "ML"
+  if(method == "ML" & cov.model == "power")
+    stop("\n\"power\" model can only be used with method=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method <- method
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
     ini.cov.pars <- as.matrix(ini.cov.pars)
@@ -47,7 +52,7 @@
       cov.model <- "exponential"
   coords <- temp.list$coords <- as.matrix(coords)
   n <- temp.list$n <- length(data)
-  if ((2*n) != length(coords))
+  if((2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
   temp.list$xmat <- trend.spatial(trend=trend, coords=coords)
   beta.size <- temp.list$beta.size <- dim(temp.list$xmat)[2]
@@ -67,10 +72,12 @@
       return(loglik.GRF(coords=temp.list$coords, data=temp.list$z, cov.model=temp.list$cov.model, cov.pars=parms[1:2], nugget=parms["tausq"], kappa=parms["kappa"], lambda=parms["lambda"], psiR=parms["psiR"], psiA=parms["psiA"], trend= temp.list$trend, method=temp.list$method, compute.dists=F))
     }
     grid.lik <- apply(grid.ini, 1, temp.f, temp.list=temp.list)
-    ini.temp <- grid.ini[which(grid.lik == max(grid.lik)),]
+    ini.temp <- grid.ini[which(grid.lik == max(grid.lik)),, drop=FALSE]
+    if(is.R()) rownames(ini.temp) <- "initial.value"
     if(messages.screen){
       cat(" selected values:\n")
-      print(round(as.vector(ini.temp), dig=3))
+      print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
+      cat(paste("likelihood value:", max(grid.lik), "\n"))
     }
     names(ini.temp) <- NULL
     ini.cov.pars <- ini.temp[1:2]
@@ -191,7 +198,7 @@
   ip <- list(f.tausq = fix.nugget, f.kappa = fix.kappa, f.lambda = fix.lambda,
                   f.psiR = fix.psiR, f.psiA = fix.psiA)
   ##  
-  if (messages.screen == TRUE) {
+  if(messages.screen == TRUE) {
     cat("-----------------------------------------------------------------------\n")
     cat("likfit: Initialising likelihood maximisation using the function ")
     if(is.R()) cat("optim.\n") else cat("nlminb.\n")
@@ -418,9 +425,7 @@
   ##
   if(fix.psiR & fix.psiA){
     if(is.R()) remove(".likGRF.dists.vec", pos=1)
-    else{
-      remove(".likGRF.dists.vec", where=1)
-    }
+    else remove(".likGRF.dists.vec", where=1)
   }
   else{
     if(psiR != 1 | psiA != 0)
@@ -429,7 +434,8 @@
     range.dist <- range(.likGRF.dists.vec)
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
-    remove(".likGRF.dists.vec")
+    if(is.R()) remove(".likGRF.dists.vec")
+    else remove(".likGRF.dists.vec", frame=sys.nframe())
   }      
   if(is.R()) gc(verbose=FALSE)
   ##
@@ -506,7 +512,7 @@
                       beta.var = betahat.var,
                       lambda = lambda,
                       aniso.pars = c(psiA = psiA, psiR = psiR),
-                      method = method,
+                      method = method, trend = trend,
                       loglik = loglik.max,
                       npars = npars,
                       AIC = (loglik.max - npars),
@@ -575,7 +581,7 @@
   ## Computing residuals and predicted values
   ## (isolated components of the model)
   ##
-  if (components) {
+  if(components) {
     if(!fix.psiR & !fix.psiA)
       if(psiR != 1 | psiA != 0)
         coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
@@ -594,24 +600,31 @@
     s2.random <- (crossprod(res,invcov) %*% res)/(n - beta.size)
     s2 <- (crossprod(residual.comp,invcov) %*% residual.comp)/(n - beta.size)
   }
-  if (length(lik.results$beta.var) == 1)
+  ##
+  ## Assigning names to the components of the mean vector beta
+  ##
+  if(length(lik.results$beta.var) == 1)
     lik.results$beta.var <- as.vector(lik.results$beta.var)
-  if (length(lik.results$beta) > 1){
+  if(length(lik.results$beta) > 1){
     if(inherits(trend, "formula"))
       beta.names <- c("intercept", paste("covar", 1:(ncol(temp.list$xmat)-1), sep = ""))
     else
-      if (trend == "1st")
+      if(trend == "1st")
         beta.names <- c("intercept", "x", "y")
       else
-        if (trend == "2nd")
+        if(trend == "2nd")
           beta.names <- c("intercept", "x", "y", "x2", "xy", "y2")
     names(lik.results$beta) <- beta.names
   }
-  if (components) {
+  ##
+  ## including residuals in the output
+  ##
+  if(components) {
     lik.results$model.components <- data.frame(trend = trend.comp, spatial = spatial.comp, residuals = residual.comp)
     lik.results$s2 <- s2
     lik.results$s2.random <- s2.random
   }
+  ##
   lik.results$call <- call.fc
   ##
   ## Assigning classes
@@ -890,10 +903,18 @@
     psiA <- pars[6]
   }
   ##
+  if(temp.list$print.pars){
+    running.pars <- c(sigmasq, phi, tausq, kappa, psiA, psiR, lambda)
+    names(running.pars) <- c("sigmasq", "phi", "tausq", "kappa", "psiA", "psiR", "lambda")
+    print(running.pars)
+  }
+  ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(1e+32)
-  if(round(1e+16*(tausq+sigmasq)) == 0) return(1e+32)
+  if(kappa < 1e-04) return(.Machine$double.xmax/10000)
+  if(round(1e+16*(tausq+sigmasq)) == 0) return(.Machine$double.xmax/10000)
+#  if(kappa < 1e-04) return(1e64)
+#  if(round(1e+16*(tausq+sigmasq)) == 0) return(1e64)
   ##
   ## Anisotropy
   ##
@@ -943,6 +964,7 @@
                          nugget = tausq, cov.pars=c(sigmasq, phi),
                          sqrt.inv = TRUE, det = TRUE)
   }
+  if(!is.null(iv$crash.parms)) return(.Machine$double.xmax/10000)
   sivx <- crossprod(iv$sqrt.inverse, temp.list$xmat)
   xivx <- crossprod(sivx)
   sivy <- crossprod(iv$sqrt.inverse, data)
@@ -970,7 +992,10 @@
       negloglik <- ((n-p)/2) * log(ssres) +  iv$log.det.to.half +
         choldet - log.jacobian
   }
-  if(negloglik > 1e+32) negloglik <- 1e32
+  
+#  if(negloglik > 1e64) negloglik <- 1e64
+  if(negloglik > (.Machine$double.xmax/10000)) negloglik <- (.Machine$double.xmax/10000)
+  if(temp.list$print.pars) cat(paste("negloglik.value =", negloglik, "\n"))
   return(negloglik)
 }
 
@@ -1101,6 +1126,8 @@
 "print.summary.likGRF" <-
   function(obj, digits = "default", ...)
 {
+  if(class(obj) != "summary.likGRF")
+    stop("object is not of the class \"summary.likGRF\"")
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
   cat("Summary of the parameter estimation\n")
@@ -1128,7 +1155,7 @@
       cat(paste("\n      (estimated) extra parameter kappa =", round(kappa, digits=digits)))
     else{
       cat(paste("\n      (fixed) extra parameter kappa = ", kappa))
-      if(obj$cov.model == "matern" & round((1e12 *kappa)  == 0.5))
+      if(obj$cov.model == "matern" & (round(kappa, digits=digits)  == 0.5))
       cat(" (exponential)")
     }
   }
@@ -1184,7 +1211,7 @@
 "loglik.GRF" <-
   function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method="ML", compute.dists=T)
 {
-  if (method == "REML" | method == "reml" | method == "rml") 
+  if(method == "REML" | method == "reml" | method == "rml") 
     method <- "RML"
   if(method == "ML" | method == "ml")
     method <- "ML"
@@ -1197,8 +1224,10 @@
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(1e+32)
-  if(round(1e+16*(nugget+sigmasq)) == 0) return(1e+32)
+  if(kappa < 1e-04) return(-(.Machine$double.xmax/10000))
+  if(round(1e+16*(nugget+sigmasq)) == 0) return(-(.Machine$double.xmax/10000))
+#  if(kappa < 1e-04) return(-1e64)
+#  if(round(1e+16*(nugget+sigmasq)) == 0) return(-1e64)
   ##
   ## Anisotropy
   ##
@@ -1242,6 +1271,11 @@
                          nugget = nugget, cov.pars=c(sigmasq, phi),
                          sqrt.inv = TRUE, det = TRUE)
   }
+  if(!is.null(iv$crash.parms)){
+    cat("varcov.spatial: improper matrix for following the given parameters:")
+    print(iv$crash.parms)
+    stop()
+  }
   sivx <- crossprod(iv$sqrt.inverse, xmat)
   xivx <- crossprod(sivx)
   sivy <- crossprod(iv$sqrt.inverse, data)
@@ -1264,7 +1298,7 @@
     xx.eigen <- eigen(crossprod(xmat), symmetric = TRUE, only.values = TRUE)
     negloglik <- negloglik + ((n-beta.size)/2)*(log(2*pi)) - 0.5 * sum(log(xx.eigen$values))
   }
-  if(negloglik > 1e+32) negloglik <- 1e32
+  if(negloglik > .Machine$double.xmax/10000) negloglik <- (.Machine$double.xmax/10000)
   return(-negloglik)
 }
 

@@ -17,7 +17,7 @@
 \usage{
 cov.spatial(obj, cov.model=c("exponential", "matern", "gaussian",
             "spherical", "circular", "cubic", "wave",
-            "powered.exponential", "cauchy", 
+            "power", "powered.exponential", "cauchy", 
             "gneiting", "gneiting.matern", "pure.nugget"),
             cov.pars=stop("no cov.pars argument provided"), kappa)
 }
@@ -44,7 +44,7 @@ cov.spatial(obj, cov.model=c("exponential", "matern", "gaussian",
     correlation function.
     Only required by the following correlation
     functions: \code{"matern"}, \code{"powered.exponential"},
-    \code{"gneiting"} and \code{"gneiting.matern"}.  }
+    \code{"cauchy"} and \code{"gneiting.matern"}.  }
 }
 
 
@@ -125,6 +125,13 @@ cov.spatial(obj, cov.model=c("exponential", "matern", "gaussian",
     3.5 * ((h/phi)^5) - 0.75 * ((h/phi)^7) if h < phi
     , 0  otherwise}
 
+  
+  \bold{power}\cr
+  For the power model the parameters \eqn{\sigma^2}{sigma^2} and
+  \eqn{\phi}{phi} of the covariance function will no longer
+  have the interpretation as \emph{partial sill} and \emph{range}
+  as for the other models.
+  \deqn{\rho(h) = {h}^{\phi}}{h^phi} 
   
   \bold{powered.exponential}\cr
   \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^\kappa] \mbox{ , } 0 < \kappa
@@ -230,9 +237,8 @@ expression(paste(kappa == 1, "  and  ", phi == 0.188)),
 expression(paste(kappa == 2, "  and  ", phi == 0.140)),
 expression(paste(kappa == 3, "  and  ", phi == 0.117))),
 lty=c(2,1,2,1), lwd=c(1,1,2,2))
-
+#
 }
-
 
 \keyword{spatial}%-- one or more ...
 

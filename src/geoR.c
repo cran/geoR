@@ -6,9 +6,11 @@
   #include "iostream.h"
 */
 
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h> /* for malloc & free */
 #include "memory.h"
-#include "math.h" 
+#include <math.h> 
+#include <R.h>
 
 #define Integer long
 #define Real double
@@ -131,6 +133,32 @@ void loccoords(Real *xloc, Real *yloc, Real *xcoord, Real *ycoord,
       dx = (xloc[j] - xcoord[i]) ;
       dy = (yloc[j] - ycoord[i]) ;
       res[ind++] = sqrt(dx*dx + dy*dy) ;
+    }
+  }
+  
+}
+
+void tgangle(Real *xloc, Real *yloc, Integer *nl, Real *res) 
+     /* This function computes the tangent of the (azimuth) 
+        angle between pairs of locations
+	
+        xloc, yloc     : xy coordinates of the locations
+	nl,            : number of locations
+	res            : stores the results to be returned, 
+	                 a vector with tangent of the angles
+     */   
+     
+{ 
+  Integer register i,j, ind;
+  Real register dx,dy;
+  
+  ind = 0;
+  for (j=0; j<*nl; j++) {  
+    for (i=j+1; i<*nl; i++) {
+      dx = (xloc[i] - xloc[j]) ;
+      dy = (yloc[i] - yloc[j]) ;
+      res[ind] = dx/dy ;
+      ind++ ;
     }
   }
   
@@ -353,7 +381,7 @@ void lower_R0minusXAXplusBvar(Real *lower, Real *diag, Real *xvec,
 	      Computing lower triangle (including diagonal) of (R0 - XAX + bBb)
 	      
 	      indpos = (nxcol * l - (l * (l+1)/2) + k) ;
-	      printf("\n indpos=%d ", indpos);
+	      Rprintf("\n indpos=%d ", indpos);
       */
       
       if (k > l){
@@ -399,7 +427,7 @@ void chol(Real *inmatrix, Integer N)
       }
       if (Drow == Dcol) {
 	if (sum<=0.0) {
-	  printf("%s%l%s%e%s", "chol: matrix not pos def, diag[" , Drow , "]= " , sum , "\n");
+	  error("%s%ld%s%e", "chol: matrix not pos def, diag[" , Drow , "]= " , sum);
 	  return;
 	}
 	Pcol[Drow]=sqrt(sum);
@@ -407,7 +435,7 @@ void chol(Real *inmatrix, Integer N)
     }
   }
   /* 
-     at this point the diagonal and lower traingle of inmatrix
+     at this point the diagonal and lower triangle of inmatrix
      contain the cholesky decomp 
   */
 
@@ -508,12 +536,13 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
 	 4: GAUSSIAN
 	 5: WAVE (hole effect)
 	 6: CUBIC
-	 7: POWERED EXPONENTIAL
-	 8: CAUCHY
-	 9: GNEITING
-	10: CIRCULAR
-	11: MATERN (NOT YET IMPLEMENTED)
-	12: GNEITING-MATERN (NOT YET IMPLEMENTED)
+	 7: POWER
+	 8: POWERED EXPONENTIAL
+	 9: CAUCHY
+	10: GNEITING
+	11: CIRCULAR
+	12: MATERN (NOT YET IMPLEMENTED)
+	13: GNEITING-MATERN (NOT YET IMPLEMENTED)
 
 	WARNING: codes above must be the same as in the geoR/geoS function
                  "cor.number"
@@ -531,7 +560,7 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
 
 #define TWOPI 6.28318530717959
 
-  Integer register i,j, ind, nh;
+  Integer register i,j, ind;
   Real register dx,dy;
   Real h, hphi, hphi2, hphi4;
   
@@ -593,18 +622,23 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
 		  res[ind] = 0 ;
 		break;
 		
-		/* powered.exponential */
+		/* power             */
 	      case 7:
+		res[ind] = exp(*phi * log(h)) ;
+		break;
+		
+		/* powered.exponential */
+	      case 8:
 		res[ind] = exp(-1 *  pow(hphi, *kappa))  ;
 		break;
 		
 		/* cauchy */
-	      case 8:
+	      case 9:
 		res[ind] = pow((1 + (hphi * hphi)), (-1 * *kappa)) ;
 		break;
 		
 		/* gneiting */
-	      case 9:
+	      case 10:
 		hphi4 = 1 - hphi;
 		if (hphi4 > 0) hphi4 = pow(hphi4, 8);
 		else hphi4 = 0 ;
@@ -613,7 +647,7 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
 		break;
 		
 		/* circular (NOT IMPLEMENTED: CHECK asin) */
-	      case 10:
+	      case 11:
 		if(h < *phi){
 		  res[ind] =  1 - (2 * (hphi * sqrt(1 - hphi * hphi)
 					+ asin(hphi)))/(TWOPI/2) ;
@@ -644,3 +678,4 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
   }
   
 }
+

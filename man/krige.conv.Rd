@@ -96,7 +96,7 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
     values of \eqn{\sigma^2}{sigma^2} 
     are in the first column and the values of \eqn{\phi}{phi} are in the second.  }
     \item{kappa}{additional smoothness parameter required by the following correlation
-      functions: \code{"matern"}, \code{"powered.exponential"}, \code{"gneiting"} and
+      functions: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} and
       \code{"gneiting.matern"}.   }
     \item{nugget}{the value of the nugget variance parameter \eqn{\tau^2}{tau^2}. Defaults to zero.  }
     \item{micro.scale}{micro-scale variance. If different from zero, the

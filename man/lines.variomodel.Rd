@@ -15,7 +15,8 @@
 
 
 \usage{
-lines.variomodel(obj, max.dist = obj$max.dist, length = 100, ...)
+lines.variomodel(obj, max.dist = obj$max.dist,
+                 n.points = 100, scaled = FALSE,...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -26,8 +27,10 @@ lines.variomodel(obj, max.dist = obj$max.dist, length = 100, ...)
   \item{max.dist}{maximum distance (x-axis) to compute and draw the line
     representing the  variogram model.
     The default is the distance given by \code{obj$max.dist}.  }
-  \item{length}{number of points between \code{0} and \code{max.dist} to
+  \item{n.points}{number of points between \code{0} and \code{max.dist} to
     compute the values of the variogram model.  }
+  \item{scaled}{logical. If \code{TRUE} the total sill in the plot is
+    equals to \eqn{1}.  }
   \item{\dots}{arguments to be passed to the function
     \code{\link{lines}}.  }
 }
@@ -67,7 +70,7 @@ vario <- variog(sim)
 # computes empirical variogram
 plot(vario)
 # plots the empirical variogram
-vario.wls <- wlsfit(vario, ini=c(1, .3), fix.nugget = T)
+vario.wls <- wlsfit(vario, ini=c(1, .3), fix.nugget = TRUE)
 # estimate parameters
 lines(vario.wls)
 # adds fitted model to the plot  

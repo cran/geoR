@@ -19,10 +19,7 @@
 \usage{
 ksline(geodata, coords = geodata$coords, data = geodata$data,
        locations,
-       cov.model = c("exponential", "matern", "gaussian",
-                   "spherical", "circular", "cubic", "wave",
-                   "powered.exponential", "cauchy", "gneiting",
-                   "gneiting.matern", "pure.nugget"),
+       cov.model = "matern",
        cov.pars=stop("cov. parameters (sigmasq and phi) needed"),
        kappa = 0.5, nugget = 0, micro.scale = 0,
        lambda = 1, m0 = "ok", nwin = "full",
@@ -64,11 +61,12 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
   \item{cov.model}{string indicating the name of the model for the
     correlation function. Further details  in the
     documentation for
-    \code{\link{cov.spatial}}.  }
+    \code{\link{cov.spatial}}.  
+    Defaults are equivalent to the \emph{exponential} model.  }
   \item{kappa}{additional smoothness parameter required by the following correlation
     functions: \code{"matern"}, 
     \code{"powered.exponential"},  
-    \code{"gneiting"}  and  
+    \code{"cauchy"}  and  
      \code{ "gneiting.matern"}.   }
   \item{lambda}{numeric value of the Box-Cox transformation parameter.
     The value \eqn{\lambda = 1}{lambda = 1} corresponds to

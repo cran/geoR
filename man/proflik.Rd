@@ -174,8 +174,9 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
   the minimization functions.  }
 
 \examples{
+op <- par(no.readonly=TRUE)
 if(is.R()) data(s100)
-ml <- likfit(s100, ini=c(.5, .5), fix.nug=T)
+ml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE)
 # a first atempt to find reasonable values for the x-axis:
 prof <- proflik(ml, s100, sill.values=seq(0.5, 1.5, l=4),
                 range.val=seq(0.1, .5, l=4))
@@ -183,12 +184,12 @@ par(mfrow=c(1,2))
 plot(prof)
 # a nicer setting and now including 2-D profiles:
 \dontrun{
-prof <- proflik(ml, s100, sill.values=seq(0.45, 2, l=16),
-                range.val=seq(0.1, .55, l=16), uni.only=F)
+prof <- proflik(ml, s100, sill.values=seq(0.45, 2, l=11),
+                range.val=seq(0.1, .55, l=11), uni.only=F)
 par(mfrow=c(2,2))
 plot(prof, nlevels=16)
 }
-par(mfrow=c(1,1))
+par(op)
 
 }
 

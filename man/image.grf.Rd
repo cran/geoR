@@ -57,11 +57,14 @@ persp.grf(obj, sim.number = 1, ...)
 \examples{
 # generating 4 simulations of a Gaussian random field
 sim <- grf(225, grid="reg", cov.pars=c(1, .25), nsim=4)
-par.ori <- par()
+op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
+par(mar=c(3,3,1,1))
+par(mgp = c(2,1,0))
 par(pty="s")
 for (i in 1:4)
   image.grf(sim, sim.n=i)
+par(op)
 }
 
 

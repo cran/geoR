@@ -20,7 +20,9 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
        option = c("bin", "cloud", "smooth"), 
        estimator.type = c("classical", "modulus"), 
        nugget.tolerance = 0, max.dist = NULL, pairs.min = 2, 
-       bin.cloud = FALSE, ...) 
+       bin.cloud = FALSE, direction = "omnidirectional",
+       tolerance = pi/8, unit.angle = c("radians", "degrees"),
+       messages.screen = TRUE, ...) 
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -78,6 +80,18 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{bin.cloud}{logical. If \code{TRUE} and
     \code{option = "bin"} the cloud values for each class are
     included in the output. Defaults to \code{FALSE}.  }
+  \item{direction}{a numerical value for the directional (azimuth) angle. This
+    used to specify directional variograms. Default defines the
+    omnidirectional variogram. The value must be in the interval
+    \eqn{[0, 180]} degrees.  }
+  \item{tolerance}{numerical value for the tolerance angle, when
+    computing directional variograms. The value must be in the interval
+    \eqn{[0, 90]} degrees.  }
+  \item{unit.angle}{defines the unit for the specification of angles in
+    the two previous arguments. Options are \code{"degrees"} and \code{"radians"}. }
+  \item{messages.screen}{logical. Indicates whether
+    status messages should be printed on the screen (or output device)
+    while the function is running.  }
   \item{\dots}{arguments to be passed to the function \code{\link{ksmooth}}, if
     \code{option = "smooth"}.  }
 }
@@ -109,7 +123,9 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{var.mark }{variance of the data.  }
   \item{output.type }{echoes the \code{option} argument.  }
   \item{estimator.type }{echoes the type of estimator used.  }
-  \item{n.data }{number of data points.  }
+  \item{direction }{direction for which the variogram was computed.  }
+  \item{tolerance }{tolerance angle for directional variogram.  }
+  \item{uvec }{lags provided in the function call.  }
   \item{call }{the function call.  }
   
 }
@@ -125,7 +141,9 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
-\seealso{\code{\link{variog.model.env}} and \code{\link{variog.mc.env}} for
+\seealso{\code{\link{variog4}} for more on computation of
+  directional variograms, 
+  \code{\link{variog.model.env}} and \code{\link{variog.mc.env}} for
   variogram envelopes,
   \code{\link{olsfit}} and \code{\link{wlsfit}} for variogram based
   parameter estimation and
@@ -135,26 +153,32 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
 \examples{
 # Loading data:
 if(is.R()) data(s100)
-
-# computing variogram:
+#
+# computing variograms:
 #
 # binned variogram
 vario.b <- variog(s100, max.dist=1)
 # variogram cloud
 vario.c <- variog(s100, max.dist=1, op="cloud")
 #binned variogram and stores the cloud
-vario.bc <- variog(s100, max.dist=1, bin.cloud=T)
+vario.bc <- variog(s100, max.dist=1, bin.cloud=TRUE)
 # smoothed variogram
 vario.s <- variog(s100, max.dist=1, op="sm", band=0.2)
-
-
+#
+#
 # plotting the variograms:
 par(mfrow=c(2,2))
 plot(vario.b, main="binned variogram") 
 plot(vario.c, main="variogram cloud")
-plot(vario.bc, bin.cloud=T, main="clouds for binned variogram")  
+plot(vario.bc, bin.cloud=TRUE, main="clouds for binned variogram")  
 plot(vario.s, main="smoothed variogram") 
 
+# computing a directional variogram
+vario.0 <- variog(s100, max.dist=1, dir=0, tol=pi/8)
+plot(vario.b, type="l", lty=2)
+lines(vario.0)
+legend(0, 1.2, legend=c("omnidirectional", expression(0 * degree)), lty=c(2,1))
+#
 }
 
 \keyword{spatial}

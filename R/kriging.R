@@ -1,9 +1,6 @@
 "ksline" <-
   function (geodata, coords=geodata$coords, data=geodata$data, locations,
-            cov.model = c("exponential", "matern", "gaussian", 
-              "spherical", "circular", "cubic", "wave",
-              "powered.exponential", "cauchy", 
-              "gneiting", "gneiting.matern", "pure.nugget"),
+            cov.model = "matern",
             cov.pars = stop("covariance parameters (sigmasq and phi) needed"), 
             kappa = 0.5, nugget = 0, micro.scale = 0,
             lambda = 1, m0 = "ok", nwin = "full", 
@@ -14,6 +11,11 @@
 {
   require(mva)
   call.fc <- match.call()
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   if(lambda != 1) {
     if(messages.screen)
       cat("ksline: Data transformation (Box-Cox) performed.\n")
@@ -21,7 +23,6 @@
       data <- log(data)
     else data <- ((data^lambda) - 1)/lambda
   }
-  cov.model <- match.arg(cov.model)
   coords <- as.matrix(coords)
   locations <- as.matrix(locations)
   dimnames(coords) <- list(NULL, NULL)
@@ -1018,17 +1019,18 @@
 "krige.control" <-
   function (type.krige = "ok", beta = NULL,  
             trend.d = "cte", trend.l = "cte",
-            cov.model = c("exponential", "matern", "gaussian",
-              "spherical", "circular", "cubic", "wave",
-              "powered.exponential", "cauchy", "gneiting",
-              "gneiting.matern", "pure.nugget"),
+            cov.model = "matern",
             cov.pars = stop("covariance parameters (sigmasq and phi) should be provided"), kappa = 0.5,
             nugget = 0, micro.scale = 0, dist.epsilon = 1e-10, 
             aniso.pars = NULL, lambda = 1, 
             signal = FALSE,
             n.samples.backtransform = 500, n.sim = 0)
 {
-  cov.model <- match.arg(cov.model)
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   return(list(type.krige = type.krige, beta = beta,
               trend.d = trend.d, trend.l = trend.l, 
               cov.model = cov.model, 

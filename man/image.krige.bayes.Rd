@@ -17,7 +17,7 @@ image.krige.bayes(obj, locations,
            values.to.plot=c("moments.mean", "moments.variance",
                       "mean.simulations", "variance.simulations",
                       "quantiles", "probability", "simulation"),
-           number.col, ...)
+           number.col, coords.data, ...)
 
 
 persp.krige.bayes(obj, locations,
@@ -28,9 +28,8 @@ persp.krige.bayes(obj, locations,
 }
 
 \arguments{
-  \item{obj}{an object of the class \code{krige.bayes}, typically an output
-    of the function
-    \code{\link{krige.bayes}}.  }
+  \item{obj}{an object of the class \code{krige.bayes}, typically an
+    output of the function \code{\link{krige.bayes}}.  }
   \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates of the prediction locations, which should define a
     regular grid
@@ -38,15 +37,15 @@ persp.krige.bayes(obj, locations,
   \item{values.to.plot}{select the element of the predictive
     distribution to be plotted. See DETAILS below.}
   \item{number.col}{Specifies the number of the column to be plotted.
-    Only used if \code{values.to.plot} is set to one of \code{"quantile"}, 
-      \code{"probability"}  or \code{"simulation"}.  }
-    \item{coords.data}{optional. If an \eqn{n \times 2}{n x 2}
-      matrix with the data coordinates is
+    Only used if previous argument is set to one of \code{"quantile"}, 
+    \code{"probability"}  or \code{"simulation"}.  }
+  \item{coords.data}{optional. If an \eqn{n \times 2}{n x 2}
+    matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
   \item{\dots}{extra arguments to be passed to the plotting function
     \code{\link{image}} or \code{\link{persp}}.  }
-
+  
 }
 
 \details{

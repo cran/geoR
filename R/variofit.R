@@ -1,18 +1,19 @@
 "olsfit" <-
-  function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian",
-                          "spherical", "circular", "cubic", "wave",
-                          "powered.exponential", "cauchy", "gneiting",
-                          "gneiting.matern", "pure.nugget"),
+  function (vario, ini.cov.pars, cov.model = "matern",
             fix.nugget = FALSE, nugget = 0, 
-            kappa = NULL, simul.number = NULL,  max.dist = "all",
+            kappa = 0.5, simul.number = NULL,  max.dist = "all",
             minimisation.function = c("optim", "nlm", "nls"),
-            lower = 0, messages.screen=TRUE, ...) 
+            lower = 0, messages.screen = TRUE, ...) 
 {
   call.fc <- match.call()
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   ini <- ini.cov.pars
   ini.cov.pars <- NULL
   minimisation.function <- match.arg(minimisation.function)
-  cov.model <- match.arg(cov.model)
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once")
   if (!is.null(simul.number)) 
@@ -67,8 +68,10 @@
   .global.list <- list(u = data$u, v = data$v, fix.nugget = fix.nugget,
                        nugget = nugget, kappa = kappa,
                        cov.model = cov.model, m.f = minimisation.function)
-  if(minimisation.function == "nlm")
-    assign(".global.lower",lower,where=1)
+  if(minimisation.function == "nlm"){
+    if(is.R()) assign(".global.lower",lower,pos=1)
+    else assign(".global.lower",lower,where=1)
+  }
   ##
   ## Choosing the best initial value
   ##
@@ -90,7 +93,10 @@
         print(ini)
       }
     }
-    remove(".global.lower", where=1)
+    if(minimisation.function == "nlm"){
+      if(is.R()) remove(".global.lower", pos=1)
+      else remove(".global.lower", where=1)
+    }
   }
   ##
   ## minimisation using "nls"
@@ -136,9 +142,11 @@
       result$convergence <- result$code
       if (exists(".temp.theta", where =1)){
         result$par <- .temp.theta
-        remove(".temp.theta", pos=1)
+        if(is.R()) remove(".temp.theta", pos=1)
+        else remove(".temp.theta", where=1)
       }
-      remove(".global.lower", pos=1, inherits = TRUE)
+      if(is.R()) remove(".global.lower", pos=1)
+      else remove(".global.lower", where=1)
     }
     else{
       result <- optim(ini, loss.olsvario, method = "L-BFGS-B",
@@ -157,13 +165,14 @@
   ##
   ## Preparing output
   ##
-  dmax <- max(vario$u)
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
-                     max.dist = dmax, minimisation.function = minimisation.function,
+                     trend = vario$trend, max.dist = max(vario$u),
+                     minimisation.function = minimisation.function,
                      message = message)
   estimation$method <- "OLS"
   estimation$fix.nugget <- fix.nugget
+  estimation$lambda <- vario$lambda
   estimation$call <- call.fc
   class(estimation) <- "variomodel"
   if(messages.screen){
@@ -183,20 +192,22 @@
 
 
 "wlsfit" <-
-function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian", "spherical",
-                        "circular", "cubic", "wave", "powered.exponential", "cauchy",
-                        "gneiting", "gneiting.matern", "pure.nugget"),
+function (vario, ini.cov.pars, cov.model = "matern",
           fix.nugget = FALSE, nugget = 0,
-          kappa = NULL, simul.number = NULL, max.dist = "all",
+          kappa = 0.5, simul.number = NULL, max.dist = "all",
           minimisation.function = c("optim", "nlm"), lower = 0,
           weight = c("npairs", "cressie"), messages.screen=TRUE, ...) 
 {
   call.fc <- match.call()
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave", "power",
+                           "powered.exponential", "cauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
   ini <- ini.cov.pars
   ini.cov.pars <- NULL
   weight <- match.arg(weight)
   minimisation.function <- match.arg(minimisation.function)
-  cov.model <- match.arg(cov.model)
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram")
   if (!is.null(simul.number)) 
@@ -256,8 +267,10 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
                        nugget = nugget, 
                        kappa = kappa, cov.model = cov.model,
                        weight = weight, m.f = minimisation.function)
-  if(minimisation.function == "nlm")
-    assign(".global.lower",lower,where=1)
+  if(minimisation.function == "nlm"){
+    if(is.R()) assign(".global.lower",lower,pos=1)
+    else assign(".global.lower",lower,where=1)
+  }
   ##
   ## Searchin for best initial value 
   ##
@@ -280,10 +293,13 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
         print(ini)
       }
     }
-    remove(".global.lower", where=1)
+    if(minimisation.function == "nlm"){
+      if(is.R()) remove(".global.lower", pos=1)
+      else remove(".global.lower", where=1)
+    }
   }
   ##
-  ## Minimisation isung "optim" or "nlm" 
+  ## Minimisation using "optim" or "nlm" 
   ##
   if(minimisation.function == "nlm"){
     result <- nlm(loss.wlsvario, ini, .global.list = .global.list, ...)
@@ -292,9 +308,11 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
     result$convergence <- result$code
     if (exists(".temp.theta", w=1)){
       result$estimate <- .temp.theta
-      remove(".temp.theta", pos=1, inherits = TRUE)
+      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
+      else remove(".temp.theta", where=1, inherits = TRUE)
     }
-    remove(".global.lower", pos=1, inherits = TRUE)
+    if(is.R()) remove(".global.lower", pos=1, inherits = TRUE)
+    else remove(".global.lower", where=1, inherits = TRUE)
   }
   else{
     result <- optim(ini, loss.wlsvario, method = "L-BFGS-B",
@@ -314,11 +332,12 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
   }
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
-                     max.dist = max(data$u),
+                     trend = vario$trend, max.dist = max(data$u),
                      minimisation.function = minimisation.function,
                      message = message)
   estimation$method <- "WLS"
   estimation$fix.nugget <- fix.nugget
+  estimation$lambda <- vario$lambda
   estimation$call <- call.fc
   class(estimation) <- "variomodel"
   if(messages.screen){
@@ -341,13 +360,17 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
   function (theta, .global.list) 
 {
   if(.global.list$m.f == "nlm"){
-    if (exists(".temp.theta", w=1))
-      remove(".temp.theta", pos=1, inherits = TRUE)
+    if (exists(".temp.theta", w=1)){
+      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
+      else remove(".temp.theta", where=1, inherits = TRUE)
+    }
     theta.minimiser <- theta
     penalty <- 10000 * sum(.global.lower - pmin(theta, .global.lower))
     theta <- pmax(theta, .global.lower)
-    if (any(theta.minimiser < .global.lower))
-      assign(".temp.theta", theta, pos=1)
+    if (any(theta.minimiser < .global.lower)){
+      if(is.R()) assign(".temp.theta", theta, pos=1)
+      else assign(".temp.theta", theta, where=1)
+    }
   }
   else penalty <- 0
   u <- .global.list$u
@@ -382,13 +405,17 @@ function (vario, ini.cov.pars, cov.model = c("exponential", "matern", "gaussian"
   function (theta, .global.list) 
 {
   if(.global.list$m.f == "nlm"){
-    if (exists(".temp.theta", w=1))
-      remove(".temp.theta", pos=1, inherits = TRUE)
+    if (exists(".temp.theta", w=1)){
+      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
+      else remove(".temp.theta", where=1, inherits = TRUE)
+    }
     theta.minimiser <- theta
     penalty <- 10000 * sum(.global.lower - pmin(theta, .global.lower))
     theta <- pmax(theta, .global.lower)
-    if (any(theta.minimiser < .global.lower))
-      assign(".temp.theta", theta, pos=1)
+    if (any(theta.minimiser < .global.lower)){
+      if(is.R()) assign(".temp.theta", theta, pos=1)
+      else assign(".temp.theta", theta, where=1)
+    }
   }
   else penalty <- 0
   u <- .global.list$u

@@ -18,7 +18,6 @@
 
 \usage{
 data(s100)
-data(s121)
 }
 
 \format{

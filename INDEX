@@ -29,7 +29,9 @@ parana                   Rainfall Data from Parana State, Brasil
 plot.geodata             Exploratory Geostatistical Plots
 plot.grf                 Plots Variograms for Simulated Data
 plot.proflik             Plots Profile Likelihoods
+plot.variog4             Plot Directional Variograms
 plot.variogram           Plot Empirical Variogram
+plot.xvalid              Plot Cross-Validation Results
 points.geodata           Plots Spatial Locations and Data Values
 polygrid                 Coordinates of Points Inside a Polygon
 proflik                  Computes Profile Likelihoods
@@ -46,5 +48,7 @@ variog.mc.env            Envelops for Empirical Variograms Based on
                          Permutation
 variog.model.env         Envelops for Empirical Variograms Based on Model
                          Parameters
+variog4                  Computes Directional Variograms
 wlsfit                   Variogram Fitting by Weighted Least Squares
 wrappers                 Wrappers for the C functions used in geoR
+xvalid                   Cross-validation using kriging

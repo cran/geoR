@@ -24,11 +24,8 @@
 \usage{
 likfit(geodata, coords=geodata$coords, data=geodata$data,
        trend = "cte", ini, fix.nugget = FALSE, nugget = 0, 
-       cov.model = c("exponential", "matern", "gaussian",
-                     "spherical", "circular", "cubic", "wave",
-                     "powered.exponential", "cauchy", "gneiting",
-                     "gneiting.matern", "pure.nugget"),
-       kappa = 0.5, fix.lambda = TRUE, lambda = 1, method = "ML", 
+       cov.model = "matern", kappa = 0.5, fix.lambda = TRUE,
+       lambda = 1, method = "ML", 
        predicted = FALSE, residuals = FALSE, 
        minimisation.function = c("optim","nlmP", "nlm"),
        automatic.refit = FALSE, range.limits,
@@ -70,10 +67,11 @@ likfit(geodata, coords=geodata$coords, data=geodata$data,
   \item{nugget}{value for the nugget parameter when \code{fix.nugget =
       TRUE}. Defaults to zero.}
   \item{cov.model}{correlation function model. See
-    documentation for the function \code{\link{cov.spatial}}. }
+    documentation for the function \code{\link{cov.spatial}}. 
+    Defaults are equivalent to the \emph{exponential} model.  }
   \item{kappa}{extra smoothness parameter required if one of the following correlation
     function is used: \code{"matern"}, \code{"powered.exponential"},
-      \code{"gneiting"}
+      \code{"cauchy"}
     or \code{"gneiting.matern"}). For more details see documentation for the
     function \code{\link{cov.spatial}}. In this implementation this
     parameter
@@ -222,9 +220,9 @@ likfit(geodata, coords=geodata$coords, data=geodata$data,
 
 \examples{
 if(is.R()) data(s100)
-ml <- likfit(s100, ini=c(.5, .5), fix.nug=T)
+ml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE)
 summary(ml)
-reml <- likfit(s100, ini=c(.5, .5), fix.nug=T, met="REML")
+reml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE, met="REML")
 summary(reml)
 plot(variog(s100))
 lines(ml)

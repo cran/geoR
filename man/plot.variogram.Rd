@@ -12,8 +12,9 @@
 
 \usage{
 plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
-               type = "b", scaled = FALSE, var.lines = FALSE,
-               envelope.obj = NULL, bin.cloud = FALSE, ...)
+               scaled = FALSE, var.lines = FALSE,
+               envelope.obj = NULL, bin.cloud = FALSE,
+               type = NULL, ...)
 }
 
 
@@ -41,6 +42,7 @@ plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
     was computed with the option \code{keep.cloud = TRUE}, box-plots
     of values at each bin are plotted instead of the empirical
     variograms.  }
+  \item{type}{type of line. For further details see documentation for \code{\link{plot}}.  }
   \item{\dots}{other arguments to be passed to the function
     \code{\link{plot}}.  }
 
@@ -85,12 +87,13 @@ plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
 }
 
 \examples{
+op <- par(no.readonly = TRUE)
 sim <- grf(100, cov.pars=c(1, .2))# generates simulated data
 vario <- variog(sim, max.dist=1)  # computes sample variogram
 par(mfrow=c(1,2))
 plot(vario)                       # the sample variogram
-plot(vario, scaled=T)             # the scaled sample variogram
-
+plot(vario, scaled = TRUE)             # the scaled sample variogram
+par(op)
 }
 
 \keyword{spatial}

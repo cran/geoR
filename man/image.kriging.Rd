@@ -12,8 +12,8 @@
 }
 
 \usage{
-image.kriging(kriging.obj, location = kriging.obj$locations,
-              values = kriging.obj$predict, ...)
+image.kriging(kriging.obj, locations = kriging.obj$locations,
+              values = kriging.obj$predict, coords.data, ...)
 
 persp.kriging(kriging.obj, locations=kriging.obj$locations,
               values=kriging.obj$predict, ...)
