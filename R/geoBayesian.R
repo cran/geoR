@@ -1,7 +1,6 @@
 "krige.bayes" <- 
   function(geodata, coords=geodata$coords, data=geodata$data,
-           locations = "no", borders = NULL, model = model.control(),
-           prior = prior.control(), output = output.control())
+           locations = "no", borders = NULL, model, prior, output)
 {
   ##
   ## ======================= PART 1 ==============================
@@ -28,18 +27,46 @@
         if(.temp.ap %% 100 == 1) cat(paste(.temp.ap, ", ", sep=""))
       if(n.points == .temp.ap) cat("\n")
     }
-  ##
   kb <- list(posterior = list(beta=list(), sigmasq=list(),
                phi=list(), tausq.rel=list()),
-             predictive=list(mean = NULL, variance = NULL, distribution = NULL),
-             prior = prior$priors.info, model = model)
+             predictive=list(mean = NULL, variance = NULL, distribution = NULL))
   class(kb$posterior) <- "posterior.krige.bayes"
   class(kb$predictive) <- "predictive.krige.bayes"
-  class(kb$prior) <- "prior.krige.bayes"
   pred.env <- new.env()
   ##
   ## reading model input
   ##
+  if(missing(model))
+    model <- model.control()
+  else{
+    if(is.null(class(model)) || class(model) != "model.geoR"){
+      if(!is.list(model))
+        stop("krige.bayes: the argument model only takes a list or an output of the function model.control")
+      else{
+        model.names <- c("trend.d", "trend.l", "cov.model", "kappa", "aniso.pars", "lambda") 
+        model.user <- model
+        model <- list()
+        if(length(model.user) > 0){
+          for(i in 1:length(model.user)){
+            n.match <- match.arg(names(model.user)[i], model.names)
+            model[[n.match]] <- model.user[[i]]
+          }
+        }    
+        if(is.null(model$trend.d)) model$trend.d <- "cte"  
+        if(is.null(model$trend.l)) model$trend.l <- "cte"  
+        if(is.null(model$cov.model)) model$cov.model <- "matern"  
+        if(is.null(model$kappa)) model$kappa <- 0.5
+        if(is.null(model$aniso.pars)) model$aniso.pars <- NULL 
+        if(is.null(model$lambda)) model$lambda <- 1
+        model <- model.control(trend.d = model$trend.d,
+                               trend.l = model$trend.l,
+                               cov.model = model$cov.model,
+                               kappa = model$kappa,
+                               aniso.pars = model$aniso.pars,
+                               lambda = model$lambda)
+      }
+    }
+  }
   cov.model <- model$cov.model
   cov.model.number <- cor.number(cov.model)
   kappa <- model$kappa
@@ -47,25 +74,86 @@
   ##
   ## reading prior input
   ##
-  beta <- prior$beta
-  if(prior$beta.prior == "fixed") beta.fixed <- beta
-  if(prior$beta.prior == "normal"){
+  if(missing(prior))
+    prior <- prior.control()
+  else{
+    if(is.null(class(prior)) || class(prior) != "prior.geoR"){
+      if(!is.list(prior))
+        stop("krige.bayes: the argument prior only takes a list or an output of the function prior.control")
+      else{
+        prior.names <- c("beta.prior", "beta", "beta.var.std", "sigmasq.prior",
+                         "sigmasq", "df.sigmasq", "phi.prior", "phi", "phi.discrete",
+                         "tausq.rel.prior", "tausq.rel", "tausq.rel.discrete") 
+        prior.user <- prior
+        prior <- list()
+        if(length(prior.user) > 0){
+          for(i in 1:length(prior.user)){
+            n.match <- match.arg(names(prior.user)[i], prior.names)
+            prior[[n.match]] <- prior.user[[i]]
+          }
+        }
+        ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
+        if(is.null(prior$beta)) prior$beta <-  NULL
+        if(is.null(prior$beta.prior)) prior$beta.prior <-  c("flat", "normal", "fixed")
+        if(is.null(prior$beta.var.std)) prior$beta.var.std <-  NULL
+        ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
+        if(is.null(prior$sigmasq)) prior$sigmasq <- NULL
+        if(is.null(prior$sigmasq.prior))
+          prior$sigmasq.prior <- c("reciprocal",  "uniform", "sc.inv.chisq",  "fixed") 
+        if(is.null(prior$df.sigmasq)) prior$df.sigmasq <- NULL
+        ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
+        if(is.null(prior$phi)) prior$phi <- NULL
+        if(is.null(prior$phi.prior))
+          prior$phi.prior <- c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal")
+        if(is.null(prior$phi.discrete)) prior$phi.discrete <- NULL
+        ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
+        if(is.null(prior$tausq.rel)) prior$tausq.rel <- 0
+        if(is.null(prior$tausq.rel.prior))
+          prior$tausq.rel.prior <- c("fixed", "uniform")
+        if(is.null(prior$tausq.rel.discrete)) prior$tausq.rel.discrete <- NULL 
+        prior <- prior.control(beta.prior = prior$beta.prior,
+                               beta = prior$beta,
+                               beta.var.std = prior$beta.var.std,
+                               sigmasq.prior = prior$sigmasq.prior,
+                               sigmasq = prior$sigmasq,
+                               df.sigmasq = prior$df.sigmasq,
+                               phi.prior = prior$phi.prior,
+                               phi = prior$phi,
+                               phi.discrete = prior$phi.discrete, 
+                               tausq.rel.prior = prior$tausq.rel.prior,
+                               tausq.rel = prior$tausq.rel,
+                               tausq.rel.discrete = prior$tausq.rel.discrete)
+      }
+    }
+  }
+  kb$prior <- prior$priors.info
+  kb$model <- model
+  class(kb$prior) <- "prior.geoR"
+
+  if(prior$dep.prior){
     npr <- length(prior$sigmasq)
     nphipr <- nrow(as.matrix(prior$sigmasq))
     ntaupr <- ncol(as.matrix(prior$sigmasq))
+  }
+  else{
+    nphipr <- ntaupr <- npr <- 1
+  }
+  beta <- prior$beta
+  if(prior$beta.prior == "fixed") beta.fixed <- beta
+  if(prior$beta.prior == "normal"){
     nbeta <- attr(prior$beta.var.std, "Size")
     betares <- list()
     for(j in 1:ntaupr){
       for(i in 1:nphipr){
         beta <- array(prior$beta, dim=c(nphipr, ntaupr, nbeta))[i,j,]
         beta.var.std <- array(prior$beta.var.std,
-                              dim=c(nphipr, ntaupr, nbeta))[i,j,]
+                              dim=c(nphipr, ntaupr, nbeta^2))[i,j,]
         beta.var.std <- matrix(beta.var.std, nbeta, nbeta)
         ind.pos <- (j-1)*nphipr + i
         betares[[ind.pos]] <-
-          list(iv = solve(beta.var.std),
-               ivm = drop(solve(beta.var.std, beta)),
-               mivm = drop(crossprod(beta, solve(beta.var.std, beta))))
+          list(iv = solve.geoR(beta.var.std),
+               ivm = drop(solve.geoR(beta.var.std, beta)),
+               mivm = drop(crossprod(beta, solve.geoR(beta.var.std, beta))))
       }
     }
   }
@@ -73,7 +161,7 @@
     S2.prior <- prior$sigmasq
   else
     sigmasq.fixed <- S2.prior <- prior$sigmasq
-  df.prior <- prior$df.prior
+  df.sigmasq.prior <- prior$df.sigmasq
   ##
   phi.discrete <- prior$phi.discrete
   exponential.par <- prior$phi  
@@ -99,16 +187,51 @@
   data.dist.max <- data.dist.range[2]
   if(round(1e12*data.dist.min) == 0)
     stop("krige.bayes: this function does not allow two data at same location")
-  if(!do.prediction) {
-    if(prior$beta.prior != "fixed" & prior$sigmasq.prior != "fixed"  & prior$phi.prior != "fixed")
-      if(output$messages.screen){
-        cat("krige.bayes: no prediction locations provided.\n")
-        cat("             Only samples of the posterior for the parameters will be returned.\n")
-      }
-  }
   ##
   ## reading output options
   ##
+  if(missing(output))
+    output <- output.control()
+  else{
+    if(is.null(class(output)) || class(output) != "output.geoR"){
+      if(!is.list(output))
+        stop("krige.bayes: the argument output only takes a list or an output of the function output.control")
+      else{
+        output.names <- c("n.posterior","n.predictive","moments","n.back.moments","simulations.predictive",
+                          "mean.var","quantile","threshold","signal","messages.screen")
+        output.user <- output
+        output <- list()
+        if(length(output.user) > 0){
+          for(i in 1:length(output.user)){
+            n.match <- match.arg(names(output.user)[i], output.names)
+            output[[n.match]] <- output.user[[i]]
+          }
+        }
+        if(is.null(output$n.posterior)) output$n.posterior <- 1000 
+        if(is.null(output$n.predictive)) output$n.predictive <- NULL
+        if(is.null(output$moments)) output$moments <- TRUE
+        if(is.null(output$n.back.moments)) output$n.back.moments <- 1000 
+        if(is.null(output$simulations.predictive)){
+          if(is.null(output$n.predictive)) output$simulations.predictive <- NULL
+          else
+            output$simulations.predictive <- ifelse(output$n.predictive > 0, TRUE, FALSE)
+        }
+        if(is.null(output$mean.var)) output$mean.var <- NULL
+        if(is.null(output$quantile)) output$quantile <- NULL
+        if(is.null(output$threshold)) output$threshold <- NULL
+        if(is.null(output$signal)) output$signal <- NULL
+        if(is.null(output$messages.screen)) output$messages.screen <- TRUE
+        output <- output.control(n.posterior = output$n.posterior,
+                                 n.predictive = output$n.predictive,
+                                 moments = output$moments,
+                                 n.back.moments = output$n.back.moments, 
+                                 simulations.predictive = output$simulations.predictive,
+                                 mean.var = output$mean.var, quantile = output$quantile,
+                                 threshold = output$threshold, signal = output$signal,
+                                 messages.screen = output$messages.screen)
+      }
+    }
+  }
   n.posterior <- output$n.posterior
   messages.screen <- output$messages.screen
   if(do.prediction){
@@ -134,12 +257,20 @@
     if(simulations.predictive & n.predictive == 0) n.predictive <- 1000
   }
   ##
+  if(!do.prediction) {
+    if(prior$beta.prior != "fixed" & prior$sigmasq.prior != "fixed"  &
+       prior$phi.prior != "fixed" & output$messages.screen){
+      cat("krige.bayes: no prediction locations provided.\n")
+      cat("             Only samples of the posterior for the parameters will be returned.\n")
+    }
+  }
+  ##
   ## Box-Cox transformation
   ##
   if(abs(lambda-1) > 0.001) {
     if(messages.screen)
       cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", round(lambda,dig=3), "\n"))
-    data <- BCtransform.data(data, lambda = lambda)$data
+    data <- BCtransform(data, lambda = lambda)$data
   }
   ##
   ## Building trend (covariates/design) matrices:   
@@ -258,8 +389,6 @@
   ##
   ## Preparing prior information on beta and sigmasq
   ##
-  if(is.null(prior$sigmasq)) npr <- 1
-  else npr <- length(prior$sigmasq)
   beta.info <- list()
   sigmasq.info <- list()
   for(i in 1:npr){
@@ -271,21 +400,21 @@
                iv = betares[[i]]$iv, p = 0))
     sigmasq.info[[i]] <-
       switch(prior$sigmasq.prior,
-             fixed = list(df.prior = Inf, n0S0 = 0,
+             fixed = list(df.sigmasq = Inf, n0S0 = 0,
                sigmasq.fixed = sigmasq.fixed),
-             reciprocal = list(df.prior = 0, n0S0 = 0),
-             uniform = list(df.prior = -2, n0S0 = 0),
-             sc.inv.chisq = list(df.prior = df.prior, n0S0 = df.prior*S2.prior[i]))
+             reciprocal = list(df.sigmasq = 0, n0S0 = 0),
+             uniform = list(df.sigmasq = -2, n0S0 = 0),
+             sc.inv.chisq = list(df.sigmasq = df.sigmasq.prior, n0S0 = df.sigmasq.prior*S2.prior[i]))
   }
   beta.info$p <- switch(prior$beta.prior,
                         fixed = 0,
                         flat = beta.size,
                         normal = 0)
-  sigmasq.info$df.prior <- switch(prior$sigmasq.prior,
-                                  fixed = Inf,
-                                  reciprocal = 0,
-                                  uniform = -2, 
-                                  sc.inv.chisq = df.prior)
+  sigmasq.info$df.sigmasq <- switch(prior$sigmasq.prior,
+                                    fixed = Inf,
+                                    reciprocal = 0,
+                                    uniform = -2, 
+                                    sc.inv.chisq = df.sigmasq.prior)
   ##
   ## ====================== PART 2 =============================
   ##                 FIXED PHI AND TAUSQ.REL
@@ -403,8 +532,8 @@
     ##
     ##  Degrees of freedom for the posteriors
     ##
-    df.model <- ifelse(sigmasq.info$df.prior == Inf, Inf,
-                       (n + sigmasq.info$df.prior - beta.info$p))
+    df.model <- ifelse(sigmasq.info$df.sigmasq == Inf, Inf,
+                       (n + sigmasq.info$df.sigmasq - beta.info$p))
     ##
     ## Function to compute the posterior probabilities
     ## for each parameter sets (phi, tausq.rel)
@@ -814,7 +943,7 @@
                    cov.model.number = cov.model.number,
                    phi = phi, kappa = kappa),
                  vbetai = vbetai,
-                 fixed.sigmasq = (sigmasq.info$df.prior == Inf))
+                 fixed.sigmasq = (sigmasq.info$df.sigmasq == Inf))
       if(coincide.cond)
         simul[get("loc.coincide", envir=pred.env),] <-
           rep(get("data.coincide", envir=pred.env), Nsims)
@@ -824,7 +953,7 @@
       ## Back transforming (To be include in C code???)
       ##
       if(abs(lambda - 1) > 0.001){
-        return(BCtransform.data(simul, lambda, inv=TRUE)$data)
+        return(BCtransform(simul, lambda, inv=TRUE)$data)
       }
       else
         return(simul)
@@ -1115,18 +1244,18 @@
                 "powered.exponential", "cauchy", "gneiting",
                 "gneiting.matern", "pure.nugget"))
   if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
-    stop("krige.bayes: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
+    stop("model.control: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
   ##  if(any(cov.model == c("exponential", "gaussian", "spherical",
   ##           "circular", "cubic", "wave", "powered.exponential",
   ##           "cauchy", "gneiting", "pure.nugget")))
   ##    kappa <- NULL
   if(!is.null(aniso.pars)) 
     if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
-      stop("anisotropy parameters must be a vector with two elements: rotation angle (in radians) and anisotropy ratio (a number > 1)")
+      stop("model.control: anisotropy parameters must be a vector with two elements: rotation angle (in radians) and anisotropy ratio (a number > 1)")
   res <- list(trend.d = trend.d, trend.l = trend.l,
               cov.model = cov.model,
               kappa=kappa, aniso.pars=aniso.pars, lambda=lambda)
-  class(res) <- "model.krige.bayes"
+  class(res) <- "model.geoR"
   return(res)
 }
 
@@ -1135,7 +1264,7 @@
   if(class(obj) == "krige.bayes")
     obj <- obj$posterior
   if(class(obj) != "posterior.krige.bayes")
-    stop("argument must be an object of the class \"krige.bayes\" or \"posterior.krige.bayes\"")
+    stop("post.prior: argument must be an object of the class \"krige.bayes\" or \"posterior.krige.bayes\"")
   ##
   ## beta
   ##
@@ -1203,7 +1332,7 @@
                        tausq.rel = tausq.rel,
                        tausq.rel.discrete = tausq.rel.discrete)
   res$joint.phi.tausq.rel <- obj$joint.phi.tausq.rel
-  res$dependent <- TRUE
+  res$dep.prior <- TRUE
   return(res)
 }
 
@@ -1226,49 +1355,49 @@
   ##
   beta.prior <- match.arg(beta.prior)
   if(beta.prior == "fixed" & is.null(beta))
-    stop("argument beta must be provided with fixed prior for this parameter")
+    stop("prior.control: argument beta must be provided with fixed prior for this parameter")
   if(beta.prior == "normal"){
     if(is.null(beta) | is.null(beta.var.std))
-      stop("arguments \"beta\" and \"beta.var.std\" must be provided with normal prior for the parameter beta")
+      stop("prior.control: arguments \"beta\" and \"beta.var.std\" must be provided with normal prior for the parameter beta")
   }
   ##
   ## sigmasq
   ##
   sigmasq.prior <- match.arg(sigmasq.prior)
   if(sigmasq.prior == "fixed" & is.null(sigmasq))
-    stop("argument \"sigmasq\" must be provided with fixed prior for the parameter sigmasq")
+    stop("prior.control: argument \"sigmasq\" must be provided with fixed prior for the parameter sigmasq")
   if(sigmasq.prior == "sc.inv.chisq")
     if(is.null(sigmasq) | is.null(df.sigmasq))
-      stop("arguments \"sigmasq\" and \"df.sigmasq\" must be provided for this choice of prior distribution")
+      stop("prior.control: arguments \"sigmasq\" and \"df.sigmasq\" must be provided for this choice of prior distribution")
   if(!is.null(sigmasq))
     if(sigmasq < 0)
-      stop("negative values not allowed for \"sigmasq\"")
+      stop("prior.control: negative values not allowed for \"sigmasq\"")
   ##
   ## phi
   ##
   if(!is.null(phi) && length(phi) > 1)
-    stop("length of phi must be one. Use phi.prior and phi.discrete to specify the prior for phi or enter a single fixed value for phi")
+    stop("prior.control: length of phi must be one. Use phi.prior and phi.discrete to specify the prior for phi or enter a single fixed value for phi")
   if(is.numeric(phi.prior)){
     phi.prior.probs <- phi.prior
     phi.prior <- "user"
     if(is.null(phi.discrete))
-      stop("argument phi.discrete with support points for phi must be provided\n")
+      stop("prior.control: argument phi.discrete with support points for phi must be provided\n")
     if(length(phi.prior.probs) != length(phi.discrete))
-      stop("user provided phi.prior and phi.discrete have incompatible dimensions\n")
+      stop("prior.control: user provided phi.prior and phi.discrete have incompatible dimensions\n")
     if(round(sum(phi.prior.probs), dig=6) != 1)
-      stop("prior probabilities provided for phi do not sum up to 1")
+      stop("prior.control: prior probabilities provided for phi do not sum up to 1")
   }
   else
     phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
   if(phi.prior == "fixed"){
     if(is.null(phi)){
-      stop("argument \"phi\" must be provided with fixed prior for this parameter")
+      stop("prior.control: argument \"phi\" must be provided with fixed prior for this parameter")
     }
     phi.discrete <- phi
   }
   else{
     if(phi.prior == "exponential" & (is.null(phi) | (length(phi) > 1)))
-      stop("argument \"phi\" must be provided when using the exponential prior for the parameter phi")
+      stop("prior.control: argument \"phi\" must be provided when using the exponential prior for the parameter phi")
     ##    if(any(phi.prior == c("reciprocal", "squared.reciprocal")) &
     ##       any(phi.discrete == 0)){
     ##      warning("degenerated prior at phi = 0. Excluding value phi.discrete[1] = 0")
@@ -1277,42 +1406,42 @@
     if(!is.null(phi.discrete)){
       discrete.diff <- diff(phi.discrete)
       if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-        stop("krige.bayes: the current implementation requires equally spaced values in the argument \"phi.discrete\"\n")
+        stop("prior.control: the current implementation requires equally spaced values in the argument \"phi.discrete\"\n")
     }
   }
   if(any(phi.discrete < 0))
-    stop("negative values not allowed for parameter phi")
+    stop("prior.control: negative values not allowed for parameter phi")
   ##
   ## tausq
   ##
   if(length(tausq.rel) > 1)
-    stop("length of tausq.re must be one. Use tausq.rel.prior and tausq.rel.discrete to specify the prior for tausq.rel or enter a single fixed value for tausq.rel")
+    stop("prior.control: length of tausq.rel must be one. Use tausq.rel.prior and tausq.rel.discrete to specify the prior for tausq.rel or enter a single fixed value for tausq.rel")
   if(is.numeric(tausq.rel.prior)){
     tausq.rel.prior.probs <- tausq.rel.prior
     tausq.rel.prior <- "user"
     if(is.null(tausq.rel.discrete))
-      stop("argument tausq.rel.discrete with support points for tausq.rel must be provided\n")
+      stop("prior.control: argument tausq.rel.discrete with support points for tausq.rel must be provided\n")
     if(length(tausq.rel.prior.probs) != length(tausq.rel.discrete))
-      stop("user provided tausq.rel.prior and tausq.rel.discrete have incompatible dimensions\n")
+      stop("prior.control: user provided tausq.rel.prior and tausq.rel.discrete have incompatible dimensions\n")
     if(round(sum(tausq.rel.prior.probs), dig=6) != 1)
-      stop("prior probabilities for tausq.rel provided do not add up to 1")
+      stop("prior.control: prior probabilities for tausq.rel provided do not add up to 1")
   }
   else
     tausq.rel.prior <- match.arg(tausq.rel.prior)
   if(tausq.rel.prior == "fixed"){
     if(is.null(tausq.rel))
-      stop("argument \"tausq.rel\" must be provided with fixed prior for the parameter tausq.rel")
+      stop("prior.control: argument \"tausq.rel\" must be provided with fixed prior for the parameter tausq.rel")
     tausq.rel.discrete <- tausq.rel
   }
   else{
     if(is.null(tausq.rel.discrete))
-      stop("argument \"tausq.rel.discrete\" must be provided with chosen prior for the parameter tausq.rel")  
+      stop("prior.control: argument \"tausq.rel.discrete\" must be provided with chosen prior for the parameter tausq.rel")  
     discrete.diff <- diff(tausq.rel.discrete)
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"tausq.rel.discrete\"\n")
+      stop("prior.control: the current implementation requires equally spaced values in the argument \"tausq.rel.discrete\"\n")
   }
   if(any(tausq.rel.discrete) < 0)
-    stop("negative values not allowed for parameter tausq.rel")
+    stop("prior.control: negative values not allowed for parameter tausq.rel")
   ##
   ## Further checks on dimensions
   ##
@@ -1329,15 +1458,23 @@
     if(beta.prior == "normal"){
       if(dep.prior){
         if(((length(beta)/nsets)^2) != (length(beta.var.std)/nsets))
-          stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
+          stop("prior.control: beta and beta.var.std have incompatible dimensions")
       }
       else{
         if((length(beta))^2 != length(beta.var.std))
-          stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
-        if(inherits(try(solve(beta.var.std)), "try-error"))
-          stop("krige.bayes: singular matrix in beta.var.std")
+          stop("prior.control: beta and beta.var.std have incompatible dimensions")
+        if(inherits(try(solve.geoR(beta.var.std)), "try-error"))
+          stop("prior.control: singular matrix in beta.var.std")
+        if(inherits(try(chol(beta.var.std)), "try-error"))
+          stop("prior.control: no Cholesky decomposition for beta.var.std")
+        if(any(beta.var.std != t(beta.var.std)))
+          stop("prior.control: non symmetric matrix in beta.var.std")
       }
     }
+  }
+  else dep.prior <- FALSE
+  if(!dep.prior & beta.prior == "normal"){
+    attr(beta.var.std, "Size") <- length(beta)
   }
   ##
   ip <- list(beta=list(), sigmasq=list(), phi=list(), tausq.rel=list())
@@ -1417,14 +1554,14 @@
   res <- list(beta.prior = beta.prior, beta = beta,
               beta.var.std = beta.var.std,
               sigmasq.prior = sigmasq.prior,
-              sigmasq = sigmasq, df.prior = df.sigmasq,
-              phi.prior = phi.prior,
-              phi = phi, phi.discrete = phi.discrete, 
+              sigmasq = sigmasq, df.sigmasq = df.sigmasq,
+              phi.prior = phi.prior, phi = phi,
+              phi.discrete = phi.discrete,  
               tausq.rel.prior = tausq.rel.prior,
               tausq.rel = tausq.rel,
               tausq.rel.discrete = tausq.rel.discrete, 
-              priors.info = ip)
-  class(res) <- "prior.krige.bayes"
+              priors.info = ip, dep.prior = dep.prior)
+  class(res) <- "prior.geoR"
   return(res)
 }
 
@@ -1466,13 +1603,13 @@
   if(!is.null(quantile.estimator)){
     if(is.numeric(quantile.estimator))
       if(any(quantile.estimator) < 0 | any(quantile.estimator) > 1)
-        stop("krige.bayes: quantiles indicators must be numbers in the interval [0,1]\n")
+        stop("output.control: quantiles indicators must be numbers in the interval [0,1]\n")
     if(quantile.estimator == TRUE)
       quantile.estimator <- c(0.025, 0.5, 0.975)
   }
   if(!is.null(probability.estimator)){
     if(!is.numeric(probability.estimator))
-      stop("krige.bayes: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
+      stop("output.control: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
   }
   res <- list(n.posterior = n.posterior, n.predictive = n.predictive,
               moments = moments, n.back.moments = n.back.moments,
@@ -1482,7 +1619,7 @@
               quantile.estimator = quantile.estimator,
               probability.estimator = probability.estimator,
               signal = signal, messages.screen = messages.screen)
-  class(res) <- "output.krige.bayes"
+  class(res) <- "output.geoR"
   return(res)
 }
 
@@ -1498,9 +1635,9 @@
   ## with the distances between pairs os points (output of dists())
   ##
   ## sigmasq.info should contain:
-  ##        df.prior   : df in prior for sigmasq
-  ##                  df.prior = 0 : reciprocal prior for sigmasq
-  ##                  df.prior = Inf : fixed sigmasq
+  ##        df.sigmasq: df in prior for sigmasq
+  ##                  df.sigmasq = 0 : reciprocal prior for sigmasq
+  ##                  df.sigmasq = Inf : fixed sigmasq
   ##        n0S0 : sum of squares in prior for sigmasq
   ## beta.info should contain:
   ##        mivm : computed from the prior of beta: m\prime V^{-1} m
@@ -1533,7 +1670,7 @@
 ###    R <- varcov.spatial(dists.lowertri=dists.lowertri, cov.model = model$cov.model,
 ###             kappa = model$kappa, nugget = tausq.rel,
 ###                        cov.pars = c(1, phi))$varcov
-###    iRy.x <- solve(R, cbind(y,xmat))
+###    iRy.x <- solve.geoR(R, cbind(y,xmat))
 ###    xiRy.x <- crossprod(xmat, iRy.x)
 ###    yiRy <- crossprod(y, iRy.x[,1])
 ###    iRy.x <- NULL
@@ -1547,18 +1684,18 @@
   }
   else{
     inv.beta.var.std.post <- drop(beta.info$iv + xiRy.x[,-1])
-    beta.var.std.post <- solve(inv.beta.var.std.post)
+    beta.var.std.post <- solve.geoR(inv.beta.var.std.post)
     beta.post <- drop(beta.var.std.post %*% (beta.info$ivm + xiRy.x[,1]))
   }
   ##
   ## 2. Computing parameters of posterior for sigmasq
   ##
-  if(sigmasq.info$df.prior == Inf){
+  if(sigmasq.info$df.sigmasq == Inf){
     S2.post <- sigmasq.info$sigmasq.fixed
     df.post <- Inf
   }
   else{
-    df.post <- n + sigmasq.info$df.prior - beta.info$p
+    df.post <- n + sigmasq.info$df.sigmasq - beta.info$p
     ##
     if(beta.info$iv == Inf){
       S2.post <- sigmasq.info$n0S0 + yiRy -
@@ -1611,7 +1748,7 @@
     if(((tausq.rel < 1e-12) | signal) & !is.null(get("loc.coincide", envir=env.pred)))
       res$pred.var[get("loc.coincide", envir=env.pred)] <- 0
     res$pred.var[res$pred.var < 1e-16] <- 0
-    if(sigmasq.info$df.prior != Inf)
+    if(sigmasq.info$df.sigmasq != Inf)
       res$pred.var <- (df.post/(df.post-2)) * res$pred.var
   }
   ##
@@ -1684,7 +1821,7 @@
   if(prior$sigmasq.prior == "fixed")
     simul$sigmasq <- rep(prior$sigmasq, n)
   else
-    simul$sigmasq <- rinvchisq(n, df = prior$df.prior,
+    simul$sigmasq <- rinvchisq(n, df = prior$df.sigmasq,
                                scale = prior$sigmasq)
   ##
   if(prior$beta.prior == "fixed")
@@ -2010,3 +2147,4 @@
   }
   return(invisible(res))
 }
+

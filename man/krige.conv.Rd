@@ -19,8 +19,7 @@
 
 \usage{
 krige.conv(geodata, coords=geodata$coords, data=geodata$data,
-            locations, borders = NULL, krige = krige.control(),
-            output = output.control())
+            locations, borders = NULL, krige, output)
 
 krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
             obj.model = NULL, beta, cov.model, cov.pars, kappa,
@@ -46,10 +45,17 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
     coordinates of the \eqn{N} prediction locations.  }
   \item{borders}{optional. If a two column matrix defining a polygon is
     provided the prediction is performed only at locations inside this polygon. }
-  \item{krige}{defines the model components and the type of
-    kriging. See section DETAILS below.  }
-  \item{output}{Specify output options. See documentation for
-    \code{\link{output.control}}. }
+  \item{krige}{a list defining the model components and the type of
+    kriging. It can take an output to a call to \code{krige.control} or
+    a list with elements as for the arguments in \code{krige.control}.
+    Default values are assumed for arguments  or list elements not provided.
+    See section DETAILS below.  }
+  \item{output}{a list specifying output options.
+    It can take an output to a call to \code{output.control} or
+    a list with elements as for the arguments in \code{output.control}.
+    Default values are assumed for arguments not provided.
+    See documentation for
+    \code{\link{output.control}} for further details.  }
   \item{type.krige}{type of kriging to be performed. Options are
     \code{"SK", "OK"} corresponding to simple or ordinary
     kriging. Kriging with external trend and universal kriging can be
@@ -165,8 +171,11 @@ kc <- krige.conv(s100, loc=loci,
 par(mfrow=c(1,2))
 image(kc, main="kriging estimates")
 image(kc, val=sqrt(kc$krige.var), main="kriging std. errors")
-
+\testonly{
+loci <- expand.grid(seq(0,1,l=6), seq(0,1,l=6))
+kc <- krige.conv(s100, loc=loci,
+                 krige=list(cov.pars=c(1, .25), kappa = 1))
 }
-
+}
 \keyword{spatial}
 

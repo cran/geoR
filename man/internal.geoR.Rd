@@ -4,9 +4,10 @@
 \alias{cond.sim}
 \alias{print.betavar}
 \alias{backtransform.moments}
-\alias{BCtransform.data}
+\alias{BCtransform}
 \alias{rMVnorm}
-  
+\alias{solve.geoR}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{geoR internal functions}
 

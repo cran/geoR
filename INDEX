@@ -46,6 +46,8 @@ proflik                  Computes Profile Likelihoods
 read.geodata             Reads and Converts Data to geoR Format
 s100 and s121            Simulated Data-Sets which Illustrate the Usage
                          of the Package geoR
+s256i                    Simulated Data-Set which Illustrate the Usage of
+                         krige.bayes
 sample.posterior         Samples from the posterior distribution
 sample.prior             Samples from the prior
 set.coords.lims          Sets Limits to Scale Plots

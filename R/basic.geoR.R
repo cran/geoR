@@ -374,9 +374,11 @@
 "rinvchisq" <- 
   function (n, df, scale = 1/df)
 {
+  if((length(scale)!= 1) & (length(scale) != n))
+    stop("scale should be a scalar or a vector of the same length as x")
   if(df <= 0)
     stop("df must be greater than zero")
-  if(scale <= 0)
+  if(any(scale <= 0))
     stop("scale must be greater than zero")
   return((df*scale)/rchisq(n, df=df)) 
 }
@@ -411,7 +413,7 @@
   ## data transformation (Box-Cox)
   ##
   if (lambda != 1)
-    data <- BCtransform.data(data, lambda)$data
+    data <- BCtransform(data, lambda)$data
   ##
   ## trend removal
   ##

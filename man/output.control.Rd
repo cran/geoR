@@ -20,25 +20,26 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
 
 \arguments{
   \item{n.posterior}{number of samples to be taken from the posterior
-    distribution.  }
+    distribution. Defaults to 1000. }
   \item{n.predictive}{number of samples to be taken from the
-    predictive distribution. By default equals to
+    predictive distribution. Default equals to
     \code{n.posterior}.  }
   \item{moments}{logical. Indicates whether the moments of the
     predictive distribution are returned. If \code{lambda = 1}
     there is no transformation/back-transformation.
-    If  \code{\lambda = 0} or \code{lambda = 0.5} the moments are
+    If \code{\lambda = 0} or \code{lambda = 0.5} the moments are
     back-transformed by analytical expressions. For other cases the
-    back-transformation is done by simulation.  }
+    back-transformation is done by simulation. Defaults to \code{TRUE}. }
   \item{n.back.moments}{number of sample to back-transform moments by
     simulation. Defaults to 1000.  }
   \item{simulations.predictive}{logical. Defines whether to draw simulations
     from the predictive distribution. Only valid if prediction
     locations are provided on the argument \code{locations}.  } 
-  \item{mean.var}{logical. Indicates whether mean and
+  \item{mean.var}{logical (optional). Indicates whether mean and
     variances of the simulations of the predictive distributions are
-    computed and returned.  } 
-  \item{quantile}{indicates whether quantiles of the
+    computed and returned.   } 
+  \item{quantile}{a (optional) numeric vector.
+    If provided indicates whether quantiles of the
     simulations from the
     predictive distributions are computed and returned.
     If a vector with numbers in the interval
@@ -54,12 +55,13 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     standard error, can be computed by \eqn{(quantile0.975 - quantile0.025)/4}.
     Only used if prediction locations are provided in the argument
     \code{locations}.  }
-  \item{threshold}{defaults to \code{FALSE}. If 
-    one or more values are provided, object named
+  \item{threshold}{a (optional) numerical vector.
+    If one or more values are provided, object named
     \code{probabilities} is included in the output.
     This object contains, for each
     prediction location, the probability that the variable is less
-    than or equal than the threshold provided by the user.  }
+    than or equal than the threshold provided by the user.
+    Defaults to \code{FALSE}. }
   \item{signal}{logical. If \code{TRUE} the signal is predicted, otherwise the
     variable is predicted. If no transformation is performed the
     expectations are the same in both cases and
@@ -67,7 +69,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     is different from zero.  }  
   \item{messages.screen}{logical. Indicates
     whether or not status messages are printed on the output device
-    while the function is running.  }
+    while the function is running. Defalts to \code{TRUE}. }
 
 }
 

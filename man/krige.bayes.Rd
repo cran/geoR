@@ -18,8 +18,7 @@
 
 \usage{
 krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
-            locations = "no", borders = NULL, model = model.control(),
-            prior = prior.control(), output = output.control())
+            locations = "no", borders = NULL, model, prior, output)
 
 model.control(trend.d = "cte", trend.l = "cte", cov.model = "matern",
               kappa = 0.5, aniso.pars = NULL, lambda = 1)
@@ -59,11 +58,23 @@ post2prior(obj)
     the model parameters.  }
   \item{borders}{optional. If a two column matrix defining a polygon is
     provided the prediction is performed only at locations inside this polygon. }
-  \item{model}{defines model components. See section DETAILS below.  }
-  \item{prior}{specification of priors for the model parameters. See
-    section DETAILS below.  }
-  \item{output}{Specify output options. See documentation for
-    \code{\link{output.control}}.  }
+  \item{model}{a list defining the fixed components of the model.
+    It can take an output to a call to \code{model.control} or
+    a list with elements as for the arguments in \code{model.control}.
+    Default values are assumed for arguments not provided.
+    See section DETAILS below.  }
+  \item{prior}{a list with the specification of priors for the model
+    parameters.
+    It can take an output to a call to \code{prior.control} or
+    a list with elements as for the arguments in \code{prior.control}.
+    Default values are assumed for arguments not provided.
+    See section DETAILS below.  }
+  \item{output}{a list specifying output options.
+    It can take an output to a call to \code{output.control} or
+    a list with elements as for the arguments in \code{output.control}.
+    Default values are assumed for arguments not provided.
+    See documentation for
+    \code{\link{output.control}} for further details.  }
   
   \item{trend.d}{specifies the trend (covariates) values at the data
     locations. See documentation
@@ -374,6 +385,9 @@ par(op)
 \testonly{
 ex.data <- grf(50, cov.pars=c(10, .25))
 ex.post <- krige.bayes(ex.data)
+ex1 <- krige.bayes(ex.data, prior = list(phi.prior = "fixed", phi = 0.3))
+ex1 <- krige.bayes(ex.data, model = list(cov.model="spherical"))
+ex1 <- krige.bayes(ex.data, output = list(n.posterior = 100))
 ex.grid <- as.matrix(expand.grid(seq(0,1,l=6), seq(0,1,l=6)))
 ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  prior.control(phi.discrete=seq(0, 2, l=3),
@@ -426,11 +440,23 @@ ap7.kb <- krige.bayes(ap1, prior = PC)
 #
 ap8.kb <- krige.bayes(ap2, prior=post2prior(ap7.kb))
 
+## with trend
+data(s100)
+prior2.b9 <- prior.control(beta.prior = "normal", beta = c(0,0,0),
+beta.var = cbind(c(2,1.5,0),c(1.5,1.8,.2),c(0,0.2,1.5)),
+phi.prior = "exponential", phi = 2.5, phi.discrete = c(2.5,3),
+sigmasq.prior = "sc.inv.chisq", df.sigmasq = 5, sigmasq = 0.5)
+ap <- krige.bayes(s100,prior=prior2.b9, model=model.control(trend.d = "1st") )
 
+prior2.b9 <- prior.control(beta.prior = "normal", beta = c(0,0,0),
+beta.var = cbind(c(2,1.5,0),c(1.5,1.8,0.5),c(0,0.5,1.5)),
+phi.prior = "fixed", phi = 2.5,sigmasq.prior = "sc.inv.chisq",
+df.sigmasq = 5, sigmasq = 0.5)
+ap <- krige.bayes(s100,prior=prior2.b9, model=model.control(trend.d="1st") )
+prior2.b9 <- prior.control(beta.prior = "normal", beta = 0,beta.var =1,phi.prior = "fixed", phi = 2.5,sigmasq.prior ="sc.inv.chisq",df.sigmasq = 5, sigmasq = 0.5)
+ap <- krige.bayes(s100,prior=prior2.b9)
 par(op)
-}
-
-}
+}}
 
 \keyword{spatial}
 \keyword{models}

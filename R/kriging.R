@@ -1,7 +1,6 @@
 "krige.conv" <-
   function (geodata, coords=geodata$coords, data=geodata$data,
-            locations, borders = NULL, krige = krige.control(),
-            output = output.control())
+            locations, borders = NULL, krige, output)
 {
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
@@ -10,6 +9,56 @@
   ##
   ## reading input
   ##
+  if(missing(krige))
+    krige <- krige.control()
+  else{
+    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
+      if(!is.list(krige))
+        stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
+      else{
+        krige.names <- c("type.krige","trend.d","trend.l","obj.model",
+                         "beta","cov.model", "cov.pars",
+                         "kappa","nugget","micro.scale","dist.epsilon",
+                         "lambda","aniso.pars")
+        krige.user <- krige
+        krige <- list()
+        if(length(krige.user) > 0){
+          for(i in 1:length(krige.user)){
+            n.match <- match.arg(names(krige.user)[i], krige.names)
+            krige[[n.match]] <- krige.user[[i]]
+          }
+        }
+        if(is.null(krige$type.krige)) krige$type.krige <- "ok"  
+        if(is.null(krige$trend.d)) krige$trend.d <-  "cte"
+        if(is.null(krige$trend.l)) krige$trend.l <-  "cte"
+        if(is.null(krige$obj.model)) krige$obj.model <-  NULL
+        if(is.null(krige$beta)) krige$beta <- NULL 
+        if(is.null(krige$cov.model)) krige$cov.model <- "matern"  
+        if(is.null(krige$cov.pars))
+          stop("covariance parameters (sigmasq and phi) should be provided in cov.pars")
+        if(is.null(krige$kappa)) krige$kappa <-  0.5
+        if(is.null(krige$nugget)) krige$nugget <-  0
+        if(is.null(krige$micro.scale)) krige$micro.scale <- 0  
+        if(is.null(krige$dist.epsilon)) krige$dist.epsilon <-  1e-10
+        if(is.null(krige$aniso.pars)) krige$aniso.pars <- NULL  
+        if(is.null(krige$lambda)) krige$lambda <- 1 
+          krige <- krige.control(type.krige = krige$type.krige,
+                                 trend.d = krige$trend.d,
+                                 trend.l = krige$trend.l,
+                                 obj.model = krige$obj.model,
+                                 beta = krige$beta,
+                                 cov.model = krige$cov.model,
+                                 cov.pars = krige$cov.pars,
+                                 kappa = krige$kappa,
+                                 nugget = krige$nugget,
+                                 micro.scale = krige$micro.scale,
+                                 dist.epsilon = krige$dist.epsilon, 
+                                 aniso.pars = krige$aniso.pars,
+                                 lambda = krige$lambda)
+        
+      }
+    }
+  }
   cov.model <- krige$cov.model
   kappa <- krige$kappa
   lambda <- krige$lambda
@@ -21,6 +70,50 @@
   ##
   ## reading output options
   ##
+  if(missing(output))
+    output <- output.control()
+  else{
+    if(is.null(class(output)) || class(output) != "output.geoR"){
+      if(!is.list(output))
+        stop("krige.conv: the argument output only takes a list or an output of the function output.control")
+      else{
+        output.names <- c("n.posterior","n.predictive","moments","n.back.moments","simulations.predictive",
+                          "mean.var","quantile","threshold","signal","messages.screen")
+        output.user <- output
+        output <- list()
+        if(length(output.user) > 0){
+          for(i in 1:length(output.user)){
+            n.match <- match.arg(names(output.user)[i], output.names)
+            output[[n.match]] <- output.user[[i]]
+          }
+        }
+        if(is.null(output$n.posterior)) output$n.posterior <- 1000 
+        if(is.null(output$n.predictive)) output$n.predictive <- NULL
+        if(is.null(output$moments)) output$moments <- TRUE
+        if(is.null(output$n.back.moments)) output$n.back.moments <- 1000 
+        if(is.null(output$simulations.predictive)){
+          if(is.null(output$n.predictive)) output$simulations.predictive <- NULL
+          else
+            output$simulations.predictive <- ifelse(output$n.predictive > 0, TRUE, FALSE)
+        }
+        if(is.null(output$mean.var)) output$mean.var <- NULL
+        if(is.null(output$quantile)) output$quantile <- NULL
+        if(is.null(output$threshold)) output$threshold <- NULL
+        if(is.null(output$signal)) output$signal <- NULL
+        if(is.null(output$messages.screen)) output$messages.screen <- TRUE
+        output <- output.control(n.posterior = output$n.posterior,
+                                 n.predictive = output$n.predictive,
+                                 moments = output$moments,
+                                 n.back.moments = output$n.back.moments, 
+                                 simulations.predictive = output$simulations.predictive,
+                                 mean.var = output$mean.var,
+                                 quantile = output$quantile,
+                                 threshold = output$threshold,
+                                 signal = output$signal,
+                                 messages.screen = output$messages.screen)
+      }
+    }
+  }
   signal <- ifelse(is.null(output$signal), FALSE, output$signal)
   messages.screen <- output$messages.screen
   n.predictive <- output$n.predictive
@@ -42,8 +135,6 @@
   ##
   ## checking input
   ##
-  if(micro.scale > nugget)
-    stop("krige.conv: krige$micro.scale must be in the interval [0, nugget]")
   if(krige$type.krige == "ok") beta.prior <- "flat"
   if(krige$type.krige == "sk") beta.prior <- "deg"
   ##
@@ -77,22 +168,15 @@
   dimnames(coords) <- list(NULL, NULL)
   dimnames(locations) <- list(NULL, NULL)
   ##
-  if(inherits(krige$trend.d, "formula") | inherits(krige$trend.l, "formula")){
-    if((inherits(krige$trend.d, "formula") == FALSE) | (inherits(krige$trend.l, "formula") == FALSE))
-      stop("krige.conv: krige$trend.d and krige$trend.l must have similar specification")
-  }
-  else{
-    if(krige$trend.d != krige$trend.l){
-      stop("krige.conv: krige$trend.l is different from krige$trend.d")
-    }
-    if(messages.screen){
-      cat(switch(krige$trend.d,
-                 "cte" = "krige.conv: model with constant mean",
-                 "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
-                 "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",
-                 "krige.conv: model with mean defined by covariates provided by the user"))
-      cat("\n")
-    }
+  ## building the trend matrix
+  ##
+  if(messages.screen){
+    cat(switch(krige$trend.d,
+               "cte" = "krige.conv: model with constant mean",
+               "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
+               "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",
+               "krige.conv: model with mean defined by covariates provided by the user"))
+    cat("\n")
   }
   trend.d <- trend.spatial(trend=krige$trend.d, geodata = geodata)
   beta.size <- ncol(trend.d)
@@ -100,12 +184,13 @@
     if(beta.size != length(beta))
       stop("size of mean vector is incompatible with trend specified") 
   trend.l <- trend.spatial(trend=krige$trend.l, geodata = list(coords = locations))
+  if(beta.size > 1)
+    beta.names <- paste("beta", (0:(beta.size-1)), sep="")
+  else beta.names <- "beta"
   ##
   ## Anisotropy correction (should be placed AFTER trend.d/trend.l
   ##
   if(!is.null(aniso.pars)) {
-    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
-      stop("krige.conv: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if((abs(aniso.pars[1]) > 0.001) & (abs(aniso.pars[2] - 1) > 0.001)){
       if(messages.screen)
         cat("krige.conv: anisotropy correction performed\n")
@@ -119,7 +204,7 @@
   if(abs(lambda - 1) > 0.001) {
     if(messages.screen)
       cat("krige.conv: Box-Cox data transformation performed.\n")
-    data <- BCtransform.data(data, lambda = lambda)$data
+    data <- BCtransform(data, lambda = lambda)$data
   }
   ## 
   ## setting covariance parameters
@@ -152,7 +237,7 @@
                           lowerA = as.vector(invcov$lower.inverse),
                           diagA = as.vector(invcov$diag.inverse), 
                           Y = as.vector(trend.d))
-  ittivtt <- solve(temp)
+  ittivtt <- solve.geoR(temp)
   remove("temp")
   if(beta.prior == "flat"){
     temp <- bilinearformXAY(X = as.vector(trend.d),
@@ -209,6 +294,7 @@
                                    diagA = diag(ittivtt))
     kc$krige.var <- sill.partial * drop(1+nug.factor - tv0ivv0 + bitb)
     kc$beta.est <- beta.flat
+    names(kc$beta.est) <- beta.names
     remove("bitb")
   }
   remove("tv0ivv0", "tv0ivdata")
@@ -220,6 +306,7 @@
   ## ########### Sampling from the resulting distribution ###
   ##
   if(n.predictive > 0) {
+    seed <- .Random.seed
     if(messages.screen)
       cat("krige.conv: sampling from the predictive distribution (conditional simulations)\n")
     if(length(cov.pars) > 2){
@@ -295,7 +382,7 @@
       if(any(kc$simulations < -1/lambda))
         warning("Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale.")
       kc$simulations <-
-        BCtransform.data(kc$simulations, lambda, inv=TRUE)$data
+        BCtransform(kc$simulations, lambda, inv=TRUE)$data
     }
     ##
     ## mean/quantiles/probabilities estimators from simulations
@@ -307,6 +394,7 @@
                                         quantile = quantile.estimator,
                                         threshold = probability.estimator))
     }
+    kc$.Random.seed <- seed
   }
   ##
   ## Backtransforming moments of the prediction distribution
@@ -343,12 +431,12 @@
 }
 
 "krige.control" <-
-  function (type.krige = "ok",
-            trend.d = "cte", trend.l = "cte",
-            obj.model = NULL,
-            beta, cov.model, cov.pars, kappa,
-            nugget, micro.scale = 0, dist.epsilon = 1e-10, 
-            aniso.pars, lambda)
+  function(type.krige = "ok",
+           trend.d = "cte", trend.l = "cte",
+           obj.model = NULL,
+           beta, cov.model, cov.pars, kappa,
+           nugget, micro.scale = 0, dist.epsilon = 1e-10, 
+           aniso.pars, lambda)
 {
   if(type.krige != "ok" & type.krige != "OK" & type.krige != "o.k." & type.krige != "O.K." & type.krige != "sk" & type.krige != "SK" & type.krige != "s.k." & type.krige != "S.K.")
     stop("krige.conv: wrong option in the argument type.krige. It should be \"sk\" or \"ok\"(if ordinary or simple kriging is to be performed)")
@@ -387,14 +475,32 @@
                            "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  return(list(type.krige = type.krige,
+  if(micro.scale > nugget)
+    stop("krige.control: micro.scale must be in the interval [0, nugget]")
+  ##
+  if(!is.null(aniso.pars))
+    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
+      stop("krige.control: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
+  ##
+  if(inherits(trend.d, "formula") | inherits(trend.l, "formula")){
+    if((inherits(trend.d, "formula") == FALSE) | (inherits(trend.l, "formula") == FALSE))
+      stop("krige.control: trend.d and trend.l must have similar specification")
+  }
+  else{
+    if(trend.d != trend.l)
+      stop("krige.control: trend.l is different from trend.d")
+  }
+  ##
+  res <- list(type.krige = type.krige,
               trend.d = trend.d, trend.l = trend.l, 
               beta = beta,
               cov.model = cov.model, 
               cov.pars = cov.pars, kappa = kappa,
               nugget = nugget,
               micro.scale = micro.scale, dist.epsilon = dist.epsilon, 
-              aniso.pars = aniso.pars, lambda = lambda))
+              aniso.pars = aniso.pars, lambda = lambda)
+  class(res) <- "krige.geoR"
+  return(res)
 }
 
 "prepare.graph.kriging" <-

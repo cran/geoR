@@ -19,7 +19,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        trend = "cte", ini.cov.pars, fix.nugget = FALSE, nugget = 0,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
-       cov.model = "matern", realisations = NULL,
+       cov.model = "matern", realisations,
        method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = likfit.limits(),
        print.pars = FALSE, messages.screen = TRUE, ...)
@@ -275,24 +275,24 @@ lines(ml)
 lines(reml, lty = 2)
 
 \testonly{
-if(is.R()) data(s100)
-ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2)
-ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug=TRUE, nug=0.2)
-ml <- likfit(s100, data=exp(s100$data), ini=c(0.5, 0.5), nug=0.2, fix.lambda=F)
-ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiR = F)
-ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiA = F, fix.psiR = F)
-ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=TRUE, kappa=2)
-ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=F)
+ap <- grf(50, cov.pars=c(1, .3), nug=.3)
+ml <- likfit(ap, ini=c(0.5, 0.5), nug=0.2)
+ml <- likfit(ap, ini=c(0.5, 0.5), fix.nug=TRUE, nug=0.2)
+ml <- likfit(ap, data=exp(ap$data), ini=c(0.5, 0.5), nug=0.2, fix.lambda=F)
+ml <- likfit(ap, ini=c(0.5, 0.5), nug=0.2, fix.psiR = F)
+ml <- likfit(ap, ini=c(0.5, 0.5), nug=0.2, fix.psiA = F, fix.psiR = F)
+ml <- likfit(ap, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=TRUE, kappa=2)
+ml <- likfit(ap, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=F)
+ml <- likfit(ap, ini=expand.grid(c(.5,1,1.5),c(.1,.2,.3)))
+ml <- likfit(ap, ini=expand.grid(c(.5,1),c(.1,.2)), nug=c(.2,.3))
 
 ## Multiple realizations
-ap1 <- grf(40, cov.pars=c(1, .3))
-ap2 <- grf(30, cov.pars=c(1, .3))
-ap3 <- grf(50, cov.pars=c(1, .3))
-ap <- list(coords = rbind(ap1$coords, ap2$coords, ap3$coords), data =
-c(ap1$data, ap2$data, ap3$data))
-ap$realisations <- c(rep(1,40), rep(2,30), rep(3,50))
+ap1 <- grf(30, cov.pars=c(1, .3))
+ap2 <- grf(20, cov.pars=c(1, .3))
+ap3 <- grf(40, cov.pars=c(1, .3))
+ap <- list(coords = rbind(ap1$coords, ap2$coords, ap3$coords), data = c(ap1$data, ap2$data, ap3$data))
+ap$realisations <- c(rep(1,30), rep(2,20), rep(3,40))
 ap.fit <- likfit(ap, ini=c(.5, .5), reali=ap$real)
-
 }
 
 }

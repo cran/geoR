@@ -67,7 +67,7 @@ polygrid(xgrid, ygrid, poly, vec.inout = FALSE)
 }
 
 \examples{
-if(require(splancs) == TRUE){
+if(require(splancs)){
  poly <- matrix(c(.2, .8, .7, .1, .2, .1, .2, .7, .7, .1), ncol=2)
  plot(0:1, 0:1, type="n")
  lines(poly)

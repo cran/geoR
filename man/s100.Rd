@@ -18,6 +18,8 @@
 
 \usage{
 data(s100)
+
+data(s121)
 }
 
 \format{
@@ -25,7 +27,8 @@ data(s100)
   with the following components:
   \describe{
     \item{\code{coords}}{the coordinates of data locations.  }
-    \item{\code{data}}{the simulated data.  }
+    \item{\code{data}}{the simulated data. Notice that for \code{s121}
+      this a \eqn{121 \times 10}{101x10} matrix with 10 simulations.  }
     \item{\code{cov.model}}{the correlation model.  }
     \item{\code{nugget}}{the values of the nugget parameter.  }
     \item{\code{cov.pars}}{the covariance parameters.  }

@@ -1,6 +1,54 @@
 
 
 		=============================
+		CHANGES IN geoR VERSION 1.2-1
+		=============================
+
+NEW FEATURES
+
+     o some tests for matrix inversions when the model has  
+       covariates with very different orders of magnitude 
+  
+     o outputs of prior.control(), model.control(), output.control()
+       and krige.control() have now classes "prior.geoR", "model.geoR",
+       "output.geoR", "krige.geoR", respectivelly. 
+
+     o few checks moved from krige.conv to krige.control
+
+     o argument "realisation" in as.geodata can now also 
+       takes a column number or a name of an element of the list
+       geodata.
+
+     o the arguments model, prior and output in krige.bayes
+       can now take not only calls to the respective control functions,
+       but also lists as usual for control functions. Partial matching
+       for arguments is implemented.
+
+     o idem previous for the arguments krige and output in the
+       function krige.conv.
+
+     o futher checks for the validity covariance matrix in prior.control
+       when using a normal prior for the parameter beta
+ 
+     o the data set s256i from the Tech. Rep. which describes the 
+       implementation of krige.bayes is now included 
+
+     o futher checks in rinvchisq
+
+
+BUG FIXES
+
+     o bug fix when using trend different from constant.
+       This bug was introduced in version 1.2-0
+
+     o bug fix in likfit when using multiple initial values
+       This bug was introduced in version 1.2-0
+
+     o several corrections in the documentation 
+
+
+
+		=============================
 		CHANGES IN geoR VERSION 1.2-0
 		=============================
 

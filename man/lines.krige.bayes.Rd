@@ -32,10 +32,10 @@
 
 \details{
   The functions \code{\link{krige.bayes}} produces samples of the
-  posterior distribution of the parameters \eqn{(\sigma^2, \phi and
-    \tau^{2}_{rel})}{(sigma^2, phi and tausq.rel)}.
-  For the option \code{mode}, the mode of \eqn{(\phi and
-    \tau^{2}_{rel})}{(phi and tausq.rel)} is used with the conditional
+  posterior distribution of the parameters \eqn{(\sigma^2, \phi,
+    \tau^{2}_{rel})}{(sigma^2, phi, tausq.rel)}.
+  For the option \code{mode}, the mode of \eqn{(\phi,
+    \tau^{2}_{rel})}{(phi, tau^2.rel)} is used with the conditional
   (on thses two values) mode of \eqn{\sigma^2}{sigma^2}.
   For the options \code{mean} and \code{median} these summaries are
   computed from the samples of the posterior.

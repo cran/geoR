@@ -182,12 +182,6 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{tolerance }{tolerance angle for directional variogram.  }
   \item{uvec }{lags provided in the function call.  }
   \item{call }{the function call.  }
-
- [5] "bins.lim"         "ind.bin"          "var.mark"         "output.type"
- [9] "estimator.type"   "n.data"           "lambda"           "trend"
-[13] "nugget.tolerance" "direction"        "tolerance"        "uvec"
-[17] "call"
-  
 }
 
 \references{
@@ -238,7 +232,6 @@ vario.0 <- variog(s100, max.dist=1, dir=0, tol=pi/8)
 plot(vario.b, type="l", lty=2)
 lines(vario.0)
 legend(0, 1.2, legend=c("omnidirectional", expression(0 * degree)), lty=c(2,1))
-#
 }
 
 \keyword{spatial}

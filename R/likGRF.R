@@ -6,16 +6,16 @@
             fix.lambda = TRUE, lambda = 1, 
             fix.psiA = TRUE, psiA = 0, 
             fix.psiR = TRUE, psiR = 1, 
-            cov.model = "matern", realisations = NULL,
+            cov.model = "matern", realisations,
             method.lik = "ML",
             components = FALSE, nospatial = TRUE,
             limits = likfit.limits(), 
             print.pars = FALSE, messages.screen = TRUE, ...) 
 {
+  if(is.R()) require(mva)
   ##
   ## Checking input
   ##
-  if(is.R()) require(mva)
   call.fc <- match.call()
   temp.list <- list()
   temp.list$print.pars <- print.pars
@@ -42,6 +42,42 @@
     stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method.lik <- method.lik
   ##
+  ## Coodinates, data and covariates
+  ##
+  coords <- as.matrix(coords)
+  data <- as.vector(data)
+  n <- length(data)
+  if((nrow(coords) != n) | (2*n) != length(coords))
+    stop("\nnumber of locations does not match with number of data")
+  if(missing(geodata))
+    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+  else
+    xmat <- trend.spatial(trend=trend, geodata=geodata)
+  if(nrow(xmat) != n)
+    stop("trend matrix has dimension incompatible with the data")
+  test.xmat <- solve.geoR(crossprod(xmat))
+  test.xmat <- NULL
+  beta.size <- temp.list$beta.size <- dim(xmat)[2]
+  ##
+  ## setting a factor for indicating different realisations
+  ##
+  if(missing(realisations))
+    realisations <- as.factor(rep(1, n))
+  else{
+    if(!missing(geodata)){
+      real.name <- deparse(substitute(realisations))
+      if(!is.null(geodata[[real.name]]))
+        realisations <- geodata$realisations
+    }
+    if(length(realisations) != n)
+      stop("realisations must be a vector with the same length of the data")
+    realisations <- as.factor(realisations)
+  }
+  temp.list$realisations <- realisations
+  nrep <- temp.list$nrep <- length(levels(realisations))
+  ind.rep <- split(1:n, realisations)
+  vecdist <- function(x){as.vector(dist(x))}
+  ##
   ## Initial values for parameters
   ##
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
@@ -58,35 +94,6 @@
       stop("\nini.cov.pars must be a vector with 2 components: \ninitial values for sigmasq and phi")
   }
   ##
-  ## Coodinates, data and covariates
-  ##
-  coords <- as.matrix(coords)
-  data <- as.vector(data)
-  n <- length(data)
-  if((nrow(coords) != n) | (2*n) != length(coords))
-    stop("\nnumber of locations does not match with number of data")
-  if(missing(geodata))
-    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
-  else
-    xmat <- trend.spatial(trend=trend, geodata=geodata)
-  if(nrow(xmat) != n)
-    stop("trend matrix has dimension imcompatible with the data")
-  beta.size <- temp.list$beta.size <- dim(xmat)[2]
-  ##
-  ## setting a factor for indicating different realisations
-  ##
-  if(is.null(realisations))
-    realisations <- as.factor(rep(1, n))
-  else{
-    if(length(realisations) != n)
-      stop("realisations must be a vector with the same length of the data")
-    realisations <- as.factor(realisations)
-  }
-  temp.list$realisations <- realisations
-  nrep <- temp.list$nrep <- length(levels(realisations))
-  ind.rep <- split(1:n, realisations)
-  vecdist <- function(x){as.vector(dist(x))}
-  ##
   ## Checking for multiple initial values for preliminar search of   
   ## best initial value
   ##
@@ -95,17 +102,20 @@
       cat("likfit: searching for best initial value ...")
     ini.temp <- matrix(ini.cov.pars, ncol=2)
     grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
-    .likGRF.dists.vec <- lapply(split(as.data.frame(coords), realisations), vecdist)
+    .likGRF.dists.vec <<- lapply(split(as.data.frame(coords), realisations), vecdist)
     temp.f <- function(parms, coords, data, temp.list)
       return(loglik.GRF(coords = coords, data = as.vector(data),
-                           cov.model=temp.list$cov.model, cov.pars=parms[1:2],
-                           nugget=parms["tausq"], kappa=parms["kappa"],
-                           lambda=parms["lambda"], psiR=parms["psiR"],
-                           psiA=parms["psiA"], trend= trend,
-                           method.lik=temp.list$method.lik, compute.dists=FALSE,
-                           realisations = realisations))
+                        cov.model=temp.list$cov.model, cov.pars=parms[1:2],
+                        nugget=parms["tausq"], kappa=parms["kappa"],
+                        lambda=parms["lambda"], psiR=parms["psiR"],
+                        psiA=parms["psiA"], trend= trend,
+                        method.lik=temp.list$method.lik,
+                        compute.dists=FALSE,
+                        realisations = realisations))
     grid.lik <- apply(grid.ini, 1, temp.f, coords = coords,
                       data = data, temp.list = temp.list)
+    grid.lik <- grid.lik[(grid.lik != Inf) & (grid.lik != -Inf) & !is.na(grid.lik) & !is.nan(grid.lik)] 
+    grid.ini <- grid.ini[(grid.lik != Inf) & (grid.lik != -Inf) & !is.na(grid.lik) & !is.nan(grid.lik),, drop=FALSE] 
     ini.temp <- grid.ini[which(grid.lik == max(grid.lik)),, drop=FALSE]
     if(is.R()) rownames(ini.temp) <- "initial.value"
     if(messages.screen){
@@ -528,7 +538,7 @@
     xivy <- xivy + crossprod(sivx, sivy)
     yivy <- yivy + crossprod(sivy)
   }
-  betahat <- solve(xivx, xivy)
+  betahat <- solve.geoR(xivx, xivy)
   res <- as.vector(temp.list$z - xmat %*% betahat)
   if(!fix.nugget | (nugget < 1e-12)){
     ssres <- as.vector(yivy - 2*crossprod(betahat,xivy) +
@@ -543,7 +553,7 @@
       tausq <- nugget
   }
   else tausq <- tausq * sigmasq
-  betahat.var <- solve(xivx)
+  betahat.var <- solve.geoR(xivx)
   if(sigmasq > 1e-12) betahat.var <- sigmasq * betahat.var
 #  if(!fix.nugget & phi < 1e-16){
 #    tausq <- sigmasq + tausq
@@ -589,7 +599,7 @@
   ##
   if(nospatial){
     if(fix.lambda){
-      beta.ns <- solve(crossprod(xmat), crossprod(xmat, temp.list$z))
+      beta.ns <- solve.geoR(crossprod(xmat), crossprod(xmat, temp.list$z))
       ss.ns <- sum((as.vector(temp.list$z - xmat %*% beta.ns))^2)
       if(method.lik == "ML"){
         nugget.ns <- ss.ns/n
@@ -617,7 +627,7 @@
       lambda.ns <- lik.lambda.ns$par
       if(abs(lambda) < 0.0001) tdata.ns <- log(data)
       else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
-      beta.ns <- solve(crossprod(xmat),crossprod(xmat,tdata.ns))
+      beta.ns <- solve.geoR(crossprod(xmat),crossprod(xmat,tdata.ns))
       ss.ns <- sum((as.vector(tdata.ns - xmat %*% beta.ns))^2)
       if(is.R())
         value.min.ns <- lik.lambda.ns$value
@@ -1038,8 +1048,16 @@
     sivx <- crossprod(iv$sqrt.inverse, xmat)
     xivx <- crossprod(sivx)
     sivy <- crossprod(iv$sqrt.inverse, z)
-    xivy <- crossprod(sivx, sivy)  
-    betahat <- solve(xivx, xivy)
+    xivy <- crossprod(sivx, sivy)
+    betahat <- solve.geoR(xivx, xivy)
+    if(inherits(betahat, "try-error")){
+      error.now <- options()$show.error.message
+      options(show.error.messages = FALSE)
+      t.ei <- eigen(xivx, symmetric = TRUE)
+      betahat <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
+    }
+    if(inherits(betahat, "try-error"))
+      stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude") 
     res <- z - xmat %*% betahat
     ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
     if(temp.list$method.lik == "ML"){
@@ -1065,10 +1083,10 @@
     sumnegloglik <- sumnegloglik + negloglik
   }
   sumnegloglik <- sumnegloglik - log.jacobian
-  if(sumnegloglik > (.Machine$double.xmax/100))
-    sumnegloglik <- (.Machine$double.xmax/100)
+  if(sumnegloglik > .Machine$double.xmax/1000 | sumnegloglik == Inf | sumnegloglik == -Inf)
+    sumnegloglik <- (.Machine$double.xmax/1000)
   if(temp.list$print.pars)
-    cat(paste("value of the log-likelihood =", -negloglik, "\n"))
+    cat(paste("log-likelihood = ", -sumnegloglik, "\n"))
   return(sumnegloglik) 
 }
 
@@ -1265,7 +1283,7 @@
   if(is.null(realisations))
     realisations <- as.factor(rep(1, length(data)))
   else
-    realisations <- as.fator(realisations)
+    realisations <- as.factor(realisations)
   nrep <- length(levels(realisations))
   ##
   ## Absurd values
@@ -1285,7 +1303,6 @@
   ##
   ## Anisotropy
   ##
-  require(mva)
   vecdist <- function(x){as.vector(dist(x))}
   if(psiR != 1 | psiA != 0){
     coords.c <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
@@ -1344,7 +1361,7 @@
     xivx <- crossprod(sivx)
     sivy <- crossprod(iv$sqrt.inverse, data[[i]])
     xivy <- crossprod(sivx, sivy)  
-    betahat <- solve(xivx, xivy)
+    betahat <- solve.geoR(xivx, xivy)
     res <- data[[i]] - xmat[[i]] %*% betahat
     ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
     if(method.lik == "ML"){
@@ -1365,8 +1382,28 @@
     sumnegloglik <- sumnegloglik + negloglik 
   }
   sumnegloglik <- sumnegloglik - log.jacobian
-  if(sumnegloglik > .Machine$double.xmax/100)
-    sumnegloglik <- (.Machine$double.xmax/100)
+  if(sumnegloglik > .Machine$double.xmax/1000)
+    sumnegloglik <- (.Machine$double.xmax/1000)
   return(as.vector(-sumnegloglik))
+}
+
+"solve.geoR" <-
+  function(a, b = NULL, ...)
+{
+  options(show.error.messages = FALSE)
+  if(is.null(b))
+    res <- try(solve(a, ...))
+  else
+    res <- try(solve(a, b, ...))
+  if(inherits(res, "try-error")){
+    t.ei <- eigen(a, symmetric = TRUE)
+    if(is.null(b))
+      res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
+    else
+      res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
+  }  
+  if(inherits(res, "try-error"))
+    stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude")
+  return(res)
 }
 

@@ -183,6 +183,8 @@
       cat("WARNING: there are data at coincident locations, some geoR functions will not work\n")
   }
   else{
+    if(is.numeric(realisations) && length(realisations) == 1)
+      realisations <- obj[,realisations]
     res$realisations <- as.factor(realisations)
     if(length(res$realisations) != nrow(res$coords))
       stop("realisations and coords have incompatible dimentions")

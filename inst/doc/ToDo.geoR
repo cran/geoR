@@ -1,7 +1,9 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
-- explain criterium for "bins" formation in variog.Rd
+
+- automatic re-scaling of covariates with different orders of
+  magnitude 
 
 - Create summary functions for:
 	proflik (?)
@@ -11,9 +13,6 @@ Things to be done and/or checked in the package geoR
 - A nicer and shorter version for "proflik" 
 
 - Incorporate "kappa", "anR" and "anA" in proflik
-
-- Un-equally spaced grid for "phi" in krige.bayes by implementing
-  a trapezoidal approximation to the posterior density function
 
 - analytical computation of probabilities and (maybe) quantiles
   in krige.bayes and krige.conv (partially done)

@@ -38,7 +38,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
   \item{xmat}{a matrix of covariates. Defaults to \code{rep(1,
       length(y))}.  } 
   \item{lambda}{numerical value(s) of the transformation parameter
-    \eqn{lambda}{lambda}. 
+    \eqn{\lambda}{lambda}. 
     Used as initial value for the parameter estimation function.
     If not provided default values are assumed. If multiple values are passed
     the one with highest likelihood is used as initial value. }
@@ -58,15 +58,15 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
   \item{\dots}{extra parameters to be passed to the minimization
     function \code{\link{optim}} (\code{boxcox.fit}), \code{\link{hist}}
     (\code{plot}) or \code{\link{curve}} (\code{lines}).  }
-
+  
 }
 
-
 \details{
-  Denote \eqn{Y} the variable at the original scale.
+  Denote \eqn{Y} the variable at the original scale and \eqn{Y'} the
+  transformed variable.
   The Box-Cox transformation is defined by:
   
-  \deqn{Y\prime = \left\{ \begin{array}{ll}
+  \deqn{Y' = \left\{ \begin{array}{ll}
     log(Y)
     \mbox{ , if $\lambda = 0$} \cr
     \frac{Y^\lambda - 1}{\lambda} \mbox{ ,  otherwise}
@@ -75,7 +75,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
   An additional shifting parameter \eqn{\lambda_2}{lambda2} can be
   included in which case the transformation is given by: 
   
-  \deqn{Y\prime = \left\{
+  \deqn{Y' = \left\{
     \begin{array}{ll}
     log(Y + \lambda_2)
     \mbox{ , $\lambda = 0$ } \cr
@@ -83,37 +83,34 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
     \end{array} \right.}{Y' = log(Y + lambda2) if lambda = 0 ,
     Y' = (((Y + lambda2) ^ lambda) - 1)/lambda otherwise }.
 
- The function \code{rboxcox} samples \eqn{Y\prime}{Y'} from the normal distribution using
+ The function \code{rboxcox} samples \eqn{Y'}{Y'} from the normal distribution using
  \code{\link{rnorm}} and backtransform the values according to the
  equations above. If necessary the back-transformation truncates the values such that
- \eqn{Y\prime \geq \frac{1}{\lambda}}{Y' >= -1/lambda}. This results in
+ \eqn{Y' \geq \frac{1}{\lambda}}{Y' >= -1/lambda}. This results in
  values of \eqn{Y = 0} in the original scale.
  Increasing the mean and/or reducing the variance might help to avoid truncation.
     
 }
 
 \value{
-
   The functions returns the following results:
-  
-  \itemize{
-    \item{boxcox.fit}{a list with estimated  parameters and results on
-      the numerical minimization.  }
-    \item{print.boxcox.fit}{print estimated parameters. No values
-      returned.  }
-    \item{plot.boxcox.fit}{plots histogram of the data (optional) and
-      the model.  No values returned.  This function is only valid if
-      covariates are not included in \code{boxcox.fit}. }
-    \item{lines.boxcox.fit}{adds a line with the fitted model to the
-      current plot. No values returned.  This function is only valid if
-      covariates are not included in \code{boxcox.fit}.  }
-    \item{rboxcox}{a vector with simulated observations.  }
-    \item{dboxcox}{a vector of densities.  }
-  }
+  \item{boxcox.fit}{a list with estimated  parameters and results on
+    the numerical minimization.  }
+  \item{print.boxcox.fit}{print estimated parameters. No values
+    returned.  }
+  \item{plot.boxcox.fit}{plots histogram of the data (optional) and
+    the model.  No values returned.  This function is only valid if
+    covariates are not included in \code{boxcox.fit}. }
+  \item{lines.boxcox.fit}{adds a line with the fitted model to the
+    current plot. No values returned.  This function is only valid if
+    covariates are not included in \code{boxcox.fit}.  }
+  \item{rboxcox}{a vector of generated random deviates.  }
+  \item{dboxcox}{a vector of densities.  }
 }
 
 \references{
-  Box, G.E.P. and Cox, D.R.(1964) An analysis of transformations. JRSS B 26 211-246. 
+  Box, G.E.P. and Cox, D.R.(1964) An analysis of transformations. JRSS B
+  \bold{26}:211--246.
 }
 
 \author{

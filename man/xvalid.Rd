@@ -176,7 +176,6 @@ if(is.R()) data(s100)
   rm1 <- likfit(s100, ini=c(.5,.5), fix.nug=F, met = "REML", cov.model="mat", kappa=1)
   xvrm1 <- xvalid(s100, model=m1, loc=sample(1:100,5))
 }
-
 }
 
 \keyword{spatial}%-- one or more ...

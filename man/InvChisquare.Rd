@@ -33,17 +33,17 @@ rinvchisq(n, df, scale = 1/df)
 \details{
   The inverse chi-squared distribution with \code{df}\eqn{= n}
   degrees of freedom has density
-  \deqn{f_n(x) = \frac{1}{{2}^{n/2} \Gamma (n/2)} {1/x}^{n/2+1} {e}^{-1/(2x)}}{%
-    f_n(x) = 1 / (2^(n/2) Gamma(n/2))  (1/x)^(n/2-1) e^(-1/(2x))}
+  \deqn{f(x) = \frac{1}{{2}^{n/2} \Gamma (n/2)} {(1/x)}^{n/2+1} {e}^{-1/(2x)}}{%
+    f(x) = 1 / (2^(n/2) Gamma(n/2))  (1/x)^(n/2-1) e^(-1/(2x))}
   for \eqn{x > 0}.
-  The mean and variance are \eqn{frac{1}{(n-2)}}{1/(n-2)} and
-  \eqn{\frac{2}{(n-4)(n-2)^2}}\eqn{2/((n-4)(n-2)^2)}.
+  The mean and variance are \eqn{\frac{1}{(n-2)}}{1/(n-2)} and
+  \eqn{\frac{2}{(n-4)(n-2)^2}}{2/((n-4)(n-2)^2)}.
 
   The non-central chi-squared distribution with \code{df}\eqn{= n}
   degrees of freedom and non-centrality parameter \code{scale}
   \eqn{= S^2} has density
   \deqn{
-    f(x) = \frac{{n/2}^{n/2}}{\Gamma (n/2)} S^n {1/x}^{n/2+1}
+    f(x) = \frac{{n/2}^{n/2}}{\Gamma (n/2)} S^n {(1/x)}^{n/2+1}
     {e}^{-(n S^2)/(2x)}}{%
     f(x) = ((n/2)^(n/2))/(\Gamma (n/2)) S^n (1/x)^((n/2)+1) e^(-(n
     S^2)/(2x))}

@@ -230,7 +230,6 @@ legend(0.4,.4, c(expression(paste(kappa == 0.5, "  and  ",
        expression(paste(kappa == 2, "  and  ", phi == 0.140)),
        expression(paste(kappa == 3, "  and  ", phi == 0.117))),
        lty=c(2,1,2,1), lwd=c(1,1,2,2))
-#
 }
 
 \keyword{spatial}%-- one or more ...

@@ -63,7 +63,7 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
   The expression log-likelihood is:
   \deqn{l(\theta) = -\frac{n}{2} \log (2\pi) - \frac{1}{2} \log |\Sigma|
     - \frac{1}{2} (y -
-  F\beta)\prime \Sigma^{-1} (y - F\beta),}{l(theta) = -(n/2) * log(2 * pi) - 0.5 * log|V| - 0.5 * (y - F b)' V^{-1} (y - F
+  F\beta)' \Sigma^{-1} (y - F\beta),}{l(theta) = -(n/2) * log(2 * pi) - 0.5 * log|V| - 0.5 * (y - F b)' V^{-1} (y - F
     b),}
   where \eqn{n} is the size of the data vector \eqn{y}, \eqn{\beta}{b}
   is the mean (vector) parameter with dimention \eqn{p}, \eqn{\Sigma}{V} is the covariance
@@ -71,9 +71,9 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
   vector of \eqn{1}'s if the mean is constant.
 
   The expression restricted log-likelihood is:
-  \deqn{rl(\theta) =  -\frac{n-p}{2} \log (2\pi) + \frac{1}{2} \log |F\prime F|
-    - \frac{1}{2} \log |\Sigma| - \frac{1}{2} \log |F\prime \Sigma F| - \frac{1}{2} (y -
-  F\beta)\prime \Sigma^{-1} (y - F\beta).}{rl(\theta) =  -((n-p)/2) *
+  \deqn{rl(\theta) =  -\frac{n-p}{2} \log (2\pi) + \frac{1}{2} \log |F' F|
+    - \frac{1}{2} \log |\Sigma| - \frac{1}{2} \log |F' \Sigma F| - \frac{1}{2} (y -
+  F\beta)' \Sigma^{-1} (y - F\beta).}{rl(\theta) =  -((n-p)/2) *
   log (2 * pi) + 0.5 * log |F'F| - 0.5 * log |V|  - 0.5 * log |F'VF| -
   0.5 * (y - Fb)' V^(-1) (y - Fb).}
   

@@ -36,8 +36,10 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
     of the column number(s) corresponding to the covariate(s).  }
   \item{covar.names}{a string or vector of strings with the name(s) of
     the covariates. By default, the names in the original object are used.  }
-  \item{realisations}{optional. A vector indicating the replication
-    number. See \code{DETAILS} below.  }
+  \item{realisations}{optional. A vector indicating the realisation
+    number of a number indicating a column in \code{obj} with the
+    realisation indicatior.
+    See \code{DETAILS} below.  }
 }
 
 \details{

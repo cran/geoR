@@ -227,7 +227,7 @@
   return(dval)
 }
 
-"BCtransform.data" <-
+"BCtransform" <-
   function(x, lambda, add.to.data = 0,
            inverse = FALSE, log.jacobian = FALSE)
 { 
@@ -309,8 +309,8 @@
       ind.zero <- (variance < 1e-12)
       temp.data[ind.zero,  ] <- mean[ind.zero]
       remove(ind.zero)
-      temp.data <- BCtransform.data(lambda = lambda, data = temp.data,
-                                  inverse = TRUE)$data
+      temp.data <- BCtransform(lambda = lambda, data = temp.data,
+                               inverse = TRUE)$data
       if(lambda < -0.001) {
         res$mean  <-  "resulting distribution has no mean for negative lambda. Medians returned"
         res$variance  <-  "resulting distribution has no variance for negative lambda"
