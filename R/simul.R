@@ -242,7 +242,7 @@
       cov.message[i] <- paste("grf: covariance model", i, "is a pure nugget effect\n")
     else {
       if (cov.model == "matern" | cov.model == "powered.exponential" | 
-          cov.model == "cauchy" | cov.model == "gneiting-matern") 
+          cov.model == "cauchy" | cov.model == "gneiting.matern") 
         cov.message[i] <- paste("grf: covariance model ", 
                                 i, " is: ", cov.model, "(sigmasq=", sigmasq[i], 
                                 ", phi=", phi[i], ", kappa = ", kappa, ")\n", sep = "")
@@ -281,7 +281,7 @@
 {
   if(! "package:stats" %in% search()) require(mva)
   if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
-      x$cov.model == "cauchy" | x$cov.model == "gneiting-matern") 
+      x$cov.model == "cauchy" | x$cov.model == "gneiting.matern") 
     kappa <- x$kappa
   else kappa <- NULL
   distance <- seq(0, max.dist, length = length)

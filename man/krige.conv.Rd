@@ -4,6 +4,9 @@
 \alias{krige.control}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
+\concept{kriging}
+\concept{spatial interpolation}
+
 \title{Spatial Prediction -- Conventional Kriging}
 
 

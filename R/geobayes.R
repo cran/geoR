@@ -111,7 +111,7 @@
         ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
         if(is.null(prior$tausq.rel)) prior$tausq.rel <- 0
         if(is.null(prior$tausq.rel.prior))
-          prior$tausq.rel.prior <- c("fixed", "uniform")
+          prior$tausq.rel.prior <- c("fixed", "uniform", "reciprocal")
         if(is.null(prior$tausq.rel.discrete)) prior$tausq.rel.discrete <- NULL 
         prior <- prior.control(beta.prior = prior$beta.prior,
                                beta = prior$beta,
@@ -165,6 +165,7 @@
   exponential.par <- prior$phi  
   ##
   tausq.rel.fixed <- tausq.rel <- prior$tausq.rel
+  exponential.tausq.rel.par <- prior$tausq.rel  
   if(tausq.rel.fixed > 2)
     print("WARNING: relative (NOT absolute) nugget should be specified.")
   tausq.rel.discrete <- prior$tausq.rel.discrete
@@ -383,7 +384,7 @@
     ##
     ## checking coincident data and prediction locations
     ##
-    loc.coincide <- apply(get("d0", envir=pred.env), 2, function(x){any(x < 1e-10)})
+    loc.coincide <- apply(get("d0", envir=pred.env), 2, function(x){any(x < 1e-12)})
     if(any(loc.coincide))
       loc.coincide <- (1:ni)[loc.coincide]
     else
@@ -553,16 +554,15 @@
     ## for each parameter sets (phi, tausq.rel)
     ## 
     phi.tausq.rel.post <- function(phinug){
+#      print("phinug")
+#      print(phinug)
       par.set <- get("parset", envir=counter.env)
-      if(messages.screen){
-        krige.bayes.counter(.temp.ap = par.set,
-                            n.points = ntocount)
-      }
+      if(messages.screen)
+        krige.bayes.counter(.temp.ap = par.set, n.points = ntocount)
       assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
       phi <- phinug[1]
       tausq.rel <- phinug[2]
-      if(prior$beta.prior == "normal" && npr > 1)
-        info.id <- par.set
+      if(prior$beta.prior == "normal" && npr > 1) info.id <- par.set
       else info.id <- 1
       bsp <- beta.sigmasq.post(n = n, beta.info = beta.info[[info.id]],
                                sigmasq.info = sigmasq.info[[info.id]],
@@ -576,6 +576,11 @@
                                env.pred = pred.env, signal = signal)
       logprobphitausq <-  (-0.5) * log(bsp$det.XiRX) - (bsp$log.det.to.half) -
         (bsp$df.post/2) * log(bsp$S2.post)
+#      print("termos")
+#      print(log(bsp$det.XiRX))
+#      print(bsp$log.det.to.half) 
+#      print(bsp$df.post/2)
+#      print(log(bsp$S2.post))
       ##
       if(prior$phi.prior == "user"){
         if(phinug[3] > 0) logprobphitausq <- logprobphitausq + log(phinug[3])
@@ -592,13 +597,21 @@
       if(prior$phi.prior == "exponential"){
         logprobphitausq <- logprobphitausq - log(exponential.par) - (phi/exponential.par)
        }
-      ##
       if(prior$tausq.rel.prior == "user"){
         if(phinug[4] > 0) logprobphitausq <- logprobphitausq + log(phinug[4])
         else logprobphitausq <- -Inf
       }
-      ##
+      if(prior$tausq.rel.prior == "reciprocal"){
+        if(tausq.rel > 0) logprobphitausq <- logprobphitausq - log(tausq.rel)
+        else logprobphitausq <- -Inf
+      }
+#      logprobphitausq <- logprobphitausq + 4*bsp$df.post
+#      logprobphitausq <- logprobphitausq - 2*n - (bsp$df.post/2)
+#      logprobphitausq <- logprobphitausq - n^2 - (bsp$df.post/2)
       bsp$probphitausq <- drop(exp(logprobphitausq))
+#      print(logprobphitausq)
+#      print(bsp$probphitausq)
+#      print(format(c(par.set,phi,tausq.rel,logprobphitausq,bsp$probphitausq)))
       ##
       if(do.prediction && moments){
         assign("expect", (get("expect", envir=expect.env) +
@@ -655,6 +668,7 @@
       cat("\n")
     }
     ##
+#    print(phidist$probphitausq)
     phidist$sum.prob <- sum(phidist$probphitausq)
     phidist$probphitausq <- phidist$probphitausq/phidist$sum.prob
     ##
@@ -692,6 +706,7 @@
       ##
       ## sampling phi and/or tausq
       ##
+#      print(as.vector(phidist$probphitausq))
       n.points <- length(phidist$probphitausq)
       ind <- sample((1:n.points), n.posterior, replace = TRUE,
                     prob = as.vector(phidist$probphitausq))
@@ -1488,7 +1503,7 @@
            sigmasq = NULL,  df.sigmasq = NULL,
            phi.prior = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"),
            phi = NULL, phi.discrete = NULL, 
-           tausq.rel.prior = c("fixed", "uniform"),
+           tausq.rel.prior = c("fixed", "uniform", "reciprocal"),
            tausq.rel = 0,
            tausq.rel.discrete = NULL)
 {
@@ -1529,8 +1544,8 @@
       stop("prior.control: argument phi.discrete with support points for phi must be provided\n")
     if(length(phi.prior.probs) != length(phi.discrete))
       stop("prior.control: user provided phi.prior and phi.discrete have incompatible dimensions\n")
-    if(round(sum(phi.prior.probs), dig=6) != 1)
-      stop("prior.control: prior probabilities provided for phi do not sum up to 1")
+    if(round(sum(phi.prior.probs), dig=8) != 1)
+      stop("prior.control: prior probabilities provided for phi do not add up to 1")
   }
   else
     phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
@@ -1541,8 +1556,9 @@
     phi.discrete <- phi
   }
   else{
-    if(phi.prior == "exponential" & (is.null(phi) | (length(phi) > 1)))
+    if(phi.prior == "exponential" && (is.null(phi) | (length(phi) > 1)))
       stop("prior.control: argument `phi` must be provided when using the exponential prior for the parameter phi")
+    ## instead of commented below the probability at zero is set to zero
     ##    if(any(phi.prior == c("reciprocal", "squared.reciprocal")) &
     ##       any(phi.discrete == 0)){
     ##      warning("degenerated prior at phi = 0. Excluding value phi.discrete[1] = 0")
@@ -1570,13 +1586,13 @@
       stop("prior.control: argument tausq.rel.discrete with support points for tausq.rel must be provided\n")
     if(length(tausq.rel.prior.probs) != length(tausq.rel.discrete))
       stop("prior.control: user provided tausq.rel.prior and tausq.rel.discrete have incompatible dimensions\n")
-    if(round(sum(tausq.rel.prior.probs), dig=6) != 1)
+    if(round(sum(tausq.rel.prior.probs), dig=8) != 1)
       stop("prior.control: prior probabilities for tausq.rel provided do not add up to 1")
   }
   else
-    tausq.rel.prior <- match.arg(tausq.rel.prior)
+    tausq.rel.prior <- match.arg(tausq.rel.prior, choices = c("fixed", "uniform", "reciprocal"))
   if(tausq.rel.prior == "fixed"){
-    if(is.null(tausq.rel))
+    if(is.null(tausq.rel) | !is.numeric(tausq.rel))
       stop("prior.control: argument `tausq.rel` must be provided with fixed prior for the parameter tausq.rel")
     tausq.rel.discrete <- tausq.rel
   }
@@ -1706,11 +1722,20 @@
   else{
     ip$tausq.rel$status <- "random"
     ip$tausq.rel$dist <- tausq.rel.prior
-    if(tausq.rel.prior == "user")
-      ip$tausq.rel$probs <- tausq.rel.prior.probs
-    else      
-      ip$tausq.rel$probs <- rep(1/length(tausq.rel.discrete), length(tausq.rel.discrete))
-    names(ip$tausq.rel$probs) <- tausq.rel.discrete
+
+    if(is.null(tausq.rel.discrete))
+      ip$tausq.rel$probs <- NULL
+    else{
+      td <- as.vector(tausq.rel.discrete)
+      names(td) <- NULL
+      ip$tausq.rel$probs <-
+        switch(tausq.rel.prior,
+               uniform = rep(1, length(td)),
+               reciprocal = ifelse((td > 0), 1/td, 0),
+               user = tausq.rel.prior.probs)
+      names(ip$tausq.rel$probs) <- tausq.rel.discrete
+    }
+    ip$tausq.rel$probs <- ip$tausq.rel$probs/sum(ip$tausq.rel$probs)
   }
   ## checking valid options for random/fixed parameters
   if(ip$phi$status == "random")
@@ -1963,20 +1988,35 @@
   }
   else{
     ##
-    ## Buiding the discrete prior distribution
+    ## Building the discrete prior distribution
     ##
     phi.discrete <- prior$phi.discrete
     tausq.rel.discrete <- prior$tausq.rel.discrete
     both.discrete <- expand.grid(phi.discrete, tausq.rel.discrete)
     prob.discrete <- function(phi.discrete, tausq.discrete, prior){
-      pd <- phi.discrete
-      td <- tausq.rel.discrete
+      if(all(prior$phi.prior == "user"))
+        pd <- prior$priors.info$phi$probs
+      else pd <- phi.discrete
+      if(all(prior$tausq.rel.prior == "user"))
+        td <- prior$priors.info$tausq.rel$probs
+      else td <- tausq.rel.discrete
       probs <- switch(prior$phi.prior,
-                      uniform = outer(pd, td, function(x,y){as.numeric(1)}),
+                      user = outer(pd, td, function(x,y){x}),
+#                      uniform = outer(pd, td, function(x,y){x-x+1}),
+                      uniform = matrix(1, nrow=length(pd), ncol=length(td)),
                       reciprocal = outer(pd, td, function(x,y){ifelse(x>0, 1/x, 0.0)}),
                       squared.reciprocal = outer(pd, td, function(x,y){ifelse(x>0, 1/(x^2), 0.0)}),
                       exponential = outer(pd, td, function(x,y){(1/prior$exponential.par) * exp(x^(1/prior$exponential.par))}),
-                      fixed = outer(pd, td, function(x,y){as.numeric(1)}))
+#                      fixed = outer(pd, td, function(x,y){x-x+1}))
+                      fixed = matrix(1, nrow=length(pd), ncol=length(td))
+                      )
+      if(prior$tausq.rel.prior == "user")
+        probs <- t(t(probs) * td)
+      if(prior$tausq.rel.prior == "reciprocal"){
+        probs <- t(probs) * 1/td
+        probs[td == 0] <- 0
+        probs <- t(probs)
+      }
       return(probs/sum(probs))
     }
     both.discrete$probs <- as.vector(prob.discrete(phi.discrete = phi.discrete,
@@ -2350,7 +2390,7 @@
   else {
     my.l$cov.model <- x$call$cov.model
     if(x$call$cov.model == "matern" | x$call$cov.model == "powered.exponential" |
-       x$call$cov.model == "cauchy" | x$call$cov.model == "gneiting-matern")
+       x$call$cov.model == "cauchy" | x$call$cov.model == "gneiting.matern")
       my.l$kappa <- x$call$kappa
     else my.l$kappa <- NULL
   }

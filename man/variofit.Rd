@@ -3,6 +3,8 @@
 \alias{variofit}
 \alias{loss.vario}
 
+\concept{variogram parameter estimation}
+
 \title{ Variogram Based Parameter Estimation }
 \description{
   Estimate covariance parameters by fitting a parametric model to a

@@ -436,7 +436,7 @@
   return(loss + penalty)
 }
 
-"print.variomodel" <-
+"print.variofit" <-
   function(x, digits = "default", ...)
 {
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
@@ -475,7 +475,7 @@
   return(invisible())
 }  
 
-"summary.variomodel" <-
+"summary.variofit" <-
   function(object, ...)
 {
   summ.lik <- list()
@@ -506,7 +506,7 @@
   return(summ.lik)
 }
 
-"print.summary.variomodel" <-
+"print.summary.variofit" <-
   function(x, digits = "default", ...)
 {
   if(length(class(x)) == 0 || all(class(x) != "summary.variomodel"))

@@ -66,30 +66,38 @@
     if(length(kappa) == 1) kappa <- rep(kappa, ns)
   }
   if(length(cov.model) != ns) stop('wrong length for cov.model')
-  if(length(kappa) != ns) stop('wrong length for kappa')
   ##
   cov.model <- sapply(cov.model, match.arg, c("matern", "exponential", "gaussian",
                                               "spherical", "circular", "cubic", "wave",
                                               "linear", "power", "powered.exponential", "cauchy",
                                               "gneiting", "gneiting.matern", "pure.nugget"))
+  if(any(cov.model == 'gneiting.matern')){
+    if(length(kappa) != 2*ns) stop('wrong length for kappa')
+  }
+  else
+    if(length(kappa) != ns) stop('wrong length for kappa')
   ## settings for power model (do not reverse order of the next two lines!)
   phi[cov.model == "linear"] <- 1
   cov.model[cov.model == "linear"] <- "power"
   ## checking input for cov. models with extra parameter(s)
   if(any(cov.model == 'gneiting.model') && ns > 1)
     stop('nested models including the gneiting.matern are not implemented') 
-    for(i in 1:ns){
+  for(i in 1:ns){
     if(cov.model[i] == "matern" | cov.model[i] == "powered.exponential" | 
        cov.model[i] == "cauchy" | cov.model[i] == "gneiting.matern"){
-      if(is.na(kappa[i]))
-        stop("for matern, powered.exponential, cauchy and gneiting.matern covariance functions the parameter kappa must be provided")
-      if(cov.model[i] == "gneiting.matern" & length(kappa) != 2*ns)
-        stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
+      if(cov.model[i] == "gneiting.matern"){
+        if(any(is.na(kappa)) | length(kappa) != 2*ns)
+          stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
+      }
+      else{
+        if(is.na(kappa[i]) | is.null(kappa[i]))
+          stop("for matern, powered.exponential and cauchy covariance functions the parameter kappa must be provided")
+      }
       if((cov.model[i] == "matern" | cov.model[i] == "powered.exponential" | 
           cov.model[i] == "cauchy") & length(kappa) != 1*ns)
         stop("kappa must have 1 parameter for this correlation function")
       if(cov.model[i] == "matern" & kappa[i] == 0.5) cov.model[i] == "exponential"
-    }
+    }      
     if(cov.model[i] == "power")
       if(any(phi[i] >= 2) | any(phi[i] <= 0))
         stop("for power model the phi parameters must be in the interval ]0,2[")

@@ -6,6 +6,8 @@
 \alias{grfclass}
 \alias{lines.grf}
 
+\concept{simulation of Gaussian random fields}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Simulation of Gaussian Random Fields}

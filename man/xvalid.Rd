@@ -3,6 +3,9 @@
 \alias{xvalid}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
+\concept{cross-validation}
+
+
 \title{Cross-validation using kriging}
 
 \description{

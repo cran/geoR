@@ -1,8 +1,8 @@
-\name{summary.variomodel}
+\name{summary.variofit}
 
-\alias{summary.variomodel}
-\alias{print.summary.variomodel}
-\alias{print.variomodel}
+\alias{summary.variofit}
+\alias{print.summary.variofit}
+\alias{print.variofit}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Summarize Results of Variogram Estimation}
@@ -13,7 +13,7 @@
 }
 
 \usage{
-\method{summary}{variomodel}(object, \dots)
+\method{summary}{variofit}(object, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.

@@ -11,6 +11,7 @@ cov.spatial             Computes Value of the Covariance Function
 dinvchisq               The (Scaled) Inverse Chi-Squared Distribution
 dup.coords              Locates duplicated coordinates
 elevation               Surface Elevations
+eyefit                  Interactive Variogram Estimation
 gambia                  Gambia Malaria Data
 geoRdefunct             Defunct Functions in the Package geoR
 grf                     Simulation of Gaussian Random Fields
@@ -71,7 +72,7 @@ s100                    Simulated Data-Sets which Illustrate the Usage
 s256i                   Simulated Data-Set which Illustrate the Usage
                         of krige.bayes
 sample.posterior        Samples from the posterior distribution
-sample.prior            Samples from the prior
+sample.prior            Sample the prior distribution
 set.coords.lims         Sets Limits to Scale Plots
 SIC                     Spatial Interpolation Comparison data
 soil                    Soil chemistry properties data set
@@ -81,7 +82,7 @@ subarea                 Selects a Subarea from a Geodata Object
 summary.geodata         Summaries for geodata object
 summary.likGRF          Summarizes Parameter Estimation Results for
                         Gaussian Random Fields
-summary.variomodel      Summarize Results of Variogram Estimation
+summary.variofit        Summarize Results of Variogram Estimation
 trend.spatial           Builds the Trend Matrix
 varcov.spatial          Computes Covariance Matrix and Related Results
 variofit                Variogram Based Parameter Estimation

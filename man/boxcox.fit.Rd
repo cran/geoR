@@ -1,10 +1,10 @@
 \name{boxcox.fit}
 
 \alias{boxcox.fit}
-\alias{boxcox.negloglik}
+\alias{print.boxcox.fit}
 \alias{plot.boxcox.fit}
 \alias{lines.boxcox.fit}
-\alias{print.boxcox.fit}
+\alias{negloglik.boxcox}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -15,19 +15,19 @@
 }
 
 \usage{
-boxcox.fit(data, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
+boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
 
 print.boxcox.fit(x, \dots)
 
-plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$data), \dots)
+plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$object), \dots)
 
-lines.boxcox.fit(x, data = eval(x$call$data), \dots)
+lines.boxcox.fit(x, data = eval(x$call$object), \dots)
 
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{data}{a vector with the data.  }
+  \item{object}{a vector with the data.  }
   \item{xmat}{a matrix with covariates values. Defaults to \code{rep(1,
       length(y))}.  } 
   \item{lambda}{numerical value(s) for the transformation parameter
@@ -44,7 +44,9 @@ lines.boxcox.fit(x, data = eval(x$call$data), \dots)
   \item{add.to.data}{a constant value to be added to the data.  }
   \item{x}{a list, typically an output of the function
     \code{boxcox.fit}.  }
-  \item{hist}{logical indicating whether histograms should to be plotted.  }
+  \item{hist}{logical indicating whether histograms should to be
+    plotted.  }
+  \item{data}{data values. }
   \item{\dots}{extra parameters to be passed to the minimization
     function \code{\link{optim}} (\code{boxcox.fit}), \code{\link{hist}}
     (\code{plot}) or \code{\link{curve}} (\code{lines}).  }
@@ -113,7 +115,7 @@ plot(ml)
 ##
 if(require(MASS)){
   data(trees)
-  boxcox.fit(data = trees[,3], xmat = trees[,1:2])
+  boxcox.fit(object = trees[,3], xmat = trees[,1:2])
   }
 }
 

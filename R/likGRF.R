@@ -646,14 +646,14 @@
     }
     else{
       if(is.R())
-        lik.lambda.ns <- optim(par=1, fn = boxcox.negloglik,
+        lik.lambda.ns <- optim(par=1, fn = negloglik.boxcox,
                                method = "L-BFGS-B",
                                lower = limits$lambda["lower"],
                                upper = limits$lambda["upper"],
                                data = data, xmat = xmat,
                                lik.method = method.lik)
       else
-        lik.lambda.ns <- nlminb(par=1, fn = boxcox.negloglik,
+        lik.lambda.ns <- nlminb(par=1, fn = negloglik.boxcox,
                                 lower=limits$lambda["lower"],
                                 upper=limits$lambda["upper"],
                                 data = data, xmat = xmat,

@@ -1,5 +1,7 @@
 \name{proflik}
 
+\concept{profile likelihood}
+
 \alias{proflik}
 
 \alias{proflik.aux0}

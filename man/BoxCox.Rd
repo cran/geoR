@@ -3,6 +3,8 @@
 \alias{rboxcox}
 \alias{dboxcox}
 
+\concept{Box-Cox trransformation} 
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{The Box-Cox Transformed Normal Distribution}

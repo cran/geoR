@@ -152,7 +152,7 @@
 {
   ## checking for splancs
   if(!require(splancs))
-    cat("ERROR: cannot run the function\npackage \"splancs\" should be installed/loaded")
+    cat("ERROR: function polygrid requires the package \"splancs\"")
   else library(splancs)
   ## checking input
   if(!is.list(xgrid) && is.vector(drop(xgrid))){
@@ -180,8 +180,7 @@
     else return(list(xypoly = xypoly, vec.inout = ind))
   }
   else{
-    cat("ERROR: cannot run the function\n")
-    cat("package \"splancs\" should be installed/loaded")
+    cat("ERROR: function polygrid requires the package \"splancs\"")
     return(invisible())
   }
 }
@@ -232,7 +231,7 @@
                          geodata$coords[,2]^2,
                          geodata$coords[,1] * geodata$coords[,2])
     }
-    else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are \"cte\", \"1st\", \"2nd\" or  a model formula")
+    else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are the strings \"cte\", \"1st\", \"2nd\" or  a model formula")
   }
   trend.mat <- as.matrix(trend.mat)
   dimnames(trend.mat) <- list(NULL, NULL)

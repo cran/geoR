@@ -83,6 +83,7 @@
   ##
   if(!is.null(covar.col)){
     res[[3]] <- as.data.frame(obj[,covar.col])
+    if(all(is.character(covar.col))) covar.names <- covar.col
     if(all(covar.names == "obj.names")){
       if(is.matrix(obj))      
         col.names <- dimnames(obj)[2]
@@ -153,7 +154,10 @@
   if(!is.function(rep.covar.action))
     rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
   if(! "package:stats" %in% search()) require(mva)
+  op.dig <- options()$digits
+  options(digits=16)
   rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
+  options(digits=op.dig)
   rep.dup <- duplicated(rep.lev)
   if(sum(rep.dup) > 0)
     cat(paste("as.geodata:", sum(rep.dup), "redundant locations found\n"))
@@ -174,7 +178,7 @@
       res$realisations <- res$realisations[!rep.dup]
   }
   else{
-    check.coincide <- function(x){sum(dist(x) < 1e-12) > 0}
+    check.coincide <- function(x){sum(dist(x) < 1e-16) > 0}
     any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
     any.coincide <- as.vector(unlist(any.coincide))
     if(sum(any.coincide) > 0)
@@ -344,7 +348,7 @@
     if(!missing(x.leg) && !missing(y.leg)){
       textleg <- character()
       for (i in 1:(length(graph.list$quantiles)-1))
-        textleg <- c(textleg, substitute(a <= y < b, list(a=round(unname(graph.list$quantiles)[i], dig=dig.leg), b=round(unname(graph.list$quantiles[i+1]), dig=dig.leg))))
+        textleg <- c(textleg, substitute({a <= y} < b, list(a=round(unname(graph.list$quantiles)[i], dig=dig.leg), b=round(unname(graph.list$quantiles[i+1]), dig=dig.leg))))
       legend(x=x.leg, y=y.leg,textleg, pt.bg=graph.list$col, col=graph.list$col, pch=graph.list$pch)
     }
   }

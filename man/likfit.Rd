@@ -4,6 +4,8 @@
 \alias{likfit.limits}
 \alias{negloglik.GRF}
 
+\concept{variogram parameter estimation}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Likelihood Based Parameter Estimation for Gaussian Random Fields}

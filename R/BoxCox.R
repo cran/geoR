@@ -14,10 +14,10 @@
 }
 
 "boxcox.fit" <-
-  function(data, xmat, lambda, lambda2 = NULL, add.to.data = 0,...)
+  function(object, xmat, lambda, lambda2 = NULL, add.to.data = 0,...)
 {
   call.fc <- match.call()
-  data <- data + add.to.data
+  data <- object + add.to.data
   if(is.null(lambda2) && any(data <= 0))
     stop("Transformation requires positive data")
   ##
@@ -47,18 +47,18 @@
     lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
     ##
     if(length(as.matrix(lambdas.ini)) > 2){
-      lamlik <- apply(lambdas.ini, 1, boxcox.negloglik, data=data + absmin,
+      lamlik <- apply(lambdas.ini, 1, negloglik.boxcox, data=data + absmin,
                       xmat=xmat, lik.method=lik.method)
       lambdas.ini <- drop(lambdas.ini[which(lamlik == min(lamlik)),])
     }
     names(lambdas.ini) <- NULL
-    lik.lambda <- optim(par=lambdas.ini, fn = boxcox.negloglik,
+    lik.lambda <- optim(par=lambdas.ini, fn = negloglik.boxcox,
                         method="L-BFGS-B", hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
   }
   else{
-    lik.lambda <- optimize(boxcox.negloglik, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
+    lik.lambda <- optimize(negloglik.boxcox, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
     lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective, convergence = 0, message = "function optimize used")
   }
   ##
@@ -100,7 +100,7 @@
   return(res)
 }
 
-"boxcox.negloglik" <-
+"negloglik.boxcox" <-
   function(lambda.val, data, xmat, lik.method = "ML")
 {
   if(length(lambda.val) == 2){
@@ -145,7 +145,7 @@
 }
 
 "plot.boxcox.fit" <-
-  function(x, hist = TRUE, data = eval(x$call$data), ...)
+  function(x, hist = TRUE, data = eval(x$call$object), ...)
 {
   if(is.null(data)) stop("data object not provided or not found")
   if(!is.null(x$call$xmat) && ncol(eval(x$call$xmat)) > 1)
@@ -183,7 +183,7 @@
 }
 
 "lines.boxcox.fit" <-
-  function(x, data = eval(x$call$data), ...)
+  function(x, data = eval(x$call$object), ...)
 {
   if(is.null(data)) stop("data object not provided or not found")
   if(!is.null(x$call$xmat) && ncol(eval(x$call$xmat)) > 1)

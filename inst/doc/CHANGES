@@ -1,5 +1,41 @@
 
 		==============================
+		CHANGES IN geoR VERSION 1.4-9
+		==============================
+
+NEW FEATURES
+
+        o e few \concept entries added in the documentation
+
+        o reciprocal prior for tausq.rel parameter in krige.bayes() (prior.control())
+
+        o as.geodata() now accepts a vector of character in the argument 'covar.col'
+
+        o print and summary methods for "variomodel" replaced by 
+          "variofit" 
+
+        o new function eyefit() for interactive variogram fitting
+          using a Tcl-Tk interface
+
+        o new methods for print, lines and plot for the S3 class "eyefit"
+
+        o boxcox.negloglik() changed for negloglik.boxcox()
+
+        o change in argument name in boxcox.fit: data replaced by object
+
+
+BUGS
+        o change in krige.bayes() to avoid problems computing
+          posterior probabilities for large data-sets
+
+        o fixes in several functions concerning the gneiting.matern model
+
+        o fix in sample.prior when computing probs ans now also allowing
+          "user" priors
+
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.4-8
 		==============================
 

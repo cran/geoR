@@ -7,6 +7,10 @@
 \alias{print.krige.bayes}
 \alias{print.posterior.krige.bayes}
 
+\concept{kriging}
+\concept{bayesian kriging}
+\concept{spatial interpolation}
+
 \title{Bayesian Analysis for Gaussian Geostatistical Models}
 
 \description{
@@ -33,8 +37,8 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
               phi.prior = c("uniform", "exponential","fixed",
                             "squared.reciprocal", "reciprocal"),
               phi = NULL, phi.discrete = NULL,
-              tausq.rel.prior = c("fixed", "uniform"),
-              tausq.rel = 0, tausq.rel.discrete = NULL)
+              tausq.rel.prior = c("fixed", "uniform", "reciprocal"),
+              tausq.rel, tausq.rel.discrete = NULL)
 
 post2prior(obj)
 }
@@ -151,13 +155,13 @@ post2prior(obj)
     provided in the argument \code{phi.discrete}. \cr     
     If \code{"fixed"} the argument \eqn{\phi}{phi}
     must be provided and is regarded as fixed when performing predictions.\cr
-    For the exponential prior the argument \code{phi} provides
-    the value for the hyperparameter \eqn{\nu}{nu} which corresponds to the
+    For the exponential prior the argument \code{phi} must provide
+    the value for of hyperparameter \eqn{\nu}{nu} which corresponds to the
     expected value for this distribution.
   }
   
   \item{phi}{fixed value of the range parameter \eqn{\phi}{phi}. Only needed if
-    \code{phi.prior = "fixed"}.  }
+    \code{phi.prior = "fixed"} or if \code{phi.prior = "exponential"}.  }
   
   \item{phi.discrete}{support points of the discrete prior
     for the range parameter \eqn{\phi}{phi}. The default is a sequence
@@ -224,9 +228,19 @@ post2prior(obj)
     \item{"fixed": }{fixed known or estimated value of \eqn{\phi}{phi}.  }
   }
 
-  We remember that apart from those a \emph{user defined} prior can be specifyed  by
+  The expressions of the implemented priors for the parameter \eqn{\tau^2_{rel}}{tausq.rel}
+  are:
+  \describe{
+    \item{"fixed": }{fixed known or estimated value of
+      \eqn{\tau^2_{rel}}{tausq.rel}. Defaults to zero. }
+    \item{"uniform": }{\eqn{p(\tau^2_{rel}) \propto 1}{p(tausq.rel) propto 1}. }
+    \item{"reciprocal": }{\eqn{p(\tau^2_{rel}) \propto \frac{1}{\tau^2_{rel}}}{p(tausq.rel) propto 1/tausq.rel}.  }
+  }
+
+  Apart from those a \emph{user defined} prior can be specifyed  by
   entering a vector of probabilities for a discrete distribution 
-  with suport points given by the argument \code{phi.discrete}.\cr
+  with suport points given by the argument \code{phi.discrete} and/or
+  \code{tausq.rel.discrete}.\cr
 
   
   \bold{CONTROL FUNCTIONS}
@@ -238,8 +252,7 @@ post2prior(obj)
   distributions (using \code{prior.control}) and 
   output options (using \code{output.control}).
   Default options are available in most of the cases.
-  
-  
+    
 }
 
 

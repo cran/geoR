@@ -754,7 +754,7 @@
     else nugget <- x$nugget
   }
   if (cov.model == "matern" | cov.model == "powered.exponential" | 
-      cov.model == "cauchy" | cov.model == "gneiting-matern"){
+      cov.model == "cauchy" | cov.model == "gneiting.matern"){
     if(missing(kappa)){
       if(missing(x) || is.null(x$kappa)) 
         stop("argument kappa must be provided")
@@ -824,7 +824,7 @@
   else
     my.l$max.dist <- max.dist
   if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
-      x$cov.model == "cauchy" | x$cov.model == "gneiting-matern") 
+      x$cov.model == "cauchy" | x$cov.model == "gneiting.matern") 
     my.l$kappa <- x$kappa
   else kappa <- NULL
   if (is.vector(x$cov.pars)) 

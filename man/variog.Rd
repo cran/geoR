@@ -4,7 +4,7 @@
 \alias{rfm.bin}
 \alias{define.bins}
 
-\concepts{variogram}
+\concept{variogram}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 

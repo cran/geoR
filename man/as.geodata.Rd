@@ -39,8 +39,10 @@ is.geodata(x)
   \item{data.names}{optional. A string or vector of strings with names for
     the data columns. Only valid if there is more than one column of
     data. By default, takes the names from the original object.  }
-  \item{covar.col}{optional. A scalar or vector
-    of the column number(s) corresponding to the covariate(s).  }
+  \item{covar.col}{optional. A scalar or numeric vector
+    with the column number(s) corresponding to the covariate(s).
+    Alternativelly can be a character vector with the names of the
+    covariates. }
   \item{covar.names}{optional. A string or vector of strings with the name(s) of
     the covariates. By default take the names from the original object.  }
   \item{realisations}{optional. A vector indicating the realisation
