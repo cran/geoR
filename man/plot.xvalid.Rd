@@ -12,7 +12,7 @@
 }
 
 \usage{
-plot.xvalid(obj, geodata, coords = geodata$coords,
+plot.xvalid(obj, valid.obj, coords = valid.obj$coords,
             error.plots = TRUE, std.error.plots = TRUE,
             ask = TRUE)
 }
@@ -22,14 +22,13 @@ plot.xvalid(obj, geodata, coords = geodata$coords,
 \arguments{
   \item{obj}{an object of the class \code{"xvalid"}, typically an output
     from the function \code{\link{xvalid}}.  }
-  \item{geodata}{a list containing element \code{coords}
+  \item{valid.obj}{a list containing at least the element \code{coords}
     as described next. Typically an object of the class
     \code{"geodata"} - a \bold{geoR} data-set.
-    If not provided the arguments
-    \code{coords} must be provided instead.  }
+    The argument \code{coords} can be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
-    coordinates of the \eqn{n} data locations in each row.
-    Defaults to \code{geodata$coords}, if provided.}
+    coordinates of the (cross-)validation locations in each row.
+    Defaults to \code{valid.obj$coords}, if provided.}
   \item{error.plots}{logical. Defines whether the plots for the errors
     (\eqn{error = data - predicted}) will
     be produced.  }
@@ -54,15 +53,15 @@ plot.xvalid(obj, geodata, coords = geodata$coords,
 
 \examples{
 if(is.R()) data(s100)
-wls <- wlsfit(variog(s100, max.dist=1), ini=c(.5, .5), fix.n=TRUE)
+wls <- variofit(variog(s100, max.dist = 1), ini = c(.5, .5), fix.n = TRUE)
 xvl <- xvalid(s100, model = wls)
 #
-op <- par(no.readonly=TRUE)
-par(mfcol=c(3,2))
-par(mar=c(3,3,0,1))
-par(mgp=c(2,1,0))
-plot(xvl, s100, error=FALSE, ask = FALSE)
-plot(xvl, s100, std.err=FALSE, ask = FALSE)
+op <- par(no.readonly = TRUE)
+par(mfcol = c(3,2))
+par(mar = c(3,3,0,1))
+par(mgp = c(2,1,0))
+plot(xvl, s100, error = FALSE, ask = FALSE)
+plot(xvl, s100, std.err = FALSE, ask = FALSE)
 par(op)
 
 

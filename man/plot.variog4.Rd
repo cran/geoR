@@ -5,11 +5,14 @@
 \title{Plot Directional Variograms}
 
 \description{
-  This function plot directional variograms computed in four different directions.
+  This function plot directional variograms computed by the function
+  \code{\link{variog4}}. The omnidirectional variogram can be also included
+  in the plot.
 }
 
 \usage{
-plot.variog4(obj, omnidirectional=FALSE, same.plot=TRUE, ...)
+plot.variog4(obj, omnidirectional=FALSE, same.plot=TRUE,
+             legend = TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -17,9 +20,14 @@ plot.variog4(obj, omnidirectional=FALSE, same.plot=TRUE, ...)
   \item{omnidirectional}{logical. Indicates whether the omnidirectional
     variogram is included in the plot. }
   \item{same.plot}{logical. Indicates whether the directional variograms
-  are plotted in the same or separated plots.  }
+    are plotted in the same or separated plots.  }
+  \item{legend}{logical indicating whether legends are automatically
+    included in the plots.  }
   \item{\dots}{further arguments to be passed to the function
-    \code{\link{plot}}.  }
+    \code{\link{plot}}. Typical arguments are \code{col}, \code{lty},
+    \code{lwd}. For \code{same.plot = TRUE} the arguments are passed to
+    the function 
+    \code{\link{matplot}} which is used to produce the plot.  }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~
@@ -41,13 +49,22 @@ plot.variog4(obj, omnidirectional=FALSE, same.plot=TRUE, ...)
 
 
 \seealso{\code{\link{variog4}} for variogram calculations and
-  \code{\link{plot.variog4}} for plottig results.  }
+  \code{\link{matplot}} for multiple lines plotting.  }
 
 \examples{
 if(is.R()) data(s100)
-plot(variog4(s100, max.dist=1))
-plot(variog4(s100, max.dist=1), omni=TRUE)
-plot(variog4(s100, max.dist=1), omni=TRUE, same=F)
+s100.v4 <- variog4(s100, max.dist=1)
+# Plotting variograms for the four directions
+plot(s100.v4)
+# changing plot options
+plot(s100.v4, lwd=2)
+plot(s100.v4, lty=1, col=c("darkorange", "darkblue", "darkgreen","darkviolet"))
+plot(s100.v4, lty=1, lwd=2)
+# including the omnidirectional variogram
+plot(s100.v4, omni=TRUE)
+# variograms on different plots
+plot(s100.v4, omni=TRUE, same=F)
 }
 \keyword{spatial}
 \keyword{dplot}
+

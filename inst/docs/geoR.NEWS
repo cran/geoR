@@ -1,0 +1,200 @@
+
+		=============================
+		CHANGES IN geoR VERSION 1.0-6
+		=============================
+
+NEW FEATURES
+
+    o   function geoRdefunct() lists defunct functions
+
+    o   likfit.old(), olsfit() and wlsfit() are now defunct
+
+    o   this file is included in the package distribution at 
+        .../geoR/docs/NEWS
+
+    o	changes in the variogram based parameter estimation
+
+        - new function variofit() for variogram based estimation via
+          ordinary or weighted least squares replaces olsfit() and wlsfit()
+
+	- parameter kappa, always fixed in wlsfit() and olsfit()
+          can now be estimated in by variofit()
+
+	- print.variomodel() and summary.variomodel() changed accordingly 
+
+
+    o  file random.c no longer user. R's random number generator 
+       is now used in file woodandchan.c
+
+
+    o  flexiblity to change graphical parameter is plot.variog4()
+
+
+    o  xvalid() incorporates prediction at differet locations
+
+
+    o  extra graphics in plot.xvalid()
+
+
+    o data(wolfcamp) now available
+
+
+	
+BUG FIXES
+
+    o  likfit() : default optiom fir likfit.limits() when 
+       cov.model = "powered.exponential"
+
+
+
+
+		  =============================
+		  CHANGES IN geoR VERSION 1.0-5
+		  =============================
+
+NEW FEATURES
+
+    o	directional variograms
+
+        -  variog() now computes directional variograms using new arguments
+           "direction" and "tolerance"
+
+	-  variog4() computes variograms for four directions
+
+	-  plot.variog4() plots output of variog4()
+
+
+    o  file random.c no longer user. R's random number generator 
+       is now used in file woodandchan.c
+
+
+    o  cross-validation
+
+        - new function xvalid() to perform cross-validation
+
+	- associated plot method: plot.xvalid()
+
+
+    o  power model for covariance functions implemented
+
+
+    o  read.geodata() warns if data at coincident locations
+
+  
+	
+BUG FIXES
+
+    o  several argument matching fixes in the documentation
+
+    o  print.summary.likGRF() now works properly
+
+    o  argument fixing on plot.grf() 
+
+    o  .First.lib() following R's standards and source moved to zzz.R
+
+    o  causes of warning messages in wlsfit() and olsfit() were removed 
+
+    o  error fixing in points.geodata() "pt.size not found"
+
+
+
+	**************************************************
+	*						 *
+	*	 geoR 1.O-0 : RELEASE STATMENT	         *
+	*						 *
+	**************************************************
+
+
+  What's geoR:
+  -------------
+    geoR is a package to perform geostatistical data analysis and 
+    spatial prediction, expanding the tools already available in 
+    R for analysis of spatial data.
+
+  Legalese:
+  ---------
+  geoR is distributed under the same terms as R:
+
+  "geoR is available as Free Software under the terms of the Free Software 
+   Foundation's GNU General Public License."
+   As free package, geoR is supplied without any warranty. 
+
+  History:
+  --------
+  geoR has been developed over the last two years in the Dept of Maths 
+  and Stats, Lancaster University - UK.
+  
+  During this period it has being used for teaching short courses and 
+  for data analysis. Some scientific publications has been written, 
+  using the resources provided by the package.
+  
+  The package has been available on the web and there is already a 
+  reasonable number of users, considering the e-mails received about 
+  usage/bugs/help.
+
+
+  How does it differ from the current resources?
+  ----------------------------------------------
+  geoR differs in some aspects of the currently available tools for 
+  geostatistical data analysis: the package sgeostats and the functions 
+  included in the VR's spatial package.
+  
+  The main differences are the implementation of methods for likelihood 
+  based estimation and Bayesian prediction of (transformed) Gaussian 
+  random fields.
+
+
+  The target audience:
+  ---------------------
+  This is always hard to predict. 
+  Based on the feedback we've got so far we can say that the package 
+  has been mainly used as:
+  - teaching support tool for courses on geostatistics
+  - data analysis tool for statisticians working on applied problems 
+    as well as researchers in soil and environmental sciences, 
+    biology, among others
+  - support tool for simulation studies
+
+
+  Extra documentation:
+  ---------------------
+  The package web page is: 
+                www.maths.lancs.ac.uk/~ribeiro/geoR.html
+
+  For a quick visualization of its functionality:
+                www.maths.lancs.ac.uk/~ribeiro/geoRintro.html
+
+  A pdf version of the latter is included in the package distribution as: 
+                docs/geoRintro.pdf
+
+
+  The distribution file and tests:
+  --------------------------------
+  The current distribution includes documentation for all the functions.
+  It has passed "R CMD check" (R-devel, 1.3.0)
+
+
+  Future developments:
+  --------------------
+  The file "docs/ToDo.geoR" has a list of features which should be 
+  implemented in short/medium term.
+
+
+  Related resources/work:
+  -----------------------
+  There is a joint work in progress with Ole Christensen (Aalborg 
+  University, Denmark) to implement non-Gaussian spatial models.
+  It's not yet clear whether this will results in a package on its own 
+  or will be an expansion of the geoR functionality. 
+  Ole has given a great contribution for geoR development, and we 
+  therefore expect total compatibility of the resulting product 
+  with geoR.
+
+  Martin Schlather (Bayreuth University, Germany) is writing a package 
+  for simulation of Gaussian random fields. We will be in touch with 
+  Martin trying to improve the compatibility between the two packages.
+
+
+                             Paulo J. Ribeiro Jr and Peter J. Diggle
+                                               Lancaster, 25/05/2001
+

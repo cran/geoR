@@ -63,20 +63,16 @@ matern(u, phi, kappa)
 
 \examples{
 #
-dval <- seq(0,1,l=101)
-#
 # Models with fixed range and varying smoothness parameter
 #
-mat.5 <-  matern(dval, phi = .25, kappa = 0.5)
-mat1 <-  matern(dval, phi = .25, kappa = 1)
-mat2 <-  matern(dval, phi = .25, kappa = 2)
-mat3 <-  matern(dval, phi = .25, kappa = 3)
-plot(0:1, 0:1, type="n", xlab="distance", ylab=expression(rho(h)),
-main=expression(paste("varying  ", kappa, "  and fixed  ", phi)))
-lines(dval, mat.5, lty=2)
-lines(dval, mat1)
-lines(dval, mat2, lwd=2, lty=2)
-lines(dval, mat3, lwd=2)
+curve(matern(x, phi= 0.25, kappa = 0.5),from = 0, to = 1,
+      xlab = "distance", ylab = expression(rho(h)), lty = 2,
+      main=expression(paste("varying  ", kappa, "  and fixed  ", phi)))
+curve(matern(x, phi= 0.25, kappa = 1),from = 0, to = 1, add = TRUE)
+curve(matern(x, phi= 0.25, kappa = 2),from = 0, to = 1, add = TRUE,
+      lwd = 2, lty=2)
+curve(matern(x, phi= 0.25, kappa = 3),from = 0, to = 1, add = TRUE,
+      lwd = 2)
 legend(0.6,1, c(expression(kappa == 0.5), expression(kappa == 1),
     expression(kappa == 2), expression(kappa == 3)),
     lty=c(2,1,2,1), lwd=c(1,1,2,2))
@@ -84,23 +80,20 @@ legend(0.6,1, c(expression(kappa == 0.5), expression(kappa == 1),
 # Correlations with equivalent "practical range"
 # and varying smoothness parameter
 #
-mat.5 <-  matern(dval, phi = .25, kappa = 0.5)
-mat1 <-  matern(dval, phi = .188, kappa = 1)
-mat2 <-  matern(dval, phi = .140, kappa = 2)
-mat3 <-  matern(dval, phi = .117, kappa = 3)
-plot(0:1, 0:1, type="n", xlab="distance", ylab=expression(rho(h)),
-    main="models with the equivalent \"practical\" range")
-lines(dval, mat.5, lty=2)
-lines(dval, mat1)
-lines(dval, mat2, lwd=2, lty=2)
-lines(dval, mat3, lwd=2)
-legend(0.5,1, c(expression(paste(kappa == 0.5, "  and  ",
-    phi == 0.250)),
-    expression(paste(kappa == 1, "  and  ", phi == 0.188)),
-    expression(paste(kappa == 2, "  and  ", phi == 0.140)),
-    expression(paste(kappa == 3, "  and  ", phi == 0.117))),
-    lty=c(2,1,2,1), lwd=c(1,1,2,2))
-#
+curve(matern(x, phi = 0.25, kappa = 0.5),from = 0, to = 1,
+      xlab = "distance", ylab = expression(gamma(h)), lty = 2,
+      main = "models with equivalent \"practical\" range")
+curve(matern(x, phi = 0.188, kappa = 1),from = 0, to = 1, add = TRUE)      
+curve(matern(x, phi = 0.14, kappa = 2),from = 0, to = 1,
+      add = TRUE, lwd=2, lty=2)      
+curve(matern(x, phi = 0.117, kappa = 2),from = 0, to = 1,
+      add = TRUE, lwd=2)      
+legend(0.4,1, c(expression(paste(kappa == 0.5, "  and  ",
+       phi == 0.250)),
+       expression(paste(kappa == 1, "  and  ", phi == 0.188)),
+       expression(paste(kappa == 2, "  and  ", phi == 0.140)),
+       expression(paste(kappa == 3, "  and  ", phi == 0.117))),
+       lty=c(2,1,2,1), lwd=c(1,1,2,2))
 }
 
 \keyword{spatial}%-- one or more ...

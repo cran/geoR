@@ -259,7 +259,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \code{\link{plot.variogram}}, \code{\link{lines.variogram}} and
   \code{\link{lines.variomodel}} for graphical output,
   \code{\link{proflik}} for computing profile likelihoods,
-  \code{\link{olsfit}} and \code{\link{wlsfit}} for other estimation methods, 
+  \code{\link{variofit}} and for other estimation methods, 
   and \code{\link{optim}} for the numerical minimization function.
 }
 

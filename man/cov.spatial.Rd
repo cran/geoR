@@ -15,11 +15,12 @@
 }
 
 \usage{
-cov.spatial(obj, cov.model=c("exponential", "matern", "gaussian",
+cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
             "spherical", "circular", "cubic", "wave",
             "power", "powered.exponential", "cauchy", 
             "gneiting", "gneiting.matern", "pure.nugget"),
-            cov.pars=stop("no cov.pars argument provided"), kappa)
+            cov.pars=stop("no cov.pars argument provided"),
+            kappa = 0.5)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -199,44 +200,36 @@ cov.spatial(obj, cov.model=c("exponential", "matern", "gaussian",
 #
 # Variogram models with the same "practical" range:
 #
-xval <- seq(0,1,l=101)
-vexp <- cov.spatial(xval, cov.pars=c(1, .2))
-vsph <- cov.spatial(xval, cov.pars=c(1, .60), cov.model="sph")
-vgau <- cov.spatial(xval, cov.pars=c(1, .60/sqrt(3)),
-                    cov.model="gau")
-plot(0:1, 0:1, type="n", xlab="distance",
-     ylab=expression(gamma(h)),
-     main="variograms with equivalent \"practical range\"")
-lines(xval, (1-vexp))
-lines(xval, (1-vsph), lty=2)
-lines(xval, (1-vgau), lwd=2)
+v.f <- function(x, ...){1-cov.spatial(x, ...)}
+#
+curve(v.f(x, cov.pars=c(1, .2)), from = 0, to = 1,
+      xlab = "distance", ylab = expression(gamma(h)),
+      main = "variograms with equivalent \"practical range\"")
+curve(v.f(x, cov.pars = c(1, .6), cov.model = "sph"), 0, 1,
+      add = TRUE, lty = 2)
+curve(v.f(x, cov.pars = c(1, .6/sqrt(3)), cov.model = "gau"),
+      0, 1, add = TRUE, lwd = 2)
 legend(0.5,.3, c("exponential", "spherical", "gaussian"),
        lty=c(1,2,1), lwd=c(1,1,2))
 #
 # Matern models with equivalent "practical range"
 # and varying smoothness parameter
 #
-dval <- seq(0,1,l=101)
-mat.5 <- cov.spatial(dval, cov.pars = c(1, 0.25), kappa = 0.5)
-mat1 <-  cov.spatial(dval, cov.pars = c(1, 0.188), kappa = 1,
-                     cov.model="mat")
-mat2 <-  cov.spatial(dval, cov.pars = c(1, 0.14), kappa = 2,
-                     cov.model="mat")
-mat3 <-  cov.spatial(dval, cov.pars = c(1, 0.117), kappa = 3,
-                     cov.model="mat")
-plot(0:1, 0:1, type="n", xlab="distance",
-     ylab=expression(gamma(h)),
-     main="models with equivalent \"practical\" range")
-lines(dval, 1-mat.5, lty=2)
-lines(dval, 1-mat1)
-lines(dval, 1-mat2, lwd=2, lty=2)
-lines(dval, 1-mat3, lwd=2)
-legend(0.5,.3, c(expression(paste(kappa == 0.5, "  and  ",
+curve(v.f(x, cov.pars = c(1, 0.25), kappa = 0.5),from = 0, to = 1,
+      xlab = "distance", ylab = expression(gamma(h)), lty = 2,
+      main = "models with equivalent \"practical\" range")
+curve(v.f(x, cov.pars = c(1, 0.188), kappa = 1),from = 0, to = 1,
+      add = TRUE)      
+curve(v.f(x, cov.pars = c(1, 0.14), kappa = 2),from = 0, to = 1,
+      add = TRUE, lwd=2, lty=2)      
+curve(v.f(x, cov.pars = c(1, 0.117), kappa = 2),from = 0, to = 1,
+      add = TRUE, lwd=2)      
+legend(0.4,.4, c(expression(paste(kappa == 0.5, "  and  ",
        phi == 0.250)),
-expression(paste(kappa == 1, "  and  ", phi == 0.188)),
-expression(paste(kappa == 2, "  and  ", phi == 0.140)),
-expression(paste(kappa == 3, "  and  ", phi == 0.117))),
-lty=c(2,1,2,1), lwd=c(1,1,2,2))
+       expression(paste(kappa == 1, "  and  ", phi == 0.188)),
+       expression(paste(kappa == 2, "  and  ", phi == 0.140)),
+       expression(paste(kappa == 3, "  and  ", phi == 0.117))),
+       lty=c(2,1,2,1), lwd=c(1,1,2,2))
 #
 }
 

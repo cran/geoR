@@ -39,7 +39,7 @@ lines.variomodel(obj, max.dist = obj$max.dist,
   Allows theoretical and/or fitted variogram(s) be added to a plot.
   Together with \code{\link{plot.variogram}} can be
   used to compare sample variograms against fitted models returned by
-  \code{\link{olsfit}}, \code{\link{wlsfit}} and/or \code{\link{likfit}}.
+  \code{\link{variofit}}  and/or \code{\link{likfit}}.
 }
 
 \value{
@@ -60,17 +60,17 @@ lines.variomodel(obj, max.dist = obj$max.dist,
 %~Make other sections like WARNING with \section{WARNING }{....} ~
 
 \seealso{\code{\link{plot.variogram}}, \code{\link{lines.variogram}},
-  \code{\link{olsfit}}, \code{\link{wlsfit}}, \code{\link{likfit}}, \code{\link{lines}}. 
+  \code{\link{variofit}}, \code{\link{likfit}}, \code{\link{lines}}. 
 }
 
 \examples{
-sim <- grf(100, cov.pars=c(1, .3))
+sim <- grf(100, cov.pars = c(1, .3))
 # generates simulated data
-vario <- variog(sim)
+vario <- variog(sim, max.dist = 1)
 # computes empirical variogram
 plot(vario)
 # plots the empirical variogram
-vario.wls <- wlsfit(vario, ini=c(1, .3), fix.nugget = TRUE)
+vario.wls <- variofit(vario, ini = c(1, .3), fix.nugget = TRUE)
 # estimate parameters
 lines(vario.wls)
 # adds fitted model to the plot  

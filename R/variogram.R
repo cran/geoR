@@ -40,7 +40,11 @@
     if(tol.deg >= 90){
       direction <- "omnidirectional"
       cat("variog: computing omnidirectional variogram\n")
-    }
+    }(0, ymax, legend=c(substitute(a*degree, list(a=n.o[1])),
+                        substitute(a*degree, list(a=n.o[2])),
+                        substitute(a*degree, list(a=n.o[3])),
+                        substitute(a*degree, list(a=n.o[4])),
+                        "omnidirectional", expression()),...)
     else{
       if(messages.screen){
         cat(paste("variog: computing variogram for direction = ", round(ang.deg, dig=3), " degrees (", round(ang.rad, dig=3), " radians)\n", sep=""))
@@ -248,7 +252,7 @@
     dg <- direction * 180/pi
   else dg <- direction
   for(angle in direction){
-    res[[as.character(dg[which(direction == angle)])]] <-
+    res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-
       variog(coords=coords, data=data,
              uvec=uvec, trend = trend,
              lambda = lambda, option = option,
@@ -280,49 +284,149 @@
 }
 
 "plot.variog4" <-
-  function(obj, omnidirectional = FALSE, same.plot = TRUE, ...)
-
+  function (obj, omnidirectional = FALSE, same.plot = TRUE, legend = TRUE,...)
 {
-  ymax <- max(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v)
-  n.o <- names(obj)[1:4]
-  if(same.plot){
-    plot(obj[[1]], type="l", ylim=c(0, ymax), ...)
-    lines(obj[[2]], type="l", lty = 2)
-    lines(obj[[3]], type="l", lty = 1, lwd=2)
-    lines(obj[[4]], type="l", lty = 2, lwd=2)
-    if(omnidirectional){
-      lines(obj$omnidirectional, lwd=3)
-      legend(0, ymax, legend=c(substitute(a*degree, list(a=n.o[1])),
-                        substitute(a*degree, list(a=n.o[2])),
-                        substitute(a*degree, list(a=n.o[3])),
-                        substitute(a*degree, list(a=n.o[4])),
-                        "omnidirectional", expression()),
-             lty=c(1,2,1,2,1), lwd=c(1,1,2,2,3))
-    }
-    else
-      legend(0, ymax, legend=c(substitute(a*degree, list(a=n.o[1])),
-                        substitute(a*degree, list(a=n.o[2])),
-                        substitute(a*degree, list(a=n.o[3])),
-                        substitute(a*degree, list(a=n.o[4])),
-                        expression()),
-             lty=c(1,2,1,2), lwd=c(1,1,2,2))
-  }
-  else{
-    temp.mf <- par()$mfrow
-    par(mfrow=c(2,2))
-    for(i in n.o){
-      plot(obj[[i]], ylim=c(0, ymax), ...)
-      if(omnidirectional){
-        lines(obj$omnidirectional, type="l", lty=2)
-        legend(0, ymax, legend=c(substitute(a*degree, list(a=i)),
-                          "omnidirectional", expression()),
-               lty=c(1,2))
-      }
-      else
-        title(main=substitute(a*degree, list(a=i)), cex=1.3)
-    } 
-    par(mfrow=temp.mf)
-  }
-  return(invisible())
-  
+     ymax <- max(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v)
+     n.o <- names(obj)[1:4]
+     if (same.plot) {
+         xx <- obj[[1]]$u
+         yy <- cbind(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v)
+         if (omnidirectional)
+             yy <- cbind(obj[[5]]$v, yy)
+         GP <- list(...)
+         if (is.null(GP$lty))
+             GP$lty <- 1:5
+         if (is.null(GP$lwd))
+             GP$lwd <- 1
+         if (is.null(GP$col))
+             GP$col <- 1:5
+         if (is.null(GP$pch))
+             GP$pch <- NULL
+         if (is.null(GP$type))
+             GP$type <- "l"
+         matplot(x = xx, y = yy, type = GP$type, ...)
+         if (legend) {
+             if (omnidirectional) {
+                 legend(0, ymax, legend = c("omnid.", substitute(a *
+                   degree, list(a = n.o[1])), substitute(a * degree,
+                   list(a = n.o[2])), substitute(a * degree, list(a = n.o[3])),
+                   substitute(a * degree, list(a = n.o[4])), expression()),
+                   lty = GP$lty, lwd = GP$lwd, col = GP$col)
+             }
+             else {
+                 legend(0, ymax, legend = c(substitute(a * degree,
+                   list(a = n.o[1])), substitute(a * degree, list(a = n.o[2])),
+                   substitute(a * degree, list(a = n.o[3])), substitute(a *
+                     degree, list(a = n.o[4])), expression()),
+                   lty = GP$lty, lwd = GP$lwd, col = GP$col)
+             }
+         }
+     }
+     else {
+         temp.mf <- par()$mfrow
+         par(mfrow = c(2, 2))
+         GP <- list(...)
+         if (is.null(GP$lty)) {
+             GP$lty <- rep(1, 4)
+             if (omnidirectional)
+                 GP$lty <- c(GP$lty, 2)
+         }
+         else {
+             if (length(GP$lty) == 1)
+                 if (omnidirectional)
+                   GP$lty <- rep(GP$lty, 5)
+                 else GP$lty <- rep(GP$lty, 4)
+             if (length(GP$lty) == 2)
+                 if (omnidirectional)
+                   GP$lty <- c(rep(GP$lty[1], 4), GP$lty[2])
+                 else GP$lty <- c(rep(GP$lty, 4))
+             if (length(GP$lty) == 4 & omnidirectional)
+                 GP$lty <- c(rep(GP$lty, 2))
+         }
+         if (is.null(GP$lwd)) {
+             GP$lwd <- rep(1, 4)
+             if (omnidirectional)
+                 GP$lwd <- c(GP$lwd, 1)
+         }
+         else {
+             if (length(GP$lwd) == 1)
+                 if (omnidirectional)
+                   GP$lwd <- rep(GP$lwd, 5)
+                 else GP$lwd <- rep(GP$lwd, 4)
+             if (length(GP$lwd) == 2)
+                 if (omnidirectional)
+                   GP$lwd <- c(rep(GP$lwd[1], 4), GP$lwd[2])
+                 else GP$lwd <- rep(GP$lwd, 4)
+             if (length(GP$lwd) == 4 & omnidirectional)
+                 GP$lwd <- c(rep(GP$lwd, 1))
+         }
+         if (is.null(GP$col)) {
+             GP$col <- rep(1, 4)
+             if (omnidirectional)
+                 GP$col <- c(GP$col, 1)
+         }
+         else {
+             if (length(GP$col) == 1)
+                 if (omnidirectional)
+                   GP$col <- rep(GP$col, 5)
+                 else GP$col <- rep(GP$col, 4)
+             if (length(GP$col) == 2)
+                 if (omnidirectional)
+                   GP$col <- c(rep(GP$col[1], 4), GP$col[2])
+                 else GP$col <- rep(GP$col, 2)
+             if (length(GP$col) == 4 & omnidirectional)
+                 GP$col <- c(rep(GP$col, 1))
+         }
+         if (is.null(GP$pch)) {
+             GP$pch <- rep(1, 4)
+             if (omnidirectional)
+                 GP$pch <- c(GP$pch, 1)
+         }
+         else {
+             if (length(GP$pch) == 1)
+                 if (omnidirectional)
+                   GP$pch <- rep(GP$pch, 5)
+                 else GP$pch <- rep(GP$pch, 4)
+             if (length(GP$pch) == 2)
+                 if (omnidirectional)
+                   GP$pch <- c(rep(GP$pch[1], 4), GP$pch[2])
+                 else GP$pch <- rep(GP$pch, 2)
+             if (length(GP$pch) == 4 & omnidirectional)
+                 GP$pch <- c(rep(GP$pch, 2))
+         }
+         if (is.null(GP$type)) {
+             GP$type <- rep("l", 4)
+             if (omnidirectional)
+                 GP$type <- c(GP$type, "l")
+         }
+         else {
+             if (length(GP$type) == 1)
+                 if (omnidirectional)
+                   GP$type <- rep(GP$type, 5)
+                 else GP$type <- rep(GP$type, 4)
+             if (length(GP$type) == 2 & omnidirectional)
+                 GP$type <- c(rep(GP$type[1], 4), GP$type[2])
+             if (length(GP$type) == 4 & omnidirectional)
+                 GP$type <- c(rep(GP$type, 2))
+         }
+         for (i in 1:4) {
+             plot(obj[[i]], ylim = c(0, ymax), type = GP$type[i],
+                 col = GP$col[i], lwd = GP$lwd[i], lty = GP$lty[i],
+                 pch = GP$pch[i])
+             if (omnidirectional) {
+                 lines(obj$omnidirectional, type = GP$type[5],
+                   col = GP$col[5], lwd = GP$lwd[5], lty = GP$lty[5])
+                 legend(0, ymax, legend = c(substitute(a * degree,
+                   list(a = n.o[i])), "omn.", expression()),
+		  			lty = c(GP$lty[i], GP$lty[5]),
+					col=c(GP$col[i],  GP$col[5]),
+					lwd=c(GP$lwd[i],  GP$lwd[5]),
+					bty = "n")
+             }
+             else title(main = substitute(a * degree, list(a = n.o[i])),
+                 cex = 1.3)
+         }
+         par(mfrow = temp.mf)
+     }
+     return(invisible())
 }

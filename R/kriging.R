@@ -561,30 +561,30 @@
   ## checking input
   ##
   if(micro.scale > nugget)
-    stop("krige$micro.scale must be in the interval [0, nugget]")
+    stop("krige.conv: krige$micro.scale must be in the interval [0, nugget]")
   if (krige$type.krige != "ok" & krige$type.krige != "OK" & krige$type.krige != "o.k." & krige$type.krige != "O.K." & krige$type.krige != "sk" & krige$type.krige != "SK" & krige$type.krige != "s.k." & krige$type.krige != "S.K.")
-    stop("wrong option in the argument type.krige. It should be \"OK\" or \"SK\"(if ordinary or simple kriging is to be performed)")
+    stop("krige.conv: wrong option in the argument type.krige. It should be \"OK\" or \"SK\"(if ordinary or simple kriging is to be performed)")
   if (krige$type.krige == "ok" | krige$type.krige == "OK" | krige$type.krige == "o.k." | krige$type.krige == "O.K.") 
     beta.prior <- "flat"
   if (krige$type.krige == "sk" | krige$type.krige == "SK" | krige$type.krige == "s.k." | krige$type.krige == "S.K."){
     if(is.null(beta) | !is.numeric(beta))
-      stop("argument beta must be provided in order to perform simple kriging")
+      stop("krige.conv: argument beta must be provided in order to perform simple kriging")
     beta.prior <- "deg"
   }
   ##
   if(is.vector(coords)){
     coords <- cbind(coords, 0)
-    warning("vector of coordinates: one spatial dimension assumed")
+    warning("krige.conv: vector of coordinates, one spatial dimension assumed")
   }
   coords <- as.matrix(coords)
   if (is.vector(locations)) {
     if (length(locations) == 2) {
       locations <- t(as.matrix(locations))
       if (messages.screen) 
-        warning("assuming that there is 1 prediction point")
+        warning("krige.conv: assuming that there is 1 prediction point")
     }
     else{
-      warning("vector of locations: one spatial dimension assumed")
+      warning("krige.conv: vector of locations: one spatial dimension assumed")
       locations <- as.matrix(cbind(locations, 0))
     }
   }
@@ -594,13 +594,13 @@
   ##
   if(inherits(krige$trend.d, "formula") | inherits(krige$trend.l, "formula")){
     if((inherits(krige$trend.d, "formula") == FALSE) | (inherits(krige$trend.l, "formula") == FALSE))
-      stop("krige$trend.d and krige$trend.l must have similar specification")
+      stop("krige.conv: krige$trend.d and krige$trend.l must have similar specification")
     if(messages.screen)
       cat("krige.conv: Kriging with external trend to be performed using covariates provided by the user\n")
   }
   else{
     if (krige$trend.d != krige$trend.l){
-      stop("krige$trend.l is different from krige$trend.d")
+      stop("krige.conv: krige$trend.l is different from krige$trend.d")
     }
     if(messages.screen){
       if(krige$trend.d == "cte" & krige$type.krige == "sk")
@@ -622,7 +622,7 @@
   ##
   if(!is.null(krige$aniso.pars)) {
     if(length(krige$aniso.pars) != 2 | !is.numeric(krige$aniso.pars))
-      stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
+      stop("krige.conv: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if(messages.screen)
       cat("krige.conv: anisotropy correction performed\n")
     coords <- coords.aniso(coords = coords, aniso.pars = krige$aniso.pars)
@@ -633,7 +633,7 @@
   ##
   if(lambda != 1) {
     if(messages.screen)
-      cat("krige.conv: Box-Cox's transformation performed on the data\n.")
+      cat("krige.conv: Box-Cox's transformation of the data was performed.\n")
     if(lambda == 0)
       data <- log(data)
     else data <- ((data^lambda) - 1)/lambda

@@ -13,6 +13,8 @@
   ##
   call.fc <- match.call()
   method <- match.arg(method)
+  if((method == "circular.embedding") & messages.screen)
+    cat("grf: for simulation of fiends with large number of points the consider the packages RandomFields should be considered.\n") 
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
@@ -419,8 +421,8 @@ function(pars)
 
 
 "nlmP" <-
-  function(objfunc, params, lower = rep( -Inf, length(params)), upper = rep(
-                                                                  +Inf, length(params)), ... )
+  function(objfunc, params, lower = rep( -Inf, length(params)),
+           upper = rep(+Inf, length(params)), ... )
 {
   ## minimizer, using nlm with transformation of variables
   ##

@@ -3,11 +3,11 @@
 \alias{trend.spatial}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
-\title{Prepare Trend Matrix}
+\title{Builds the Trend Matrix}
 
 \description{
   Builds the trend matrix according to the specification
-  of the mean part of the model. 
+  of the mean part of the model provided by the user. 
 }
 
 \usage{

@@ -1,8 +1,7 @@
 "krige.bayes" <- 
   function(geodata, coords=geodata$coords, data=geodata$data, locations = "no",
            model = model.control(
-             trend.d = "cte", trend.l = "cte",
-             cov.model = "matern",
+             trend.d = "cte", trend.l = "cte", cov.model = "matern",
              kappa = 0.5, aniso.pars = NULL, lambda = 1), 
            prior = prior.control(
              beta.prior = c("flat", "normal", "fixed"),
@@ -21,7 +20,7 @@
              messages.screen = TRUE)
            )
 {
-##           smaller.locations = NULL, trend.smaller.l = model$trend.l
+  ##           smaller.locations = NULL, trend.smaller.l = model$trend.l
   ##
 ######################### PART 1 ##############################
   ## Input check
@@ -37,7 +36,7 @@
   cov.model.number <- cor.number(cov.model)
   kappa <- model$kappa
   if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
-    stop("for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
+    stop("krige.bayes: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
   lambda <- model$lambda
   ##
   beta <- prior$beta
@@ -56,7 +55,7 @@
   ##
   if(is.vector(coords)){
     coords <- cbind(coords, 0)
-    warning("vector of coordinates: one spatial dimention assumed")
+    warning("krige.bayes: vector of coordinates: one spatial dimention assumed")
   }
   coords <- as.matrix(coords)
   data.dist<- as.vector(dist(coords))
@@ -65,7 +64,7 @@
   data.dist.max <- data.dist.range[2]
   ## check == here
   if(round(1e12*data.dist.min) == 0)
-    stop("This function does not allow two data at same location")
+    stop("krige.bayes: this function does not allow two data at same location")
   if(all(locations == "no")) {
     if(prior$beta.prior != "fixed" & prior$sill.prior != "fixed"  & prior$range.prior != "fixed")
       if(messages.screen){
@@ -73,7 +72,7 @@
         cat("             Only Bayesian estimates of model parameters will be returned. \n ")
       }
       else
-        stop("Locations to be predicted not provided. Bayesian parameter estimation allowed only if priors are provided for beta, sill and range")
+        stop("krige.bayes: locations to be predicted not provided. Bayesian parameter estimation allowed only if priors are provided for beta, sill and range")
   }
   ##  if(!is.null(smaller.locations)){
   ##    if(if(is.R()) require(akima) == FALSE)
@@ -83,39 +82,39 @@
   ## Cheking priors input
   ##
   if(prior$beta.prior == "fixed" & prior$sill.prior != "fixed")
-    stop("option for fixed beta and random sill not implemented\n")
+    stop("krige.bayes: option for fixed beta and random sill not implemented\n")
   if(prior$beta.prior == "fixed" & prior$range.prior != "fixed")
-    stop("option for fixed beta and random range not implemented\n")
+    stop("krige.bayes: option for fixed beta and random range not implemented\n")
   if(prior$sill.prior == "fixed" & prior$range.prior != "fixed")
-    stop("option for fixed sill and random range not implemented\n")
+    stop("krige.bayes: option for fixed sill and random range not implemented\n")
   if(prior$beta.prior != "flat" & prior$sill.prior != "fixed")
-    stop("selected prior for beta not allowed for selected prior for sill\n")
+    stop("krige.bayes: selected prior for beta not allowed for selected prior for sill\n")
   if(prior$beta.prior == "fixed" & is.null(beta))
-    stop("if beta is fixed, its value must be provided in the argument beta\n")
+    stop("krige.bayes: if beta is fixed, its value must be provided in the argument beta\n")
   if(prior$beta.prior == "normal" & (is.null(beta) | is.null(beta.var)))
-    stop("if the prior for beta is normal, the prior mean(s) and prior (co)variance must be provided using the argument beta and priorr$beta.var\n")
+    stop("krige.bayes: if the prior for beta is normal, the prior mean(s) and prior (co)variance must be provided using the argument beta and priorr$beta.var\n")
   if(prior$sill.prior == "fixed" & is.null(sill))
-    stop("if sill is fixed, its value must be provided in the argument sill\n")
+    stop("krige.bayes: if sill is fixed, its value must be provided in the argument sill\n")
   if(prior$range.prior == "fixed" & is.null(prior$range))
-    stop("if range is fixed, its value must be provided in the argument range\n")
+    stop("krige.bayes: if range is fixed, its value must be provided in the argument range\n")
   if(prior$range.prior != "fixed"){
     if (is.null(prior$range.discrete))
-      stop("to include the range as random in the Bayesian analysis the argument range.discrete must be provided\n")
+      stop("krige.bayes: to include the range as random in the Bayesian analysis the argument range.discrete must be provided\n")
     discrete.diff <- diff(prior$range.discrete)
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("the current implementation requires equally spaced values in the argument \"range.discrete\"\n")
+      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"range.discrete\"\n")
     discrete.diff <- NULL
     if(is.R()) gc(verbose=FALSE)
   }    
   if(prior$nugget.prior != "fixed"){
     if(is.null(prior$nugget.discrete))
-      stop("to include the nugget as random in the Bayesian analysis the argument nugget.discrete must be provided\n")
+      stop("krige.bayes: to include the nugget as random in the Bayesian analysis the argument nugget.discrete must be provided\n")
     if(prior$nugget.prior != "fixed")
       if(any(prior$nugget.discrete > 1))
-        warning("when nugget is considered as random in the Bayesian analysis the values in the argument nugget.discrete must be relative nugget: tausq/sigmasq\n")
+        warning("krige.bayes: when nugget is considered as random in the Bayesian analysis the values in the argument nugget.discrete must be relative nugget: tausq/sigmasq\n")
     discrete.diff <- diff(prior$nugget.discrete)
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("the current implementation requires equally spaced values in the argument \"nugget.discrete\"\n")
+      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"nugget.discrete\"\n")
     discrete.diff <- NULL
     if(is.R()) gc(verbose=FALSE)
   }
@@ -125,25 +124,26 @@
   if(!is.null(output$quantile.estimator)){
     if(is.numeric(output$quantile.estimator))
       if(any(output$quantile.estimator) < 0 | any(output$quantile.estimator) > 1)
-        stop("quantiles indicators must be numbers in the interval [0,1]\n"
+        stop("krige.bayes: quantiles indicators must be numbers in the interval [0,1]\n"
              )
     if(output$quantile.estimator == TRUE)
       output$quantile.estimator <- c(0.025000000000000001, 0.5, 0.97499999999999998)
   }
   if(!is.null(output$probability.estimator)){
     if(!is.numeric(output$probability.estimator))
-      stop("probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
+      stop("krige.bayes: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
     if(length(output$probability.estimator)>1 & length(output$probability.estimator) != nrow(locations))
-      stop("probability.estimator must either have length 1, or have length = nrow(locations)\n")
+      stop("krige.bayes: probability.estimator must either have length 1, or have length = nrow(locations)\n")
   }
   if(lambda != 1 & lambda != 0 & moments) {
     moments <- FALSE
-    cat(paste("WARNING: moments cannot be computed for lambda =", 
-              lambda, ". Argument moments was set to FALSE\n"))
+    cat(paste("WARNING: moments cannot be computed with lambda =", 
+              lambda,".\n         Argument moments was set to FALSE\n",
+              sep=""))
   }
   if(lambda < 0 & output$mean.estimator) {
     output$mean.estimator <- FALSE
-    cat("krige.bayes: mean.predictor set to F. The resulting distribution does not has expectation for $lambda < 0$\n"
+    cat("krige.bayes: mean.predictor set to FALSE.\n             The resulting distribution does not has expectation for lambda < 0\n"
         )
   }
   ##
@@ -151,10 +151,10 @@
   ##
   if(lambda != 1) {
     if(prior$range.prior == "fixed")
-      stop("transformation option available only for the full Bayesian approach"
+      stop("krige.bayes: transformation option available only for the full Bayesian approach"
            )
     if(messages.screen)
-      cat(paste("Box-Cox's transformation performed for $lambda=", lambda, "\n"))
+      cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", lambda, "\n"))
     if(lambda == 0)
       data <- log(data)
     else data <- ((data^lambda) - 1)/lambda
@@ -166,7 +166,7 @@
     if(is.vector(locations)) {
       if(length(locations) == 2) {
         locations <- t(as.matrix(locations))
-        warning("THE FUNCTION IS CONSIDERING THAT YOU HAVE ENTERED WITH 1 POINT TO BE PREDICTED IN A TWO DIMENSION REGION\n")
+        warning("krige.bayes: THE FUNCTION IS CONSIDERING THAT YOU HAVE ENTERED WITH 1 POINT TO BE PREDICTED IN A TWO DIMENSION REGION\n")
       }
       else locations <- as.matrix(cbind(locations, 0))
     }
@@ -178,13 +178,13 @@
   if(inherits(model$trend.d, "formula") | inherits(model$trend.l, "formula")){
     if(any(locations != "no"))
       if((inherits(model$trend.d, "formula") == FALSE) | (inherits(model$trend.l, "formula") == FALSE))
-        stop("model$trend.d and model$trend.l must have similar specification\n")
+        stop("krige.bayes: model$trend.d and model$trend.l must have similar specification\n")
     if(messages.screen)
       cat("krige.bayes: Kriging with external trend to be performed using covariates provided by the user\n")
   }
   else{
     if (any(locations != "no") & (model$trend.d != model$trend.l)){
-      stop("model$trend.l is different from model$trend.d")
+      stop("krige.bayes: model$trend.l is different from model$trend.d")
     }
     if(messages.screen){
       if(model$trend.d == "cte")
@@ -214,11 +214,11 @@
   ## Checking dimensions
   ##
   if(nrow(coords) != length(data)) stop(
-           "number of data is different of number of data locations (coordinates)"
+           "krige.bayes: number of data is different of number of data locations (coordinates)"
            )
   if(all(locations != "no")) {
     if(nrow(locations) != nrow(trend.l))
-      stop("number of points to be estimated is different of the number of trend points"
+      stop("krige.bayes: number of points to be estimated is different of the number of trend points"
            )
     dimnames(locations) <- list(NULL, NULL)
   }
@@ -228,7 +228,7 @@
   ##
   if(!is.null(model$aniso.pars)) {
     if(length(model$aniso.pars) != 2 | !is.numeric(model$aniso.pars))
-      stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle and the anisotropy ratio\n")
+      stop("krige.bayes: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle and the anisotropy ratio\n")
     if(messages.screen)
       cat("krige.bayes: anisotropy parameters provided and assumed to be constants\n")
     coords <- coords.aniso(coords = coords, aniso.pars = model$aniso.pars)
@@ -471,7 +471,7 @@
     phidist <- list()
     if(is.null(prior$range.discrete)){
       phidist$phi <- seq(0, max(data.dist), l = 51)
-      warning("argument range.discrete not provided. Default values assumed\n")
+      warning("krige.bayes: argument range.discrete not provided. Default values assumed\n")
     }
     else
       phidist$phi <- prior$range.discrete
@@ -734,7 +734,7 @@
         include.it <- FALSE
         n.predictive <- n.posterior
         phi.sam <- phidist$phi[ind,  ]
-        message.prediction <- c(message.prediction, "phi/tausq.rel samples for the predictive are same as for the posterior"
+        message.prediction <- c("krige.bayes:", message.prediction, "phi/tausq.rel samples for the predictive are same as for the posterior"
                                 )
         if(messages.screen)
           cat("krige.bayes:", message.prediction, "\n")
@@ -747,7 +747,7 @@
         ind.length <- length(ind.unique)
         ind.table <- table(ind)
         phi.unique <- phidist$phi[ind.unique,  ]
-        message.prediction <- c(message.prediction, 
+        message.prediction <- c("krige.bayes:", message.prediction, 
                                 "phi/tausq.rel samples for the predictive are NOT the same as for the posterior ")
         if(messages.screen) {
           cat("krige.bayes:", message.prediction, "\n")
@@ -1065,7 +1065,7 @@
         if(output$mean.estimator) {
           kb.results$predictive$mean.simulations <- as.vector(apply(kb.results$predictive$simulations, 1, mean))
           kb.results$predictive$variance.simulations <- as.vector(apply(kb.results$predictive$simulations, 1, var))
-          message.prediction <- c(message.prediction, "mean at each location in $predictive$mean and predicted variances in $predictive$variances")
+          message.prediction <- c("krige.bayes:", message.prediction, "mean at each location in $predictive$mean and predicted variances in $predictive$variances")
         }
         ##
         ## 3.3.4 quantile estimators
@@ -1086,7 +1086,7 @@
             kb.results$predictive$quantiles <- as.vector(kb.results$predictive$
                                                          quantiles)
           }
-          message.prediction <- c(message.prediction, 
+          message.prediction <- c("krige.bayes:", message.prediction, 
                                   "Predicted quantile(s) at each location returned in $predictive$quantiles")
         }
         ##
@@ -1105,7 +1105,7 @@
           else
           kb.results$predictive$probability <- as.vector(kb.results$predictive$
                                                          probability)  
-          message.prediction <- c(message.prediction,
+          message.prediction <- c("krige.bayes:", message.prediction,
                                   "Estimated probabilities of being less than the provided cutoff(s), at each location, returned in $predictive$probability")
         }
         ##
@@ -1130,7 +1130,8 @@
           else
             kb.results$predictive$nugget.marginal <- paste("fixed tausq with value =", nugget)
           kb.results$predictive$nugget.marginal <-
-            data.frame(nugget = nug.lev, expected = apply(phidist$probphi, 2, sum),
+            data.frame(nugget = nug.lev,
+                       expected = apply(phidist$probphi, 2, sum),
                        sampled = as.vector(table(factor(phi.sam[, 2],
                          levels = nug.lev)))/n.predictive)
         }
@@ -1449,39 +1450,43 @@ function(moments, n.disc, .temp.ap, ind.length)
 {
   
   if(moments){
-    if(n.disc <= 30)
+    if(n.disc <= 50)
       cat(paste("computing moments: point",
                 .temp.ap, "out of", n.disc, "\n"))
-    if(n.disc > 30 & n.disc <= 300)
+    if(n.disc > 50 & n.disc <= 500)
       if(.temp.ap %% 10 == 1){
         cat(paste("computing moments: point",
-                  .temp.ap, "out of", n.disc, "\n"))
+                  .temp.ap, "out of", n.disc))
         if(.temp.ap == 1) cat("                   (counting for each 10)\n")
+        else cat("\n")
       }
-    if(n.disc > 300)
+    if(n.disc > 500)
       if(.temp.ap %% 100 == 1){
         cat(paste("computing moments: point",
-                  .temp.ap, "out of", n.disc, "\n"))
+                  .temp.ap, "out of", n.disc))
         if(.temp.ap == 1) cat("                   (counting for each 100)\n")
+        else cat("\n")
       }
   }
   else{
-    if(ind.length <= 30)
+    if(ind.length <= 50)
       cat(paste("simulating from the predictive for the parameter set", 
                 .temp.ap, "out of", ind.length, "\n"))
-    if(ind.length > 30 & ind.length <= 300)
+    if(ind.length > 50 & ind.length <= 500)
       if(.temp.ap %% 10 == 1){
         cat(paste("simulating from the predictive for the parameter set",
                   .temp.ap, "out of", 
-                  ind.length, "\n"))
+                  ind.length))
         if(.temp.ap == 1) cat("                   (counting for each 10)\n")
+        else cat("\n")
       }
-    if(ind.length > 300)
+    if(ind.length > 500)
       if(.temp.ap %% 100 == 1){
         cat(paste("simulating from the predictive for the parameter set",
                   .temp.ap, "out of", 
-                  ind.length, "\n"))
+                  ind.length))
         if(.temp.ap == 1) cat("                   (counting for each 100)\n")
+        else cat("\n")
       }
   }
 }

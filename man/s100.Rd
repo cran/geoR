@@ -35,9 +35,9 @@ data(s100)
 }
 
 \references{
-  Ribeiro Jr, P.J. and Diggle, P.J. (1999). geoS: A geostatistical
-  library for S-PLUS. Technical report ST-99-09, Dept of Maths and
-  Stats, Lancaster University. 
+  Ribeiro Jr, P.J. and Diggle, P.J. (1999) geoS: A geostatistical
+  library for S-PLUS. \emph{Technical report ST-99-09, Dept of Maths and
+  Stats, Lancaster University}. 
   
   Further information about \bold{geoR} can be found at:\cr
   \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.

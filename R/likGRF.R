@@ -27,6 +27,9 @@
                            "gneiting.matern", "pure.nugget"))
   temp.list$cov.model <- cov.model
   ##
+  if(cov.model == "powered.exponential")
+    if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
+  ##
   if(method == "REML" | method == "reml" | method == "rml") 
     method <- "RML"
   if(method == "ML" | method == "ml")

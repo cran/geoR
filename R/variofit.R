@@ -1,166 +1,234 @@
 "olsfit" <-
+  function(...)
+{
+  stop("this function is now obsolete.\nuse variofit() instead.")
+}
+
+"wlsfit" <-
+  function(...)
+{
+  stop("this function is now obsolete.\nuse variofit() instead.")
+}
+
+"variofit" <-
   function (vario, ini.cov.pars, cov.model = "matern",
             fix.nugget = FALSE, nugget = 0, 
-            kappa = 0.5, simul.number = NULL,  max.dist = "all",
-            minimisation.function = c("optim", "nlm", "nls"),
-            lower = 0, messages.screen = TRUE, ...) 
+            fix.kappa = TRUE, kappa = 0.5,
+            simul.number = NULL,  max.dist = "all",
+            weights = c("npairs", "equal", "cressie"),
+            minimisation.function,
+            messages.screen = TRUE, ...) 
 {
   call.fc <- match.call()
+  if(class(vario) != "variogram")
+    warning("object vario should preferably  be of the class \"variogram\"")
+  weights <- match.arg(weights)
+  if(missing(minimisation.function)){
+    if(weights == "equal") minimisation.function <- "nls"
+    else minimisation.function <- "optim"
+  }
+  if(minimisation.function == "nls" & weights == "equal"){
+    warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changed for \"optim\".\n")
+    minimisation.function <- "optim"
+  }
+  if(messages.screen){
+    cat(paste("variofit: weights used:", weights, "\n"))
+    cat(paste("variofit: minimisation function used:", minimisation.function, "\n"))
+  }
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  ini <- ini.cov.pars
-  ini.cov.pars <- NULL
-  minimisation.function <- match.arg(minimisation.function)
   if (is.matrix(vario$v) & is.null(simul.number)) 
-    stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once")
+    stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once\n")
   if (!is.null(simul.number)) 
     vario$v <- vario$v[, simul.number]
-##  if(is.matrix(ini)) {
-##    inilength <- dim(ini)[2]
-##    if(fix.nugget == FALSE & inilength != 3)
-##      stop("wrong number of columns for ini (must be 3)")
-##    if(fix.nugget == TRUE & inilength != 2)
-##      stop("wrong number of columns for ini (must be 2)")
-##  }
-##  else {
-##    inilength <- length(ini)
-##    if (fix.nugget == FALSE & inilength != 3) 
-##      stop("wrong length for ini (must be 3)")
-##    if (fix.nugget == TRUE & inilength != 2) 
-##      stop("wrong length for ini (must be 2)")
-## }
-  ##
-  ##  Checking and/or preparing initial values
-  ##
-  if(is.matrix(ini)) {
-    inilength <- dim(ini)[2]
-    if(inilength != 2)
-      stop("wrong number of columns for ini (must be always 2)")
-    if(fix.nugget == FALSE)
-      ini <- as.matrix(nugget, expand.grid(as.numeric(names(table(ini[,1]))),
-                                           as.numeric(names(table(ini[,1])))))    
-  }
-  else {
-    inilength <- length(ini)
-    if(inilength != 2)
-      stop("wrong length for ini (must be 2)")
-    if(fix.nugget == FALSE){
-      if(length(nugget) == 1)
-        ini <- c(ini, nugget)
-      else
-      ini <- as.matrix(expand.grid(nugget, ini[1], ini[2]))    
-    }
-  }
   ##
   ## Setting maximum distance
   ##
   if (max.dist == "all") 
-    data <- data.frame(u = vario$u, v = vario$v)
+    XY <- data.frame(u = vario$u, v = vario$v, n=vario$n)
   else
-    data <- data.frame(u = vario$u[vario$u <= max.dist],
-                       v = vario$v[vario$u <= max.dist])
+    XY <- data.frame(u = vario$u[vario$u <= max.dist],
+                     v = vario$v[vario$u <= max.dist],
+                     n = vario$v[vario$u <= max.dist])
   ##
-  ## Preparing lists for the minimiser
+  ##  Checking initial values
   ##
-  .global.list <- list(u = data$u, v = data$v, fix.nugget = fix.nugget,
-                       nugget = nugget, kappa = kappa,
-                       cov.model = cov.model, m.f = minimisation.function)
-  if(minimisation.function == "nlm"){
-    if(is.R()) assign(".global.lower",lower,pos=1)
-    else assign(".global.lower",lower,where=1)
+  if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
+    ini.cov.pars <- as.matrix(ini.cov.pars)
+    if(nrow(ini.cov.pars) == 1)
+      ini.cov.pars <- as.vector(ini.cov.pars)
+    else{
+      if((cov.model != "pure.nugget") & (ncol(ini.cov.pars) != 2))
+        stop("\nini.cov.pars must be a matrix or data.frame with 2 components: \ninitial values for sigmasq (partial sill) and phi (range parameter)\n")
+    }
+  }
+  if(is.vector(ini.cov.pars)){
+    if((cov.model != "pure.nugget") & (length(ini.cov.pars) != 2))
+      stop("\nini.cov.pars must be a vector with 2 components: \ninitial values for sigmasq and phi\n")
   }
   ##
-  ## Choosing the best initial value
+  ## Preparing grid of initial values and choosing the best
   ##
-  if(is.matrix(ini) | is.data.frame(ini)) {
-    ini <- as.matrix(ini)
-    if(messages.screen) cat("olsfit: searching for the best initial value\n")
-    ini.search <- ini
-    dimnames(ini.search) <- list(NULL, NULL)
-    ols.ini <- round(100000000. * apply(ini.search, 1, loss.olsvario, .global.list = .global.list))
-    ini <- as.vector(ini.search[ols.ini == min(ols.ini),])
+  if(is.matrix(ini.cov.pars) | (length(nugget) > 1) | (length(kappa) > 1)) {
+    if(messages.screen)
+      cat("variofit: searching for best initial value ...")
+    ini.temp <- matrix(ini.cov.pars, ncol=2)
+    grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa)))
+    ##  loss function:
+    v.loss <- function(parms, u, v, n, cov.model, weights){
+      sigmasq <- parms[1]
+      phi <- parms[2]
+      tausq <- parms[3]
+      kappa <- parms[4]
+      v.mod <- (sigmasq + tausq) -
+        cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model = cov.model,
+                    kappa = kappa)
+      if(weights == "equal")
+        loss <- sum((v - v.mod)^2)
+      if (weights == "npairs") 
+        loss <- sum(n * (v - v.mod)^2)
+      if (weights == "cressie") 
+        loss <- sum((n/(v.mod^2)) * (v - v.mod)^2)
+      return(loss)
+    }
+    grid.loss <- apply(grid.ini, 1, v.loss, u=XY$u, v=XY$v, n=XY$n, cov.model = cov.model, weights = weights)
+    ini.temp <- grid.ini[which(grid.loss == min(grid.loss)),, drop=FALSE]
+    if(is.R()) rownames(ini.temp) <- "initial.value"
     if(messages.screen){
-      cat("olsfit: best initial value:\n")
-      if(fix.nugget == TRUE){
-        names(ini) <- c("sill", "range")
-        print(ini)
-      }
-      else{
-        names(ini) <- c("nugget", "sill", "range")
-        print(ini)
-      }
+      cat(" selected values:\n")
+      print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+      cat(paste("loss value:", max(grid.loss), "\n"))
     }
-    if(minimisation.function == "nlm"){
-      if(is.R()) remove(".global.lower", pos=1)
-      else remove(".global.lower", where=1)
-    }
+    names(ini.temp) <- NULL
+    ini.cov.pars <- ini.temp[1:2]
+    nugget <- ini.temp[3]
+    kappa <- ini.temp[4]
+    grid.ini <- NULL
+  }
+  ##
+  ## transforming kappa for constraint minimisation
+  ##
+  if(fix.kappa == FALSE){
+    if(cov.model == "powered.exponential")
+      Tkappa.ini <- log(kappa/(2-kappa))
+    else
+      Tkappa.ini <- log(kappa)
   }
   ##
   ## minimisation using "nls"
   ##
   if (minimisation.function == "nls") {
     require(nls)
-    data$kappa <- kappa
-    data$cov.model <- cov.model
-    if (fix.nugget == FALSE) {
-      result <- nls(v ~ ((sigmasq + tausq) -
-                         cov.spatial(u, cov.model = cov.model, kappa = kappa,
-                                     cov.pars = c(sigmasq, phi))),
-                    start = list(tausq = ini[1], sigmasq = ini[2], phi = ini[3]),
-                    data = data)
-      nugget <- result$parameter[1]
-      cov.pars <- as.vector(result$parameter[2:3])
-      value <- data$v - ((nugget + cov.pars[1]) -
-                          cov.spatial(data$u, cov.model = cov.model, kappa = kappa,
-                                      cov.pars = cov.pars))
+    if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
+    if(kappa == 0) kappa <- 0.5
+    Tphi.ini <- log(ini.cov.pars[2])
+    XY$cov.model <- cov.model
+    ##
+    if (fix.nugget) {
+      XY$nugget <- nugget
+      if(fix.kappa){
+        XY$kappa <- kappa
+        res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=kappa)), ncol=1), start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
+      }
+      else{
+        if(cov.model == "powered.exponential")
+          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)
+        else
+          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=exp(Tkappa))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
+        kappa <- exp(coef(res)["Tkappa"])
+        names(kappa) <- NULL
+      }
+      cov.pars <- coef(res)[c(".lin", "Tphi")]
+      names(cov.pars) <- NULL
+      cov.pars[2] <- exp(cov.pars[2])
     }
-    else {
-      data$ftau <- nugget
-      result <- nls(v ~ ((sigmasq + ftau) -
-                         cov.spatial(u, cov.model = cov.model, kappa = kappa,
-                                     cov.pars = c(sigmasq, phi))),
-                    start = list(sigmasq = ini[1], phi = ini[2]), data = data)
-      cov.pars <- as.vector(result$parameter[1:2])
-      value <- data$v - ((nugget + cov.pars[1]) -
-                          cov.spatial(data$u, cov.model = cov.model, kappa = kappa,
-                                      cov.pars = cov.pars))
+    else{
+      if(fix.kappa){
+        XY$kappa <- kappa
+        res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)), cov.model = cov.model, kappa=kappa))), start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
+      }
+      else{
+        if(cov.model == "powered.exponential")
+          res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=exp(Tkappa)))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+        else
+          res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+        kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL
+      }
+      nugget <- coef(res)[".lin1"];names(nugget) <- NULL
+      cov.pars <- coef(res)[c(".lin2", "Tphi")]
+      names(cov.pars) <- NULL
+      cov.pars[2] <- exp(cov.pars[2]) 
     }
-    value <- sum(value * value)
+    if(nugget < 0 | cov.pars[1] < 0){
+      warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
+      temp <- c(sigmasq=cov.pars[1], phi=cov.pars[2], tausq=nugget, kappa=kappa)
+      print(rbind(round(temp, dig=4), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+      return(invisible())
+    }
+    value <- sum(resid(res)^2)
     message <- "nls does not provides convergence message"
   }
   ##
   ## minimisation using "optim" or "nlm"
   ##
   if (minimisation.function == "nlm" | minimisation.function == "optim") {
+    ##
+    ## Preparing lists for the minimiser
+    ##
+    .global.list <- list(u = XY$u, v = XY$v, n=XY$n, fix.nugget = fix.nugget,
+                         nugget = nugget, fix.kappa = fix.kappa, kappa = kappa,
+                         cov.model = cov.model, m.f = minimisation.function,
+                         weights = weights)
+    ##
+    ## Preparing initial value
+    ##
+    ini <- ini.cov.pars
+    if(fix.nugget == FALSE) ini <- c(ini, nugget)
+    if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
+    names(ini) <- NULL
     if(minimisation.function == "nlm"){
-      result <- nlm(loss.olsvario, ini, .global.list= .global.list, ...)
+      result <- nlm(loss.vario, ini, g.l = .global.list, ...)
       result$par <- result$estimate
       result$value <- result$minimum
       result$convergence <- result$code
-      if (exists(".temp.theta", where =1)){
-        result$par <- .temp.theta
-        if(is.R()) remove(".temp.theta", pos=1)
-        else remove(".temp.theta", where=1)
+      if(is.R()){
+        if(!is.null(get(".temp.theta", pos =1)))
+          result$par <- get(".temp.theta", pos=1)
       }
-      if(is.R()) remove(".global.lower", pos=1)
-      else remove(".global.lower", where=1)
+      else{
+        if(!is.null(get(".temp.theta", where = 1)))
+          result$par <- get(".temp.theta", where = 1)
+      }
     }
     else{
-      result <- optim(ini, loss.olsvario, method = "L-BFGS-B",
-                      lower = lower, .global.list = .global.list, ...)
+      if(fix.kappa == FALSE){
+        if(fix.nugget) lower <- c(0, 0, -Inf)
+        else lower <- c(0, 0, 0, -Inf)
+      }
+      else lower <- 0
+      result <- optim(ini, loss.vario, method = "L-BFGS-B",
+                      lower = lower, g.l = .global.list, ...)
     }
     value <- result$value
     message <- paste(minimisation.function, "convergence code:", result$convergence)
-    if (fix.nugget == FALSE) {
-      nugget <- result$par[1]
-      cov.pars <- as.vector(result$par[2:3])
+    cov.pars <- as.vector(result$par[1:2])
+    if(fix.kappa == FALSE){
+      if (fix.nugget)
+        Tkappa <- result$par[3]
+      else{
+        nugget <- result$par[3]
+        Tkappa <- result$par[4]
+      }
+      if(.global.list$cov.model == "powered.exponential")
+        kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
+      else kappa <- exp(Tkappa)
     }
-    else {
-      cov.pars <- as.vector(result$par[1:2])
-    }
+    else
+      if(fix.nugget == FALSE)
+        nugget <- result$par[3]        
   }
   ##
   ## Preparing output
@@ -170,283 +238,214 @@
                      trend = vario$trend, max.dist = max(vario$u),
                      minimisation.function = minimisation.function,
                      message = message)
-  estimation$method <- "OLS"
+  estimation$weights <- weights
+  if(weights == "equal") estimation$method <- "OLS"
+  else estimation$method <- "WLS"
   estimation$fix.nugget <- fix.nugget
+  estimation$fix.kappa <- fix.kappa
   estimation$lambda <- vario$lambda
   estimation$call <- call.fc
   class(estimation) <- "variomodel"
-  if(messages.screen){
-    cat("olsfit: estimated model parameters are:\n")
-    cat(paste("covariance model:", cov.model))
-    if(cov.model == "matern" | cov.model == "powered.exponential" | 
-       cov.model == "cauchy" | cov.model == "gneiting.matern")
-      cat(paste(" with kappa =", kappa))
-    if(!is.null(kappa))
-      if(cov.model == "matern" & kappa == 0.5)
-        cat(" (exponential)")
-    cat("\n")
-    print(c(nugget=estimation$nugget, sill=estimation$cov.pars[1], range=estimation$cov.pars[2]))
-  }
   return(estimation)
 }
 
 
-"wlsfit" <-
-function (vario, ini.cov.pars, cov.model = "matern",
-          fix.nugget = FALSE, nugget = 0,
-          kappa = 0.5, simul.number = NULL, max.dist = "all",
-          minimisation.function = c("optim", "nlm"), lower = 0,
-          weight = c("npairs", "cressie"), messages.screen=TRUE, ...) 
+"loss.vario" <-
+  function (theta, g.l) 
 {
-  call.fc <- match.call()
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
-  ini <- ini.cov.pars
-  ini.cov.pars <- NULL
-  weight <- match.arg(weight)
-  minimisation.function <- match.arg(minimisation.function)
-  if (is.matrix(vario$v) & is.null(simul.number)) 
-    stop("object in vario$v is a matrix. This function works for only 1 empirical variogram")
-  if (!is.null(simul.number)) 
-    vario$v <- vario$v[, simul.number]
-##  if(is.matrix(ini)) {
-##    inilength <- dim(ini)[2]
-##    if(fix.nugget == FALSE & inilength != 3)
-##      stop("wrong number of columns for ini (must be 3)")
-##    if(fix.nugget == TRUE & inilength != 2)
-##      stop("wrong number of columns for ini (must be 2)")
-##  }
-##  else {
-##    inilength <- length(ini)
-##    if (fix.nugget == FALSE & inilength != 3) 
-##      stop("wrong length for ini (must be 3)")
-##    if (fix.nugget == TRUE & inilength != 2) 
-##      stop("wrong length for ini (must be 2)")
-##  }
   ##
-  ##  Checking and/or preparing initial values
+  ## Imposing constraints for nlm
   ##
-  if(is.matrix(ini)) {
-    inilength <- dim(ini)[2]
-    if(inilength != 2)
-      stop("wrong number of columns for ini (must be always 2)")
-    if(fix.nugget == FALSE)
-      ini <- as.matrix(expand.grid(nugget, as.numeric(names(table(ini[,1]))),
-                                   as.numeric(names(table(ini[,1])))))    
-  }
-  else {
-    inilength <- length(ini)
-    if(inilength != 2)
-      stop("wrong length for ini (must be 2)")
-    if(fix.nugget == FALSE){
-      if(length(nugget) == 1)
-        ini <- c(ini, nugget)
-      else
-      ini <- as.matrix(expand.grid(nugget, ini[1], ini[2]))    
-    }
-  }
-  ##
-  ## Setting maximum distance
-  ##
-  if (max.dist == "all") 
-    data <- list(u = vario$u, v = vario$v, n = vario$n)
-  else data <- list(u = vario$u[vario$u <= max.dist],
-                    v = vario$v[vario$u <= max.dist],
-                    n = vario$n[vario$u <= max.dist])
-  holdit <- data$v
-  holdit[is.na(holdit)] <- 0
-  data$v <- holdit
-  ##
-  ## Preparing lists for the minimiser
-  ##
-  .global.list <- list(u = data$u, v = data$v, n = data$n,
-                       fix.nugget = fix.nugget,
-                       nugget = nugget, 
-                       kappa = kappa, cov.model = cov.model,
-                       weight = weight, m.f = minimisation.function)
-  if(minimisation.function == "nlm"){
-    if(is.R()) assign(".global.lower",lower,pos=1)
-    else assign(".global.lower",lower,where=1)
-  }
-  ##
-  ## Searchin for best initial value 
-  ##
-  if(is.matrix(ini) | is.data.frame(ini)) {
-    ini <- as.matrix(ini)
-    if(messages.screen) cat("wlsfit: searching for the best initial value\n")
-    ini.search <- ini
-    dimnames(ini.search) <- list(NULL, NULL)
-    wls.ini <- round(100000000. * apply(ini.search, 1, loss.wlsvario,
-                                        .global.list = .global.list))
-    ini <- as.vector(ini.search[wls.ini == min(wls.ini),])
-    if(messages.screen){
-      cat("wlsfit: best initial value:\n")
-      if(fix.nugget == TRUE){
-        names(ini) <- c("sill", "range")
-        print(ini)
+  if(g.l$m.f == "nlm"){
+    .temp.theta <<- NULL
+    if(g.l$fix.kappa == FALSE){
+      if(g.l$fix.nugget){
+        theta.minimiser <- theta[1:2]
+        Tkappa <- theta[3]
       }
       else{
-        names(ini) <- c("nugget", "sill", "range")
-        print(ini)
+        theta.minimiser <- theta[1:3]
+        Tkappa <- theta[4]
       }
     }
-    if(minimisation.function == "nlm"){
-      if(is.R()) remove(".global.lower", pos=1)
-      else remove(".global.lower", where=1)
-    }
+    else
+      theta.minimiser <- theta
+    penalty <- 10000 * sum(0 - pmin(theta.minimiser, 0))
+    theta <- pmax(theta.minimiser, 0)
+    if(g.l$fix.kappa == FALSE)
+      theta <- c(theta.minimiser, Tkappa)
+    if (any(theta.minimiser < 0))
+      .temp.theta <<- theta
+    else penalty <- 0
   }
+  else penalty <- 0
   ##
-  ## Minimisation using "optim" or "nlm" 
+  ## reading parameters
   ##
-  if(minimisation.function == "nlm"){
-    result <- nlm(loss.wlsvario, ini, .global.list = .global.list, ...)
-    result$par <- result$estimate
-    result$value <- result$minimum
-    result$convergence <- result$code
-    if (exists(".temp.theta", w=1)){
-      result$estimate <- .temp.theta
-      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
-      else remove(".temp.theta", where=1, inherits = TRUE)
+  if(g.l$fix.kappa == FALSE){
+    if (g.l$fix.nugget){
+      tausq <- g.l$nugget
+      Tkappa <- theta[3]
     }
-    if(is.R()) remove(".global.lower", pos=1, inherits = TRUE)
-    else remove(".global.lower", where=1, inherits = TRUE)
+    else{
+      tausq <- theta[3]
+      Tkappa <- theta[4]
+    }
+    if(g.l$cov.model == "powered.exponential")
+      kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
+    else kappa <- exp(Tkappa)
   }
   else{
-    result <- optim(ini, loss.wlsvario, method = "L-BFGS-B",
-                    lower = lower, .global.list = .global.list, ...)
+    kappa <- g.l$kappa
+    if (g.l$fix.nugget)
+      tausq <- g.l$nugget
+    else
+      tausq <- theta[3]
   }
   ##
-  ## Preparing output 
-  ##
-  value <- result$value
-  message <- paste(minimisation.function, "convergence code:", result$convergence)
-  if (fix.nugget == FALSE) {
-    nugget <- result$par[1]
-    cov.pars <- as.vector(result$par[2:3])
-  }
-  else {
-    cov.pars <- as.vector(result$par[1:2])
-  }
-  estimation <- list(nugget = nugget, cov.pars = cov.pars, 
-                     cov.model = cov.model, kappa = kappa, value = value, 
-                     trend = vario$trend, max.dist = max(data$u),
-                     minimisation.function = minimisation.function,
-                     message = message)
-  estimation$method <- "WLS"
-  estimation$fix.nugget <- fix.nugget
-  estimation$lambda <- vario$lambda
-  estimation$call <- call.fc
-  class(estimation) <- "variomodel"
-  if(messages.screen){
-    cat("wlsfit: estimated model parameters are:\n")
-    cat(paste("covariance model:", cov.model))
-    if(cov.model == "matern" | cov.model == "powered.exponential" | 
-       cov.model == "cauchy" | cov.model == "gneiting.matern")
-      cat(paste(" with kappa =", kappa))
-    if(!is.null(kappa))
-      if(cov.model == "matern" & kappa == 0.5)
-        cat(" (exponential)")
-    cat("\n")
-    print(c(nugget=estimation$nugget, sill=estimation$cov.pars[1], range=estimation$cov.pars[2]))
-  }
-  return(estimation)
-}
-
-
-"loss.olsvario" <-
-  function (theta, .global.list) 
-{
-  if(.global.list$m.f == "nlm"){
-    if (exists(".temp.theta", w=1)){
-      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
-      else remove(".temp.theta", where=1, inherits = TRUE)
-    }
-    theta.minimiser <- theta
-    penalty <- 10000 * sum(.global.lower - pmin(theta, .global.lower))
-    theta <- pmax(theta, .global.lower)
-    if (any(theta.minimiser < .global.lower)){
-      if(is.R()) assign(".temp.theta", theta, pos=1)
-      else assign(".temp.theta", theta, where=1)
-    }
-  }
-  else penalty <- 0
-  u <- .global.list$u
-  v <- .global.list$v
-  kappa <- .global.list$kappa
-  if (.global.list$fix.nugget == FALSE) {
-    tausq <- theta[1]
-    sigmasq <- theta[2]
-    phi <- theta[3]
-    tau1 <- tausq
-  }
-  else {
-    tausq <- .global.list$nugget
-    sigmasq <- theta[1]
-    phi <- theta[2]
-    tau1 <- tausq + 1
-  }
+  sigmasq <- theta[1]
+  phi <- theta[2]
   sill.total <- sigmasq + tausq
-  if (.global.list$fix.nugget == FALSE) {
-    gamma <- sill.total - cov.spatial(u, cov.model = .global.list$cov.model, 
-                                      kappa = kappa, cov.pars = c(theta[2], theta[3]))
-  }
-  else {
-    gamma <- sill.total - cov.spatial(u, cov.model = .global.list$cov.model, 
-                                      kappa = kappa, cov.pars = c(theta[1], theta[2]))
-  }
-  loss <- sum((v - gamma)^2)
+  ##
+  ## Computing values for the theoretical variogram 
+  ##
+  gamma <- sill.total - cov.spatial(g.l$u, cov.model = g.l$cov.model, 
+                                    kappa = kappa, cov.pars = c(sigmasq, phi))
+  ##
+  ## Computing loss function
+  ##
+  if(g.l$weight == "equal")
+    loss <- sum((g.l$v - gamma)^2)
+  if (g.l$weights == "npairs") 
+    loss <- sum(g.l$n * (g.l$v - gamma)^2)
+  if (g.l$weights == "cressie") 
+    loss <- sum((g.l$n/(gamma^2)) * (g.l$v - gamma)^2)
   return(loss + penalty)
 }
 
-"loss.wlsvario" <-
-  function (theta, .global.list) 
+"print.variomodel" <-
+  function(obj, digits = "default", ...)
 {
-  if(.global.list$m.f == "nlm"){
-    if (exists(".temp.theta", w=1)){
-      if(is.R()) remove(".temp.theta", pos=1, inherits = TRUE)
-      else remove(".temp.theta", where=1, inherits = TRUE)
-    }
-    theta.minimiser <- theta
-    penalty <- 10000 * sum(.global.lower - pmin(theta, .global.lower))
-    theta <- pmax(theta, .global.lower)
-    if (any(theta.minimiser < .global.lower)){
-      if(is.R()) assign(".temp.theta", theta, pos=1)
-      else assign(".temp.theta", theta, where=1)
-    }
+  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
+  else digits <- options()$digits
+  if(obj$fix.nugget){
+    est.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
+    if(obj$fix.kappa == FALSE)
+      est.pars <- c(est.pars, kappa = obj$kappa)
   }
-  else penalty <- 0
-  u <- .global.list$u
-  v <- .global.list$v
-  n <- .global.list$n
-  kappa <- .global.list$kappa
-  if (.global.list$fix.nugget == FALSE) {
-    tausq <- theta[1]
-    sigmasq <- theta[2]
-    phi <- theta[3]
-    tau1 <- tausq
+  else{
+    est.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])    
+    if(obj$fix.kappa == FALSE)
+      est.pars <- c(est.pars, kappa = obj$kappa)
   }
-  else {
-    tausq <- .global.list$nugget
-    sigmasq <- theta[1]
-    phi <- theta[2]
-    tau1 <- tausq + 1
+  if(obj$weights == "equal")
+    cat("variofit: model parameters estimated by OLS (ordinary least squares):\n")
+  else
+    cat("variofit: model parameters estimated by WLS (weighted least squares):\n")
+  cat(paste("covariance model is:", obj$cov.model))
+  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
+     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern")
+    if(obj$fix.kappa) cat(paste(" with fixed kappa =", obj$kappa)) 
+  if(obj$cov.model == "matern" & obj$fix.kappa & obj$kappa == 0.5)
+    cat(" (exponential)")
+  cat("\n")
+  if(obj$fix.nugget)
+    cat(paste("fixed value for tausq = ", obj$nugget,"\n"))
+  cat("parameter estimates:\n")
+  print(round(est.pars, digits=digits))
+  if(obj$weights == "equal")
+    cat("\nvariofit: minimised sum of squares = ")
+  else
+      cat("\nvariofit: minimised weighted sum of squares = ")
+  cat(round(obj$value, digits=digits))
+  cat("\n")
+  return(invisible())
+}  
+
+"summary.variomodel" <-
+  function(obj)
+{
+  summ.lik <- list()
+  if(obj$weights == "equal")
+    summ.lik$pmethod <- "OLS (ordinary least squares)"
+  else
+    summ.lik$pmethod <- "WLS (weighted least squares)"
+  summ.lik$cov.model <- obj$cov.model
+  summ.lik$spatial.component <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
+  summ.lik$spatial.component.extra <- c(kappa = obj$kappa)
+  summ.lik$nugget.component <- c(tausq = obj$nugget)
+  summ.lik$fix.nugget <- obj$fix.nugget
+  summ.lik$fix.kappa <- obj$fix.kappa
+  summ.lik$sum.of.squares <- c(value = obj$value)
+  if(obj$fix.nugget){
+    summ.lik$estimated.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
+    if(obj$fix.kappa == FALSE)
+      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = obj$kappa)
   }
-  sill.total <- sigmasq + tausq
-  if (.global.list$fix.nugget == FALSE) {
-    gamma <- sill.total - cov.spatial(u, cov.model = .global.list$cov.model, 
-                                      kappa = kappa, cov.pars = c(theta[2], theta[3]))
+  else{
+    summ.lik$estimated.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
+    if(obj$fix.kappa == FALSE)
+      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = obj$kappa)
   }
-  else {
-    gamma <- sill.total - cov.spatial(u, cov.model = .global.list$cov.model, 
-                                      kappa = kappa, cov.pars = c(theta[1], theta[2]))
-  }
-  if (.global.list$weight == "npairs") 
-    loss <- sum(n * (v - gamma)^2)
-  if (.global.list$weight == "cressie") 
-    loss <- sum((n/(gamma^2)) * (v - gamma)^2)
-  return(loss + penalty)
+  summ.lik$weights <- obj$weights
+  summ.lik$call <- obj$call
+  class(summ.lik) <- "summary.variomodel"
+  return(summ.lik)
 }
 
+"print.summary.variomodel" <-
+  function(obj, digits = "default", ...)
+{
+  if(class(obj) != "summary.variomodel")
+    stop("object is not of the class \"summary.variomodel\"")
+  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
+  else digits <- options()$digits
+  cat("Summary of the parameter estimation\n")
+  cat("-----------------------------------\n")
+  cat(paste("Estimation method:", obj$pmethod, "\n"))
+  cat("\n")
+  ##
+  ## Estimates of the model components
+  ## Model: Y(x) = X\beta + S(x) + e 
+  ##
+#  cat("Parameters of the mean component (trend):")
+#  cat("\n")
+#  print(round(obj$mean.component, digits=digits))
+#  cat("\n")
+  ##
+  cat("Parameters of the spatial component:")
+  cat("\n")
+  cat(paste("   correlation function:", obj$cov.model))
+  if(obj$cov.model == "matern" & obj$fix.kappa & obj$spatial.component.extra == 0.5)
+    cat(" (exponential)")
+  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
+     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern"){
+    if(obj$fix.kappa)
+      cat(paste("\n      (fixed) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
+    else
+      cat(paste("\n      (estimated) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
+  }
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(obj$spatial.component[1], dig=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(obj$spatial.component[2], dig=digits)))
+  cat("\n")
+  ##
+  cat("\n")  
+  cat("Parameter of the error component:")
+  if(obj$fix.nugget)
+    cat(paste("\n      (fixed) nugget =", round(obj$nugget.component, digits = digits)))
+  else
+    cat(paste("\n      (estimated) nugget = ", round(obj$nugget.component, dig=digits)))
+  cat("\n")
+  cat("\n")
+  names(obj$sum.of.squares) <- NULL
+  if(obj$weights == "equal") cat("Minimised sum of squares: ")
+  else cat("Minimised weighted sum of squares: ")
+  cat(round(obj$sum.of.squares, digits=digits))
+  cat("\n")
+  cat("\n")
+  cat("Call:")
+  cat("\n")
+  print(obj$call)
+  cat("\n")
+  invisible(obj)
+}

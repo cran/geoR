@@ -9,7 +9,7 @@
 
 \description{
   This function prints a summary of the parameter estimation results given
-  by \code{\link{olsfit}} or \code{\link{wlsfit}}.
+  by \code{\link{variofit}}.
 }
 
 \usage{
@@ -21,8 +21,7 @@ summary.variomodel(obj)
 \arguments{
   \item{obj}{an object of the class \code{"variomodel"}
     typically an output of
-     \code{\link{olsfit}} or
-    \code{\link{wlsfit}}.}
+    \code{\link{variofit}}.}
 }
 
 %\details{
@@ -45,13 +44,13 @@ summary.variomodel(obj)
 
 %\note{ ~~further notes~~ }
 
-\seealso{The functions \code{\link{olsfit}} and \code{\link{wlsfit}} for
+\seealso{The functions \code{\link{variofit}} for
   variogram based estimation. For likelihood based parameter estimation see  \code{\link{likfit}}. }
 
 \examples{
 if(is.R()) data(s100)
 s100.vario <- variog(s100, max.dist=1)
-wls <- wlsfit(s100.vario, ini=c(.5, .5), fix.nugget = TRUE)
+wls <- variofit(s100.vario, ini=c(.5, .5), fix.nugget = TRUE)
 wls
 summary(wls)
 }

@@ -34,7 +34,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
   \item{model.pars}{a list with model specification and parameter
     values. The input is typically an object of the class
     \code{variomodel} which is an output of \code{\link{likfit}},
-    \code{\link{wlsfit}} or \code{\link{olsfit}}.
+    \code{\link{variofit}}.
     This required components of list are:
     \itemize{
       \item \code{beta}, the mean parameter. Defaults to zero.
@@ -95,7 +95,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
   \code{\link{variog}} for variogram calculations,
   \code{\link{plot.variogram}} and \code{\link{variog.mc.env}} for
   graphical output. The functions
-  \code{\link{likfit}}, \code{\link{wlsfit}} and \code{\link{olsfit}}
+  \code{\link{likfit}}, \code{\link{variofit}}
   are used to estimate the model parameters.
 }
 

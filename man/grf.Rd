@@ -96,11 +96,12 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   (\url{http://btgyn8.geo.uni-bayreuth.de/~martin/}).
  
   \bold{WARNING:} The code for the \code{"circular.embedding"} method is
-  no longer being maintained. Martin will soon release a
-  package for unconditional simulation of random fields. This will be
-  announced on the \R (contributed packages) and \bold{geoR} home page.
-  When this new package is released the current implementation
-  of the \code{"circular.embedding"} method might become obsolete.
+  no longer being maintained.
+  Martin has released a
+  package called \code{RandomFields} (available on \code{CRAN})
+  for unconditional simulation of random fields.
+  We recommend the use of this package for simulation of random
+  fields with large number of points. 
 
 }
 
@@ -161,18 +162,18 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
 # initial value for the random numbers generator (if needed)
 if(is.R()) .Random.seed <- 1:3
 #
-sim1 <- grf(100, cov.pars=c(1, .25))
+sim1 <- grf(100, cov.pars = c(1, .25))
 # a display of simulated locations and values
 points.geodata(sim1)   
 # empirical and theoretical variograms
 plot(sim1)
 #
 # a "smallish" simulation
-sim2 <- grf(441, grid="reg", cov.pars=c(1, .25)) 
+sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 
 image.grf(sim2)
 #
 # a "bigger" one
-sim3 <- grf(40401, grid="reg", cov.pars=c(10, .2), met="circ") 
+sim3 <- grf(40401, grid = "reg", cov.pars = c(10, .2), met = "circ") 
 image.grf(sim3)
 
 }

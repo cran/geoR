@@ -131,7 +131,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
 }
 
 \references{
-  Cressie, N.A.C.(1993) \emph{Statistics for Spatial Data}, Wiley.
+  Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
   
   Further information about \bold{geoR} can be found at:\cr
   \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
@@ -145,7 +145,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   directional variograms, 
   \code{\link{variog.model.env}} and \code{\link{variog.mc.env}} for
   variogram envelopes,
-  \code{\link{olsfit}} and \code{\link{wlsfit}} for variogram based
+  \code{\link{variofit}}  for variogram based
   parameter estimation and
   \code{\link{plot.variogram}} for graphical output.
 }

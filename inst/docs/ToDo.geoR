@@ -6,8 +6,6 @@ Things to be done and/or checked in the package geoR
 	krige.bayes
 	others ???
 
-- kappa estimation in  wlsfit and olsfit
-
 - A nicer and shorter version for "proflik" 
 
 - Incorporate "kappa", "anR" and "anA" in proflik

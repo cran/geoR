@@ -156,6 +156,66 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
       
     }
 
+
+    \emph{Arguments for  \code{prior = prior.control(\dots)} :}
+    
+    \describe{
+
+      \item{beta.prior}{prior distribution for the mean (vector)
+        parameter \eqn{\beta}{beta}. The options are "flat" (default), "normal" or "deg"
+        (degenerated - known mean).}
+      
+      \item{beta}{hyperparameter for the distribution of the mean (vector) parameter        \eqn{\beta}{beta}. Only used if \code{beta.prior = "normal"} or
+        \code{beta.prior = "deg"}. For the later \code{beta} defines the value of
+        the known mean.}
+      
+      \item{beta.var}{(co)variance hyperparameters for the prior of the mean
+        (vector) parameter \eqn{\beta}{beta}. Only used if \code{beta.prior =
+          "normal"}.}
+      
+      \item{sill.prior}{\code{TRUE} (default) or \code{FALSE}, specifying
+        whether or not the \emph{sill} parameter \eqn{\sigma^2}{sigma^2} is regarded as random during
+        analysis. If \code{TRUE}, the prior assigned is
+        \eqn{\frac{1}{\sigma^2}}{1/sigma^2}.}
+      
+      \item{sill}{fixed value of the sill parameter \eqn{\sigma^2}{sigma^2}. Only used if
+        \code{sill.prior = FALSE}.}
+      
+      \item{range.prior}{prior distribution for the range parameter
+        \eqn{\phi}{phi}. Options are: \code{\"uniform\"}, (\eqn{\propto
+          1}),
+        \code{\"exponential\"} ,(\eqn{\exp(-\nu * \phi)}{exp(- nu * phi)})
+        \code{\"fixed\"}, \code{\"squared.reciprocal\"},
+        \code{\"reciprocal\"} (\eqn{\frac{1}{\phi}}{1/phi}),
+        \code{\"squared.reciprocal\"} (\eqn{\frac{1}{\phi^2}}{1/phi^2}),               \code{\"fixed\"} (known/estimated value of  \eqn{\phi}{phi}).
+        If the latter is defined the parameter \eqn{\phi}{phi} is
+        considered as known when performing prediction.}
+      
+      \item{exponential.prior.par}{parameter \eqn{\nu}{nu} for the exponential
+        prior for the parameter \eqn{\phi}{phi}. Only used if \code{prior.phi = "exponential"}.}
+      
+      \item{range}{fixed value of the range parameter \eqn{\phi}{phi}. Only needed if
+        \code{range.prior = "fixed"}.}
+      
+      \item{range.discrete}{support points for the discretisation of the prior
+        for the range parameter \eqn{\phi}{phi}.}
+      
+      \item{nugget.prior}{specifies a prior distribution for the nugget
+        parameter \eqn{\tau^2}{tau^2}. If \code{prior.nugget = "fixed"} the nugget is
+        considered known (fixed) with value given by the argument
+        \code{nugget}.
+        If \code{prior.nugget = "uniform"} a discrete uniform prior is used
+        with support points given by the argument \code{nugget}.}
+      
+      \item{nugget}{fixed value for the nugget parameter. Only used if
+        \code{prior.nugget = "uniform"}.}
+      
+      \item{nugget.discrete}{support points for the discretisation of the prior
+        for the relative nugget parameter
+        \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}.}
+      
+    }
+    
     
     \emph{Arguments for  \code{output = output.control(\dots)} :}
     
@@ -351,25 +411,17 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
 
 
 \examples{
+\dontrun{
 # generating a simulated data-set
 ex.data <- grf(50, cov.pars=c(10, .25))
 #
 # defining the prediction grid:
 ex.grid <- as.matrix(expand.grid(seq(0,1,l=11), seq(0,1,l=11)))
 #
-# computing Bayesian posterior and predictive distributions  
-\testonly{
-ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
-                 prior.control(range.discrete=seq(0, 2, l=3),
-                 nugget.prior = "uniform",
-                 nugget.discrete=seq(0,.5, l=2)),
-                 output=output.control(n.post=100))
-}
-
-\dontrun{
+# computing Bayesian posterior and predictive distributions
+# (this can take some time to run)
 ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  prior.control(range.discrete=seq(0, 2, l=51)))
-}
 #
 # Ploting theoretical amd empirical variograms
 plot(ex.data)
@@ -393,6 +445,35 @@ image.krige.bayes(ex.bayes, val= "simulation", number.col=2,
                   loc=ex.grid,
      main="another simulation from \nthe predictive distribution")
 par(op)
+}
+\testonly{
+ex.data <- grf(50, cov.pars=c(10, .25))
+ex.grid <- as.matrix(expand.grid(seq(0,1,l=11), seq(0,1,l=11)))
+ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
+                 prior.control(range.discrete=seq(0, 2, l=3),
+                 nugget.prior = "uniform",
+                 nugget.discrete=seq(0,.5, l=2)),
+                 output=output.control(n.post=100))
+plot(ex.data)
+lines(ex.bayes, max.dist=1.2)
+lines(ex.bayes, max.dist=1.2, summ="median", lty=2)
+lines(ex.bayes, max.dist=1.2, summ="mean", lwd=2, lty=2)
+op <- par(no.readonly = TRUE)
+par(mfrow=c(2,2))
+par(mar=c(3,3,1,1))
+par(mgp = c(2,1,0))
+image.krige.bayes(ex.bayes, loc=ex.grid, main="predicted values")
+image.krige.bayes(ex.bayes, val="moments.variance",
+                  loc=ex.grid, main="prediction variance")
+image.krige.bayes(ex.bayes, val= "simulation", number.col=1,
+                  loc=ex.grid,
+      main="a simulation from the \npredictive distribution")
+image.krige.bayes(ex.bayes, val= "simulation", number.col=2,
+                  loc=ex.grid,
+     main="another simulation from \nthe predictive distribution")
+par(op)
+}
+
 }
 
 \keyword{spatial}

@@ -41,8 +41,8 @@ values.
 \author{
   Patrick E. Brown \email{p.brown@lancaster.ac.uk}.\cr
   Adapted and included in \bold{geoR} by \cr
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br} and \cr
-  Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
+  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}
+
 }
 
 

@@ -18,10 +18,10 @@
 }
 
 "cov.spatial" <-
-  function(obj, cov.model = c("exponential", "matern", "gaussian", "spherical",
+  function(obj, cov.model = c("matern", "exponential", "gaussian", "spherical",
                   "circular", "cubic", "wave", "power", "powered.exponential",
                   "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
-           cov.pars = stop("no cov.pars argument provided"), kappa)
+           cov.pars = stop("no cov.pars argument provided"), kappa = 0.5)
 {
   ##
   ## checking/reading input
@@ -29,13 +29,15 @@
   cov.model <- match.arg(cov.model)
   if(cov.model == "matern" | cov.model == "powered.exponential" | 
      cov.model == "cauchy" | cov.model == "gneiting.matern"){
-    if(missing(kappa))
+    if(is.null(kappa))
       stop("for matern, powered.exponential, cauchy and gneiting.matern covariance functions the parameter kappa must be provided")
     if(cov.model == "gneiting.matern" & length(kappa) != 2)
       stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
     if((cov.model == "matern" | cov.model == "powered.exponential" | 
         cov.model == "cauchy") & length(kappa) != 1)
       stop("for this choice of  correlation function model kappa should be a scalar parameter")
+    if(cov.model == "matern" & kappa == 0.5)
+      cov.model == "exponential"
   }
   if(is.vector(cov.pars))
     sigmasq <- cov.pars[1]
@@ -954,106 +956,4 @@ function(obj, sim.number = 1, ...)
   return(invisible())
 }
 
-"print.variomodel" <-
-  function(obj, digits = "default", ...)
-{
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
-  if(obj$fix.nugget)
-    est.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-  else
-    est.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])    
-  if(obj$method == "OLS")
-  cat("olsfit: model parameters estimated by OLS (ordinary least squares):\n")
-  if(obj$method == "WLS")
-  cat("wlsfit: model parameters estimated by WLS (weighted least squares):\n")
-  print(round(est.pars, digits=digits))
-  if(obj$fix.nugget)
-    cat(paste("fixed value for tausq = ", obj$nugget,"\n"))
-  if(obj$method == "OLS")
-    cat("\nolsfit: minimised sum of squares = ")
-  if(obj$method == "WLS")
-    cat("\nwlsfit: minimised weighted sum of squares = ")
-  cat(round(obj$value, digits=digits))
-  cat("\n")
-  return(invisible())
-}  
 
-"summary.variomodel" <-
-  function(obj)
-{
-  summ.lik <- list()
-  if(obj$method == "OLS")
-    summ.lik$pmethod <- "OLS (ordinary least squares)"
-  if(obj$method == "WLS")
-    summ.lik$pmethod <- "WLS (weighted least squares)"
-  summ.lik$cov.model <- obj$cov.model
-  summ.lik$spatial.component <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-  summ.lik$spatial.component.extra <- c(kappa = obj$kappa)
-  summ.lik$nugget.component <- c(tausq = obj$nugget)
-  summ.lik$fix.nugget <- obj$fix.nugget
-  summ.lik$sum.of.squares <- c(value = obj$value)
-  if(obj$fix.nugget)
-    summ.lik$estimated.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-  else
-    summ.lik$estimated.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2]) 
-  likelihood.info <- obj$value
-  summ.lik$method <- obj$method
-  summ.lik$call <- obj$call
-  class(summ.lik) <- "summary.variomodel"
-  return(summ.lik)
-}
-
-"print.summary.variomodel" <-
-  function(obj, digits = "default", ...)
-{
-  if(class(obj) != "summary.variomodel")
-    stop("object is not of the class \"summary.variomodel\"")
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
-  cat("Summary of the parameter estimation\n")
-  cat("-----------------------------------\n")
-  cat(paste("Estimation method:", obj$pmethod, "\n"))
-  cat("\n")
-  ##
-  ## Estimates of the model components
-  ## Model: Y(x) = X\beta + S(x) + e 
-  ##
-#  cat("Parameters of the mean component (trend):")
-#  cat("\n")
-#  print(round(obj$mean.component, digits=digits))
-#  cat("\n")
-  ##
-  cat("Parameters of the spatial component:")
-  cat("\n")
-  cat(paste("   correlation function:", obj$cov.model))
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(obj$spatial.component[1], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(obj$spatial.component[2], dig=digits)))
-  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
-     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern"){
-    cat(paste("\n      (fixed) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
-    if(obj$cov.model == "matern" & (round(obj$spatial.component.extra, digits = digits)  == 0.5))
-      cat(" (exponential)")
-  }
-  cat("\n")
-  ##
-  cat("\n")  
-  cat("Parameter of the error component:")
-  if(obj$fix.nugget)
-    cat(paste("\n      (fixed) nugget =", round(obj$nugget.component, digits = digits)))
-  else
-    cat(paste("\n      (estimated) nugget = ", round(obj$nugget.component, dig=digits)))
-  cat("\n")
-  cat("\n")
-  names(obj$sum.of.squares) <- NULL
-  if(obj$method == "OLS") cat("Minimised sum of squares: ")
-  if(obj$method == "WLS") cat("Minimised weighted sum of squares: ")
-  cat(round(obj$sum.of.squares, digits=digits))
-  cat("\n")
-  cat("\n")
-  cat("Call:")
-  cat("\n")
-  print(obj$call)
-  cat("\n")
-  invisible(obj)
-}
