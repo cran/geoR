@@ -10,23 +10,25 @@
 
 \description{
   Summarizes results returned by the function \code{\link{likfit}}.
-  Functions are \emph{methods} for classes \code{likGRF} and
-  \code{summary.likGRF}.
+
+  Functions are \emph{methods} for \code{\link[base]{summary}} and
+  \code{\link[base]{print}} for class \code{likGRF} and \code{summary.likGRF}.
 }
 
 \usage{
-summary(obj, ...)
-print(obj, digits = "default", ...)
+summary.likGRF(object, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{obj}{an object of \code{\link{class}} \emph{likGRF}, typically
+  \item{object}{an object of \code{\link[base]{class}} \emph{likGRF}, typically
     a result of a call to \code{\link{likfit}}.  }
-  \item{\dots}{extra arguments for \code{\link{print}}. A commonly used
+  \item{\dots}{extra arguments for \code{\link[base]{print}}. A commonly used
     argument is \code{digits} which
     specifies the number of digits for the numerical output.
     The default is given by \code{options()$digits}.  }
+  \item{digits}{integer defining number of decimal digits to be used
+    when printing. }
 }
 
 \details{
@@ -56,8 +58,8 @@ print(obj, digits = "default", ...)
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
-\seealso{\code{\link{likfit}}, \code{\link{print}},
-  \code{\link{summary}}.
+\seealso{\code{\link{likfit}}, \code{\link[base]{print}},
+  \code{\link[base]{summary}}.
 }
 
 \examples{

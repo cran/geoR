@@ -1,11 +1,11 @@
 Package: geoR
-Version: 1.0-8
-Date: 2001/08/02
+Version: 1.1-2
+Date: 2001/11/26
 Title: geoR - functions for geostatistical analysis
 Author: Paulo J. Ribeiro Jr <Paulo.Ribeiro@est.ufpr.br> 
         Peter J. Diggle <p.diggle@lancaster.ac.uk> 
 Maintainer: Paulo J. Ribeiro Jr <Paulo.Ribeiro@est.ufpr.br>
-Depends: R (>= 1.0), splancs, scatterplot3d
+Depends: R (>= 1.0), splancs, scatterplot3d, MASS
 Description: Functions to perform geostatistical analysis including model-based methods
 License: GPL Version 2 or later
 URL: http://www.maths.lancs.ac.uk/~ribeiro/geoR.html

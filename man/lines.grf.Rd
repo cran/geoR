@@ -13,13 +13,13 @@
 }
 
 \usage{
-lines.grf(obj, max.dist = max(dist(obj$coords)), length = 100,
+lines.grf(x, max.dist = max(dist(obj$coords)), length = 100,
           lwd = 2, ...)
 }
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{obj}{an object from the class \code{grf} typically an output of
+  \item{x}{an object from the class \code{grf} typically an output of
     the function \code{\link{grf}}.  }
   \item{max.dist}{maximum distance to compute and plot the true
     variogram. Defaults to the maximum distance between two data locations.  }

@@ -14,18 +14,16 @@
 }
 
 \usage{
-points.geodata(geodata, coords=geodata$coords, data=geodata$data,
-               data.col = 1, borders = NULL,
+points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                pt.sizes=c("data.proportional","rank.proportional",
-                    "quintiles", "quartiles", "deciles", "equal"),
-               lambda = 1, trend = "cte", weights.divide = NULL,
-               cex.min, cex.max, pch.seq, col.seq,
-               add.to.plot = FALSE,
+                          "quintiles", "quartiles", "deciles", "equal"),
+               lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
+               cex.max, pch.seq, col.seq, add.to.plot = FALSE,
                round.quantiles = FALSE, graph.pars = FALSE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{geodata}{a list containing elements \code{coords} and
+  \item{x}{a list containing elements \code{coords} and
     \code{data} described next. Typically an object of the class
     \code{"geodata"} - a \bold{geoR} data-set. If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }

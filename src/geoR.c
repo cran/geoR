@@ -1,20 +1,133 @@
-/*
-  ===========================
-  
-  #include "stdio.h"
-  #include "strings.h"
-  #include "iostream.h"
-*/
-
 #include <stdio.h>
 #include <stdlib.h> /* for malloc & free */
 #include "memory.h"
 #include <math.h> 
 #include <R.h>
+#include <Rmath.h>
+#include <S.h>
 
 #define Integer long
 #define Real double
 
+Real geoRmatern(Real uphi, Real kappa)
+{   
+  Real ans,cte;
+  
+  if (uphi==0) return 1;
+  else{
+    if (kappa==0.5) 
+      ans = exp(-uphi);
+    else {
+      cte = pow(2, (-(kappa-1)))/gammafn(kappa); 
+      ans = cte * R_pow(uphi, kappa) * bessel_k(uphi,kappa,1); 
+    }
+  }
+  /* Rprintf("   ans=%d ", ans); */
+  return ans; 
+}
+
+Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
+{
+  
+  /* Correlation functions implemented and their numbers
+     
+  1: PURE NUGGET
+  2: EXPONENTIAL
+  3: SPHERICAL
+  4: GAUSSIAN
+  5: WAVE (hole effect)
+  6: CUBIC
+  7: POWER
+  8: POWERED EXPONENTIAL
+  9: CAUCHY
+  10: GNEITING
+  11: CIRCULAR
+  12: MATERN
+  13: GNEITING-MATERN (NOT YET IMPLEMENTED)
+  
+  WARNING: codes above must be the same as in the geoR/geoS function
+  "cor.number"
+  */
+  
+  Real hphi, hphi2, hphi4;
+  if(h==0) return 1;
+  else{  
+    hphi  = h/phi ;
+    switch(cornr){
+    case 1: /* pure nugget */
+      return 0 ;
+      break;
+    case 2: /* exponential */
+      return exp(-hphi) ;
+      break;
+    case 3: /* spherical */
+      if (h < phi) 
+	return 1 - (1.5 * hphi) + (0.5 * hphi*hphi*hphi) ;
+      else
+	return 0 ;
+      break;
+    case 4: /* Gaussian */
+      return exp(-(hphi * hphi)) ;
+      break;
+    case 5: /* wave (hole effect) */
+      return hphi*sin(hphi) ;
+      break;
+    case 6: /* cubic */
+      if (h < phi){
+	hphi2 = hphi * hphi ;
+	hphi4 = hphi2 * hphi2 ;
+	return 1 - ((7 * hphi2) - (8.75 * hphi2 * hphi) + (3.5 * hphi4 * hphi) - (0.75 * hphi4 * hphi2 * hphi)) ;
+      }
+      else
+	return 0 ;
+      break;
+    case 7: /* power */
+      return exp(phi * log(h)) ;
+      break;
+    case 8: /* powered.exponential */
+      return exp(-1 *  R_pow(hphi, kappa))  ;
+      break;
+    case 9:  /* cauchy */
+      return R_pow((1 + (hphi * hphi)), (-kappa)) ;
+      break;
+    case 10:  /* gneiting */
+      hphi4 = 1 - hphi;
+      if (hphi4 > 0) hphi4 = pow(hphi4, 8);
+      else hphi4 = 0 ;
+      hphi2 = hphi * hphi ;
+      return (1 + 8 * hphi + 25 * hphi2 + 32 * (hphi2 * hphi)) * hphi4 ;
+      break;
+    case 11: /* circular */
+      if(h < phi){
+	return  1 - (M_1_PI * (2 * (hphi * sqrt(1 - hphi * hphi)
+				    + asin(hphi)))) ;
+      }
+      else
+	return 0 ;
+      break;
+    case 12: /* matern */
+      return geoRmatern(hphi, kappa);
+      break;
+      /* case 13: gneiting-matern NOT YET IMPLEMENTED 
+	 res[ind] =  ;
+	 break; */
+    default: 
+      return -1;
+      break;
+    }
+  }
+}
+
+void veccorrval(Real *phi, Real *kappa, Real *h, Integer *n, 
+		Integer *cornr, Real *res)  
+{
+  Integer register j ;
+  
+  for (j=0; j<(*n); j++)
+    res[j] = corrfctvalue(*phi, *kappa, h[j], *cornr)  ;
+  
+  return ;
+}
 
 void diag_quadraticform_XAX(Real *lower, Real *diag, Real *xvec, 
 			    Integer *nx, Integer *n, Real *res)
@@ -55,7 +168,6 @@ void diag_quadraticform_XAX(Real *lower, Real *diag, Real *xvec,
     for (i=0; i<*n; i++){
       xii += (xvec[(k*(*n) + i)] * xvec[(k*(*n) + i)] * diag[i]) ;
     }
-    
     res[k] = xii + 2*xij ;    
   }
   
@@ -132,14 +244,15 @@ void loccoords(Real *xloc, Real *yloc, Real *xcoord, Real *ycoord,
     for (i=0; i<*nc; i++) {
       dx = (xloc[j] - xcoord[i]) ;
       dy = (yloc[j] - ycoord[i]) ;
-      res[ind++] = sqrt(dx*dx + dy*dy) ;
+      res[ind++] = pythag(dx,dy) ;
     }
   }
   
 }
 
 void tgangle(Real *xloc, Real *yloc, Integer *nl, Real *res) 
-     /* This function computes the tangent of the (azimuth) 
+     /* 
+	This function computes the tangent of the (azimuth) 
         angle between pairs of locations
 	
         xloc, yloc     : xy coordinates of the locations
@@ -186,7 +299,7 @@ void distdiag(Real *xloc, Real *yloc, Integer *nl, Real *res)
       else{
 	dx = (xloc[j] - xloc[i]) ;
 	dy = (yloc[j] - yloc[i]) ;
-	res[ind] = sqrt(dx*dx + dy*dy) ;
+	res[ind] = pythag(dx, dy) ;
       }
       ind++ ;
     }
@@ -210,7 +323,7 @@ void binit(Integer *n, Real *xc, Real *yc, Real *sim,
 	{
 	  dx = xc[i] - xc[j];
 	  dy = yc[i] - yc[j];
-	  dist = sqrt(dx*dx + dy*dy);
+	  dist = pythag(dx, dy);
 	  
 	  if(dist <= *maxdist)
 	    {
@@ -318,6 +431,7 @@ void lower_R0minusXAXplusBvar(Real *lower, Real *diag, Real *xvec,
        Bdiag  : diagonal  of the Var(beta) matrix 
        bvec   : t(b) matrix in vector form
        Bsize  : dimension of mean vector beta and its variance matrix
+       ss     : 
        res    : input lower triangle of R0 and store the result
 
        
@@ -379,7 +493,6 @@ void lower_R0minusXAXplusBvar(Real *lower, Real *diag, Real *xvec,
       
       /*      
 	      Computing lower triangle (including diagonal) of (R0 - XAX + bBb)
-	      
 	      indpos = (nxcol * l - (l * (l+1)/2) + k) ;
 	      Rprintf("\n indpos=%d ", indpos);
       */
@@ -400,20 +513,15 @@ void lower_R0minusXAXplusBvar(Real *lower, Real *diag, Real *xvec,
 
 
 void chol(Real *inmatrix, Integer N)
-
 {
   Integer register Drow, Dcol, Dcol2;
   Real register sum;
   Real register *Pcol, *anothercol;
-
   /* 
      returns L where L L'=inmatrix
-
-
      NR function choldc, sec. 2.9
      i=dcol, j=drow, k=dcol2
   */
-  
   for(Dcol=0;Dcol<N;Dcol++) {
     Pcol=inmatrix + Dcol * N - ((Dcol * (Dcol+1))/2);
 
@@ -438,78 +546,79 @@ void chol(Real *inmatrix, Integer N)
      at this point the diagonal and lower triangle of inmatrix
      contain the cholesky decomp 
   */
-
   return;
 }
 
-
 void mvnorm(Real *means, Real *Q, Real *nscores, Integer N, 
-	    Integer Nsims, Real *Vsqglchi) {
-  
-  /* 
-     returns means + chol(Q) %*% nscores
+	    Integer Nsims, Real *Vsqglchi) 
+{  
+  /*  
+      returns means + chol(Q) %*% nscores 
   */
-  
   Integer register Drow, Dcol, Dsim, i ;
   Real *Vsim = (Real*) malloc(sizeof(Real)*N) ;
-
-
+  
   chol(Q, N);  
   
   /*
     multiplyLower(X, Q, nscores, *N);
   */
+
+  /* this was wrong before
+    for(Dsim=0;Dsim<Nsims; Dsim++){    
+    for(Drow=0;Drow<N;++Drow) {
+    Vsim[Drow] = means[Drow] ;
+    for(Dcol=0;Dcol<=Drow;++Dcol) {
+    Vsim[Drow] += Q[ N * Dcol - ((Dcol * (Dcol+1))/2) + Drow] * nscores[((N * Dsim) + Dcol)];
+    }
+    }
+    for(i=0;i<N;i++){
+    nscores[(((N) * Dsim) + i)] = Vsim[i] * Vsqglchi[Dsim];
+    }
+    }
+  */
+  
   for(Dsim=0;Dsim<Nsims; Dsim++){    
     for(Drow=0;Drow<N;++Drow) {
-      Vsim[Drow] = means[Drow] ;
+      Vsim[Drow] = 0.0 ;
       for(Dcol=0;Dcol<=Drow;++Dcol) {
 	Vsim[Drow] += Q[ N * Dcol - ((Dcol * (Dcol+1))/2) + Drow] * nscores[((N * Dsim) + Dcol)];
       }
     }
     for(i=0;i<N;i++){
-      nscores[(((N) * Dsim) + i)] = Vsim[i] * Vsqglchi[Dsim];
+      nscores[(((N) * Dsim) + i)] = means[i] + (Vsim[i] * Vsqglchi[Dsim]);
     }
   }
-  
   free(Vsim);
   
-  return;
-  
 }
 
-/*
-  on exit, for each simulation, nscores = means + chol(varmatrix) %*% nscores
-*/
-
-void kb_sim(Real *means, Real *nscores,
-	    Real *lowerA, Real *diagA, 
-	    Real *Xmatrix, Integer *Nbig, 
-	    Integer *Nsmall, Real *Dval, 
-	    Integer *Nsims, Real *Vsqglchi, Real *ss,
-	    Real *Blower, Real *Bdiag, Real *bvec, 
-	    Integer *Bsize, Real *R0lower) {
-  /*  
-      varmatrix was replaced by R0lower in the input
-      
-      Integer Nvarmatrix = *Nbig * (*Nbig +1)/2;
-      Real *varmatrix = (Real*) malloc(sizeof(Real)*Nvarmatrix);
-  */
-  lower_R0minusXAXplusBvar(lowerA, diagA, Xmatrix, *Nbig, *Nsmall, Dval, 
-			   Blower, Bdiag, bvec, *Bsize, ss, R0lower);
+void multmvnorm(Real *means, Real *Q, Real *nscores, Integer N, 
+		Integer Nsims, Real *Vsqglchi) 
+{
+  /* 
+     returns means + chol(Q) %*% nscores, 
+     where means is a matrix (i.e. means can be different for each simulation) 
+  */ 
   
-  mvnorm(means, R0lower, nscores, *Nbig, *Nsims, Vsqglchi);
-  
-  
-  /*  
-      free(varmatrix);
-  */
-  
+  Integer Drow, Dcol, Dsim ;
+  Real *Vsim = (Real*) malloc(sizeof(Real)*N) ;
+  chol(Q, N);  
+  for(Dsim=0;Dsim<Nsims; Dsim++){    
+    for(Drow=0;Drow<N;++Drow) {
+      Vsim[Drow] = 0.0 ;
+      for(Dcol=0;Dcol<=Drow;++Dcol) {
+	Vsim[Drow] += Q[ N * Dcol - ((Dcol * (Dcol+1))/2) + Drow] * nscores[((N * Dsim) + Dcol)];
+      }
+    }
+    for(Drow=0;Drow<N;++Drow) {
+      nscores[(((N) * Dsim) + Drow)] = means[(N * Dsim)+Drow] + (Vsim[Drow] * Vsqglchi[Dsim]);
+    }
+  }
 }
 
-
-
-void multiplyLower(Real *X, Real *A, Real *B, Integer *N) {
-  
+void multiplyLower(Real *X, Real *A, Real *B, Integer *N) 
+{  
   Integer register Drow, Dcol;
   
   for(Drow=0;Drow<*N;++Drow) {
@@ -518,53 +627,37 @@ void multiplyLower(Real *X, Real *A, Real *B, Integer *N) {
       X[Drow] += A[(*N)*Dcol - ((Dcol*(Dcol+1))/2) + Drow] * B[Dcol];
     }
   }
-  
-  
+   
 }
 
-void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Real *kappa, Real *res) 
-
+void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, 
+	      Real *phi, Real *kappa, Real *res) 
+     
      /* This function computes the lower triangle of correlation or distance 
 	matrix for a set of  locations.
 	(including the diagonal term of the matrix).
 	
-	ONLY EXPONENTIAL/SPHERICAL/GAUSSIAN MODELS IMPLEMENTED SO FAR
-	 0: compute distances only
-	 1: PURE NUGGET
-	 2: EXPONENTIAL
-	 3: SPHERICAL
-	 4: GAUSSIAN
-	 5: WAVE (hole effect)
-	 6: CUBIC
-	 7: POWER
-	 8: POWERED EXPONENTIAL
-	 9: CAUCHY
-	10: GNEITING
-	11: CIRCULAR
-	12: MATERN (NOT YET IMPLEMENTED)
-	13: GNEITING-MATERN (NOT YET IMPLEMENTED)
+	cornr defines the correlation function
 
-	WARNING: codes above must be the same as in the geoR/geoS function
-                 "cor.number"
- 
+	0: compute distances only
+	otherwise uses corrfctvalue
         xloc, yloc     : xy coordinates of the locations
 	nl,            : number of locations
 	cornr          : a number indicating the correlation model
 	phi            : parameter of the correlation function (scale parameter)
 	kappa          : extra parameter for some correlation functions (shape parameter)
 	res            : stores the results to be returned, a vector with the 
-                         lower triangle of the correlation or distance matrix
+	lower triangle of the correlation or distance matrix
      */   
      
 { 
-
-#define TWOPI 6.28318530717959
-
+  
   Integer register i,j, ind;
-  Real register dx,dy;
-  Real h, hphi, hphi2, hphi4;
+  Real register dx, dy;
+  Real h;
   
   ind = 0;
+  
   for (j=0; j<*nl; j++) {  
     for (i=j; i<*nl; i++) {
       if(i == j){
@@ -574,99 +667,10 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
       else{
 	dx = (xloc[j] - xloc[i]) ;
 	dy = (yloc[j] - yloc[i]) ;
-	h  = sqrt(dx*dx + dy*dy) ;
+	h  = pythag(dx,dy) ;
 	if(*cornr > 0){
 	  if(*phi > 0){
-	    hphi  = h/(*phi) ;
-	    switch(*cornr)
-	      {
-		/* pure nugget */
-	      case 1: 
-		res[ind] = 0 ;
-		break;
-		
-		/* exponential */
-	      case 2:
-		res[ind] = exp(-hphi) ;
-		break;
-		
-		/* spherical */
-	      case 3:
-		if (h < *phi) 
-		  res[ind] = 1 - (1.5 * hphi) + (0.5 * hphi *hphi * hphi) ;
-		else
-		  res[ind] = 0 ;
-		break;
-		
-		/* Gaussian */
-	      case 4:
-		res[ind] = exp(-(hphi * hphi)) ;
-		break;
-		
-		/* wave (hole effect) */
-	      case 5:
-		res[ind] = (*phi/h) * sin(hphi) ;
-		break;
-		
-		/* cubic */
-	      case 6:
-		if (h < *phi){
-		  hphi2 = hphi * hphi ;
-		  hphi4 = hphi2 * hphi2 ;
-		  res[ind] = 1 - ((7 * hphi2) -
-				  (8.75 * hphi2 * hphi) + 
-				  (3.5 * hphi4 * hphi) - 
-				  (0.75 * hphi4 * hphi2 * hphi)) ;
-		}
-		else
-		  res[ind] = 0 ;
-		break;
-		
-		/* power             */
-	      case 7:
-		res[ind] = exp(*phi * log(h)) ;
-		break;
-		
-		/* powered.exponential */
-	      case 8:
-		res[ind] = exp(-1 *  pow(hphi, *kappa))  ;
-		break;
-		
-		/* cauchy */
-	      case 9:
-		res[ind] = pow((1 + (hphi * hphi)), (-1 * *kappa)) ;
-		break;
-		
-		/* gneiting */
-	      case 10:
-		hphi4 = 1 - hphi;
-		if (hphi4 > 0) hphi4 = pow(hphi4, 8);
-		else hphi4 = 0 ;
-		hphi2 = hphi * hphi ;
-		res[ind] = (1 + 8 * hphi + 25 * hphi2 + 32 * (hphi2 * hphi)) * hphi4 ;
-		break;
-		
-		/* circular (NOT IMPLEMENTED: CHECK asin) */
-	      case 11:
-		if(h < *phi){
-		  res[ind] =  1 - (2 * (hphi * sqrt(1 - hphi * hphi)
-					+ asin(hphi)))/(TWOPI/2) ;
-		}
-		else
-		  res[ind] = 0 ;
-		break;
-		
-		/* matern (for integer kappa) NOT YET IMPLEMENTED 
-		   case 11:
-		   res[ind] = ;
-		   break;
-		*/
-		/* gneiting-matern (for integer kappa) NOT YET IMPLEMENTED
-		   case 12:
-		   res[ind] =  ;
-		   break;
-		*/
-	      }
+	    res[ind] = corrfctvalue((*phi), (*kappa), h, (*cornr));
 	  }
 	  else res[ind] = 0;
 	}
@@ -676,6 +680,72 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr, Real *phi, Re
       ind++ ;
     }
   }
+}
+
+
+void kb_sim(Real *means, Real *nscores,
+	    Real *lowerA, Real *diagA, 
+	    Real *Xmatrix, Integer *Nbig, 
+	    Integer *Nsmall, Real *Dval, 
+	    Integer *Nsims, Real *Vsqglchi, Real *ss,
+	    Real *Blower, Real *Bdiag, Real *bvec, 
+	    Integer *Bsize, Real *R0lower) 
+{
+  /*  
+      on exit, for each simulation, nscores = means + chol(varmatrix) %*% nscores
+      
+      varmatrix was replaced by R0lower in the input      
+      Integer Nvarmatrix = *Nbig * (*Nbig +1)/2;
+      Real *varmatrix = (Real*) malloc(sizeof(Real)*Nvarmatrix);
+  */
   
+  lower_R0minusXAXplusBvar(lowerA, diagA, Xmatrix, *Nbig, *Nsmall, Dval, 
+			   Blower, Bdiag, bvec, *Bsize, ss, R0lower);  
+  
+  mvnorm(means, R0lower, nscores, *Nbig, *Nsims, Vsqglchi);
+  
+  /*  free(varmatrix); */  
+}
+
+void mult_kb_sim(Real *means, Real *nscores, Real *lowerA, 
+		 Real *diagA, Real *Xmatrix, Integer *Nbig, 
+		 Integer *Nsmall, Real *Dval,  Integer *Nsims, 
+		 Real *Vsqglchi, Real *ss, Real *Blower, Real *Bdiag, 
+		 Real *bvec, Integer *Bsize, Real *R0lower) 
+{
+  /*    
+	OFC: version of kb_sim where means is a matrix 
+  */
+  
+  lower_R0minusXAXplusBvar(lowerA, diagA, Xmatrix, *Nbig, *Nsmall, Dval, 
+			   Blower, Bdiag, bvec, *Bsize, ss, R0lower);
+
+  multmvnorm(means, R0lower, nscores, *Nbig, *Nsims, Vsqglchi);  
+}
+
+void kb_sim_new(Real *means, Real *nscores,
+		Real *lowerA, Real *diagA, 
+		Real *Xmatrix, Integer *Npred, 
+		Integer *Ndata, Real *Dval, 
+		Integer *Nsims, Real *Vsqglchi, Real *ss,
+		Real *Blower, Real *Bdiag, Real *bvec, 
+		Integer *Bsize, Real *xlocpred, Real *ylocpred,
+		Integer *cornr, Real *phi, Real *kappa, 
+		Integer *diffmean) 
+{
+  Integer NR0lower = *Npred * (*Npred + 1)/2 ;
+  Real *R0lower = (Real*) malloc(sizeof(Real)*NR0lower) ;
+  
+  cor_diag(xlocpred, ylocpred, Npred, cornr, phi, kappa, R0lower) ;  
+  
+  lower_R0minusXAXplusBvar(lowerA, diagA, Xmatrix, *Npred, *Ndata, Dval, 
+			   Blower, Bdiag, bvec, *Bsize, ss, R0lower);
+  
+  if(*diffmean == 0)
+    mvnorm(means, R0lower, nscores, *Npred, *Nsims, Vsqglchi);
+  else 
+    multmvnorm(means, R0lower, nscores, *Npred, *Nsims, Vsqglchi);
+  
+  free(R0lower);
 }
 

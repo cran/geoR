@@ -46,8 +46,7 @@ polygrid(xgrid, ygrid, poly, vec.inout = FALSE)
   A list with components:
   \item{xypoly}{an \eqn{n \times 2}{n x 2} matrix with the coordinates of the points inside the polygon.  }
   \item{vec.inout}{logical, a vector indicating whether each point of
-    the rectangular grid is inside the polygon. Only returned if \code{vec.inout =
-      TRUE}.  }
+    the rectangular grid is inside the polygon. Only returned if \code{vec.inout = TRUE}.  }
 }
 
 \references{

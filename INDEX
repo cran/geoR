@@ -1,13 +1,17 @@
+BoxCox                   Box-Cox transformation related functions
+InvChisquare             The (Scaled) Inverse Chi-Squared Distribution
 SIC                      Spatial Interpolation Comparison data
 as.geodata               Converts an Object to the Class "geodata"
 coords.aniso             Geometric Anisotropy Correction
 cov.spatial              Computes Value of the Covariance Function
 geoRdefunct              Defunct Functions in the Package geoR
 grf                      Simulation of Gaussian Random Fields
+hist.krige.bayes         Plots Sample from Posterior Distributions
 image.grf                Image or Perspective Plot of Simulated Gaussian
                          Random Field
 image.krige.bayes        Plots Results of the Predictive Distribution
 image.kriging            Image or Perspective Plot with Kriging Results
+geoR.aux                 geoR internal functions
 krige.bayes              Bayesian Analysis for Gaussian Geostatistical
                          Models
 krige.conv               Spatial Prediction -- Conventional Kriging
@@ -21,14 +25,17 @@ lines.variogram          Line with a Empirical Variogram
 lines.variogram.envelope
                          Adds Envelopes Lines to a Variogram Plot
 lines.variomodel         Line with a Variogram Model
+locations.inside         select prediction locations inside borders
 loglik.GRF               Log-Likelihood for a Gaussian Random Field
 matern                   Computer Values of the Matern Correlation
                          Function
 nlmP                     Adapts nlm for Constraints in the Parameter
                          Values
+output.control           Defines output options
 parana                   Rainfall Data from Parana State, Brasil
 plot.geodata             Exploratory Geostatistical Plots
 plot.grf                 Plots Variograms for Simulated Data
+plot.krige.bayes         Plots Prior and/or Posterior Distributions
 plot.proflik             Plots Profile Likelihoods
 plot.variog4             Plot Directional Variograms
 plot.variogram           Plot Empirical Variogram
@@ -39,7 +46,10 @@ proflik                  Computes Profile Likelihoods
 read.geodata             Reads and Converts Data to geoR Format
 s100 and s121            Simulated Data-Sets which Illustrate the Usage
                          of the Package geoR
+sample.posterior         Samples from the posterior distribution
+sample.prior             Samples from the prior
 set.coords.lims          Sets Limits to Scale Plots
+statistics.predictive    Summary statistics from predictive distributions
 summary.likGRF           Summarizes Parameter Estimation Results for
                          Gaussian Random Fields
 summary.variomodel       Summarize Results of Variogram Estimation

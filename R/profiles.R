@@ -170,7 +170,7 @@
                             kappa = obj.likfit$kappa,
                             xmat = trend,
                             ## txmat = t(trend),
-                            method = obj.likfit$method,
+                            method.lik = obj.likfit$method.lik,
                             dists.lowertri = dists.vec,
                             cov.model = obj.likfit$cov.model,
                             fix.lambda = obj.likfit$transform.info$fix.lambda,
@@ -542,7 +542,7 @@
   }
   result$n.uni <- n.uni
   result$n.bi <- n.bi
-  result$method <- obj.likfit$method
+  result$method.lik <- obj.likfit$method.lik
   result$call <- call.fc
   class(result) <- "proflik"
   return(result)
@@ -572,12 +572,12 @@
   else lambda <- 1
   n <- .temp.list$n
   main <- proflik.main(tausq=.temp.list$nugget, sigmasq=1, phi=philambda[1], lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     proflik <-  - (n/2) * log(2 * pi) - main$log.det.to.half -
       (n/2) * log(main$ssresmat/n) - (n/2) + main$
     log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     proflik <-  - ((n - .temp.list$beta.size)/2) * log(2 * pi) - main$
     log.det.to.half - ((n - .temp.list$beta.size)/2) * log(main$ssresmat/
@@ -598,12 +598,12 @@
   tausq <- phitausq.rel.lambda[2]
   sigmasq <- .temp.list$sigmasq
   main <- proflik.main(tausq=tausq, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half +
       (n/2) * log(sigmasq) + (0.5/sigmasq) * main$ssresmat -
         main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + ((n - .temp.list$beta.size)/2) * log(sigmasq) +
@@ -642,11 +642,11 @@
   phi <- .temp.list$phi
   n <- .temp.list$n
   main <- proflik.main(tausq=.temp.list$nugget, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half +
       (n/2) * log(main$ssresmat/n) + (n/2) - main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + ((n - .temp.list$beta.size)/2) * log(main$ssresmat/n) +
@@ -667,13 +667,13 @@
   sigmasq <- sigmasqphi.lambda[1]
   phi <- sigmasqphi.lambda[2]
   main <- proflik.main(tausq=.temp.list$nugget, sigmasq=sigmasq, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half +
         0.5 * (main$ssresmat) -
           main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -713,11 +713,11 @@
   n <- .temp.list$n
   tausq <- tausq.lambda[1]
   main <- proflik.main(tausq=tausq, .temp.list$sigmasqphi[1], phi=.temp.list$sigmasqphi[2], lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half + 0.5 *
       main$ssresmat - main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
@@ -758,11 +758,11 @@
   n <- .temp.list$n
   phi <- phi.lambda[1]
   main <- proflik.main(tausq=.temp.list$sigmasqtausq[2], sigmasq=.temp.list$sigmasqtausq[1], phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half + 0.5 *
       main$ssresmat - main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
@@ -804,11 +804,11 @@
   n <- .temp.list$n
   sigmasq <- sigmasq.lambda[1]
   main <- proflik.main(tausq=.temp.list$phitausq[2], sigmasq=sigmasq, phi=.temp.list$phitausq[1], lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half + 0.5 *
       main$ssresmat - main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
@@ -877,14 +877,14 @@
   phi <- phi.lambda[1]
   n <- .temp.list$n
   main <- proflik.main(tausq=tausq.rel, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half +
         (n/2) * log(sigmasq) +
           (0.5/sigmasq) * main$ssresmat -
             main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -906,14 +906,14 @@ function(phitausq.rel, ...)
   n <- .temp.list$n
   main <- proflik.main(tausq=tausq.rel, sigmasq=1, phi=phi, lambda = 1)
   sigmasq.hat <- main$ssresmat/n
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     proflik <-  - (n/2) * log(2 * pi) -
       main$log.det.to.half -
       (n/2) * log(sigmasq.hat) -
         (n/2) -
           main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     proflik <-  - ((n - .temp.list$beta.size)/2) * log(2 * pi) -
       main$log.det.to.half -
@@ -935,13 +935,13 @@ function(phitausq.rel, ...)
   main <- proflik.main(tausq = .temp.list$phitausq.rel[2], sigmasq = 1,
                        phi = .temp.list$phitausq.rel[1], lambda = lambda)
   sigmasq.hat <- main$ssresmat/n
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half + (n/2) * log(sigmasq.hat) +
         (n/2) -
           main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -960,13 +960,13 @@ function(phitausq.rel, ...)
   ## This is an auxiliary function called by likfit.aux17
   n <- .temp.list$n
   main <- proflik.main(tausq=.temp.list$phitausq[2], sigmasq=sigmasq, phi= .temp.list$phitausq[1], lambda = 1)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half +
         0.5 * main$ssresmat -
           main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -1001,7 +1001,7 @@ function(phitausq.rel, ...)
                        data = .temp.list$z,
                        ini = ini.cov, trend = trend.mat,
                        fix.nugget = .temp.temp.list$fixtau,
-                       method = .temp.list$method,
+                       method.lik = .temp.list$method.lik,
                        cov.model = .temp.list$cov.model,
                        kappa = .temp.list$kappa, fix.lambda = TRUE,
                        lambda = lambda,
@@ -1126,13 +1126,13 @@ function(phitausq.rel, ...)
   phi <- phi.lambda[1]
   n <- .temp.list$n
   main <- proflik.main(tausq=0, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half +
       (n/2) * log(sigmasq) + (0.5/sigmasq) * main$ssresmat - 
         main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -1232,13 +1232,13 @@ function(phitausq.rel, ...)
   if(lambda > 0.999 & lambda < 1.001)
     lambda <- 1
   main <- proflik.main(tausq=.temp.list$nugget, sigmasq = sigmasq, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- ((n/2) * log(2 * pi) +
                main$log.det.to.half +
                0.5 * main$ssresmat - 
                main$log.jacobian)
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     xx.eigen <- eigen(crossprod(.temp.list$xmat), symmetric = TRUE,
                       only.values = TRUE)
     neglik <- (((n - .temp.list$beta.size)/2) * log(2 * pi) -
@@ -1279,14 +1279,14 @@ function(phi.lambda, ...)
   phi <- phi.lambda[1]
   n <- .temp.list$n
   main <- proflik.main(tausq=.temp.list$nugget.rel, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) +
       main$log.det.to.half +
         (n/2) * log(main$ssresmat/n) +
           (n/2) -
             main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
@@ -1327,11 +1327,11 @@ function(phi.lambda, ...)
   phi <- .temp.list$phi
   tausq.rel <- tausq.rel.lambda[1]
   main <- proflik.main(tausq=tausq.rel, sigmasq=1, phi=phi, lambda = lambda)
-  if(.temp.list$method == "ML") {
+  if(.temp.list$method.lik == "ML") {
     neglik <- (n/2) * log(2 * pi) + main$log.det.to.half + (
                                                               n/2) * log(main$ssresmat/n) + (n/2) - main$log.jacobian
   }
-  if(.temp.list$method == "RML") {
+  if(.temp.list$method.lik == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
     neglik <- (((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
                log.det.to.half + ((n - .temp.list$beta.size)/2) * log(main$ssresmat/
@@ -1369,7 +1369,7 @@ function(phi.lambda, ...)
 }
 
 "plot.proflik" <-
-  function(obj.proflik, pages = c("user", "one", "two"),
+  function(x, pages = c("user", "one", "two"),
            uni.only = FALSE, bi.only = FALSE,
            type.bi = c("contour", "persp"),
            conf.int = c(0.90000000000000002,0.94999999999999996),
@@ -1394,8 +1394,8 @@ function(phi.lambda, ...)
   if(all(is.character(yaxis.lims)))
     yaxis.lims <- match.arg(yaxis.lims)
   type.bi <- match.arg(type.bi)
-  n.uni <- obj.proflik$n.uni
-  n.bi <- obj.proflik$n.bi
+  n.uni <- x$n.uni
+  n.bi <- x$n.bi
   if(n.bi == 0)
     uni.only <- T
   if((uni.only == FALSE) & (bi.only == FALSE))
@@ -1423,68 +1423,68 @@ function(phi.lambda, ...)
   }     
   if(bi.only == FALSE) {
     for(i in 1:n.uni) {
-      if(obj.proflik$method == "ML")
+      if(x$method.lik == "ML")
         ylabm <- "profile log-likelihood"
       else ylabm <- "profile log-(restricted) likelihood"
       if(all(conf.int) != FALSE) {
         if(!is.numeric(conf.int) | any(conf.int > 1))
           stop("argument conf.int must be numerical (scalar or vector) with values between 0 and 1")
-        conf.int.drop <- obj.proflik[[i]][[3]][2] - 0.5 * qchisq(conf.int,1)
+        conf.int.drop <- x[[i]][[3]][2] - 0.5 * qchisq(conf.int,1)
       }
       if(all(is.character(yaxis.lims))){
         if(yaxis.lims == "conf.int")
           lik.lims <- c(min(conf.int.drop), 
-                        obj.proflik[[i]][[3]][2])
-        else lik.lims <- c(min(obj.proflik[[i]][[2]]),
-                           obj.proflik[[i]][[3]][2])
+                        x[[i]][[3]][2])
+        else lik.lims <- c(min(x[[i]][[2]]),
+                           x[[i]][[3]][2])
       }
       else
         lik.lims <- yaxis.lims
       if(log.scale == TRUE) {
         if(use.splines){
-          nxpoints <- 5*length(obj.proflik[[i]][[1]])
-          nodups <- which(duplicated(obj.proflik[[i]][[1]]) == FALSE)
-          plot(spline(x = log(obj.proflik[[i]][[1]][nodups]), 
-                      y = obj.proflik[[i]][[2]][nodups],
+          nxpoints <- 5*length(x[[i]][[1]])
+          nodups <- which(duplicated(x[[i]][[1]]) == FALSE)
+          plot(spline(x = log(x[[i]][[1]][nodups]), 
+                      y = x[[i]][[2]][nodups],
                       n = nxpoints,
                       method="natural"), type = "l",
                xlab = paste("log-",
-                 plot.proflik.aux1(names(obj.proflik[[i]])[1])),
+                 proflik.plot.aux1(names(x[[i]])[1])),
                ylab = ylabm, ylim = lik.lims)
         }
         else{
-          plot(log(obj.proflik[[i]][[1]]), 
-               obj.proflik[[i]][[2]],
+          plot(log(x[[i]][[1]]), 
+               x[[i]][[2]],
                type = "l",
                xlab = paste("log-",
-                 plot.proflik.aux1(names(obj.proflik[[i]])[1])),
+                 proflik.plot.aux1(names(x[[i]])[1])),
                ylab = ylabm, ylim = lik.lims)
         }
-        lines(log(c(obj.proflik[[i]][[3]][1], obj.proflik[[i]][[3]][1])),
-              c(min(lik.lims), obj.proflik[[i]][[3]][2]), lty = 2)
+        lines(log(c(x[[i]][[3]][1], x[[i]][[3]][1])),
+              c(min(lik.lims), x[[i]][[3]][2]), lty = 2)
       }
       else {
         if(use.splines){
-          nxpoints <- 5*length(obj.proflik[[i]][[1]])
-          nodups <- which(duplicated(obj.proflik[[i]][[1]]) == FALSE)
-          plot(spline(x = obj.proflik[[i]][[1]][nodups],
-                      y = obj.proflik[[i]][[2]][nodups],
+          nxpoints <- 5*length(x[[i]][[1]])
+          nodups <- which(duplicated(x[[i]][[1]]) == FALSE)
+          plot(spline(x = x[[i]][[1]][nodups],
+                      y = x[[i]][[2]][nodups],
                       n = nxpoints,
                       method="natural"),
                type = "l",
-               xlab = plot.proflik.aux1(names(obj.proflik[[i]])[1]),
+               xlab = proflik.plot.aux1(names(x[[i]])[1]),
                ylab = ylabm, ylim = lik.lims)
         }
         else{
-          plot(obj.proflik[[i]][[1]],
-               obj.proflik[[i]][[2]],
+          plot(x[[i]][[1]],
+               x[[i]][[2]],
                type = "l", xlab = 
-               plot.proflik.aux1(names(obj.proflik[[i]])[1]),
+               proflik.plot.aux1(names(x[[i]])[1]),
                ylab = ylabm, ylim = lik.lims)
         }
-        lines(c(obj.proflik[[i]][[3]][1], 
-                obj.proflik[[i]][[3]][1]),
-              c(min(lik.lims), obj.proflik[[
+        lines(c(x[[i]][[3]][1], 
+                x[[i]][[3]][1]),
+              c(min(lik.lims), x[[
                                             i]][[3]][2]), lty = 2)
       }
       abline(h = conf.int.drop, lty = 3)
@@ -1500,65 +1500,65 @@ function(phi.lambda, ...)
     for(i in 1:n.bi) {
       if(type.bi == "contour") {
         if(log.scale == TRUE) {
-          contour(log(obj.proflik[[(n.uni + i)]][[1]]),
-                  log(obj.proflik[[(n.uni + i)]][[2]]),
-                  matrix(obj.proflik[[(n.uni + i)]][[3]],
-                         ncol = length(obj.proflik[[(n.uni +i)]][[2]])),
-                  xlab = paste("log-", plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][1]))),
-                  ylab = paste("log-", plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][2]))),
+          contour(log(x[[(n.uni + i)]][[1]]),
+                  log(x[[(n.uni + i)]][[2]]),
+                  matrix(x[[(n.uni + i)]][[3]],
+                         ncol = length(x[[(n.uni +i)]][[2]])),
+                  xlab = paste("log-", proflik.plot.aux1(names(x[[(n.uni + i)]][1]))),
+                  ylab = paste("log-", proflik.plot.aux1(names(x[[(n.uni + i)]][2]))),
                     ...)
-          points(log(t(obj.proflik[[(n.uni + i)]][[4]][1:2])))
+          points(log(t(x[[(n.uni + i)]][[4]][1:2])))
         }
         else {
-          contour(obj.proflik[[(n.uni + i)]][[1]],
-                  obj.proflik[[(n.uni + i)]][[2]],
-                  matrix(obj.proflik[[(n.uni + i)]][[3]],
-                         ncol = length(obj.proflik[[(n.uni + i)]][[2]])),
-                  xlab = plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][1])),
-                  ylab = plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][2])),
+          contour(x[[(n.uni + i)]][[1]],
+                  x[[(n.uni + i)]][[2]],
+                  matrix(x[[(n.uni + i)]][[3]],
+                         ncol = length(x[[(n.uni + i)]][[2]])),
+                  xlab = proflik.plot.aux1(names(x[[(n.uni + i)]][1])),
+                  ylab = proflik.plot.aux1(names(x[[(n.uni + i)]][2])),
                   ...)
-          points(t(obj.proflik[[(n.uni + i)]][[4]][1:2]))
+          points(t(x[[(n.uni + i)]][[4]][1:2]))
         }
       }
       if(type.bi == "persp") {
         cat("For better visualisation arguments for the funtion `persp` can be passed.\nSome relevant argments are: theta, phi, r, d, among others.\n Type help(persp) for a description of the options\n")
-        if(obj.proflik$method == "ML")
+        if(x$method.lik == "ML")
           zlabm <- 
             "profile log-likelihood"
         else zlabm <- "profile log-(restricted) likelihood"
-        zlimm <- range(obj.proflik[[(n.uni +
+        zlimm <- range(x[[(n.uni +
                                      i)]][[3]])
         zlimm[1] <- 1.01 * zlimm[1]
-        minlik <- min(obj.proflik[[(n.uni + i)]][[3]])
+        minlik <- min(x[[(n.uni + i)]][[3]])
         if(log.scale == TRUE) {
-          persp(log(obj.proflik[[(n.uni + i)]][[1]]),
-                log(obj.proflik[[(n.uni + i)]][[2]]),
-                matrix(obj.proflik[[(n.uni + i)]][[3]],
-                       ncol = length(obj.proflik[[(n.uni + i)]][[2]])),
-                xlab = plot.proflik.aux1(paste("log-", names(obj.proflik[[(n.uni + i)]][1]))),
-                ylab = paste("log-", plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][2]))),
+          persp(log(x[[(n.uni + i)]][[1]]),
+                log(x[[(n.uni + i)]][[2]]),
+                matrix(x[[(n.uni + i)]][[3]],
+                       ncol = length(x[[(n.uni + i)]][[2]])),
+                xlab = proflik.plot.aux1(paste("log-", names(x[[(n.uni + i)]][1]))),
+                ylab = paste("log-", proflik.plot.aux1(names(x[[(n.uni + i)]][2]))),
                 zlab = zlabm, box = T, ...)
-                                        #          pp1 <- perspp(x = log(c(obj.proflik[[(n.uni + i)]][[4]][1],
-                                        #                          min( obj.proflik[[(n.uni + i)]][[1]]))[c(1, 1, 1, 2)]),
-                                        #                        y = log(c(obj.proflik[[(n.uni + i)]][[4]][2],
-                                        #                          min(obj.proflik[[(n.uni + i)]][[2]]))[c(1, 1, 2, 1)]),
-                                        #                        z = c(minlik, obj.proflik[[(n.uni + i)]][[4]][3])[c(1, 2, 1, 1)], pp)
+                                        #          pp1 <- perspp(x = log(c(x[[(n.uni + i)]][[4]][1],
+                                        #                          min( x[[(n.uni + i)]][[1]]))[c(1, 1, 1, 2)]),
+                                        #                        y = log(c(x[[(n.uni + i)]][[4]][2],
+                                        #                          min(x[[(n.uni + i)]][[2]]))[c(1, 1, 2, 1)]),
+                                        #                        z = c(minlik, x[[(n.uni + i)]][[4]][3])[c(1, 2, 1, 1)], pp)
                                         #          segments(log(pp1$x[1]), log(pp1$y[1]), log(pp1$x[2]), log(pp1$y[2]),
                                         #                   lwd = 2)
         }
         else {
-          persp(x = obj.proflik[[(n.uni + i)]][[1]],
-                y = obj.proflik[[(n.uni + i)]][[2]],
-                z = matrix(obj.proflik[[(n.uni + i)]][[3]],
-                  ncol = length(obj.proflik[[(n.uni + i)]][[2]])),
-                xlab = plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][1])),
-                ylab = plot.proflik.aux1(names(obj.proflik[[(n.uni + i)]][2])),
+          persp(x = x[[(n.uni + i)]][[1]],
+                y = x[[(n.uni + i)]][[2]],
+                z = matrix(x[[(n.uni + i)]][[3]],
+                  ncol = length(x[[(n.uni + i)]][[2]])),
+                xlab = proflik.plot.aux1(names(x[[(n.uni + i)]][1])),
+                ylab = proflik.plot.aux1(names(x[[(n.uni + i)]][2])),
                 zlab = zlabm, box = TRUE, ...)
-                                        #          pp1 <- perspp(x = c(obj.proflik[[(n.uni + i)]][[4]][1],
-                                        #                          min(obj.proflik[[(n.uni + i)]][[1]]))[c(1, 1, 1, 2)],
-                                        #                        y = c(obj.proflik[[(n.uni + i)]][[4]][2],
-                                        #                          min(obj.proflik[[(n.uni + i)]][[2]]))[c(1, 1,2, 1)],
-                                        #                        z = c(minlik, obj.proflik[[(n.uni + i)]][[4]][3])[c(1, 2, 1, 1)], pp)
+                                        #          pp1 <- perspp(x = c(x[[(n.uni + i)]][[4]][1],
+                                        #                          min(x[[(n.uni + i)]][[1]]))[c(1, 1, 1, 2)],
+                                        #                        y = c(x[[(n.uni + i)]][[4]][2],
+                                        #                          min(x[[(n.uni + i)]][[2]]))[c(1, 1,2, 1)],
+                                        #                        z = c(minlik, x[[(n.uni + i)]][[4]][3])[c(1, 2, 1, 1)], pp)
                                         #          segments(pp1$x[1], pp1$y[1], pp1$x[2], pp1$y[2], lwd = 2)
         }
       }
@@ -1567,7 +1567,7 @@ function(phi.lambda, ...)
   return(invisible())
 }
 
-"plot.proflik.aux1" <-
+"proflik.plot.aux1" <-
   function(parameter.name)
 {
   switch(parameter.name,

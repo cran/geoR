@@ -12,27 +12,21 @@
 }
 
 \usage{
-plot.xvalid(obj, valid.obj, coords = valid.obj$coords,
-            error.plots = TRUE, std.error.plots = TRUE,
-            borders = NULL, ask = TRUE)
+plot.xvalid(x, coords, error.plots = TRUE, std.error.plots = TRUE,
+            borders = NULL, ask = TRUE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{obj}{an object of the class \code{"xvalid"}, typically an output
+  \item{x}{an object of the class \code{"xvalid"}, typically an output
     from the function \code{\link{xvalid}}.  }
-  \item{valid.obj}{a list containing at least the element \code{coords}
-    as described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set.
-    The argument \code{coords} can be provided instead.  }
-  \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
-    coordinates of the (cross-)validation locations in each row.
-    Defaults to \code{valid.obj$coords}, if provided.}
+  \item{coords}{an \eqn{n \times 2}{n x 2} object containing
+    coordinates of the (cross-)validation locations.  }
   \item{error.plots}{logical. Defines whether the plots for the errors
     (\eqn{error = data - predicted}) will
     be produced.  }
-  \item{error.plots}{logical. Defines whether the plots for the
+  \item{std.error.plots}{logical. Defines whether the plots for the
     standardised errors will
     be produced.  }
   \item{borders}{optional. Takes a two column matrix or data-frame with
@@ -40,6 +34,9 @@ plot.xvalid(obj, valid.obj, coords = valid.obj$coords,
     the errors maps.  }
   \item{ask}{logical. Defines whether or not the user is prompted before
     each plot is produced.}
+  \item{\dots}{other arguments to be passed to the function
+    \code{\link{plot}}.  }
+
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~
@@ -63,8 +60,8 @@ op <- par(no.readonly = TRUE)
 par(mfcol = c(3,2))
 par(mar = c(3,3,0,1))
 par(mgp = c(2,1,0))
-plot(xvl, s100, error = FALSE, ask = FALSE)
-plot(xvl, s100, std.err = FALSE, ask = FALSE)
+plot(xvl, error = FALSE, ask = FALSE)
+plot(xvl, std.err = FALSE, ask = FALSE)
 par(op)
 
 

@@ -18,7 +18,7 @@
 
 \usage{
 ksline(geodata, coords = geodata$coords, data = geodata$data,
-       locations,
+       locations, borders = NULL, 
        cov.model = "matern",
        cov.pars=stop("cov. parameters (sigmasq and phi) needed"),
        kappa = 0.5, nugget = 0, micro.scale = 0,
@@ -44,6 +44,8 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
     component \code{data} of the argument \code{geodata}, if provided.  }
   \item{locations}{an \eqn{N \times 2}{N x 2} matrix or data-frame with the 2-D
     coordinates of the \eqn{N} prediction locations. }
+  \item{borders}{optional. If a two column matrix defining a polygon is
+    provided the prediction is performed only at locations inside this polygon. }
   \item{cov.pars}{a vector with 2 elements or an \eqn{n \times 2}{n x
       2} matrix with the covariance parameters \eqn{\sigma^2}{sigma^2}
     (partial sill)  and \eqn{\phi}{phi} (range parameter). If a vector, the elements are the values of

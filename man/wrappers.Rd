@@ -5,8 +5,10 @@
 \alias{loccoords}
 \alias{diagquadraticformXAX}
 \alias{bilinearformXAY}
+\alias{corr.diaglowertri}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
+
 \title{Wrappers for the C functions used in geoR}
 \description{
   These functions are \emph{wrappers} for some (but not all)
@@ -20,7 +22,8 @@
 distdiag(coords)
 loccoords(coords, locations)
 diagquadraticformXAX(X, lowerA, diagA) 
-bilinearform(X, lowerA, diagA, Y) 
+bilinearformXAY(X, lowerA, diagA, Y) 
+corr.diaglowertri(coords, cov.model, phi, kappa)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -35,6 +38,10 @@ bilinearform(X, lowerA, diagA, Y)
   \item{diagA}{a vector with the diagonal terms of the symmetric matrix A. }
   \item{X}{a matrix with conforming dimensions. }
   \item{Y}{a matrix with conforming dimensions. }
+  \item{cov.model}{covariance model, see \code{\link{cov.spatial}} for options and
+    more details.  }
+  \item{phi}{numerical value of the correlation function parameter phi.}
+  \item{kappa}{numerical value of the correlation function parameter kappa.}
 }
 %\details{
 %}
@@ -48,9 +55,10 @@ bilinearform(X, lowerA, diagA, Y)
       the diagonal zero values.  }
     \item{diagquadraticformXAX}{returns a vector with the diagonal term of the
       quadratic form \eqn{X' A X}{t(X) \%*\% A \%*\% X}.  }
-    \item{bilinearform}{returns a vector or a matrix with the terms of the
+    \item{bilinearformXAY}{returns a vector or a matrix with the terms of the
       quadratic form \eqn{X' A Y}{t(X) \%*\% A \%*\% Y}.  }
-
+    \item{corr.diaglowertri}{returns the lower triangle of the
+      correlation matrix, including the diagonal.  }
 }
 
 \references{

@@ -1,27 +1,10 @@
-"lines.grf" <-
-  function (obj, max.dist = max(dist(obj$coords)), length = 100, 
-            lwd = 2, ...) 
-{
-  if(is.R()) require(mva)
-  if (obj$cov.model == "matern" | obj$cov.model == "powered.exponential" | 
-      obj$cov.model == "cauchy" | obj$cov.model == "gneiting-matern") 
-    kappa <- obj$kappa
-  else kappa <- NULL
-  distance <- seq(0, max.dist, length = length)
-  if (is.vector(obj$cov.pars)) 
-    sill.total <- obj$nugget + obj$cov.pars[1]
-  else sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
-  gamma <- sill.total - cov.spatial(distance, cov.model = obj$cov.model, 
-                                  kappa = kappa, cov.pars = obj$cov.pars)
-  lines(distance, gamma, lwd = lwd, ...)
-  return(invisible())
-}
-
 "cov.spatial" <-
-  function(obj, cov.model = c("matern", "exponential", "gaussian", "spherical",
-                  "circular", "cubic", "wave", "power", "powered.exponential",
-                  "cauchy", "gneiting", "gneiting.matern", "pure.nugget"),
-           cov.pars = stop("no cov.pars argument provided"), kappa = 0.5)
+  function(obj, cov.model = c("matern", "exponential", "gaussian",
+                  "spherical", "circular", "cubic", "wave",
+                  "power", "powered.exponential", "cauchy",
+                  "gneiting", "gneiting.matern", "pure.nugget"),
+           cov.pars = stop("no cov.pars argument provided"),
+           kappa = 0.5)
 {
   ##
   ## checking/reading input
@@ -84,7 +67,7 @@
                            );
                     exp( - ((obj/phi[i])^kappa))
                   },
-                  cauchy = (1 + (obj/phi[i])^2)^(-1 * kappa),
+                  cauchy = (1 + (obj/phi[i])^2)^(-kappa),
                   gneiting = {
                     obj.sc <- obj/phi[i];
                     t2 <- (1 - obj.sc);
@@ -193,85 +176,13 @@
       else
         names(res[[3]]) <- covar.names
     }
+    res[[3]] <- as.matrix(res[[3]])
   }
   require(mva)
   if(min(dist(res$coords)) < 1e-12)
     cat("WARNING: there are data at coincident locations, several geoR functions will not work\n") 
   class(res) <- "geodata"
   return(res)
-}
-
-
-"image.grf" <-
-  function (obj, sim.number = 1, ...) 
-{
-  x <- as.numeric(levels(as.factor(obj$coords[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(obj$coords[, 2])))
-  ny <- length(y)
-  obj$data <- as.matrix(obj$data)
-  n <- nrow(obj$data)
-  if (nx * ny != n) 
-    stop("Probably irregular grid")
-  m <- matrix(obj$data[, sim.number], ncol = ny)
-  coords.lims <- set.coords.lims(coords=obj$coords)
-  pty.prev <- par()$pty
-  par(pty = "s")
-  image(x, y, m, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
-  par(pty=pty.prev)
-  return(invisible())
-}
-
-"lines.variomodel" <-
-  function (obj, max.dist, scaled = FALSE,...)
-{
-  my.l <- list()
-  if(missing(max.dist)){
-    my.l$max.dist <- obj$max.dist
-    if (is.null(my.l$max.dist)) 
-      stop("argument max.dist needed for this object")
-  }
-  else
-    my.l$max.dist <- max.dist
-  if (obj$cov.model == "matern" | obj$cov.model == "powered.exponential" | 
-      obj$cov.model == "cauchy" | obj$cov.model == "gneiting-matern") 
-    my.l$kappa <- obj$kappa
-  else kappa <- NULL
-  if (is.vector(obj$cov.pars)) 
-    my.l$sill.total <- obj$nugget + obj$cov.pars[1]
-  else my.l$sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
-  my.l$cov.pars <- obj$cov.pars
-  my.l$cov.model <- obj$cov.model
-  if (scaled){
-    if(is.vector(obj$cov.model))
-      my.l$cov.pars[1] <-  my.l$cov.pars[1]/sill.total
-    else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/sill.total
-    my.l$sill.total <- 1
-  }
-  gamma.f <- function(x, my.l)
-    {
-      return(my.l$sill.total -
-             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
-                         cov.pars = my.l$cov.pars))
-    }
-  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
-  return(invisible())
-}
-
-"persp.grf" <- 
-function(obj, sim.number = 1, ...)
-{
-	x <- as.numeric(levels(as.factor(obj$coords[, 1])))
-	nx <- length(x)
-	y <- as.numeric(levels(as.factor(obj$coords[, 2])))
-	ny <- length(y)
-	obj$data <- as.matrix(obj$data)
-	n <- nrow(obj$data)
-	if(nx * ny != n)
-		stop("Probably irregular grid")
-	m <- matrix(obj$data[, sim.number], ncol = ny)
-	persp(x, y, m, ...)
-	return(invisible())
 }
 
 "coords.aniso" <- 
@@ -297,33 +208,6 @@ function(obj, sim.number = 1, ...)
   else
     coords.mod <- coords %*% rm %*% tm
   return(coords.mod)
-}
-
-
-"plot.grf" <-
-  function (obj, model.line = TRUE, plot.grid = FALSE, ylim="default", ...) 
-{
-  nsim <- ncol(obj$data)
-  if (plot.grid) 
-    points.geodata(obj, pt.siz="equal", xlab = "Coord X", ylab = "Coord Y")
-  if (is.vector(obj$cov.pars)) 
-    sill.total <- obj$nugget + obj$cov.pars[1]
-  else sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
-  if (obj$lambda != 1){
-    if (obj$lambda == 0) data <- log(obj$data)
-    else data <- ((obj$data^obj$lambda)-1)/obj$lambda
-  }
-  else
-    data <- obj$data          
-  sim.bin <- variog(obj, data=data)
-  plot(sim.bin, ...)
-  if (model.line){
-    var.model <- list(nugget = obj$nugget, cov.pars = obj$cov.pars, 
-                      kappa = obj$kappa, max.dist = max(sim.bin$u),
-                      cov.model = obj$cov.model)
-    lines.variomodel(var.model, lwd = 3)
-  }
-  return(invisible())
 }
 
 
@@ -390,7 +274,7 @@ function(obj, sim.number = 1, ...)
 }
 
 #"variog.env" <-
-#  function (obj.variog, coords, model.pars, nsim = 99, messages.screen = TRUE)  
+#  function (x.variog, coords, model.pars, nsim = 99, messages.screen = TRUE)  
 #{
 #  cat("This function has been made obsolete\n")
 #  cat("There are now two functions for variogram envelops:\n")
@@ -400,212 +284,6 @@ function(obj, sim.number = 1, ...)
 #  cat("       the new one based on permutations of the data")
 #  return(invisible())
 #}
-
-"variog.model.env" <-
-  function(geodata, coords = geodata$coords, obj.variog,
-           model.pars, nsim = 99, save.sim = FALSE,
-           messages.screen = TRUE) 
-{
-  call.fc <- match.call()
-  obj.variog$v <- NULL
-  ##
-  ## reading input
-  ##
-  if(!is.null(model.pars$beta)) beta <- model.pars$beta
-  else beta <- 0
-  if(!is.null(model.pars$cov.model))
-    cov.model <- model.pars$cov.model
-  else cov.model <- "exponential"
-  if(!is.null(model.pars$kappa)) kappa <- model.pars$kappa
-  else kappa <- 0.5
-  if(!is.null(model.pars$nugget)) nugget <- model.pars$nugget
-  else nugget <- 0
-  cov.pars <- model.pars$cov.pars
-  if(!is.null(obj.variog$estimator.type))
-    estimator.type <- obj.variog$estimator.type
-  else estimator.type <- "classical"
-  if (obj.variog$output.type != "bin") 
-    stop("envelops can be computed only for binned variogram")
-  ##
-  ## generating simulations from the model with parameters provided
-  ##
-  if (messages.screen) 
-    cat(paste("variog.env: generating", nsim, "simulations (with ",
-              obj.variog$n.data, 
-              "points each) using the function grf\n"))
-  simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
-                cov.model = cov.model, cov.pars = cov.pars,
-                nugget = nugget, kappa = kappa, nsim = nsim,
-                messages.screen = FALSE, lambda = obj.variog$lambda)
-  if(messages.screen)
-    cat("variog.env: adding the mean or trend\n")
-  x.mat <- trend.spatial(trend=obj.variog$trend, coords=coords)
-  simula$data <- as.vector(x.mat %*% beta) + simula$data
-  ##
-  ## computing empirical variograms for the simulations
-  ##
-  if (messages.screen) 
-    cat(paste("variog.env: computing the empirical variogram for the", 
-              nsim, "simulations\n"))
-  nbins <- length(obj.variog$bins.lim) - 1
-  if(is.R()){
-    bin.f <- function(sim){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(obj.variog$n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(obj.variog$bins.lim)),
-                 as.integer(estimator.type == "robust"),
-                 as.double(max(obj.variog$u)),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f)
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
-  }
-  else{
-    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "robust"),
-                 as.double(max.u),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
-  }
-  if(save.sim == FALSE) simula$data <- NULL
-  ##
-  ## computing envelops
-  ##
-  if (messages.screen) 
-    cat("variog.env: computing the envelops\n")
-  limits <- apply(simula.bins, 1, range)
-  res.env <- list(u = obj.variog$u, v.lower = limits[1, ],
-                  v.upper = limits[2,])
-  if(save.sim) res.env$simulated <- simula$data
-  res.env$call <- call.fc
-  class(res.env) <- "variogram.envelope"
-  return(res.env)
-}
-
-"variog.mc.env" <-
-  function (geodata, coords = geodata$coords, data = geodata$data,
-            obj.variog, nsim = 99, save.sim = FALSE,
-            messages.screen = TRUE) 
-{
-  call.fc <- match.call()
-  ##
-  ## Checking input
-  ##
-  obj.variog$v <- NULL
-  if((is.matrix(data) | is.data.frame(data)))
-    if(ncol(data) > 1)
-      stop("envelops can be computed for only one data set at once")
-  if(!is.null(obj.variog$estimator.type))
-    estimator.type <- obj.variog$estimator.type
-  else estimator.type <- "classical"
-  ##
-  ## generating several "data-sets" by permutating data values
-  ##
-  if (messages.screen) 
-    cat(paste("variog.env: generating", nsim,
-              "simulations by permutating data values\n"))
-  simula <- list(coords = coords)
-  n.data <- length(data)
-  perm.f <- function(i, data, n.data){return(data[sample(1:n.data)])}
-  simula$data <- apply(as.matrix(1:nsim),1, perm.f, data=data, n.data=n.data) 
-  ##
-  ## computing empirical variograms for the simulations
-  ##
-  if (messages.screen) 
-    cat(paste("variog.env: computing the empirical variogram for the", 
-              nsim, "simulations\n"))
-  nbins <- length(obj.variog$bins.lim) - 1
-  if(is.R()){
-    bin.f <- function(sim){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(obj.variog$n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(obj.variog$bins.lim)),
-                 as.integer(estimator.type == "robust"),
-                 as.double(max(obj.variog$u)),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f)
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
-  }
-  else{
-    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "robust"),
-                 as.double(max.u),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
-  }
-  if(save.sim == FALSE) simula$data <- NULL
-  ##
-  ## computing envelops
-  ##
-  if (messages.screen) 
-    cat("variog.env: computing the envelops\n")
-  limits <- apply(simula.bins, 1, range)
-  res.env <- list(u = obj.variog$u, v.lower = limits[1, ],
-                  v.upper = limits[2,])
-  if(save.sim) res.env$simulations <- simula$data
-  res.env$call <- call.fc
-  class(res.env) <- "variogram.envelope"
-  return(res.env)
-}
-
-"lines.variogram.envelope" <-
-  function(obj, lty=3, ...)
-{
-  lines(obj$u, obj$v.lower, ...)
-  lines(obj$u, obj$v.upper, ...)
-  return(invisible())
-}
 
 "varcov.spatial" <-
   function (coords = NULL, dists.lowertri = NULL, cov.model = "matern",
@@ -685,10 +363,8 @@ function(obj, sim.number = 1, ...)
   }
   if (inv | det | only.decomposition | sqrt.inv | only.inv.lower.diag) {
     if (func.inv == "cholesky") {
-      options(show.error.messages = FALSE)
       varcov.sqrt <- try(chol(varcov))
-      options(show.error.messages = TRUE)
-      if (!is.numeric(varcov.sqrt)) {
+      if (inherits(varcov.sqrt, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"
         else {
@@ -723,10 +399,8 @@ function(obj, sim.number = 1, ...)
     }
     if (func.inv == "svd") {
       varcov.svd <- svd(varcov, nv = 0)
-      options(show.error.messages = FALSE)
       cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))))
-      options(show.error.messages = TRUE)
-      if (is.numeric(cov.logdeth)) {
+      if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"
         else {
@@ -755,8 +429,7 @@ function(obj, sim.number = 1, ...)
         stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
       options(show.error.messages = FALSE)
       invcov <- try(solve(varcov))
-      options(show.error.messages = TRUE)
-      if (is.numeric(cov.logdeth)) {
+      if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"
         else {
@@ -768,17 +441,13 @@ function(obj, sim.number = 1, ...)
       else remove("varcov", frame = sys.nframe())
     }
     if (func.inv == "eigen") {
-      options(show.error.messages = FALSE)
       varcov.eig <- try(eigen(varcov, symmetric = TRUE))
       cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
-      options(show.error.messages = TRUE)
-      if (!is.numeric(cov.logdeth) | is.numeric(varcov.eig)) {
+      if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
         diag(varcov) <- 1.0001 * diag(varcov)
-        options(show.error.messages = FALSE)
         varcov.eig <- try(eigen(varcov, symmetric = TRUE))
         cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
-        options(show.error.messages = TRUE)
-        if (!is.numeric(cov.logdeth) | !is.numeric(varcov.eig)) {
+        if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
           return(list(crash.parms = c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa)))
         }
       }
@@ -832,7 +501,7 @@ function(obj, sim.number = 1, ...)
 }
 
 "plot.geodata" <-
-  function (geodata, coords = geodata$coords, data = geodata$data,
+  function (x, coords = x$coords, data = x$data,
             borders = NULL, 
             trend = "cte", lambda = 1, col.data = 1, 
             weights.divide = NULL, window.new = FALSE, ...) 
@@ -841,7 +510,7 @@ function(obj, sim.number = 1, ...)
     par.ori <- par(no.readonly = TRUE)
   else par.ori <- par()
   on.exit(par(par.ori))
-  coords <- as.matrix(geodata$coords)
+  coords <- as.matrix(x$coords)
   data <- as.matrix(data)
   data <- data[, col.data]
   if (window.new) {
@@ -927,14 +596,16 @@ function(obj, sim.number = 1, ...)
 
 "set.coords.lims" <-
   function(coords)
-  {
-    coords.lims <- apply(coords, 2, range)
-    coords.diff <- diff(coords.lims)
-    if (coords.diff[1] != coords.diff[2]) {
-      coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-      ind.min <- which(coords.diff == min(coords.diff))
-      coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
-                                                           coords.diff.diff)/2
-    }
-    return(coords.lims)
+{
+  coords.lims <- apply(coords, 2, range)
+  coords.diff <- diff(coords.lims)
+  if (coords.diff[1] != coords.diff[2]) {
+    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
+    ind.min <- which(coords.diff == min(coords.diff))
+    coords.lims[, ind.min] <-
+      coords.lims[, ind.min] +
+        c(-coords.diff.diff, coords.diff.diff)/2
   }
+  return(coords.lims)
+}
+

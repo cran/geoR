@@ -14,13 +14,13 @@
 
 
 \usage{
-lines.variomodel(obj, max.dist, scaled = FALSE,...)
+lines.variomodel(x, max.dist, scaled = FALSE,...)
 }
 
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{obj}{an object of the class \code{variomodel} which is a list containing
+  \item{x}{an object of the class \code{variomodel} which is a list containing
     information about the model parameters.  }
   \item{max.dist}{maximum distance (x-axis) to compute and draw the line
     representing the  variogram model.

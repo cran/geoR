@@ -10,13 +10,12 @@
 }
 
 \usage{
-plot.grf(obj, model.line = TRUE, plot.grid = FALSE,
-         ylim = "default", ...)
+plot.grf(x, model.line = TRUE, plot.grid = FALSE, ylim = "default", ...)
 }
 
 
 \arguments{
-  \item{obj}{an object of the class \code{grf}, typically an output of the function
+  \item{x}{an object of the class \code{grf}, typically an output of the function
     \code{\link{grf}}.  }
   \item{model.line}{logical. If \code{TRUE} the true variogram model is added to the
     plot with the sample variogram(s).  }

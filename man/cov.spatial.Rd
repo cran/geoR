@@ -234,6 +234,7 @@ legend(0.4,.4, c(expression(paste(kappa == 0.5, "  and  ",
 }
 
 \keyword{spatial}%-- one or more ...
+\keyword{models}%-- one or more ...
 
 
 

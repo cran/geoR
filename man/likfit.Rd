@@ -1,9 +1,8 @@
 \name{likfit}
 
 \alias{likfit}
-\alias{negloglik.GRF}
 \alias{likfit.limits}
-\alias{boxcox.ns}
+\alias{negloglik.GRF}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -20,7 +19,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        trend = "cte", ini.cov.pars, fix.nugget = FALSE, nugget = 0,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
-       cov.model = "matern", method = "ML", components = FALSE,
+       cov.model = "matern", method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = likfit.limits(),
        print.pars = FALSE, messages.screen = TRUE, ...)
 }
@@ -117,7 +116,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     function. For further details see 
     documentation for \code{\link{cov.spatial}}.
       Defaults are equivalent to the \emph{exponential} model.  }
-  \item{method}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
+  \item{method.lik}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
     values for the three model components: trend, spatial and residuals.
@@ -223,7 +222,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \code{fix.lambda = TRUE} otherwise the estimate value.  }
   \item{aniso.pars}{fixed values or estimates of the anisotropy
     parameters, according to the function call.  }
-  \item{method}{estimation method used, \code{"ML"} (maximum likelihood)
+  \item{method.lik}{estimation method used, \code{"ML"} (maximum likelihood)
     or \code{"REML"} (restricted maximum likelihood).  }
   \item{loglik}{the value of the maximized likelihood.  }
   \item{npars}{number of estimated parameters.  }

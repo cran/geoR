@@ -1,169 +1,163 @@
 "krige.bayes" <- 
-  function(geodata, coords=geodata$coords, data=geodata$data, locations = "no",
-           model = model.control(
-             trend.d = "cte", trend.l = "cte", cov.model = "matern",
-             kappa = 0.5, aniso.pars = NULL, lambda = 1), 
-           prior = prior.control(
-             beta.prior = c("flat", "normal", "fixed"),
-             beta = NULL, beta.var = NULL,
-             sill.prior = c("reciprocal", "fixed"), sill = NULL, 
-             range.prior = c("uniform", "exponential", "fixed",
-               "squared.reciprocal","reciprocal"),
-             exponential.prior.par = 1,
-             range = NULL, range.discrete = NULL, 
-             nugget.rel.prior = c("fixed", "uniform"),
-             nugget.fixed  = 0,
-             nugget.rel.discrete = NULL),
-           output = output.control(
-             n.posterior = 1000, n.predictive = NULL, moments = TRUE,
-             simulations.predictive = TRUE, keep.simulations = TRUE,
-             mean.estimator = TRUE, quantile.estimator = NULL,
-             probability.estimator = NULL, signal = TRUE, 
-             messages.screen = TRUE)
-           )
+  function(geodata, coords=geodata$coords, data=geodata$data,
+           locations = "no", borders = NULL, model = model.control(),
+           prior = prior.control(), output = output.control())
 {
-  ##           smaller.locations = NULL, trend.smaller.l = model$trend.l
   ##
-######################### PART 1 ##############################
-  ## Input check
+  ## ======================= PART 1 ==============================
+  ##                Reading and Checking Input
+  ## =============================================================
+  ##
+  ## setting output object and environments
   ##
   if(is.R()) require(mva)
   call.fc <- match.call()
   seed <- .Random.seed
-  kb.results <- list(posterior = list(), predictive=list())
+  do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)
+  base.env <- sys.frame(sys.nframe())
+  message.prediction <- character()
+  phidist <- list()
+  "krige.bayes.counter" <- 
+    function(.temp.ap, n.points){  
+      if(n.points <= 50) cat(paste(.temp.ap, ", ", sep=""))
+      if(n.points > 50 & n.points <= 500)
+        if(.temp.ap %% 10 == 1) cat(paste(.temp.ap, ", ", sep=""))
+      if(n.points > 500)
+        if(.temp.ap %% 100 == 1) cat(paste(.temp.ap, ", ", sep=""))
+      if(n.points == .temp.ap) cat("\n")
+    }
   ##
-  ## reading input
+  kb <- list(posterior = list(beta=list(), sigmasq=list(),
+               phi=list(), tausq.rel=list()),
+             predictive=list(mean = NULL, variance = NULL, distribution = NULL),
+             prior = prior$priors.info, model = model)
+  class(kb$posterior) <- "posterior.krige.bayes"
+  class(kb$predictive) <- "predictive.krige.bayes"
+  class(kb$prior) <- "prior.krige.bayes"
+  pred.env <- new.env()
+  ##
+  ## reading model input
   ##
   cov.model <- model$cov.model
   cov.model.number <- cor.number(cov.model)
   kappa <- model$kappa
-  if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
-    stop("krige.bayes: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
   lambda <- model$lambda
   ##
-  beta <- prior$beta
-  beta.var <- prior$beta.var
-  sill <- prior$sill
-  ##range <- prior$range
-  nugget <- prior$nugget.fixed
-  exponential.prior.par <- prior$exponential.prior.par  
+  ## reading prior input
   ##
-  n.posterior <- output$n.posterior
-  n.predictive <- output$n.predictive
-  moments <- output$moments    
-  messages.screen <- output$messages.screen    
+  beta <- prior$beta
+  if(prior$beta.prior == "fixed") beta.fixed <- beta
+  if(prior$beta.prior == "normal"){
+    beta.var.std <- prior$beta.var.std
+    inv.beta.var.std <- solve(beta.var.std)
+    betares <- list(iv = solve(beta.var.std),
+                    ivm = drop(solve(beta.var.std, beta)),
+                    mivm = drop(crossprod(beta, solve(beta.var.std, beta))))
+  }
+  if(prior$sigmasq.prior != "fixed")
+    S2.prior <- prior$sigmasq
+  else
+    sigmasq.fixed <- S2.prior <- prior$sigmasq
+  df.prior <- prior$df.prior
+  ##
+  phi.discrete <- prior$phi.discrete
+  exponential.par <- prior$phi  
+  ##
+  tausq.rel.fixed <- tausq.rel <- prior$tausq.rel
+  if(tausq.rel.fixed > 2)
+    print("WARNING: relative (NOT absolute) nugget should be specified.")
+  tausq.rel.discrete <- prior$tausq.rel.discrete
   ##
   ## checking data configuration
   ##
+  n <- length(data)
+  ##
   if(is.vector(coords)){
     coords <- cbind(coords, 0)
-    warning("krige.bayes: vector of coordinates: one spatial dimention assumed")
+    warning("krige.bayes: vector of coordinates: assuming one spatial dimension (transect)")
   }
   coords <- as.matrix(coords)
-  data.dist <- as.vector(dist(coords))
-  data.dist.range <- range(data.dist)
+  dists.env <- new.env()
+  assign("data.dist", as.vector(dist(coords)), envir=dists.env)
+  data.dist.range <- range(get("data.dist", envir=dists.env))
   data.dist.min <- data.dist.range[1]
   data.dist.max <- data.dist.range[2]
-  ## check == here
   if(round(1e12*data.dist.min) == 0)
     stop("krige.bayes: this function does not allow two data at same location")
-  if(all(locations == "no")) {
-    if(prior$beta.prior != "fixed" & prior$sill.prior != "fixed"  & prior$range.prior != "fixed")
-      if(messages.screen){
+  if(!do.prediction) {
+    if(prior$beta.prior != "fixed" & prior$sigmasq.prior != "fixed"  & prior$phi.prior != "fixed")
+      if(output$messages.screen){
         cat("krige.bayes: no prediction locations provided.\n")
-        cat("             Only samples of the posterior for the parameters will be returned. \n ")
+        cat("             Only samples of the posterior for the parameters will be returned.\n")
       }
-      else
-        stop("krige.bayes: no prediction locations provided and fixed parameters.\n If priors are specified for beta, sill and range sample of the posterior will be returned.")
-  }
-  ##  if(!is.null(smaller.locations)){
-  ##    if(if(is.R()) require(akima) == FALSE)
-  ##      stop("package \"akima\" is needed if a non-null object is provided in the argument \"smaller.grid\"")
-  ##  }
-  ##
-  ## Cheking priors input
-  ##
-  if(prior$beta.prior == "fixed" & prior$sill.prior != "fixed")
-    stop("krige.bayes: option for fixed beta and random sill not implemented\n")
-  if(prior$beta.prior == "fixed" & prior$range.prior != "fixed")
-    stop("krige.bayes: option for fixed beta and random range not implemented\n")
-  if(prior$sill.prior == "fixed" & prior$range.prior != "fixed")
-    stop("krige.bayes: option for fixed sill and random range not implemented\n")
-  if(prior$beta.prior != "flat" & prior$sill.prior != "fixed")
-    stop("krige.bayes: selected prior for beta not allowed for selected prior for sill\n")
-  if(prior$beta.prior == "fixed" & is.null(beta))
-    stop("krige.bayes: if beta is fixed, its value must be provided in the argument beta\n")
-  if(prior$beta.prior == "normal" & (is.null(beta) | is.null(beta.var)))
-    stop("krige.bayes: if the prior for beta is normal, the prior mean(s) and prior (co)variance must be provided using the argument beta and priorr$beta.var\n")
-  if(prior$sill.prior == "fixed" & is.null(sill))
-    stop("krige.bayes: if sill is fixed, its value must be provided in the argument sill\n")
-  if(prior$range.prior == "fixed" & is.null(prior$range))
-    stop("krige.bayes: if range is fixed, its value must be provided in the argument range\n")
-  if(prior$range.prior != "fixed"){
-    if (is.null(prior$range.discrete))
-      stop("krige.bayes: to include the range as random in the Bayesian analysis the argument range.discrete must be provided\n")
-    discrete.diff <- diff(prior$range.discrete)
-    if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"range.discrete\"\n")
-    discrete.diff <- NULL
-    if(is.R()) gc(verbose=FALSE)
-  }    
-  if(prior$nugget.rel.prior != "fixed"){
-    if(is.null(prior$nugget.rel.discrete))
-      stop("krige.bayes: to include the nugget as random in the Bayesian analysis the argument nugget.rel.discrete must be provided\n")
-    if(any(prior$nugget.rel.discrete > 1))
-      warning("krige.bayes: when nugget is considered as random in the Bayesian analysis the values in the argument nugget.rel.discrete must be relative nugget: tausq/sigmasq\n")
-    discrete.diff <- diff(prior$nugget.rel.discrete)
-    if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"nugget.rel.discrete\"\n")
-    discrete.diff <- NULL
-    if(is.R()) gc(verbose=FALSE)
   }
   ##
-  ## checking output options
+  ## reading output options
   ##
-  if(!is.null(output$quantile.estimator)){
-    if(is.numeric(output$quantile.estimator))
-      if(any(output$quantile.estimator) < 0 | any(output$quantile.estimator) > 1)
-        stop("krige.bayes: quantiles indicators must be numbers in the interval [0,1]\n"
-             )
-    if(output$quantile.estimator == TRUE)
-      output$quantile.estimator <- c(0.025000000000000001, 0.5, 0.97499999999999998)
-  }
-  if(!is.null(output$probability.estimator)){
-    if(!is.numeric(output$probability.estimator))
-      stop("krige.bayes: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
-    if(length(output$probability.estimator)>1 & length(output$probability.estimator) != nrow(locations))
-      stop("krige.bayes: probability.estimator must either have length 1, or have length = nrow(locations)\n")
-  }
-  if(lambda != 1 & lambda != 0 & moments) {
-    moments <- FALSE
-    cat(paste("WARNING: moments cannot be computed with lambda = ", 
-              lambda,".\n         Argument moments was set to FALSE\n",
-              sep=""))
-  }
-  if(lambda < 0 & output$mean.estimator) {
-    output$mean.estimator <- FALSE
-    cat("krige.bayes: mean.predictor set to FALSE.\n             The resulting distribution does not has expectation for lambda < 0\n"
-        )
+  n.posterior <- output$n.posterior
+  messages.screen <- output$messages.screen
+  if(do.prediction){
+    n.predictive <- output$n.predictive
+    if(is.null(n.predictive))
+      n.predictive <- ifelse(prior$phi.prior == "fixed", 0, n.posterior)
+    simulations.predictive <- output$simulations.predictive
+    if(is.null(simulations.predictive))
+      simulations.predictive <- ifelse(prior$phi.prior == "fixed", FALSE, TRUE)
+    keep.simulations <- output$keep.simulations
+    if(is.null(keep.simulations))
+      keep.simulations <- simulations.predictive
+    mean.estimator <- output$mean.estimator
+    if(is.null(mean.estimator))
+      mean.estimator <- ifelse(simulations.predictive, TRUE, FALSE)
+    moments <- output$moments    
+    if(is.null(moments) | prior$phi.prior == "fixed")
+      moments <- TRUE
+    n.back.moments <- output$n.back.moments
+    signal <- ifelse(is.null(output$signal), TRUE, output$signal)
+    quantile.estimator <- output$quantile.estimator
+    probability.estimator <- output$probability.estimator
+    if(simulations.predictive & n.predictive == 0) n.predictive <- 1000
   }
   ##
-  ## Box-Cox transformation of the data
+  ## Box-Cox transformation
   ##
-  if(lambda != 1) {
-    if(prior$range.prior == "fixed")
-      stop("krige.bayes: transformation option available only for the full Bayesian approach"
-           )
+  if(abs(lambda-1) > 0.001) {
     if(messages.screen)
-      cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", lambda, "\n"))
-    if(lambda == 0)
-      data <- log(data)
-    else data <- ((data^lambda) - 1)/lambda
+      cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", round(lambda,dig=3), "\n"))
+    data <- BCtransform.data(data, lambda = lambda)$data
   }
   ##
-  ## Checking the dimension of points to be predict (1 or 2)	
+  ## Building trend (covariates/design) matrices:   
   ##
-  if(all(locations != "no")) {
+  dimnames(coords) <- list(NULL, NULL)
+  if(nrow(coords) != length(data))
+    stop("krige.bayes: number of data is different of number of data locations (coordinates)")
+  trend.data <- trend.spatial(trend=model$trend.d, coords=coords)
+  beta.size <- ncol(trend.data)
+  if(beta.size > 1)
+    beta.names <- paste("beta", (0:(beta.size-1)), sep="")
+  else beta.names <- "beta"
+  if(prior$beta.prior == "normal" |  prior$beta.prior == "fixed"){
+    if(beta.size != length(beta))
+      stop("krige.bayes: size of beta incompatible with the trend model (covariates)")
+  }
+  if(do.prediction) {
+    ##
+    ## selecting locations inside the borders 
+    ##
+    if(!is.null(borders)){
+      locations <- locations.inside(locations, borders)
+      if(nrow(locations) == 0){
+        warning("\nkrige.bayes: no prediction to be performed.\n             There are no prediction locations inside the borders")
+        do.prediction <- FALSE
+      }
+      if(messages.screen)
+        cat("krige.bayes: results will be returned only for prediction locations inside the borders\n")
+    }
+    ##
+    ## Checking the spatial dimension for prediction
+    ##  1 (data/prediction on a transect) or 2 (data/prediction on an area)
+    ##
     if(is.vector(locations)) {
       if(length(locations) == 2) {
         locations <- t(as.matrix(locations))
@@ -172,1069 +166,701 @@
       else locations <- as.matrix(cbind(locations, 0))
     }
     else locations <- as.matrix(locations)
-  }
-  ##
-  ## Building trend matrices:	
-  ##
-  if(inherits(model$trend.d, "formula") | inherits(model$trend.l, "formula")){
-    if(any(locations != "no"))
+    ##
+    ## Checking trend specification
+    ##
+    if(inherits(model$trend.d, "formula") | inherits(model$trend.l, "formula")){
       if((inherits(model$trend.d, "formula") == FALSE) | (inherits(model$trend.l, "formula") == FALSE))
         stop("krige.bayes: model$trend.d and model$trend.l must have similar specification\n")
-    if(messages.screen)
-      cat("krige.bayes: Kriging with external trend to be performed using covariates provided by the user\n")
-  }
-  else{
-    if (any(locations != "no") & (model$trend.d != model$trend.l)){
-      stop("krige.bayes: model$trend.l is different from model$trend.d")
     }
+    else
+      if(model$trend.d != model$trend.l)
+        stop("krige.bayes: model$trend.l cannot be different from model$trend.d")
+    ##
     if(messages.screen){
-      if(model$trend.d == "cte")
-        cat("krige.bayes: analysis assuming a constant mean\n")
-      if(model$trend.d == "1st")
-        cat("krige.bayes: analysis assuming a 1st degree polinomial trend\n")
-      if(model$trend.d == "2nd") 
-        cat("krige.bayes: analysis assuming a 2nd degree polinomial trend\n")
-    }
-  }
-  trend.data <- trend.spatial(trend=model$trend.d, coords=coords)
-  dimnames(coords) <- list(NULL, NULL)
-  dimnames(trend.data) <- list(NULL, NULL)
-  if(all(locations != "no")) {
-    trend.l <- trend.spatial(trend=model$trend.l, coords=locations)
-    dimnames(locations) <- list(NULL, NULL)
-    dimnames(trend.l) <- list(NULL, NULL)
-    if(is.matrix(trend.l))
-      ni <- dim(trend.l)[1]
-    else ni <- length(trend.l)
-    ##    if(!is.null(smaller.locations)){
-    ##      trend.smaller.l <- trend.spatial(trend=model$trend.l, coords=smaller.locations)
-    ##    }
-  }
-  beta.size <- ncol(trend.data)
-  ##
-  ## Checking dimensions
-  ##
-  if(nrow(coords) != length(data)) stop(
-           "krige.bayes: number of data is different of number of data locations (coordinates)"
-           )
-  if(all(locations != "no")) {
-    if(nrow(locations) != nrow(trend.l))
-      stop("krige.bayes: number of points to be estimated is different of the number of trend points"
-           )
-    dimnames(locations) <- list(NULL, NULL)
-  }
-  dimnames(coords) <- list(NULL, NULL)
-  ##
-  ## Anisotropy correction (must be placed here after trend matrices be defined)
-  ##
-  if(!is.null(model$aniso.pars)) {
-    if(length(model$aniso.pars) != 2 | !is.numeric(model$aniso.pars))
-      stop("krige.bayes: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle and the anisotropy ratio\n")
-    if(messages.screen)
-      cat("krige.bayes: anisotropy parameters provided and assumed to be constants\n")
-    coords <- coords.aniso(coords = coords, aniso.pars = model$aniso.pars)
-    if(all(locations != "no"))
-      locations <- coords.aniso(coords = locations, 
-				aniso.pars = model$aniso.pars)
-    data.dist <- as.vector(dist(coords))
-  }
-  ##
-  n <- length(data)
-  tausq <- nugget
-  if(prior$sill.prior != "fixed") sigmasq <- 1
-  else sigmasq <- sill
-  ##
-######################### PART 2 ##############################
-  ## Prediction with fixed phi
-  ##
-  if(prior$range.prior == "fixed"){
-    phi <- prior$range
-    ## covariance matrix for data points
-    invcov <- varcov.spatial(dists.lowertri=data.dist, cov.model = cov.model,
-                             kappa = kappa, nugget = nugget,
-                             cov.pars = c(sigmasq, phi), inv = TRUE,
-                             scaled=TRUE, only.inv.lower.diag = TRUE)
-    remove("data.dist")
-    if(is.R()) gc(verbose=FALSE)
-    ## Some matrices computations
-###    ttiv <- crossprod(trend.data, invcov)
-###    ttivtt <- ttiv %*% trend.data
-###    ittivtt <- solve(ttivtt)
-    ttivtt <- as.double(rep(0, beta.size * beta.size))
-    ttivtt <- .C("bilinearform_XAY",
-                 as.double(invcov$lower.inverse),
-                 as.double(invcov$diag.inverse),
-                 as.double(as.vector(trend.data)),
-                 as.double(as.vector(trend.data)),
-                 as.integer(beta.size),
-                 as.integer(beta.size),
-                 as.integer(n),
-                 res=ttivtt)$res
-    attr(ttivtt, "dim") <- c(beta.size, beta.size)
-    ittivtt <- solve(ttivtt)
-###    ttivz <- ttiv %*% data
-    ttivz <- as.double(rep(0, beta.size))
-    ttivz <- .C("bilinearform_XAY",
-                as.double(invcov$lower.inverse),
-                as.double(invcov$diag.inverse),
-                as.double(as.vector(trend.data)),
-                as.double(as.vector(data)),
-                as.integer(beta.size),
-                as.integer(1),
-                as.integer(n),
-                res=ttivz)$res
-    ## covariance vector between data points and prediction locations
-    v0mat <- as.double(rep(0, n*ni))
-    .C("loccoords",
-       as.double(as.vector(locations[,1])),
-       as.double(as.vector(locations[,2])),
-       as.double(as.vector(coords[,1])),
-       as.double(as.vector(coords[,2])),
-       as.integer(ni),
-       as.integer(n),
-       v0mat, DUP=FALSE)
-    attr(v0mat, "dim") <- c(n, ni)
-    v0mat <- cov.spatial(obj = v0mat,
-                         cov.model = cov.model,
-                         kappa = kappa, cov.pars = c(1, phi))
-###    tv0iv <- t(apply(v0mat, 2, crossprod, y = invcov))
-###    tv0ivz <- tv0iv %*% data
-    tv0ivz <- as.double(rep(0,ni))
-    tv0ivz <- .C("bilinearform_XAY",
-                 as.double(invcov$lower.inverse),
-                 as.double(invcov$diag.inverse),
-                 as.double(as.vector(v0mat)),
-                 as.double(data),
-                 as.integer(ni),
-                 as.integer(1),
-                 as.integer(n),
-                 res = tv0ivz)$res
-###    tv0ivx <- apply(tv0iv, 1, crossprod, y = trend.data)
-    tv0ivx <- as.double(rep(0, ni*beta.size))
-    tv0ivx <- .C("bilinearform_XAY",
-                 as.double(invcov$lower.inverse),
-                 as.double(invcov$diag.inverse),
-                 as.double(as.vector(v0mat)),
-                 as.double(as.vector(trend.data)),
-                 as.integer(ni),
-                 as.integer(beta.size),
-                 as.integer(n),
-                 res=tv0ivx)$res
-    attr(tv0ivx, "dim") <- c(ni, beta.size)
-    tb <- trend.l - tv0ivx
-                                        #    b <- t(tb)
-###    tv0ivv0 <- diag(tv0iv %*% v0mat)
-    tv0ivv0 <- as.double(rep(0,ni))
-    tv0ivv0 <- .C("diag_quadraticform_XAX",
-                  as.double(invcov$lower.inverse),
-                  as.double(invcov$diag.inverse),
-                  as.double(as.vector(v0mat)),
-                  as.integer(ni),
-                  as.integer(n),
-                  res = tv0ivv0)$res
-    v0mat <- NULL
-    if(is.R()) gc(verbose=FALSE)
-    ##
-########################## PART 2.1 ##############################
-    ## Simple kriging (fixed beta and sigmasq)
-    ##
-    if(prior$beta.prior == "fixed") {
-      beta.mean <- paste("SK : beta provided by user: ",
-                         beta)
-      kb.results$predictive$mean <- as.vector(tv0ivz + as.vector(tb %*% beta))
-      if(output$signal)
-        kb.results$predictive$variance <- as.vector(sigmasq * (1 - tv0ivv0))
-      else kb.results$predictive$variance <- as.vector(nugget + sigmasq * (1 - tv0ivv0))
-      priors.messa <- c("no priors for parameters", 
-                        "results corresponds to simple kriging")
-      sill.mean <- paste("sill provided by user: ", sill)
-    }
-    ##
-######################### PART 2.2 ##################################
-    ## uncertainty in beta and sigmasq
-    ##
-    if(prior$beta.prior == "flat") {
-      beta.mean <- ittivtt %*% ttivz
-###      predict <- tv0ivz + b %*% beta.mean
-      kb.results$predictive$mean <- as.vector(tv0ivz + as.vector(tb %*% beta.mean))
-      ##      bi <- apply(tb, 2, crossprod, y = ittivtt)
-      ##      if(ncol(trend.data) > 1)
-      ##        bi <- t(bi)
-      ##      bitb <- diag(bi %*% tb)
-      if(beta.size == 1)
-        bitb <- as.vector(tb^2) * as.vector(ittivtt)
-      else{
-        bitb <- as.double(rep(0,ni))
-        bitb <- .C("diag_quadraticform_XAX",
-                   as.double(ittivtt[lower.tri(ittivtt)]),
-                   as.double(diag(ittivtt)),
-                   as.double(as.vector(t(tb))),
-                   as.integer(ni),
-                   as.integer(beta.size),
-                   res = bitb)$res
-      }
-      if(prior$sill.prior == "fixed") {
-        ##
-        ## 2.2.1 Ordinary kriging: uncertainty only in beta, flat prior
-        ##
-        if(output$signal)
-          kb.results$predictive$variance <- as.vector(sigmasq * (1 - tv0ivv0 + bitb))
-        else kb.results$predictive$variance <- as.vector(nugget + sigmasq * (1 - tv0ivv0 + bitb))
-        priors.messa <- c(
-                          "uninformative prior for beta", 
-                          "no prior for sill", 
-                          "no prior for range", 
-                          "kriging estimates and variances equivalent to ordinary kriging"
-                          )
-        sill.mean <- paste("sill provided by user: ",
-                           sill)
-      }
-      else {
-        ##
-        ## 2.2.2 using a conjugate normal prior
-        ##
-        residu <- as.vector(data - trend.data %*% beta.mean)
-###        sill.mean <- (residu %*% invcov %*% residu)/
-###          (n - length(beta.mean) - 2)
-        resivres <- as.double(0)
-        resivres <- .C("diag_quadraticform_XAX",
-                       as.double(invcov$lower.inverse),
-                       as.double(invcov$diag.inverse),
-                       as.double(residu),
-                       as.integer(1),
-                       as.integer(n),
-                       res = resivres)$res
-        sill.mean <- resivres / (n - length(beta.mean) - 2)
-        if(output$signal)
-          kb.results$predictive$variance <- as.vector(sill.mean * (1 - tv0ivv0 + bitb))
-        else kb.results$predictive$variance <- as.vector(nugget + sill.mean * (1 - tv0ivv0 + bitb))
-        priors.messa <- c(
-                          "uninformative prior for beta", 
-                          "uninformative prior for sill", 
-                          "kriging estimates (but not variances) equivalent to ordinary kriging"
-                          )
-      }
-    }
-    ##
-    ## 2.2.3 Uncertainty only in the mean parameter (with normal prior)
-    ##
-    if(prior$beta.prior == "normal") {
-      beta.var <- beta.var/sigmasq
-      ibeta.var <- solve(beta.var)
-      varbgz <- solve(ibeta.var + ttivtt)
-      beta.mean <- varbgz %*% (ibeta.var %*% beta + ttivz)
-      kb.results$predictive$mean <- as.vector(tv0ivz + as.vector(tb %*% beta.mean))
-###      bi <- apply(tb, 2, crossprod, y = varbgz)
-###      bitb <- diag(bi %*% tb)
-      if(beta.size == 1)
-        bitb <- as.vector(tb^2) * as.vector(ittivtt)
-      else{
-        bitb <- as.double(rep(0,ni))
-        bitb <- .C("diag_quadraticform_XAX",
-                   as.double(ittivtt[lower.tri(ittivtt)]),
-                   as.double(diag(ittivtt)),
-                   as.double(as.vector(t(tb))),
-                   as.integer(ni),
-                   as.integer(beta.size),
-                   res = bitb)$res
-      }
-      if(output$signal)
-        kb.results$predictive$variance <- as.vector(sigmasq * (1 - tv0ivv0) + bitb)
-      else kb.results$predictive$variance <- as.vector(nugget + sigmasq * (1 - tv0ivv0) + bitb)
-      priors.messa <- c("Normal prior for beta", 
-                        "no prior for sill", "no prior for range")
-      sill.mean <- paste("provided by user: ", sill)
-    }
-    ##
-######################### PART 2.3 ##################################
-    ## Preparing output
-    ##
-###    kb.results$predictive$mean <- as.vector(predict)
-###    kb.results$predictive$variance <- as.vector(krige.var)
-    kb.results$posterior$beta.mean <- beta.mean
-    kb.results$posterior$sigmasq.mean <- sill.mean
-    kb.results$posterior$phi.mean <- paste("provided by user: ", prior$range)
-    kb.results$type.prediction <- priors.messa
-  }
-  else {
-    ##	
-######################### PART 3 ##############################
-    ## considering the uncertainty in the parameter phi
-    ##
-    if(messages.screen)
-      cat("krige.bayes: computing the discrete approximation of the posterior of phi/tausq.rel\n"
-          )
-    ##	
-######################### PART 3.1 ##############################
-    ## Computing the discrete posterior distribution for phi
-    ##
-    df.model <- as.vector(n - beta.size)
-    phidist <- list()
-    if(is.null(prior$range.discrete)){
-      phidist$phi <- seq(0, max(data.dist), l = 51)
-      warning("krige.bayes: argument range.discrete not provided. Default values assumed\n")
-    }
-    else
-      phidist$phi <- prior$range.discrete
-    if(is.null(prior$nugget.rel.discrete)){
-      nugget.rel.discrete <- nugget
-      if(messages.screen)
-        cat(paste("krige.bayes: nugget assumed to be fixed and equals to", nugget, "\n"))
-    }
-    else
-      nugget.rel.discrete <- prior$nugget.rel.discrete
-    n.range <- length(phidist$phi)
-    n.nugget <- length(nugget.rel.discrete)
-    phi.val <- phidist$phi
-    phidist$phi <- as.matrix(expand.grid(phidist$phi, nugget.rel.discrete))
-    dimnames(phidist$phi) <- list(NULL, NULL)
-    krige.bayes.aux1 <- function(phinug){
-      phi <- phinug[1]
-      nugget <- phinug[2]
-      if(round(1e12 * phi) == 0)
-        covphi <- list(inverse = diag((1/(1 + nugget)), n), 
-                       log.det.to.half = ((n/2) * log(1 + nugget)))
-      else 
-        covphi <- varcov.spatial(dists.lowertri = data.dist, cov.model = 
-                                 cov.model, kappa = kappa, nugget = nugget,
-                                 cov.pars = c(1, phi), inv = TRUE, det = TRUE)
-      ttiv <- crossprod(trend.data, covphi$inverse)
-      ttivtt <- ttiv %*% trend.data
-      vbetaphi <- solve(ttivtt)
-      eival.x <- eigen(ttivtt, symmetric = TRUE, only.values = TRUE)
-      ttivttdet <- prod(eival.x$values)
-      betaphi <- as.vector(vbetaphi %*% ttiv %*% data)
-      res <- data - trend.data %*% betaphi
-      sqres <- crossprod(res, covphi$inverse) %*% res
-      df.model <- length(data) - length(betaphi)
-      s2phi <- (1/df.model) * sqres
-      logprobphi <- (-0.5) * log(ttivttdet) - (covphi$log.det.to.half) - (
-                                                                          df.model/2) * log(s2phi)
-      if(prior$range.prior == "reciprocal" & round(1e+08 * phi) != 0)
-        logprobphi <- logprobphi - log(phi)
-      if(prior$range.prior == "squared.reciprocal" & round(1e+08 * phi) != 0)
-        logprobphi <- logprobphi - log(phi^2)
-      if(prior$range.prior == "exponential")
-        logprobphi <- logprobphi - exponential.prior.par * phi
-      inv.lower <- covphi$inverse[lower.tri(covphi$inverse)]
-      inv.diag <- diag(covphi$inverse)
-      return(list(vbetaphi = vbetaphi, betaphi = betaphi, s2phi = s2phi,
-                  logprobphi = logprobphi, inv.lower = inv.lower, inv.diag = inv.diag))
-    }
-    temp.res <- apply(phidist$phi, 1, krige.bayes.aux1)
-    extract.f <- function(obj){return(obj$s2phi)}
-    phidist$s2 <- as.vector(sapply(temp.res, extract.f))
-    attr(phidist$s2, "dim") <- c(n.range, n.nugget)
-    extract.f <- function(obj){return(obj$logprobphi)}
-    phidist$logprobphi <- as.vector(sapply(temp.res, extract.f))
-    attr(phidist$logprobphi, "dim") <- c(n.range, n.nugget)
-    extract.f <- function(obj){return(obj$inv.lower)}
-    inv.lower <-  as.vector(t(sapply(temp.res, extract.f)))
-    attr(inv.lower, "dim") <- c(n.range, n.nugget, (n * (n - 1))/2)
-    extract.f <- function(obj){return(obj$inv.diag)}
-    inv.diag <-  as.vector(t(sapply(temp.res, extract.f)))
-    attr(inv.diag, "dim") <- c(n.range, n.nugget, n)
-    nframe.del <- sys.nframe()
-    extract.f <- function(obj){return(obj$vbetaphi)}
-    if(beta.size == 1){
-      phidist$vbeta.vector <- as.vector(sapply(temp.res,extract.f))
-      attr(phidist$vbeta.vector, "dim") <- c(n.range, n.nugget, 1)
-    }
-    else{
-      phidist$vbeta.vector <- as.vector(t(sapply(temp.res, extract.f)))
-##      dimnames(phidist$vbeta.vector) <- list(NULL, NULL)
-      attr(phidist$vbeta.vector, "dim") <- c(n.range, n.nugget, (beta.size^2))
-    }
-    extract.f <- function(obj){return(obj$betaphi)}
-    if(beta.size == 1){
-      phidist$beta <- as.vector(sapply(temp.res, extract.f))
-##      dimnames(phidist$beta) <- list(NULL, NULL)
-      attr(phidist$beta, "dim") <- c(n.range, n.nugget, 1)
-    }
-    else{
-      phidist$beta <- as.vector(t(sapply(temp.res, extract.f)))
-      attr(phidist$beta, "dim") <- c(n.range, n.nugget, beta.size)
-    }
-    temp.res <- NULL
-    if(is.R()) gc(verbose=FALSE)
-    phidist$logprobphi <- phidist$logprobphi + abs(min(phidist$
-                                                       logprobphi))
-    phidist$probphi <- exp(phidist$logprobphi)
-    sumprob <- sum(phidist$probphi)
-    phidist$probphi <- phidist$probphi/sumprob
-    ##
-######################### PART 3.2 ##############################
-    ## Sampling from the (parameters) posterior distribution
-    ##
-    if(messages.screen) cat(
-         "krige.bayes: sampling from multivariate distribution of the parameters\n"
-         )
-    ind <- sample((1:(n.range * n.nugget)), n.posterior, replace = 
-                  T, prob = as.vector(phidist$probphi))
-    ind.unique <- sort(unique(ind))
-    ind.length <- length(ind.unique)
-    ind.table <- table(ind)
-    phi.unique <- phidist$phi[ind.unique,  ]
-    if(messages.screen) {
-      cat("krige.bayes: samples and their frequencies from the distribution of  phi and tau.rel\n")
-      print(rbind(phi = phi.unique[, 1], nugget.rel = 
-                  phi.unique[, 2], frequency = ind.table))
+      cat(switch(model$trend.d,
+                 "cte" = "krige.bayes: model with constant mean",
+                 "1st" = "krige.bayes: model with mean given by a 1st degree polinomial on the coordinates",
+                 "2nd" = "krige.bayes: model with mean given by a 2nd degree polinomial on the coordinates",
+                 "krige.bayes: model with mean defined by covariates provided by the user"))
       cat("\n")
     }
-    phi.sam <- phidist$phi[ind,  ]
-    vecpars.back.order <- order(ind)
-    vec.s2 <- rep(as.vector(phidist$s2)[ind.unique], ind.table)
-    samples.chisq <- rchisq(n.posterior, df = df.model)
-    sigmasq <- (df.model * vec.s2)/samples.chisq
-    if(beta.size == 1) {
-      samples.beta <- rnorm(n.posterior, mean = 0, sd = 1)
-      vec.beta <- rep(as.vector(phidist$beta)[ind.unique],
-                      ind.table)
-      vec.vbeta <- rep(as.vector(phidist$vbeta.vector)[
-                                                       ind.unique], ind.table)
-      beta <- vec.beta + sqrt(sigmasq * vec.vbeta) * 
-        samples.beta
-    }
-    else {
-      ind.beta <- matrix(phidist$beta, ncol = beta.size)[
-                                         ind.unique,  ]
-      ind.beta <- ind.beta[rep(1:ind.length, ind.table),
-                           ]
-      ind.vbeta <- matrix(phidist$vbeta.vector, ncol = 
-                          beta.size^2)[ind.unique,  ]
-      ind.vbeta <- ind.vbeta[rep(1:ind.length, ind.table),
-                             ] * sigmasq
-      ##      print("2.4: try to speed up this bit!")
-      temp.res <- apply(ind.vbeta, 1, krige.bayes.aux3, 
-                        beta.size = beta.size)
-      beta <- ind.beta + t(temp.res)
-      temp.res <- NULL
-      if(is.R()) gc(verbose=FALSE)
-    }
-    if(beta.size == 1) {
-      trend.mean <- mean(beta)
-      trend.median <- median(beta)
-    }
-    else {
-      trend.mean <- apply(beta, 2, mean)
-      trend.median <- apply(beta, 2, median)
-    }
-    sill.mean <- mean(sigmasq)
-    sill.median <- median(sigmasq)
-    range.marg <- apply(phidist$probphi, 1, sum)
-    range.marg <- range.marg/(sum(range.marg))
-    range.mean <- phi.val %*% range.marg
-    range.median <- median(phi.sam[, 1])
-    ## check == here
-    range.mode <- phi.val[range.marg == max(range.marg)]
-    nugget.marg <- apply(phidist$probphi, 2, sum)
-    nugget.marg <- nugget.marg/(sum(nugget.marg))
-    nugget.mean <- nugget.rel.discrete %*% nugget.marg
-    nugget.median <- median(phi.sam[, 2])
-    ## check == here
-    nugget.mode <- nugget.rel.discrete[nugget.marg == max(nugget.marg)]
     ##
-    ## Computing the conditional (on phi and tausq.rel,
-    ## the later if the case) modes for beta and sigmasq
-    ##
-    invcov.mode <- varcov.spatial(dists.lowertri=data.dist,
-                                  cov.model = cov.model,
-                                  kappa = kappa, nugget = nugget.mode,
-                                  cov.pars = c(1, range.mode), inv = TRUE,
-                                  only.inv.lower.diag = TRUE)
-    remove("data.dist")
-    if(is.R()) gc(verbose=FALSE)
-    ttivtt.mode <- as.double(rep(0, beta.size * beta.size))
-    ttivtt.mode <- .C("bilinearform_XAY",
-                      as.double(invcov.mode$lower.inverse),
-                      as.double(invcov.mode$diag.inverse),
-                      as.double(as.vector(trend.data)),
-                      as.double(as.vector(trend.data)),
-                      as.integer(beta.size),
-                      as.integer(beta.size),
-                      as.integer(n),
-                      res=ttivtt.mode)$res
-    attr(ttivtt.mode, "dim") <- c(beta.size, beta.size)
-    ittivtt.mode <- solve(ttivtt.mode)
-    ttivz.mode <- as.double(rep(0, beta.size))
-    ttivz.mode <- .C("bilinearform_XAY",
-                     as.double(invcov.mode$lower.inverse),
-                     as.double(invcov.mode$diag.inverse),
-                     as.double(as.vector(trend.data)),
-                     as.double(as.vector(data)),
-                     as.integer(beta.size),
-                     as.integer(1),
-                     as.integer(n),
-                     res=ttivz.mode)$res
-    beta.mode.cond <-  ittivtt.mode %*% ttivz.mode
-    resid.mode <- as.vector(data - trend.data %*% beta.mode.cond)
-    sill.mode.cond <- (.C("diag_quadraticform_XAX",
-                          as.double(invcov.mode$lower.inverse),
-                          as.double(invcov.mode$diag.inverse),
-                          as.double(as.vector(resid.mode)),
-                          as.integer(1),
-                          as.integer(n),
-                          res = as.double(0.0))$res)/
-                            (n - length(beta.mode.cond) + 2)
-    if(beta.size == 1)
-      kb.results$posterior$beta.summary <- c(mean = trend.mean, median = 
-                                             trend.median, mode.cond = beta.mode.cond)
-    else kb.results$posterior$beta.summary <-
-      cbind(mean = trend.mean, median = trend.median,
-            mode.cond = beta.mode.cond)
-    kb.results$posterior$sigmasq.summary <-
-      c(mean = sill.mean, median = sill.median, mode.cond = sill.mode.cond)
-    kb.results$posterior$phi.summary <- c(mean = range.mean, median = 
-                                          range.median, mode = range.mode)
-    if(prior$nugget.rel.prior != "fixed")
-      kb.results$posterior$tausq.summary <- c(mean = nugget.mean,
-                                              median = nugget.median,
-                                              mode = nugget.mode)
-    else
-      kb.results$posterior$tausq.summary <- paste("fixed tausq with value =", nugget)
-    kb.results$posterior$beta.samples <- as.matrix(beta)[vecpars.back.order,  ]
-    beta <- NULL
-    if(is.R()) gc(verbose=FALSE)
-    if(beta.size == 1)
-      kb.results$posterior$beta.samples <- as.vector(kb.results$posterior$
-                                                     beta.samples)
-    kb.results$posterior$sigmasq.samples <- sigmasq[vecpars.back.order]
-    sigmasq <- NULL
-    if(is.R()) gc(verbose=FALSE)
-    kb.results$posterior$phi.samples <- phi.sam[vecpars.back.order,1]
-    if(prior$nugget.rel.prior != "fixed")
-      kb.results$posterior$tausq.samples <- phi.sam[vecpars.back.order,2]
-    else
-      kb.results$posterior$tausq.samples <- paste("fixed tausq with value =", nugget)
-    phi.lev <- unique(phidist$phi[, 1])
-    kb.results$posterior$phi.marginal <-
-      data.frame(phi = phi.lev, expected = apply(phidist$probphi, 1, sum),
-                 sampled = as.vector(table(factor(phi.sam[, 1],
-                   levels = phi.lev)))/n.posterior)
-    nug.lev <- unique(phidist$phi[, 2])
-    if(prior$nugget.rel.prior != "fixed")
-      kb.results$posterior$nugget.marginal <-
-        data.frame(nugget = nug.lev, expected = apply(phidist$probphi, 2, sum),
-                   sampled = as.vector(table(factor(phi.sam[, 2],
-                     levels = nug.lev)))/n.posterior)
-    else
-      kb.results$posterior$nugget.marginal <- paste("fixed tausq with value =", nugget)
-    ##
-######################### PART 3.3 ##############################
-    ## Predictive distribution: sampling and computation
-    ##
-    if(all(locations != "no")) {
+    dimnames(locations) <- list(NULL, NULL)
+    assign("trend.loc", trend.spatial(trend=model$trend.l, coords=locations), envir=pred.env)
+    ni <- nrow(get("trend.loc", envir=pred.env))
+    if(nrow(locations) != ni)
+      stop("krige.bayes: number of points to be estimated is different of the number of trend locations")
+    expect.env <- new.env()
+    assign("expect", 0, envir=expect.env)
+    assign("expect2", 0, envir=expect.env)
+  }
+  ##
+  ## Anisotropy correction
+  ##   (warning: this must be placed here, AFTER trend matrices be defined)
+  ##
+  if(!is.null(model$aniso.pars)) {
+    if((abs(model$aniso.pars[1]) > 0.001) & (abs(model$aniso.pars[2] - 1) > 0.001)){
       if(messages.screen)
-        cat("krige.bayes: prediction at locations provided\n")
-      if(output$mean.estimator != FALSE | !is.null(output$probability.estimator) |
-         !is.null(output$quantile.estimator))
-        prediction.samples <- TRUE     
-      message.prediction <- character()
-      ni <- dim(trend.l)[1]
-      if(is.null(n.predictive)) {
+        cat("krige.bayes: anisotropy parameters provided and assumed to be constants\n")
+      coords <- coords.aniso(coords = coords, aniso.pars = model$aniso.pars)
+      if(do.prediction)
+        locations <- coords.aniso(coords = locations, 
+                                  aniso.pars = model$aniso.pars)
+      remove(dists.env)
+      dists.env <- new.env()
+      assign("data.dist", as.vector(dist(coords)), envir=dists.env)
+    }
+  }
+  ##
+  ## Distances between data and prediction locations
+  ## Must be here AFTER anisotropy be checked
+  ##
+  if(do.prediction){
+    assign("d0", loccoords(coords = coords, locations = locations), envir=pred.env)
+    ##
+    ## checking coincident data and prediction locations
+    ##
+    loc.coincide <- apply(get("d0", envir=pred.env), 2, function(x){any(x < 1e-10)})
+    if(any(loc.coincide))
+      loc.coincide <- (1:ni)[loc.coincide]
+    else
+      loc.coincide <- NULL
+    if(!is.null(loc.coincide)){
+      temp.f <- function(x, data){return(data[x < 1e-10])}
+      data.coincide <- apply(get("d0", envir=pred.env)[,loc.coincide, drop=FALSE],
+                             2,temp.f, data=data)
+    }
+    else
+      data.coincide <- NULL
+    n.loc.coincide <- length(loc.coincide)
+    assign("loc.coincide", loc.coincide, envir=pred.env)
+    assign("data.coincide", data.coincide, envir=pred.env)
+    remove(data.coincide, loc.coincide)
+    if(is.R()) gc(verbose=FALSE)
+  }
+  ##
+  ## Preparing prior information on beta and sigmasq
+  ##
+  beta.info <-
+    switch(prior$beta.prior,
+           fixed = list(mivm = 0, ivm = 0, iv = Inf, beta.fixed = beta.fixed, p = 0),
+           flat = list(mivm = 0, ivm = 0, iv = 0, p = beta.size),
+           normal = list(mivm = betares$mivm, ivm = betares$ivm, iv = betares$iv, p= 0))
+  sigmasq.info <-
+    switch(prior$sigmasq.prior,
+           fixed = list(df.prior = Inf, n0S0 = 0, sigmasq.fixed = sigmasq.fixed),
+           reciprocal = list(df.prior = 0, n0S0 = 0),
+           uniform = list(df.prior = -2, n0S0 = 0),
+           sc.inv.chisq = list(df.prior = df.prior, n0S0 = df.prior*S2.prior))
+  ##
+  ## ====================== PART 2 =============================
+  ##                 FIXED PHI AND TAUSQ.REL
+  ## ===========================================================
+  ## 
+  if(prior$phi.prior == "fixed"){
+    phi.fixed <- prior$phi
+    ##
+    ## Computing parameters of the posterior for $\(\beta, \sigma^2)$ 
+    ## and moments of the predictive (if applies)
+    ##
+    bsp <- beta.sigmasq.post(n = n, beta.info = beta.info,
+                             sigmasq.info = sigmasq.info, 
+                             env.dists = dists.env,
+                             model = list(cov.model = model$cov.model, kappa = model$kappa),
+                             xmat = trend.data, y = data,
+                             phi = phi.fixed, tausq.rel = tausq.rel.fixed,
+                             do.prediction.moments = (do.prediction && moments),
+                             do.prediction.simulations = (do.prediction && simulations.predictive),
+                             env.pred = pred.env,
+                             signal = (do.prediction && signal))
+    ##
+    ## Preparing output of the posterior distribution
+    ##    
+    if(prior$beta.prior == "fixed")
+      kb$posterior$beta <- list(status = "fixed", fixed.value = beta.fixed)
+    else{
+      if(prior$sigmasq.prior == "fixed")
+        kb$posterior$beta <- list(distribution = "normal")
+      else
+        kb$posterior$beta <- list(distribution = "t",
+                                  conditional = "normal")
+      kb$posterior$beta$pars <- list(mean = bsp$beta.post,
+                                     var = bsp$S2.post *
+                                     bsp$beta.var.std.post)
+      attr(kb$posterior$beta$pars$var, "Size") <- beta.size
+      class(kb$posterior$beta$pars$var) <- "betavar"
+    }        
+    if(prior$sigmasq.prior == "fixed")
+      kb$posterior$sigmasq <- list(status="fixed", fixed.value=sigmasq.fixed)
+    else
+      kb$posterior$sigmasq <- list(distribution = "sc.inv.chisq",
+                                   pars = list(df = bsp$df.post,
+                                     S2 = bsp$S2.post))
+    kb$posterior$phi<- list(status= "fixed", fixed.value = phi.fixed)
+    kb$posterior$tausq.rel <-
+      list(status= "fixed", fixed.value = tausq.rel.fixed)
+    ##
+    ## Preparing output of the predictive distribution
+    ##
+    kb$predictive$mean <- bsp$pred.mean
+    kb$predictive$variance <- bsp$pred.var
+    kb$predictive$distribution <- ifelse(prior$sigmasq.prior == "fixed",
+                                         "normal", "t")
+    bsp[c("pred.mean", "pred.var")] <- NULL
+    ##
+    ## preparing objects for simulating from the predictive
+    ##
+    if(do.prediction && simulations.predictive && n.predictive > 0){
+      phidist$s2 <-  as.matrix(bsp$S2.post) 
+      phidist$probphitausq <-  as.matrix(1)
+      phidist$beta <- array(bsp$beta.post, c(1,1,beta.size)) 
+      phidist$varbeta  <- array(bsp$beta.var.std.post, c(1,1,beta.size^2))
+      phi.unique <- phidist$phitausq <- t(c(phi.fixed, tausq.rel.fixed))
+      df.model <- bsp$df.post 
+      ind.length <- 1
+      inv.lower <- array(bsp$inv.lower, dim=c(1,1,(n*(n-1)/2)))
+      inv.diag <- array(bsp$inv.diag, dim=c(1,1,n))
+      ind.table <- n.predictive
+      phi.discrete <- phi.fixed
+      tausq.rel.discrete <- tausq.rel.fixed
+    }
+  }
+  else{
+    ##
+    ## ====================== PART 3 =============================
+    ##                 RANDOM PHI AND TAUSQ.REL
+    ## ===========================================================
+    ##
+    if(messages.screen)
+      cat("krige.bayes: computing the discrete posterior of phi/tausq.rel\n")
+    ##
+    ## Preparing discrete set for phi and/or tausq.rel
+    ##
+    if(is.null(phi.discrete)){
+      phi.discrete <- seq(0, 2 * data.dist.max, l=51)[-1]
+      if(messages.screen)
+        cat("krige.bayes: argument \"phi.discrete\" not provided, using default values\n")
+    }
+    if(!is.numeric(phi.discrete))
+      stop("non-numerical value provided in phi.discrete")
+    if(length(phi.discrete) == 1)
+      stop("only one value provided in phi.discrete. Use prior.phi=\"fixed\"")
+    n.phi.discrete <- length(phi.discrete)
+    n.tausq.rel.discrete <- length(tausq.rel.discrete)
+    phi.names <- paste("phi", phi.discrete, sep="")
+    tausq.rel.names <- paste("tausqrel", tausq.rel.discrete, sep="")
+    phidist$phitausq <- as.matrix(expand.grid(phi.discrete, tausq.rel.discrete))
+    dimnames(phidist$phitausq) <- list(NULL, NULL)
+    ##
+    ##  Degrees of freedom for the posteriors
+    ##
+    df.model <- ifelse(sigmasq.info$df.prior == Inf, Inf,
+                       (n + sigmasq.info$df.prior - beta.info$p))
+    ##
+    ## Function to compute the posterior probabilities for each value of phi and tausq.rel
+    ##
+    phi.tausq.rel.post <- function(phinug){
+      if(messages.screen){
+        krige.bayes.counter(.temp.ap = get("parset", envir=counter.env),
+                            n.points = ntocount)
+        assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
+      }
+      phi <- phinug[1]
+      tausq.rel <- phinug[2]
+      bsp <- beta.sigmasq.post(n = n, beta.info = beta.info,
+                               sigmasq.info = sigmasq.info, env.dists = dists.env,
+                               model = list(cov.model = model$cov.model,
+                                 kappa = model$kappa),
+                               xmat = trend.data, y = data, phi = phi,
+                               tausq.rel = tausq.rel, dets = TRUE,
+                               do.prediction.moments = (do.prediction && moments),
+                               do.prediction.simulations = (do.prediction && simulations.predictive),
+                               env.pred = pred.env, signal = signal)
+      logprobphitausq <-  (-0.5) * log(bsp$det.XiRX) - (bsp$log.det.to.half) -
+        (bsp$df.post/2) * log(bsp$S2.post)
+      ##
+      if(prior$phi.prior == "reciprocal"){
+        if(phi > 0) logprobphitausq <- logprobphitausq - log(phi)
+        else logprobphitausq <- -Inf
+      }
+      if(prior$phi.prior == "squared.reciprocal"){
+        if(phi > 0) logprobphitausq <- logprobphitausq - 2*log(phi)
+        else logprobphitausq <- -Inf
+      }
+      if(prior$phi.prior == "exponential"){
+        logprobphitausq <- logprobphitausq - log(exponential.par) - (phi/exponential.par)
+       }
+      ##
+      bsp$probphitausq <- drop(exp(logprobphitausq))
+      ##
+      if(do.prediction && moments){
+        assign("expect", (get("expect", envir=expect.env) +
+                          (bsp$pred.mean * bsp$probphitausq)),
+               env = expect.env)
+        assign("expect2", (get("expect2", envir=expect.env) +
+                           ((bsp$pred.var + (bsp$pred.mean^2)) *
+                             bsp$probphitausq)),
+               env = expect.env)
+      }
+      phi.ind <- which.min(abs(phi.discrete - phi))
+      nug.ind <- which.min(abs(tausq.rel.discrete - tausq.rel))
+      assign("pn.ind", c(phi.ind, nug.ind), envir=fn.frame)
+      assign("bsp", bsp, envir=fn.frame)
+      eval(expression(phidist$s2[pn.ind[1], pn.ind[2]] <- bsp$S2.post), envir=fn.frame)
+      eval(expression(phidist$probphitausq[pn.ind[1], pn.ind[2]] <- bsp$probphitausq), envir=fn.frame)
+      eval(expression(phidist$beta[pn.ind[1], pn.ind[2],] <- drop(bsp$beta.post)), envir=fn.frame)
+      eval(expression(phidist$varbeta[pn.ind[1], pn.ind[2],] <- drop(bsp$beta.var.std.post)), envir=fn.frame)
+      if(do.prediction && simulations.predictive){
+        eval(expression(inv.lower[pn.ind[1], pn.ind[2],] <- bsp$inv.lower),
+             envir=fn.frame)
+        eval(expression(inv.diag[pn.ind[1], pn.ind[2],] <- bsp$inv.diag),
+             envir=fn.frame)
+      }
+      return(invisible())
+    }
+    ##
+    ## Computing the posterior probabilities and organising results
+    ##
+    fn.frame <- sys.frame(sys.nframe())
+    phidist$s2 <- matrix(NA, n.phi.discrete, n.tausq.rel.discrete)
+    dimnames(phidist$s2) <- list(phi.names, tausq.rel.names)
+    phidist$probphitausq <- matrix(NA, n.phi.discrete, n.tausq.rel.discrete)
+    phidist$beta <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, beta.size))
+    dimnames(phidist$beta) <- list(phi.names, tausq.rel.names, beta.names)
+    phidist$varbeta <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, beta.size^2))
+    dimnames(phidist$varbeta) <- list(phi.names, tausq.rel.names, beta.names)
+    if(do.prediction && simulations.predictive){
+      inv.lower <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, (n * (n - 1))/2))
+      inv.diag <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, n))
+      frame.inv <- sys.frame(sys.nframe())
+    }
+    ##
+    if(messages.screen){
+      counter.env <- new.env()
+      ntocount <- nrow(phidist$phitausq)
+      cat(paste("krige.bayes: computing the posterior probabilities.\n             Number of parameter sets: ", ntocount,"\n"))
+      assign("parset", 1, envir=counter.env)
+    }
+    temp.res <- apply(phidist$phitausq, 1, phi.tausq.rel.post)
+    remove("bsp")
+    if(messages.screen){
+      remove(counter.env)
+      cat("\n")
+    }
+    ##
+    phidist$sum.prob <- sum(phidist$probphitausq)
+    phidist$probphitausq <- phidist$probphitausq/phidist$sum.prob
+    ##
+    ## Preparing output of the posterior distribution
+    ##
+    kb$posterior$beta <- list(conditional.distribution = "normal",
+                              pars = list(mean=phidist$beta,
+                                var = phidist$varbeta))
+    attr(kb$posterior$beta$pars$var, "Size") <- beta.size
+#    class(kb$posterior$beta$pars$var) <- "betavar"
+    kb$posterior$sigmasq <- list(conditional.distribution = "sc.inv.chisq",
+                                 pars = list(df = df.model,
+                                   S2 = drop(phidist$s2))) 
+    kb$posterior$phi$distribution <- drop(apply(phidist$probphitausq, 1, sum))
+    names(kb$posterior$phi$distribution) <- prior$phi.discrete
+    if(prior$tausq.rel.prior != "fixed"){
+      kb$posterior$tausq.rel$distribution <- drop(apply(phidist$probphitausq, 2, sum))
+      names(kb$posterior$tausq.rel$distribution) <- tausq.rel.discrete
+    }
+    if(prior$phi.prior != "fixed" | prior$tausq.rel.prior != "fixed"){
+      kb$posterior$joint.phi.tausq.rel <- phidist$probphitausq
+      dimnames(kb$posterior$joint.phi.tausq.rel) <-
+        list(phi.discrete, tausq.rel.discrete)
+    }
+    ##
+    ##  Sampling from the posterior distribution
+    ##
+    if(n.posterior > 0){
+      if(messages.screen)
+        cat("krige.bayes: sampling from posterior distribution\n")
+      ##
+      ## sampling phi and/or tausq
+      ##
+      n.points <- length(phidist$probphitausq)
+      ind <- sample((1:n.points), n.posterior, replace = TRUE,
+                    prob = as.vector(phidist$probphitausq))
+      phi.sam <- phidist$phitausq[ind,  ]
+      ##
+      ## frequencies for sampled phi/tausq
+      ##
+      ind.unique <- sort(unique(ind))
+      ind.length <- length(ind.unique)
+      ind.table <- table(ind)
+      names(ind.table) <- NULL
+      ##
+      phi.unique <- phidist$phitausq[ind.unique,, drop=FALSE]
+      if(messages.screen) {
+        cat("krige.bayes: sample from the (joint) posterior of phi and tausq.rel\n")
+        print(rbind(phi = phi.unique[, 1], tausq.rel = 
+                    phi.unique[, 2], frequency = ind.table))
+        cat("\n")
+      }
+      vecpars.back.order <- order(order(ind))
+      ##
+      ## sampling sigmasq
+      ##
+      sigmasq.sam <- rinvchisq(n = n.posterior, df = df.model,
+                               scale = rep(as.vector(phidist$s2)[ind.unique], ind.table))
+      ##
+      ## sampling beta
+      ##
+      if(beta.size == 1) {
+        vec.beta <- rep(as.vector(phidist$beta)[ind.unique],ind.table)
+        vec.vbeta <- rep(as.vector(phidist$varbeta)[ind.unique], ind.table)
+        beta.sam <- vec.beta + sqrt(sigmasq.sam * vec.vbeta) * rnorm(n.posterior, mean = 0, sd = 1)
+      }
+      else {
+        ind.beta <- matrix(phidist$beta, ncol = beta.size)[ind.unique,  ]
+        ind.beta <- ind.beta[rep(1:ind.length, ind.table),]
+        ind.vbeta <- matrix(phidist$varbeta, ncol = 
+                            beta.size^2)[ind.unique,  ]
+        ind.vbeta <- ind.vbeta[rep(1:ind.length, ind.table),] * sigmasq.sam
+        ##      print("2.4: try to speed up this bit!")
+        temp.res <- apply(ind.vbeta, 1, rMVnorm,
+                          beta.size = beta.size)
+        beta.sam <- ind.beta + t(temp.res)
+        remove("temp.res")
+      }
+      ##
+      ## summaries of the posterior
+      ##
+      if(beta.size == 1) {
+        trend.mean <- mean(beta.sam)
+        trend.median <- median(beta.sam)
+      }
+      else {
+        trend.mean <- apply(beta.sam, 2, mean)
+        trend.median <- apply(beta.sam, 2, median)
+      }
+      S2.mean <- mean(sigmasq.sam)
+      S2.median <- median(sigmasq.sam)
+      phi.marg <- apply(phidist$probphitausq, 1, sum)
+      .marg <- phi.marg/(sum(phi.marg))
+      phi.mean <- phi.discrete %*% phi.marg
+      phi.median <- median(phi.sam[, 1])
+      phi.mode <- phi.discrete[which.min(abs(phi.marg - max(phi.marg)))]
+      if(length(phi.mode) > 1){
+        cat("krige.bayes: WARNING: multiple modes. Using the first one\n")
+        cat("krige.bayes: modes found are:\n")
+        print(phi.mode)
+        phi.mode <- phi.mode[1]
+      }
+      tausq.rel.marg <- apply(phidist$probphitausq, 2, sum)
+      tausq.rel.marg <- tausq.rel.marg/(sum(tausq.rel.marg))
+      tausq.rel.mean <- tausq.rel.discrete %*% tausq.rel.marg
+      tausq.rel.median <- median(phi.sam[, 2])
+      tausq.rel.mode <- tausq.rel.discrete[which.min(abs(tausq.rel.marg - max(tausq.rel.marg)))]
+      ##
+      ## Computing the conditional (on the mode of phi and/or tausq.rel)
+      ## modes for beta and sigmasq
+      ##
+      modes <- beta.sigmasq.post(n = n, beta.info = beta.info,
+                                 sigmasq.info = sigmasq.info,
+                                 env.dists = dists.env,
+                                 model = list(cov.model = model$cov.model,
+                                   kappa = model$kappa),
+                                 xmat = trend.data, y = data, phi = phi.mode,
+                                 tausq.rel = tausq.rel.mode, dets = FALSE,
+                                 do.prediction.moments = FALSE,
+                                 do.prediction.simulations = FALSE,
+                                 env.pred = pred.env, signal = signal)
+      beta.mode.cond <- modes$beta.post
+      S2.mode.cond <- modes$S2.post
+      rm(modes)
+      ##
+      ## preparing output on posterior distribution
+      ##
+      if(beta.size == 1)
+        kb$posterior$beta$summary <-
+          c(mean = trend.mean, median = trend.median, mode.cond = beta.mode.cond)
+      else kb$posterior$beta$summary <-
+        cbind(mean = trend.mean, median = trend.median, mode.cond = beta.mode.cond)
+      kb$posterior$sigmasq$summary <-
+        c(mean = S2.mean, median = S2.median, mode.cond = S2.mode.cond)
+      kb$posterior$phi$summary <-
+        c(mean = phi.mean, median = phi.median, mode = phi.mode)
+      if(prior$tausq.rel.prior != "fixed")
+        kb$posterior$tausq.rel$summary <- c(mean = tausq.rel.mean,
+                                            median = tausq.rel.median,
+                                            mode = tausq.rel.mode)
+      kb$posterior$sample <-
+        as.data.frame(cbind(drop(as.matrix(beta.sam)[vecpars.back.order,  ]),
+                            sigmasq.sam[vecpars.back.order], phi.sam[,1]))
+      beta.sam <- sigmasq.sam <- NULL
+      names(kb$posterior$sample) <- c(beta.names, "sigmasq", "phi")
+      kb$posterior$sample$tausq.rel <- phi.sam[,2]
+      phi.lev <- unique(phidist$phitausq[, 1])
+      kb$posterior$phi$phi.marginal <-
+        data.frame(phi = phi.lev, expected = apply(phidist$probphitausq, 1, sum),
+                   sampled = as.vector(table(factor(phi.sam[, 1],
+                     levels = phi.lev)))/n.posterior)
+      tausq.rel.lev <- unique(phidist$phitausq[, 2])
+      if(prior$tausq.rel.prior != "fixed")
+        kb$posterior$tausq.rel$tausq.rel.marginal <-
+          data.frame(tausq.rel = tausq.rel.lev, expected = apply(phidist$probphitausq, 2, sum),
+                     sampled = as.vector(table(factor(phi.sam[, 2],
+                       levels = tausq.rel.lev)))/n.posterior)
+    }
+    ##
+    ##  computing results for the predictive distribution 
+    ##
+    if(do.prediction){
+      kb$predictive$distribution <- "obtained by numerical approximation" 
+      if(messages.screen)
+        cat("krige.bayes: starting prediction at the provided locations\n")
+      ##
+      ## defining samples to be taken from the predictive
+      ##
+      if(n.predictive == n.posterior) {
         include.it <- FALSE
         n.predictive <- n.posterior
-        phi.sam <- phidist$phi[ind,  ]
-        message.prediction <- c("krige.bayes:", message.prediction, "phi/tausq.rel samples for the predictive are same as for the posterior"
-                                )
+        phi.sam <- phidist$phitausq[ind,  ]
+        message.prediction <- c(message.prediction, "krige.bayes: phi/tausq.rel samples for the predictive are same as for the posterior")
         if(messages.screen)
-          cat("krige.bayes:", message.prediction, "\n")
+          cat(message.prediction, "\n")
       }
       else {
         include.it <- TRUE
-        ind <- sample((1:(dim(phidist$phi)[1])), n.predictive,
-                      replace = TRUE, prob = as.vector(phidist$probphi))
+        ind <- sample((1:(dim(phidist$phitausq)[1])), n.predictive,
+                      replace = TRUE, prob = as.vector(phidist$probphitausq))
         ind.unique <- sort(unique(ind))
         ind.length <- length(ind.unique)
         ind.table <- table(ind)
-        phi.unique <- phidist$phi[ind.unique,  ]
-        message.prediction <- c("krige.bayes:", message.prediction, 
-                                "phi/tausq.rel samples for the predictive are NOT the same as for the posterior ")
+        phi.unique <- phidist$phitausq[ind.unique,, drop=FALSE]
+        message.prediction <- c(message.prediction, 
+                                "krige.bayes: phi/tausq.rel samples for the predictive are NOT the same as for the posterior ")
         if(messages.screen) {
-          cat("krige.bayes:", message.prediction, "\n")
+          cat(message.prediction, "\n")
           cat("krige.bayes: samples and their frequencies from the distribution of  phi and tau.rel when drawing from the predictive distribution\n")
-          print(rbind(phi = phi.unique[, 1], nugget.rel
+          print(rbind(phi = phi.unique[, 1], tausq.rel
                       = phi.unique[, 2], frequency = ind.table))
         }
-        phi.sam <- phidist$phi[ind,  ]
-        vecpars.back.order <- order(ind)
+        phi.sam <- phidist$phitausq[ind,  ]
+        vecpars.back.order <- order(order(ind))
       }
-###      d0mat <- apply(locations, 1, d0.krige)
-      d0mat <- as.double(rep(0, ni*n))
-      .C("loccoords",
-         as.double(as.vector(locations[,1])),
-         as.double(as.vector(locations[,2])),
-         as.double(as.vector(coords[,1])),
-         as.double(as.vector(coords[,2])),
-         as.integer(ni),
-         as.integer(n),
-         d0mat, DUP=FALSE)
-      attr(d0mat, "dim") <- c(n, ni)
-      loc.coincide <- apply(d0mat, 2, function(x){any(x < 1e-10)})
-      if(any(loc.coincide))
-        loc.coincide <- (1:ni)[loc.coincide]
-      else
-        loc.coincide <- NULL
-      if(!is.null(loc.coincide)){
-        temp.f <- function(x, data){return(data[x < 1e-10])}
-        data.coincide <- apply(d0mat[,loc.coincide, drop=FALSE],2,temp.f, data=data)
-      }
-      else
-        data.coincide <- NULL
-      if(is.R()) gc(verbose=FALSE)
-      ##
-      ## 3.3.1 Estimating the moments
-      ##
-      if(moments) {
-        krige.bayes.aux10 <- function(phinug){
-          counter <- get(".tempM.krige.bayes", pos=1)
-          if(messages.screen)          
-          krige.bayes.messages(moments = TRUE, n.disc = n.disc,
-                                 .temp.ap = counter, ind.length=ind.length)
-          phinug <- as.vector(phinug)
-          phi.ind <- order(phi.val)[round(100000000. * phi.val) ==
-                                    round(100000000. * phinug[1])]
-          nug.ind <- order(nugget.rel.discrete)[round(100000000. * nugget.rel.discrete) ==
-                                            round(100000000. * phinug[2])]
-          v0 <- cov.spatial(obj = d0mat, cov.model = cov.model, kappa
-                            = kappa, cov.pars = c(1, phinug[1]))
-          tb <- as.double(rep(0, ni*beta.size))
-          tb <- .C("bilinearform_XAY",
-                   as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                   as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                   as.double(as.vector(v0)),
-                   as.double(as.vector(trend.data)),
-                   as.integer(ni),
-                   as.integer(beta.size),
-                   as.integer(n),
-                   res=tb)$res
-          attr(tb, "dim") <- c(ni, beta.size)
-          tb <- trend.l - tb
-          tv0ivdata <- as.double(rep(0,ni))
-          tv0ivdata <- .C("bilinearform_XAY",
-                          as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                          as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                          as.double(as.vector(v0)),
-                          as.double(data),
-                          as.integer(ni),
-                          as.integer(1),
-                          as.integer(n),
-                          res = tv0ivdata)$res
-          tmean <- tv0ivdata + tb %*% as.vector(phidist$
-                                                beta[phi.ind, nug.ind,  ])
-          tv0ivdata <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          if(((round(1e12 * phinug[2]) == 0)) & (!is.null(loc.coincide)))
-            tmean[loc.coincide] <- data.coincide
-          tv0ivv0 <- as.double(rep(0,ni))
-          tv0ivv0 <- .C("diag_quadraticform_XAX",
-                        as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                        as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                        as.double(as.vector(v0)),
-                        as.integer(ni),
-                        as.integer(n),
-                        res = tv0ivv0)$res
-          v0 <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          s2i <- phidist$s2[phi.ind, nug.ind]        
-          vbetai <- matrix(as.vector(phidist$vbeta.vector[phi.ind, nug.ind,  ]),
-                           ncol = beta.size, nrow = beta.size)
-          if(beta.size == 1)
-            tbivbb <- ((as.vector(tb))^2) * vbetai
-          else{
-            tbivbb <- as.double(rep(0,ni))
-            tbivbb <- .C("diag_quadraticform_XAX",
-                         as.double(vbetai[lower.tri(vbetai)]),
-                         as.double(diag(vbetai)),
-                         as.double(as.vector(t(tb))),
-                         as.integer(ni),
-                         as.integer(beta.size),
-                         res = tbivbb)$res          
-          }
-          if(output$signal)
-            tvar <- s2i * (1 - tv0ivv0 + tbivbb)
-          else tvar <- s2i * ((1 + phinug[2]) - tv0ivv0 + tbivbb)
-          tb  <- tbivbb <- tv0ivv0 <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          if(((round(1e12 * phinug[2]) == 0) | output$signal) & (!is.null(loc.coincide)))
-            tvar[loc.coincide] <- 0
-          tvar[tvar < 1e-16] <- 0
-          ## take care here, re-using object!
-          tvar <- (df.model/(df.model - 2)) * tvar
-          tvar <- tvar + (tmean)^2
-          ##  here tvar is expec.y0.2 !!!
-          assign(".tempM.krige.bayes", (.tempM.krige.bayes + 1), pos=1)
-          return(cbind(tmean, tvar))
-        }
+      if(moments){
         if(messages.screen)
-          cat("krige.bayes: computing moments of the predictive distributions\n")
-        n.disc <- dim(phidist$phi)[1]
-        assign(".tempM.krige.bayes", 1, pos=1)
-        temp.res <- apply(phidist$phi, 1, krige.bayes.aux10)
-        rm(".tempM.krige.bayes", pos=1)
-        temp.res <- temp.res %*% as.vector(phidist$probphi)
-        kb.results$predictive$moments <-
-          data.frame(expect.y0 = as.vector(temp.res[1:ni]),
-                     expect.y0.2 = as.vector(temp.res[(ni + 1):(2 * ni)]))
-        temp.res <- NULL
-        if(is.R()) gc(verbose=FALSE)
-        kb.results$predictive$moments$var.y0 <-
-          kb.results$predictive$moments$expect.y0.2 -
-           ((kb.results$predictive$moments$expect.y0)^2)
-        if(lambda == 0) {
-          temp <- kb.results$predictive$moments$expect.y0
-          kb.results$predictive$moments$expect.y0 <-
-            exp(temp + 0.5 * (kb.results$predictive$moments$var.y0))
-          kb.results$predictive$moments$var.y0 <-
-            (exp(2 * temp + kb.results$predictive$moments$var.y0)) *
-              (exp(kb.results$predictive$moments$var.y0) - 1)
-          temp <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          kb.results$predictive$moments$expect.y0.2 <-
-            kb.results$predictive$moments$var.y0 +
-              (kb.results$predictive$moments$expect.y0^2)
-        }
+          cat("krige.bayes: computing moments of the predictive distribution\n")
+        kb$predictive$mean <- get("expect", envir=expect.env)/phidist$sum.prob
+        remove("expect", envir=expect.env)
+        kb$predictive$variance <-
+          (get("expect2", envir=expect.env)/phidist$sum.prob) -
+            ((kb$predictive$mean)^2)
+        remove("expect2", envir=expect.env)
       }
-      ##
-      ## 3.3.2 Sampling from the predictive
-      ##
-      if(output$simulations.predictive){
-        names(ind.table) <- NULL
-        krige.bayes.aux20 <- function(phinug){
-          counter <- get(".tempS.krige.bayes", pos=1)
-          if(messages.screen)
-            krige.bayes.messages(moments = FALSE, n.disc = n.disc,
-                                 .temp.ap = counter, ind.length=ind.length)
-          phinug <- as.vector(phinug)
-          phi.ind <- order(phi.val)[round(100000000. * phi.val) ==
-                                    round(100000000. * phinug[1])]
-          nug.ind <- order(nugget.rel.discrete)[round(100000000. * nugget.rel.discrete) ==
-                                            round(100000000. * phinug[2])]
-          v0 <- cov.spatial(obj = d0mat, cov.model = cov.model, kappa
-                            = kappa, cov.pars = c(1, phinug[1]))
-          tb <- as.double(rep(0, ni*beta.size))
-          tb <- .C("bilinearform_XAY",
-                   as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                   as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                   as.double(as.vector(v0)),
-                   as.double(as.vector(trend.data)),
-                   as.integer(ni),
-                   as.integer(beta.size),
-                   as.integer(n),
-                   res=tb)$res
-          attr(tb, "dim") <- c(ni, beta.size)
-          tb <- trend.l - tb
-          tv0ivdata <- as.double(rep(0,ni))
-          tv0ivdata <- .C("bilinearform_XAY",
-                          as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                          as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                          as.double(as.vector(v0)),
-                          as.double(data),
-                          as.integer(ni),
-                          as.integer(1),
-                          as.integer(n),
-                          res = tv0ivdata)$res
-          tmean <- tv0ivdata + tb %*% as.vector(phidist$
-                                                beta[phi.ind, nug.ind,  ])
-          tv0ivdata <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          if(((round(1e12 * phinug[2]) == 0)) & (!is.null(loc.coincide)))
-            tmean[loc.coincide] <- data.coincide
-          s2i <- phidist$s2[phi.ind, nug.ind]        
-          vbetai <- matrix(as.vector(phidist$vbeta.vector[phi.ind, nug.ind,  ]),
-                           ncol = beta.size, nrow = beta.size)
-          if(((round(1e12 * phinug[2]) == 0) | output$signal) & (!is.null(loc.coincide))){
-            v0 <- v0[,-(loc.coincide)]
-            nloc <- ni - length(loc.coincide)
-            tmean.coincide <- tmean[loc.coincide]
-            tmean <- tmean[-(loc.coincide)]
-            tb <- tb[-(loc.coincide),]
-          }
-          else nloc <- ni
-          Nsims <- ind.table[.tempS.krige.bayes]
-          normalsc <- rnorm(nloc*Nsims)
-          chisc <- rchisq(Nsims, df=df.model)
-          sqglchi <- sqrt(df.model/chisc)
-          if (output$signal) Dval <- 1.0 else Dval <-  1.0 + phinug[2]
-          if(beta.size == 1){
-            Blower <- 0
-            Bdiag <- vbetai
-          }
-          else{
-            Blower <- vbetai[lower.tri(vbetai)]
-            Bdiag <- diag(vbetai)
-          }
-          R0 <- as.double(rep(0.0, (nloc*(nloc+1))/2))
-          if(cov.model.number > 10){
-            if(((round(1e12 * phinug[2]) == 0) | output$signal) & (!is.null(loc.coincide))){
-              .C("distdiag",
-                 as.double(locations[-(loc.coincide),1]),
-                 as.double(locations[-(loc.coincide),2]),
-                 as.integer(nloc),
-                 R0, DUP = FALSE)
-            }
-            else
-              .C("distdiag",
-                 as.double(locations[,1]),
-                 as.double(locations[,2]),
-                 as.integer(ni),
-                 R0, DUP = FALSE)
-            R0 <- cov.spatial(R0, cov.pars=c(1, phinug[1]), cov.model=cov.model, kappa=kappa)
-          }
-          else{
-            if(((round(1e12 * phinug[2]) == 0) | output$signal) & (!is.null(loc.coincide))){
-              .C("cor_diag",
-                 as.double(locations[-(loc.coincide),1]),
-                 as.double(locations[-(loc.coincide),2]),
-                 as.integer(nloc),
-                 as.integer(cov.model.number),
-                 as.double(phinug[1]),
-                 as.double(kappa),
-                 R0, DUP = FALSE)
-            }
-            else
-              .C("cor_diag",
-                 as.double(locations[,1]),
-                 as.double(locations[,2]),
-                 as.integer(ni),
-                 as.integer(cov.model.number),
-                 as.double(phinug[1]),
-                 as.double(kappa),
-                 R0, DUP = FALSE)
-          }  
-          normalsc <- .C("kb_sim",
-                         as.double(tmean),
-                         out = as.double(normalsc),
-                         as.double(as.vector(inv.lower[phi.ind, nug.ind,])),
-                         as.double(as.vector(inv.diag[phi.ind, nug.ind,])),
-                         as.double(as.vector(v0)),
-                         as.integer(nloc),
-                         as.integer(n),
-                         as.double(Dval),
-                         as.integer(Nsims),
-                         as.double(sqglchi),                      
-                         as.double(s2i),                      
-                         as.double(Blower),
-                         as.double(Bdiag),
-                         as.double(as.vector(t(tb))),
-                         as.integer(beta.size),
-                         as.double(R0))$out
-          attr(normalsc, "dim") <- c(nloc, Nsims)
-          v0 <- R0 <- tb <- NULL
-          if(is.R()) gc(verbose=FALSE)
-          ##
-          assign(".tempS.krige.bayes", (.tempS.krige.bayes + 1), pos=1)
-          if(((round(1e12 * phinug[2]) == 0) | output$signal) & (!is.null(loc.coincide))){
-            result <- matrix(0, nrow=ni, ncol=Nsims)
-            result[-(loc.coincide),] <- normalsc
-            result[loc.coincide,] <- rep(tmean.coincide, Nsims)
-            return(result)
-          }
-          else
-            return(normalsc)
-        }
-        assign(".tempS.krige.bayes", 1, pos=1)
-        kb.results$predictive$simulations <-
-          matrix(unlist(apply(phi.unique, 1, krige.bayes.aux20)),ncol=n.predictive)
-        remove("inv.lower", envir = sys.frame(nframe.del))
-        remove("inv.diag", envir = sys.frame(nframe.del))
-        remove(".tempS.krige.bayes", pos=1)
-        if(is.R()) gc(verbose=FALSE)
-        if(messages.screen)
-          cat("krige.bayes: preparing output of predictive distribution\n")
-        ##
-        ## Back transforming
-        ##
-        if(lambda != 1) {
-          cat("krige.bayes: Data transformation (Box-Cox) performed. Results returned in the original scale\n"
-              )
-          if(lambda == 0)
-            kb.results$predictive$simulations <-
-              exp(kb.results$predictive$simulations)
-          else {
-            if(lambda > 0)
-              kb.results$predictive$simulations[kb.results$predictive$simulations < (-1/lambda)] <- -1/lambda
-            if(lambda < 0)
-              kb.results$predictive$simulations[kb.results$predictive$simulations > (-1/lambda)] <- -1/lambda
-            kb.results$predictive$simulations <-
-              ((kb.results$predictive$simulations * lambda) + 1)^(1/lambda)
-          }
-        }
-        ##
-        ## 3.3.3 mean estimators
-        ##
-        if(output$mean.estimator) {
-          kb.results$predictive$mean.simulations <- as.vector(apply(kb.results$predictive$simulations, 1, mean))
-          kb.results$predictive$variance.simulations <- as.vector(apply(kb.results$predictive$simulations, 1, var))
-          message.prediction <- c("krige.bayes:", message.prediction, "mean at each location in $predictive$mean and predicted variances in $predictive$variances")
-        }
-        ##
-        ## 3.3.4 quantile estimators
-        ##
-        if(!is.null(output$quantile.estimator)) {
-          kb.results$predictive$quantiles <-
-            apply(kb.results$predictive$simulations, 1, quantile, probs
-                  = output$quantile.estimator)
-          if(length(output$quantile.estimator) > 1) {
-            kb.results$predictive$quantiles <- as.data.frame(t(kb.results$predictive$quantiles))
-            qname <- rep(0, length(output$quantile.estimator))
-            for(i in 1:length(output$quantile.estimator))
-              qname[i] <- paste("q", 100 * output$quantile.estimator[
-                                                              i], sep = "")
-            names(kb.results$predictive$quantiles) <- qname
-          }
-          else {
-            kb.results$predictive$quantiles <- as.vector(kb.results$predictive$
-                                                         quantiles)
-          }
-          message.prediction <- c("krige.bayes:", message.prediction, 
-                                  "Predicted quantile(s) at each location returned in $predictive$quantiles")
-        }
-        ##
-        ## 3.3.5 probability estimators
-        ##
-        if(!is.null(output$probability.estimator)) {
-          kb.results$predictive$probability <-
-            apply(kb.results$predictive$simulations, 1, krige.bayes.aux2, cutoff = output$probability.estimator)
-          if(length(output$probability.estimator) > 1){
-            kb.results$predictive$probability <- as.data.frame(t(kb.results$predictive$probability))
-          pname <- rep(0, length(output$probability.estimator))
-          for(i in 1:length(output$probability.estimator))
-            pname[i] <- paste("cutoff", output$probability.estimator[i], sep = "")
-            names(kb.results$predictive$probability) <- pname
-          }
-          else
-          kb.results$predictive$probability <- as.vector(kb.results$predictive$
-                                                         probability)  
-          message.prediction <- c("krige.bayes:", message.prediction,
-                                  "Estimated probabilities of being less than the provided cutoff(s), at each location, returned in $predictive$probability")
-        }
-        ##
-        ## samples from  predictive
-        ##
-        if(output$keep.simulations)
-          kb.results$predictive$simulations <-
-            kb.results$predictive$simulations[, vecpars.back.order]
-        else kb.results$predictive$simulations <- NULL
-        if(is.R()) gc(verbose=FALSE)
-        if(include.it){
-          phi.lev <- unique(phidist$phi[, 1])
-          kb.results$predictive$phi.marginal <-
-            data.frame(phi = phi.lev, expected = apply(phidist$probphi, 1, sum),
-                       sampled = as.vector(table(factor(phi.sam[, 1],
-                         levels = phi.lev)))/n.predictive)
-          nug.lev <- unique(phidist$phi[, 2])
-          if(prior$nugget.rel.prior != "fixed")
-            data.frame(nugget = nug.lev, expected = apply(phidist$probphi, 2, sum),
-                       sampled = as.vector(table(factor(phi.sam[, 2],
-                         levels = nug.lev)))/n.predictive)
-          else
-            kb.results$predictive$nugget.marginal <- paste("fixed tausq with value =", nugget)
-          kb.results$predictive$nugget.marginal <-
-            data.frame(nugget = nug.lev,
-                       expected = apply(phidist$probphi, 2, sum),
-                       sampled = as.vector(table(factor(phi.sam[, 2],
-                         levels = nug.lev)))/n.predictive)
-        }
-      }
-      kb.results$predictive$type.prediction <-
-        "Spatial prediction performed taking into account uncertainty in trend (mean), sill and range parameters"
-      kb.results$message.prediction <- message.prediction
-    }
-    else {
-      kb.results$predictive <- "no locations to perform prediction were provided"
-      kb.results$message.prediction <- 
-        "Only Bayesian estimation of model parameters were computed"
-      if(messages.screen)
-        print(kb.results$message.prediction)
     }
   }
-  if(all(nugget != 0) & prior$nugget.rel.prior == "fixed")
-    kb.results$nugget.fixed <- nugget
-  kb.results$.Random.seed <- seed
-#  if(info.for.prediction == TRUE & prior$range.prior != "fixed")
-#    kb.results$info.for.prediction <-
-#      list(coords = coords, cov.model = 
-#           cov.model, kappa = kappa, trend.d = trend.d,
-#           data = data, beta.size = beta.size, n = n,
-#           phidist = phidist, phi.val = phi.val, nugget = 
-#           nugget, distribution = distribution, 
-#           n.posterior = n.posterior, ind.length = 
-#           ind.length, vecpars.back.order = 
-#           vecpars.back.order, phi.unique = phi.unique,
-#           ind.table = ind.table, df.model = df.model, output$mean.estimator
-#           = output$mean.estimator, output$quantile.estimator = 
-#           output$quantile.estimator, output$probability.estimator = 
-#           output$probability.estimator, ind = ind, lambda = 
-#           lambda, moments = moments)
-  kb.results$max.dist <- data.dist.max
-  kb.results$call <- call.fc
-  class(kb.results) <- c("krige.bayes", "kriging")
+  ##
+  ## Backtransforming predictions
+  ##
+  if((do.prediction && moments) & (abs(lambda-1) > 0.001)){
+    kb$predictive <-
+      backtransform.moments(lambda = lambda,
+                            mean = kb$predictive$mean,
+                            variance = kb$predictive$variance,
+                            distribution = kb$predictive$distribution,
+                            n.simul = n.back.moments)
+  }
+  ##
+  ## ======================= PART 4 ==============================
+  ##                Sampling from the predictive
+  ## =============================================================
+  ##
+  if(do.prediction && simulations.predictive){
+    if(is.R()){
+      if(cov.model.number > 12)
+        stop("simulation in krige.bayes not implemented for the choice of correlation function")
+    }
+    else
+      if(cov.model.number > 10)
+        stop("simulation in krige.bayes not implemented for the chosen correlation function")
+    krige.bayes.aux20 <- function(phinug){
+      iter <- get("counter", envir=counter.env)
+      if(messages.screen & prior$phi.prior != "fixed")
+        krige.bayes.counter(.temp.ap = iter, n.points = ind.length)
+      phinug <- as.vector(phinug)
+      phi <- phinug[1]
+      tausq.rel <- phinug[2]
+      phi.ind <- which.min(abs(phi.discrete - phi))
+      nug.ind <- which.min(abs(tausq.rel.discrete - tausq.rel))
+      v0 <- cov.spatial(obj = get("d0", envir=pred.env),
+                        cov.model = cov.model, kappa = kappa,
+                        cov.pars = c(1, phi))
+      ## care here, reusing object b
+      b <- bilinearformXAY(X = as.vector(cbind(data, trend.data)),
+                           lowerA = as.vector(inv.lower[phi.ind, nug.ind,,drop=TRUE]),
+                           diagA = as.vector(inv.diag[phi.ind, nug.ind,,drop=TRUE]), 
+                           Y = as.vector(v0))
+      tv0ivdata <- drop(b[1,])
+      b <- t(get("trend.loc", envir=pred.env)) -  b[-1,, drop=FALSE]
+      ##
+      tmean <- tv0ivdata + drop(crossprod(b,as.vector(phidist$
+                                                 beta[phi.ind, nug.ind,  ])))
+      tv0ivdata <- NULL
+      Nsims <- ind.table[iter]
+      if (signal) Dval <- 1.0 else Dval <-  1.0 + tausq.rel
+      iter.env <- sys.frame(sys.nframe())
+      if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=pred.env))))
+        tmean[get("loc.coincide", envir=pred.env)] <-
+          get("data.coincide", envir=pred.env)
+      coincide.cond <- (((tausq.rel < 1e-12) | signal) & !is.null(get("loc.coincide", envir=pred.env)))
+      nloc <- ni - n.loc.coincide
+      if(coincide.cond){
+        ind.not.coincide <- -(get("loc.coincide", envir=pred.env))
+        v0 <- v0[, ind.not.coincide, drop=FALSE]
+        tmean <- tmean[ind.not.coincide]
+        b <- b[,ind.not.coincide, drop=FALSE]
+      }
+      else ind.not.coincide <- TRUE
+      if(beta.info$iv == Inf)
+        vbetai <- matrix(0, ncol = beta.size, nrow = beta.size)
+      else
+        vbetai <- matrix(drop(phidist$varbeta[phi.ind, nug.ind,  ]),
+                         ncol = beta.size, nrow = beta.size)
+      simul <- matrix(NA, nrow=ni, ncol=Nsims)
+      simul[ind.not.coincide,] <-
+        cond.sim(env.loc = base.env, env.iter = iter.env,
+                 loc.coincide = get("loc.coincide", envir=pred.env),
+                 tmean = tmean,
+                 Rinv = list(lower= drop(inv.lower[phi.ind, nug.ind,]),
+                   diag = drop(inv.diag[phi.ind, nug.ind,])),
+                 mod = list(beta.size = beta.size, nloc = nloc,
+                   Nsims = Nsims, n = n, Dval = Dval,
+                   df.model = df.model,
+                   s2 = phidist$s2[phi.ind, nug.ind],
+                   cov.model.number = cov.model.number,
+                   phi = phi, kappa = kappa),
+                 vbetai = vbetai,
+                 fixed.sigmasq = (sigmasq.info$df.prior == Inf))
+      if(coincide.cond)
+        simul[get("loc.coincide", envir=pred.env),] <-
+          rep(get("data.coincide", envir=pred.env), Nsims)
+      remove("v0", "b", "tmean")
+      assign("counter", (iter + 1), envir=counter.env)
+      ##
+      ## Back transforming (To be include in C code???)
+      ##
+      if(abs(lambda - 1) > 0.001){
+        return(BCtransform.data(simul, lambda, inv=TRUE)$data)
+      }
+      else
+        return(simul)
+    }
+    ##
+    counter.env <- new.env()
+    if(messages.screen){
+      cat("krige.bayes: sampling from the predictive\n")
+      if(prior$phi.prior != "fixed")
+        cat(paste("             Number of parameter sets: ", ind.length,"\n"))
+    }
+    assign("counter", 1, envir=counter.env)
+     kb$predictive$simulations <- 
+      matrix(unlist(apply(phi.unique, 1, krige.bayes.aux20)),
+             ncol = n.predictive)
+    remove("inv.lower", "inv.diag", "counter.env", "pred.env")
+    if(is.R()) gc(verbose=FALSE)
+    if(messages.screen)
+      if(abs(lambda-1) > 0.001) 
+        cat("krige.bayes: Box-Cox data transformation performed.\n             Simulations back-transformed to the original scale\n")
+    if(messages.screen)
+      cat("krige.bayes: preparing summaries of the predictive distribution\n")
+    ##
+    ## mean/quantiles/probabilities estimators from simulations
+    ##
+    kb$predictive <- c(kb$predictive, 
+                       statistics.predictive(simuls=kb$predictive$simulations,
+                                             mean.var = mean.estimator,
+                                             quantile = quantile.estimator,
+                                             threshold = probability.estimator))
+    ##
+    ## keeping or not samples from  predictive
+    ##
+    if(keep.simulations){
+      if(prior$phi.prior != "fixed")
+        kb$predictive$simulations <-
+          kb$predictive$simulations[, vecpars.back.order]
+    }
+    else{
+      kb$predictive$simulations <- NULL
+      if(is.R()) gc(verbose=FALSE)
+    }
+    ##
+    ## recording samples from  predictive if different from the posterior
+    ##
+    if(prior$phi.prior != "fixed"){
+      if(include.it){
+        phi.lev <- unique(phidist$phitausq[, 1])
+        kb$predictive$phi.marginal <-
+          data.frame(phi = phi.lev,
+                     expected = apply(phidist$probphitausq, 1, sum),
+                     sampled = as.vector(table(factor(phi.sam[, 1],
+                       levels = phi.lev)))/n.predictive)
+        tausq.rel.lev <- unique(phidist$phitausq[, 2])
+        if(prior$tausq.rel.prior != "fixed")
+          data.frame(tausq.rel = tausq.rel.lev,
+                     expected = apply(phidist$probphitausq, 2, sum),
+                     sampled = as.vector(table(factor(phi.sam[, 2],
+                       levels = tausq.rel.lev)))/n.predictive)
+        else
+          kb$predictive$tausq.rel.marginal <-
+            paste("fixed tausq.rel with value =", tausq.rel)
+        kb$predictive$tausq.rel.marginal <-
+          data.frame(tausq.rel = tausq.rel.lev,
+                     expected = apply(phidist$probphitausq, 2, sum),
+                     sampled = as.vector(table(factor(phi.sam[, 2],
+                       levels = tausq.rel.lev)))/n.predictive)
+      }
+    }
+  }
+  if(!do.prediction) kb$predictive <- "no prediction locations provided"
+  kb$.Random.seed <- seed
+  kb$max.dist <- data.dist.max
+  kb$call <- call.fc
+  attr(kb, "prediction.locations") <- call.fc$locations
+  if(!is.null(call.fc$borders))
+    attr(kb, "borders") <- call.fc$borders
+  class(kb) <- c("krige.bayes", "kriging")
   if(messages.screen)
     cat("krige.bayes: done!\n")
-  return(kb.results)
+  return(kb)
 }
 
-"krige.bayes.aux2" <- 
-function(x, cutoff)
-{
-	# auxiliary function to perform calculation for the function krige.bayes
-	ncut <- length(cutoff)
-	lx <- length(x)
-	if(ncut > 1) {
-		result <- rep(0, ncut)
-		for(i in 1:ncut)
-			result[i] <- sum(x <= cutoff[i])/lx
-	}
-	else result <- sum(x <= cutoff)/lx
-	return(result)
-      }
-
-"krige.bayes.aux3" <- 
-  ##
-  ## This function produces a sample from  a multivariate normal distribution 
-  ## mean is 0 and cov.values is a vector of length beta.size^2
-  function(cov.values, beta.size)
-{
-                                        #  dm <- length(mean)
-                                        #  dc <- dim(cov.values)[1]
-                                        #  if(dm != dc)
-                                        #    stop("mean and cov.values must have compatible dimensions")
-  cov.values <- matrix(cov.values, ncol = beta.size)
-  cov.svd <- svd(cov.values)
-  cov.decomp <- cov.svd$u %*% (t(cov.svd$u) * sqrt(cov.svd$d))
-  zsim <- as.vector(cov.decomp %*% rnorm(beta.size))
-  return(zsim)
-}
 
 "lines.krige.bayes" <- 
-  function(obj, max.dist,
+  function(x, max.dist,
            summary.posterior = c("mode", "median", "mean"), ...)
 {
   my.l <- list()
   if(missing(max.dist)){
-    my.l$max.dist <- obj$max.dist
+    my.l$max.dist <- x$max.dist
     if (is.null(my.l$max.dist) | !is.numeric(my.l$max.dist)) 
       stop("numerical argument max.dist needed for this object")
   }
   else my.l$max.dist <- max.dist
   spost <- match.arg(summary.posterior)
-  if(is.null(obj$call$cov.model))
+  if(is.null(x$call$cov.model))
     my.l$cov.model <- "exponential"
   else {
-    my.l$cov.model <- obj$call$cov.model
-    if(obj$call$cov.model == "matern" | obj$call$cov.model == "powered.exponential" | obj$
-       call$cov.model == "cauchy" | obj$call$cov.model == "gneiting-matern")
-      my.l$kappa <- obj$call$kappa
+    my.l$cov.model <- x$call$cov.model
+    if(x$call$cov.model == "matern" | x$call$cov.model == "powered.exponential" | x$
+       call$cov.model == "cauchy" | x$call$cov.model == "gneiting-matern")
+      my.l$kappa <- x$call$kappa
     else my.l$kappa <- NULL
   }
   if(spost == "mode")
     spost1 <- "mode.cond"
   else spost1 <- spost
-  my.l$cov.pars <- c(obj$posterior$sigmasq.summary[spost1], obj$posterior$phi.summary[spost])
+  my.l$cov.pars <- c(x$posterior$sigmasq$summary[spost1],
+                     x$posterior$phi$summary[spost])
   names(my.l$cov.pars) <- NULL
-  if(is.numeric(obj$posterior$tausq.summary))
-    nugget <- obj$posterior$tausq.summary[spost] * my.l$cov.pars[1]
+  if(is.numeric(x$posterior$tausq.rel$summary))
+    nugget <- x$posterior$tausq.rel$summary[spost] * my.l$cov.pars[1]
   else nugget <- 0
   names(nugget) <- NULL
   my.l$sill.total <- nugget + my.l$cov.pars[1]
@@ -1254,68 +880,69 @@ function(x, cutoff)
 {
   if (!is.numeric(values.to.plot)){
     switch(values.to.plot,
-           moments.mean =
-           {
-             values <- obj$predictive$moments$expect.y0
-             cat("image.krige.bayes: plotting map the mean of the predictive distribution\n")
+           mean = {
+             values <- obj$predictive$mean
+             cat("image.krige.bayes: mapping the means of the predictive distribution\n")
            },
-           moments.variance = {
-             values <- obj$predictive$moments$var.y0
-             cat("plotting map the variance of the predictive distribution\n")
+           variance = {
+             values <- obj$predictive$variance
+             cat("mapping the variances of the predictive distribution\n")
            },
-           mean.simulations=
-           {
+           mean.simulations = {
              values <- obj$predictive$mean.simulations
-             cat("plotting map the mean of the simulations from the predictive distribution\n")
+             cat("mapping the means of simulations from the predictive distribution\n")
            },
            variance.simulations =
            {
              values <- obj$predictive$variance.simulations
-             cat("plotting map the variance of the predictive distribution\n")
+             cat("mapping the variances of simulations from the predictive distribution\n")
            },
-           quantile =
+           quantiles =
            {
              if(!is.vector(obj$predictive$quantiles))
                if(is.null(number.col))
                  stop("argument number.col must be provided")
                else
-                 values <- obj$predictive$quantiles[,number.col]
+                 values <- as.matrix(obj$predictive$quantiles)[,number.col]
              else
-               values <- obj$predictive$quantiles
-             cat("plotting map a quantile of the predictive distribution\n")
+               values <- as.matrix(obj$predictive$quantiles)[,1]
+             cat("mapping a quantile of the predictive distribution\n")
            },
-           probability =
+           probabilities =
            {
-             if(!is.vector(obj$predictive$probability))
+             if(!is.vector(obj$predictive$probab)){
                if(is.null(number.col))
                  stop("argument number.col must be provided")
                else
-                 values <- obj$predictive$probability[,number.col]
-             else
-               values <- obj$predictive$probability
-             cat("plotting map a simulation of the predictive distribution\n")
+                 values <- as.matrix(obj$predictive$probab)[,number.col]
+             }
+             else{
+               values <- as.matrix(obj$predictive$probab)[,1]
+             }
+             cat("mapping a probability of beeing bellow threshold of the predictive distribution\n")
            },
            simulation =
            {
-             values <- obj$predictive$simulations[,number.col]
-             cat("plotting map the variance of the predictive distribution\n")
+             values <- as.matrix(obj$predictive$simulations)[,number.col]
+             cat("mapping a simulation from the predictive distribution\n")
            },
            stop("wrong specification for values to plot")
            )
   }
   else values <- values.to.plot
   remove("values.to.plot")
-  if(!is.null(borders)){
-    borders <- as.matrix(as.data.frame(borders))
-    if(is.R())
-      require(splancs)
-    inout.vec <- as.vector(inout(pts = locations, poly = borders))
-    if(sum(inout.vec) != length(values))
-      stop("image.krige.bayes: length of the argument values is incompatible with number of elements inside the borders.")
-    temp <- rep(NA, nrow(locations))
-    temp[inout.vec == T] <- values
-    values <- temp
-    remove("temp")
+  if(nrow(locations) != length(values)){
+    if(!is.null(borders)){
+      borders <- as.matrix(as.data.frame(borders))
+      if(is.R()) require(splancs)
+      inout.vec <- as.vector(inout(pts = locations, poly = borders))
+      if(sum(inout.vec) != length(values))
+        stop("length of the argument values is incompatible with number of elements inside the borders.")
+      temp <- rep(NA, nrow(locations))
+      temp[inout.vec] <- values
+      values <- temp
+      remove("temp")
+    }
   }
   locations <- locations[order(locations[, 2], locations[,1]), ]
   x <- as.numeric(levels(as.factor(locations[, 1])))
@@ -1323,25 +950,40 @@ function(x, cutoff)
   y <- as.numeric(levels(as.factor(locations[, 2])))
   ny <- length(y)
   coords.lims <- set.coords.lims(coords=locations)
+  coords.lims[,1] <- coords.lims[,1] + c(-.025, .025) * diff(coords.lims[,1])
+  coords.lims[,2] <- coords.lims[,2] + c(-.025, .025) * diff(coords.lims[,2])
   return(list(x=x, y=y, values = matrix(values,ncol=ny), coords.lims=coords.lims))
 }
 
 "image.krige.bayes" <-
-  function (obj, locations, borders, 
-            values.to.plot = c("moments.mean", "moments.variance",
+  function (x, locations, borders, 
+            values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
-              "quantiles", "probability", "simulation"),
+              "quantiles", "probabilities", "simulation"),
             number.col, coords.data,
             x.leg, y.leg, cex.leg = 0.75, vertical = FALSE, ...) 
 {
-  if(all(is.character(values.to.plot)))
-    values.to.plot <- match.arg(values.to.plot)
-  if(missing(borders)) borders <- NULL
+  if(missing(x)) x <- NULL
+  if(missing(locations))
+    locations <-  eval(attr(x, "prediction.locations"))
+  if(is.null(locations)) stop("prediction locations must be provided")
+  if(ncol(locations) != 2)
+    stop("locations must be a matrix or data-frame with two columns")
+  if(!is.numeric(values.to.plot))
+    values.to.plot <-
+      match.arg(values.to.plot,
+                choices = c("mean", "variance",
+                  "mean.simulations", "variance.simulations",
+                  "quantiles", "probabilities", "simulation"))
+  if(missing(borders)){
+    if(!is.null(attr(x, "borders"))) borders <- eval(attr(x, "borders"))
+    else borders <- NULL
+  }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
-  locations <- prepare.graph.krige.bayes(obj=obj, locations=locations,
+  locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                          borders=borders,
                                          values.to.plot=values.to.plot,
                                          number.col = number.col)
@@ -1353,24 +995,31 @@ function(x, cutoff)
     points(coords.data)
   if(!is.null(borders))
     polygon(borders, lwd=2)
-  if(!is.null(x.leg) & !is.null(y.leg))
+  dots.l <- list(...)
+  if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
+  if(!is.null(x.leg) & !is.null(y.leg)){
     legend.krige(x.leg=x.leg, y.leg=y.leg,
                  values=locations$values,
-                 vertical = vertical, cex=cex.leg)
+                 vertical = vertical, cex=cex.leg, col=dots.l$col)
+  }
   par(pty=pty.prev)
   return(invisible())
 }
 
 "persp.krige.bayes" <-
-  function (obj, locations, borders, 
-            values.to.plot = c("moments.mean", "moments.variance",
+  function (x, locations, borders, 
+            values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
-              "quantiles", "probability", "simulation"), number.col, ...) 
+              "quantiles", "probabilities", "simulation"), number.col, ...) 
 {
+  if(missing(x)) x <- NULL
+  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
+  if(is.null(locations)) stop("prediction locations must be provided")
+  if(ncol(locations) != 2)
   values.to.plot <- match.arg(values.to.plot)
   if(missing(borders)) borders <- NULL
   if(missing(number.col)) number.col <- NULL
-  locations <- prepare.graph.krige.bayes(obj=obj, locations=locations,
+  locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                          borders=borders,
                                          values.to.plot=values.to.plot,
                                          number.col = number.col)
@@ -1379,104 +1028,770 @@ function(x, cutoff)
 }
 
 "model.control" <-
-  function(trend.d = "cte", trend.l = "cte",
-           cov.model = "matern",
-           kappa=0.5, aniso.pars=NULL, lambda=1) 
+  function(trend.d = "cte", trend.l = "cte", cov.model = "matern",
+           kappa = 0.5, aniso.pars = NULL, lambda = 1)
 {
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
-  return(list(trend.d = trend.d, trend.l = trend.l,
+  cov.model <-
+    match.arg(cov.model,
+              choices = c("matern", "exponential", "gaussian",
+                "spherical", "circular", "cubic", "wave", "power",
+                "powered.exponential", "cauchy", "gneiting",
+                "gneiting.matern", "pure.nugget"))
+  if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
+    stop("krige.bayes: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
+  ##  if(any(cov.model == c("exponential", "gaussian", "spherical",
+  ##           "circular", "cubic", "wave", "powered.exponential",
+  ##           "cauchy", "gneiting", "pure.nugget")))
+  ##    kappa <- NULL
+  if(!is.null(aniso.pars)) 
+    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
+      stop("anisotropy parameters must be a vector with two elements: rotation angle (in radians) and anisotropy ratio (a number > 1)")
+  res <- list(trend.d = trend.d, trend.l = trend.l,
               cov.model = cov.model,
-              kappa=kappa, aniso.pars=aniso.pars, lambda=lambda))
+              kappa=kappa, aniso.pars=aniso.pars, lambda=lambda)
+  class(res) <- "model.krige.bayes"
+  return(res)
 }
 
 "prior.control" <-
   function(beta.prior = c("flat", "normal", "fixed"),
-           beta = NULL, beta.var = NULL,
-           sill.prior = c("reciprocal", "fixed"), sill = NULL, 
-           range.prior = c("uniform", "exponential", "fixed",
-             "squared.reciprocal","reciprocal"),
-           exponential.prior.par = 1,
-           range = NULL, range.discrete = NULL, 
-           nugget.rel.prior = c("fixed", "uniform"), nugget.fixed = 0,
-           nugget.rel.discrete = NULL)
+           beta = NULL, beta.var.std = NULL,
+           sigmasq.prior = c("reciprocal",  "uniform", "sc.inv.chisq",  "fixed"),
+           sigmasq = NULL,  df.sigmasq = NULL,
+           phi.prior = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"),
+           phi = NULL, phi.discrete = NULL, 
+           tausq.rel.prior = c("fixed", "uniform"),
+           tausq.rel = 0,
+           tausq.rel.discrete = NULL)
 {
   beta.prior <- match.arg(beta.prior)
-  sill.prior <- match.arg(sill.prior)
-  range.prior <- match.arg(range.prior)
-  nugget.rel.prior <- match.arg(nugget.rel.prior)
-  return(list(beta.prior = beta.prior, beta = beta, beta.var = beta.var,
-              sill.prior = sill.prior, sill = sill, 
-              range.prior = range.prior,
-              exponential.prior.par = exponential.prior.par,
-              range = range, range.discrete = range.discrete, 
-              nugget.rel.prior = nugget.rel.prior,
-              nugget.fixed = nugget.fixed,
-              nugget.rel.discrete = nugget.rel.discrete))
+  sigmasq.prior <- match.arg(sigmasq.prior)
+  phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
+  tausq.rel.prior <- match.arg(tausq.rel.prior)
+  ##
+  ## Checking parameters of the prior
+  ##
+  if(beta.prior == "fixed" & is.null(beta))
+    stop("argument beta must be provided with fixed prior for this parameter")
+  if(beta.prior == "normal"){
+    if(is.null(beta) | is.null(beta.var.std))
+      stop("arguments \"beta\" and \"beta.var.std\" must be provided with normal prior for the parameter beta")
+    if((length(beta))^2 != length(beta.var.std))
+      stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
+    if(inherits(try(solve(beta.var.std)), "try-error"))
+      stop("krige.bayes: singular matrix in beta.var.std")
+  }
+  ##
+  if(sigmasq.prior == "fixed" & is.null(sigmasq))
+    stop("argument \"sigmasq\" must be provided with fixed prior for the parameter sigmasq")
+  if(sigmasq.prior == "sc.inv.chisq")
+    if(is.null(sigmasq) | is.null(df.sigmasq))
+      stop("arguments \"sigmasq\" and \"df.sigmasq\" must be provided for this choice of prior distribution")
+  if(!is.null(sigmasq))
+    if(sigmasq < 0)
+      stop("negative values not allowed for \"sigmasq\"")
+  ##
+  if(phi.prior == "fixed"){
+    if(is.null(phi)){
+      stop("argument \"phi\" must be provided with fixed prior for this parameter")
+    }
+    phi.discrete <- phi
+  }
+  else{
+    if(phi.prior == "exponential" & (is.null(phi) | (length(phi) > 1)))
+      stop("argument \"phi\" must be provided when using the exponential prior for the parameter phi")
+    ##    if(any(phi.prior == c("reciprocal", "squared.reciprocal")) &
+    ##       any(phi.discrete == 0)){
+    ##      warning("degenerated prior at phi = 0. Excluding value phi.discrete[1] = 0")
+    ##      phi.discrete <- phi.discrete[phi.discrete > 1e-12]
+    ##    }
+    if(!is.null(phi.discrete)){
+      discrete.diff <- diff(phi.discrete)
+      if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
+        stop("krige.bayes: the current implementation requires equally spaced values in the argument \"phi.discrete\"\n")
+    }
+  }
+  if(any(phi.discrete < 0))
+    stop("negative values not allowed for parameter phi")
+  ##
+  if(!is.null(tausq.rel.discrete)) tausq.rel.prior <- "uniform"
+  if(tausq.rel.prior == "fixed"){
+    if(is.null(tausq.rel))
+      stop("argument \"tausq.rel\" must be provided with fixed prior for the parameter tausq.rel")
+    tausq.rel.discrete <- tausq.rel
+  }
+  else{
+    if(is.null(tausq.rel.discrete))
+      stop("argument \"tausq.rel.discrete\" must be provided with chosen prior for the parameter tausq.rel")  
+    discrete.diff <- diff(tausq.rel.discrete)
+    if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
+      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"tausq.rel.discrete\"\n")
+  }
+  if(any(tausq.rel.discrete) < 0)
+    stop("negative values not allowed for parameter tausq.rel")
+  ##
+  ip <- list(beta=list(), sigmasq=list(), phi=list(), tausq.rel=list())
+  ##
+  if(beta.prior == "fixed"){
+    ip$beta$status <- "fixed"
+    ip$beta$fixed.value <- beta 
+  }
+  else{
+    ip$beta$status <- "random"
+    ip$beta$dist <- beta.prior
+    if(beta.prior == "flat")
+      ip$beta$pars <- c(0, +Inf)
+    if(beta.prior == "normal"){
+      if(length(beta) == 1)
+        ip$beta$pars <- c(mean=beta, var.std=beta.var.std)
+      else
+        ip$beta$pars <- list(mean=beta, var.std=beta.var.std)
+    }
+  }
+  ##
+  if(sigmasq.prior == "fixed"){
+    ip$sigmasq$status <- "fixed"
+    ip$sigmasq$fixed.value <- sigmasq 
+  }
+  else{
+    ip$sigmasq$status <- "random"
+    ip$sigmasq$dist <-  sigmasq.prior
+    if(sigmasq.prior == "reciprocal")
+      ip$sigmasq$pars <- c(df=0, var=+Inf)
+    if(sigmasq.prior == "uniform")
+      ip$sigmasq$pars <- c(df=-2, var=+Inf)
+    if(sigmasq.prior == "sc.inv.chisq")
+      ip$sigmasq$pars <- c(df=df.sigmasq, var=sigmasq)
+  }
+  ##
+  if(phi.prior == "fixed"){
+    ip$phi$status <- "fixed"
+    ip$phi$fixed.value <- phi
+  }
+  else{
+    ip$phi$status <- "random"
+    ip$phi$dist <- phi.prior
+    if(is.null(phi.discrete))
+      ip$phi$probs <- NULL
+    else{
+      pd <- as.vector(phi.discrete)
+      names(pd) <- NULL
+      ip$phi$probs <-
+        switch(phi.prior,
+               uniform = rep(1, length(pd)),
+               exponential = dexp(pd, rate=1/phi),
+               squared.reciprocal = ifelse((pd > 0), 1/(pd^2),0),
+               reciprocal = ifelse((pd > 0), 1/pd, 0))
+      names(ip$phi$probs) <- phi.discrete
+    }
+    if(phi.prior == "exponential")
+      ip$phi$pars <- c(ip$phi$pars, exp.par=phi)
+    else
+      ip$phi$probs <- ip$phi$probs/sum(ip$phi$probs)
+  }
+  ##
+  if(tausq.rel.prior == "fixed"){
+    ip$tausq.rel$status <- "fixed"
+    ip$tausq.rel$fixed.value <- tausq.rel 
+  }
+  else{
+    ip$tausq.rel$status <- "random"
+    ip$tausq.rel$dist <- tausq.rel.prior
+    ip$tausq.rel$probs <- rep(1/length(tausq.rel.discrete), length(tausq.rel.discrete))
+    names(ip$tausq.rel$probs) <- tausq.rel.discrete
+  }
+  res <- list(beta.prior = beta.prior, beta = beta,
+              beta.var.std = beta.var.std,
+              sigmasq.prior = sigmasq.prior,
+              sigmasq = sigmasq, df.prior = df.sigmasq,
+              phi.prior = phi.prior,
+              phi = phi, phi.discrete = phi.discrete, 
+              tausq.rel.prior = tausq.rel.prior,
+              tausq.rel = tausq.rel,
+              tausq.rel.discrete = tausq.rel.discrete, 
+              priors.info = ip)
+  class(res) <- "prior.krige.bayes"
+  return(res)
 }
 
 "output.control" <-
-  function(n.posterior = 1000, n.predictive = NULL,
-           simulations.predictive = TRUE, keep.simulations = TRUE,
-           mean.estimator = TRUE, quantile.estimator = NULL,
-           probability.estimator = NULL, messages.screen = TRUE,
-           signal = TRUE, moments = TRUE)
+  function(n.posterior, n.predictive, moments, n.back.moments, 
+           simulations.predictive, mean.var, quantile,
+           threshold, signal, messages.screen)
 {
-  return(list(n.posterior = n.posterior, n.predictive = n.predictive,
-              moments = moments,
+  ##
+  ## Assigning default values
+  ##
+  if(missing(n.posterior)) n.posterior <- 1000
+  if(missing(n.predictive)) n.predictive <- NULL
+  if(missing(moments)) moments <- TRUE
+  if(missing(n.back.moments)) n.back.moments <- 1000
+  if(missing(simulations.predictive)){
+    if(is.null(n.predictive)) simulations.predictive <- NULL
+    else
+      simulations.predictive <- ifelse(n.predictive > 0, TRUE, FALSE)
+  }
+  if(missing(mean.var)) mean.estimator <- NULL
+  else mean.estimator <- mean.var
+  if(missing(quantile))  quantile.estimator <- NULL
+  else quantile.estimator <- quantile
+  if(missing(threshold)) probability.estimator <- NULL 
+  else probability.estimator <- threshold
+  if(missing(signal)) signal <- NULL
+  if(missing(messages.screen)) messages.screen <- TRUE
+  ##
+  ##
+  ##
+  if(!is.null(quantile.estimator) | !is.null(probability.estimator) | !is.null(mean.estimator)){
+    if(is.null(simulations.predictive)) keep.simulations <- FALSE
+    else  keep.simulations <- ifelse(simulations.predictive, TRUE, FALSE)
+    simulations.predictive <- TRUE
+  }
+  else keep.simulations <- NULL
+  ##
+  if(!is.null(quantile.estimator)){
+    if(is.numeric(quantile.estimator))
+      if(any(quantile.estimator) < 0 | any(quantile.estimator) > 1)
+        stop("krige.bayes: quantiles indicators must be numbers in the interval [0,1]\n")
+    if(quantile.estimator == TRUE)
+      quantile.estimator <- c(0.025, 0.5, 0.975)
+  }
+  if(!is.null(probability.estimator)){
+    if(!is.numeric(probability.estimator))
+      stop("krige.bayes: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
+  }
+  res <- list(n.posterior = n.posterior, n.predictive = n.predictive,
+              moments = moments, n.back.moments = n.back.moments,
               simulations.predictive = simulations.predictive,
               keep.simulations = keep.simulations,
               mean.estimator = mean.estimator,
               quantile.estimator = quantile.estimator,
               probability.estimator = probability.estimator,
-              signal = signal, messages.screen = messages.screen))
+              signal = signal, messages.screen = messages.screen)
+  class(res) <- "output.krige.bayes"
+  return(res)
 }
 
-"krige.bayes.messages" <- 
-function(moments, n.disc, .temp.ap, ind.length)
-{  
-  if(moments){
-    if(n.disc <= 50)
-      cat(paste("computing moments: point",
-                .temp.ap, "out of", n.disc, "\n"))
-    if(n.disc > 50 & n.disc <= 500)
-      if(.temp.ap %% 10 == 1){
-        cat(paste("computing moments: point",
-                  .temp.ap, "out of", n.disc))
-        if(.temp.ap == 1) cat("                   (counting for each 10)\n")
-        else cat("\n")
-      }
-    if(n.disc > 500)
-      if(.temp.ap %% 100 == 1){
-        cat(paste("computing moments: point",
-                  .temp.ap, "out of", n.disc))
-        if(.temp.ap == 1) cat("                   (counting for each 100)\n")
-        else cat("\n")
-      }
+"beta.sigmasq.post" <-
+  function(n, beta.info, sigmasq.info, env.dists,
+           model, xmat, y, phi, tausq.rel, do.prediction.moments,
+           do.prediction.simulations,
+           dets = FALSE, env.pred = NULL, signal)
+{
+  ##-----------------------------------------------------------------
+  ##
+  ## dists.env is an environment containing the objetc "data.dist" 
+  ## with the distances between pairs os points (output of dists())
+  ##
+  ## sigmasq.info should contain:
+  ##        df.prior   : df in prior for sigmasq
+  ##                  df.prior = 0 : reciprocal prior for sigmasq
+  ##                  df.prior = Inf : fixed sigmasq
+  ##        n0S0 : sum of squares in prior for sigmasq
+  ## beta.info should contain:
+  ##        mivm : computed from the prior of beta: m\prime V^{-1} m
+  ##        ivm  : computed from the prior of beta: V^{-1} m
+  ##        iv   : computed from the prior of beta: V^{-1}
+  ##                  iv = 0 : flat prior for beta
+  ##                  iv = Inf : fixed beta
+  ##        p    : degrees of freedom correction
+  ##                  p = 0  : beta fixed or w/ normal prior
+  ##                  p = beta.size : flat prior for beta  
+  ## might contain
+  ##        beta.fixed
+  ##        sigmasq.fixed
+  ##-----------------------------------------------------------------
+  ##
+  ## Using C code to compute bilinear forms (faster)
+  ##
+  iR <- varcov.spatial(dists.lowertri = get("data.dist", envir=env.dists),
+                       cov.model = model$cov.model,
+                       kappa = model$kappa, nugget = tausq.rel,
+                       cov.pars = c(1, phi), inv = TRUE,
+                       only.inv.lower.diag = TRUE, det = dets)
+  yiRy <- bilinearformXAY(X = y, lowerA = iR$lower.inverse,
+                          diagA = iR$diag.inverse, Y = y)
+  xiRy.x <- bilinearformXAY(X = xmat, lowerA = iR$lower.inverse,
+                          diagA = iR$diag.inverse, Y = cbind(y, xmat))
+  ##
+  ## Using R alone (not convenient if det = TRUE !!!) 
+  ##
+###    R <- varcov.spatial(dists.lowertri=dists.lowertri, cov.model = model$cov.model,
+###             kappa = model$kappa, nugget = tausq.rel,
+###                        cov.pars = c(1, phi))$varcov
+###    iRy.x <- solve(R, cbind(y,xmat))
+###    xiRy.x <- crossprod(xmat, iRy.x)
+###    yiRy <- crossprod(y, iRy.x[,1])
+###    iRy.x <- NULL
+  ##
+  ## 1. Computing parameters of posterior for beta
+  ##
+  if(beta.info$iv == Inf){
+    beta.post <- beta.info$beta.fixed
+    beta.var.std.post <- 0
+    inv.beta.var.std.post <- Inf
   }
   else{
-    if(ind.length <= 50)
-      cat(paste("simulating from the predictive for the parameter set", 
-                .temp.ap, "out of", ind.length, "\n"))
-    if(ind.length > 50 & ind.length <= 500)
-      if(.temp.ap %% 10 == 1){
-        cat(paste("simulating from the predictive for the parameter set",
-                  .temp.ap, "out of", 
-                  ind.length))
-        if(.temp.ap == 1) cat("                   (counting for each 10)\n")
-        else cat("\n")
-      }
-    if(ind.length > 500)
-      if(.temp.ap %% 100 == 1){
-        cat(paste("simulating from the predictive for the parameter set",
-                  .temp.ap, "out of", 
-                  ind.length))
-        if(.temp.ap == 1) cat("                   (counting for each 100)\n")
-        else cat("\n")
-      }
+    inv.beta.var.std.post <- drop(beta.info$iv + xiRy.x[,-1])
+    beta.var.std.post <- solve(inv.beta.var.std.post)
+    beta.post <- drop(beta.var.std.post %*% (beta.info$ivm + xiRy.x[,1]))
   }
+  ##
+  ## 2. Computing parameters of posterior for sigmasq
+  ##
+  if(sigmasq.info$df.prior == Inf){
+    S2.post <- sigmasq.info$sigmasq.fixed
+    df.post <- Inf
+  }
+  else{
+    df.post <- n + sigmasq.info$df.prior - beta.info$p
+    ##
+    if(beta.info$iv == Inf){
+      S2.post <- sigmasq.info$n0S0 + yiRy - 2*crossprod(beta.post, xiRy.x[,1]) +
+        crossprod(beta.post, (xiRy.x[,-1] %*% beta.post))
+    }
+    else
+      S2.post <- sigmasq.info$n0S0 + beta.info$mivm + yiRy -
+        crossprod(beta.post, (inv.beta.var.std.post %*% beta.post))
+    S2.post <- drop(S2.post/df.post)
+  }
+  ##
+  res <- list(beta.post = beta.post,
+              beta.var.std.post = beta.var.std.post,
+              df.post = df.post, S2.post = S2.post)
+  if(dets){
+    res$log.det.to.half <- iR$log.det.to.half
+    res$det.XiRX <- det(xiRy.x[,-1, drop=FALSE])
+  }
+  ##
+  if(do.prediction.moments){
+    env.r0 <- new.env()
+    assign("r0",cov.spatial(obj = get("d0", envir=env.pred),
+                            cov.model = model$cov.model,
+                            kappa = model$kappa, cov.pars = c(1, phi)),
+           envir=env.r0)
+    ## care here, reusing b
+    b <- bilinearformXAY(X = get("r0", envir=env.r0),
+                         lowerA = iR$lower.inverse,
+                         diagA = iR$diag.inverse, Y = cbind(y, xmat))
+    riRy <- b[,1, drop=FALSE]
+    b <- get("trend.loc", envir=env.pred) -  b[,-1, drop=FALSE]
+    ##
+    res$pred.mean <- drop(riRy + b %*% beta.post)
+    if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=env.pred))))
+      res$pred.mean[get("loc.coincide", envir=env.pred)] <- get("data.coincide", envir=env.pred)
+    ##
+    R.riRr.bVb <- 1 - diagquadraticformXAX(X = get("r0", envir=env.r0),
+                                           lowerA = iR$lower.inverse,
+                                           diagA = iR$diag.inverse)
+    remove("env.r0")
+     if(all(beta.info$iv != Inf))
+       R.riRr.bVb <- R.riRr.bVb +
+         diagquadraticformXAX(X = t(b),
+                              lowerA=beta.var.std.post[lower.tri(beta.var.std.post)],
+                              diagA = diag(beta.var.std.post))
+    ##
+    nug.factor <- ifelse(signal, 0, tausq.rel)
+    res$pred.var <- S2.post * (nug.factor + R.riRr.bVb)
+    if(((tausq.rel < 1e-12) | signal) & !is.null(get("loc.coincide", envir=env.pred)))
+      res$pred.var[get("loc.coincide", envir=env.pred)] <- 0
+    res$pred.var[res$pred.var < 1e-16] <- 0
+    if(sigmasq.info$df.prior != Inf)
+      res$pred.var <- (df.post/(df.post-2)) * res$pred.var
+  }
+  ##
+  if(do.prediction.simulations){
+    res$inv.diag <- iR$diag.inverse
+    res$inv.lower <- iR$lower.inverse
+  }
+  return(res)
 }
 
+"sample.prior" <-
+  function(n, kb.obj = NULL, prior = prior.control())
+{
+  call.fn <- match.call()
+  ##
+  if(!is.null(kb.obj))
+    prior <- eval(kb.obj$call$prior)
+  ##
+  ## Checking for improper priors
+  ##
+  if(prior$beta.prior == "flat")
+    stop("sampling is not possible: improper prior for beta")
+  if(any(prior$sigmasq.prior == c("reciprocal", "uniform")))
+    stop("sampling is not possible: improper prior for sigmasq")
+  ##
+  ## preparing output object
+  ##
+  beta.size <- length(prior$beta)
+  if(beta.size == 1)
+    beta.name <- "beta"
+  else
+    beta.name <- paste("beta", (0:(beta.size-1)), sep="")
+  simul <- as.data.frame(matrix(0, nrow=n, ncol = beta.size+3))
+  names(simul) <- c(beta.name, "sigmasq","phi","tausq.rel")
+  ##
+  ## Sampling phi and tausq.rel
+  ##
+  if(prior$phi.prior == "fixed" & prior$tausq.rel.prior == "fixed"){
+    simul$phi <- rep(prior$phi, n)
+    simul$tausq <- rep(prior$tausq.rel, n)
+  }
+  else{
+    ##
+    ## Buiding the discrete prior distribution
+    ##
+    phi.discrete <- prior$phi.discrete
+    tausq.rel.discrete <- prior$tausq.rel.discrete
+    both.discrete <- expand.grid(phi.discrete, tausq.rel.discrete)
+    prob.discrete <- function(phi.discrete, tausq.discrete, prior){
+      pd <- phi.discrete
+      td <- tausq.rel.discrete
+      probs <- switch(prior$phi.prior,
+                      uniform = outer(pd, td, function(x,y){as.numeric(1)}),
+                      reciprocal = outer(pd, td, function(x,y){ifelse(x>0, 1/x, 0.0)}),
+                      squared.reciprocal = outer(pd, td, function(x,y){ifelse(x>0, 1/(x^2), 0.0)}),
+                      exponential = outer(pd, td, function(x,y){(1/prior$exponential.par) * exp(x^(1/prior$exponential.par))}),
+                      fixed = outer(pd, td, function(x,y){as.numeric(1)}))
+      return(probs/sum(probs))
+    }
+    both.discrete$probs <- as.vector(prob.discrete(phi.discrete = phi.discrete,
+                                                   tausq.discrete = tausq.discrete,
+                                                   prior = prior))
+    n.points <- nrow(both.discrete)
+    ind <- sample((1:n.points), n, replace = TRUE,
+                  prob = both.discrete$probs)
+    simul$phi <- both.discrete[ind, 1]
+    simul$tausq.rel <- both.discrete[ind, 2]
+  }
+  ##
+  if(prior$sigmasq.prior == "fixed")
+    simul$sigmasq <- rep(prior$sigmasq, n)
+  else
+    simul$sigmasq <- rinvchisq(n, df = prior$df.prior,
+                               scale = prior$sigmasq)
+  ##
+  if(prior$beta.prior == "fixed")
+    simul[,1:beta.size] <- matrix(rep(prior$beta, rep(n, beta.size)), ncol=beta.size)
+  else{
+    if(beta.size == 1){
+      simul$beta <- rnorm(n, mean = prior$beta,
+                          sd=sqrt(simul$sigmasq * prior$beta.var.std))
+    }
+    else{
+      "sample.beta" <- function(sigmasq, beta, beta.var.std){
+        cov.values <- sigmasq * beta.var.std
+        cov.svd <- svd(cov.values)
+        cov.decomp <- cov.svd$u %*% (t(cov.svd$u) * sqrt(cov.svd$d))
+        zsim <- beta + drop(cov.decomp %*% rnorm(length(beta)))
+        return(zsim)
+      }
+      simul[,1:beta.size] <-
+        t(sapply(simul$sigmasq, sample.beta, beta = prior$beta,
+                 beta.var.std = prior$beta.var.std))
+    }
+  }
+  attr(simul, "Call") <- call.fn
+  return(simul) 
+}
+
+"sample.posterior" <-
+  function(n, kb.obj)
+{
+  call.fn <- match.call()
+  ##
+  if(class(kb.obj) == "krige.bayes")
+    post <- kb.obj$posterior
+  if(class(kb.obj) == "posterior.krige.bayes")
+    post <- kb.obj
+  if((class(kb.obj) != "krige.bayes") &
+     (class(kb.obj) != "posterior.krige.bayes"))
+    stop("kb.obj must be an object with an output of krige.bayes")
+  ##
+  ## preparing data frame to store the output 
+  ##
+  if(length(dim(post$beta$pars$mean)) == 2) beta.size <- 1
+  else beta.size <- dim(post$beta$pars$mean)[3]
+  if(beta.size == 1)
+    beta.name <- "beta"
+  else
+    beta.name <- paste("beta", (0:(beta.size-1)), sep="")
+  simul <- as.data.frame(matrix(0, nrow=n, ncol = beta.size+3))
+  names(simul) <- c(beta.name, "sigmasq","phi","tausq.rel")
+  ##
+  ## Sampling phi and tausq.rel
+  ##
+  if(post$phi$status == "fixed" & post$tausq.rel$status == "fixed"){
+    simul$phi <- rep(post$phi$fixed.value, n)
+    simul$tausq.rel <- rep(post$tausq.rel$fixed.value, n)
+    ind <- 1
+    phi.discrete <- post$phi$fixed.value
+  }
+  else{
+    ##
+    ## sampling phi and tausq.rel
+    ##
+    n.points <- length(post$joint.phi.tausq.rel)
+    phi.discrete <- as.numeric(rownames(post$joint.phi.tausq.rel))
+    tausq.rel.discrete <- as.numeric(rownames(post$joint.phi.tausq.rel))
+    phi.tau.grid <- expand.grid(phi.discrete, tausq.rel.discrete)
+    ind <- sample((1:n.points), n, replace = TRUE,
+                  prob = as.vector(post$joint.phi.tausq.rel))
+    simul$phi <- phi.tau.grid[ind, 1]
+    simul$tausq.rel <- phi.tau.grid[ind, 2]
+  }
+  ##
+  ## sampling sigmasq
+  ##
+  if(post$sigmasq$status == "fixed")
+    simul$sigmasq <- rep(post$sigmasq$fixed.value, n)
+  else
+    simul$sigmasq <- rinvchisq(n, df = post$sigmasq$pars$df,
+                               scale = post$sigmasq$pars$S2[ind])
+  ##
+  ## sampling beta
+  ##
+  if(post$beta$status == "fixed")
+    simul[,1:beta.size] <-
+      matrix(rep(post$beta$fixed.value, rep(n, beta.size)), ncol=beta.size)
+  else{
+    beta.size <- length(post$beta)
+    if(beta.size == 1)
+      simul$beta <- rnorm(n, mean = post$beta$pars$mean[ind],
+                          sd=sqrt(post$beta$pars$var[ind]))
+    else{
+      require(MASS)
+      if(post$phi$status == "fixed" & post$tausq.rel$status == "fixed"){
+        simul[,1:beta.size] <-
+          mvrnorm(n=n, mu = post$beta$pars$mean,
+                  Sigma = matrix(post$beta$pars$var, ncol=beta.size))
+      }
+      else{
+        "simula.betavec" <- function(i, nphi){
+          nc <- ceiling(i/nphi)
+          nr <- i %% nphi
+          if(nr == 0) nr <- nphi
+          beta.sim <-
+            mvrnorm(n=n, mu = post$beta$pars$mean[nr,nc,],
+                    Sigma = matrix(post$beta$pars$var[nr,nc,],
+                      ncol=beta.size))
+          return(beta.sim)
+        }
+        simul[,1:beta.size] <- t(sapply(ind), simula.betavec,
+                                 nphi = length(phi.discrete))
+      }
+    }
+  }
+  names(simul) <- c(beta.name, c("sigmasq", "phi", "tausq.rel"))
+  attr(simul, "Call") <- call.fn
+  return(simul) 
+}
+
+"statistics.predictive" <-
+  function(simuls, mean.var = TRUE, quantile, threshold)
+{
+  results <- list()
+  if(missing(quantile)) quantile.estimator <- NULL
+  else quantile.estimator <- quantile
+  if(missing(threshold)) probability.estimator <- NULL
+  else probability.estimator <- threshold
+  ##
+  if(!is.null(mean.var) & mean.var){
+    results$mean.simulations <- drop(apply(simuls, 1, mean))
+    results$variance.simulations <- drop(apply(simuls, 1, var))
+  }
+  if(!is.null(quantile.estimator)) {
+    results$quantiles.simulations <-
+      drop(apply(simuls, 1, quantile, probs = quantile.estimator))
+    if(length(quantile.estimator) > 1) {
+      results$quantiles.simulations <-
+        as.data.frame(t(results$quantiles))
+      names(results$quantiles.simulations) <-
+        paste("q", 100 * quantile.estimator, sep = "")
+    }
+  }
+  if(!is.null(probability.estimator)) {
+    nsims <- ncol(simuls)
+    "prob.cutoff" <- function(x, thres, nsims){
+      return(sapply(thres, FUN = function(cut){sum(x <= cut)/nsims}))
+    }
+    results$probabilities.simulations <-
+      drop(apply(simuls, 1, prob.cutoff,
+                 thres = probability.estimator, nsims = nsims))
+    if(length(threshold) > 1){
+      results$probabilities.simulations <-
+        as.data.frame(t(results$probabilities.simulations))
+      names(results$probabilities.simulations) <-
+        paste("threshold", probability.estimator, sep = "")
+    }
+  }
+  return(results)
+}
+
+"rMVnorm" <-
+  function(cov.values, beta.size)
+{
+  ##
+  ## This function produces a sample from  a multivariate normal distribution 
+  ## mean is 0 and cov.values is a vector of length beta.size^2
+  ##
+  cov.values <- matrix(cov.values, ncol = beta.size)
+  cov.svd <- svd(cov.values)
+  cov.decomp <- cov.svd$u %*% (t(cov.svd$u) * sqrt(cov.svd$d))
+  zsim <- as.vector(cov.decomp %*% rnorm(beta.size))
+  return(zsim)
+}
+
+"plot.krige.bayes" <-
+  function(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
+           type = c("bars", "h", "l", "b", "o", "p"), thin, ...)
+{
+  if(class(x) != "krige.bayes")
+    stop("object x must be of the class \"krige.bayes\"")
+  if(missing(thin)) thin <- c(1,1)
+  if(length(thin) == 1) thin <- rep(thin, 2)
+  ##
+  ldots <- list(...)
+  if(is.null(ldots$col)){
+    if(type == "bars") col <- 0:1
+    else col <- "black"
+  }
+  else col <- ldots$col
+  if(type != "bars"){
+    if(is.null(ldots$lty)) lty <- 1
+    else lty <- ldots$lty
+    if(is.null(ldots$lwd)) lwd <- 1:2
+    else lwd <- ldots$lwd
+  }
+  ##
+  if(phi.dist){
+    if(x$prior$phi$status == "fixed")
+      cat("parameter \"phi\" is fixed\n")
+    else{
+      phi.vals <- x$posterior$phi$phi.marginal[,"phi"]
+      phi.off <- 0.1 * diff(phi.vals[1:2])
+      phi.table <- rbind(x$prior$phi$probs, x$posterior$phi$dist)
+      colnames(phi.table) <- phi.vals
+      ## thining
+      nphi <- length(phi.vals)
+      ind <- seq(1, nphi, by = thin[1])
+      phi.vals <- phi.vals[ind]
+      phi.table <- phi.table[,ind]
+      if(is.null(ldots$ylim)) ldots$ylim <- c(0, 1.1*max(phi.table))
+      if(type == "bars")
+        barplot(phi.table, legend.text=c("prior", "posterior"),
+                col=col, ylim = ldots$yl, 
+                xlab = expression(phi), ylab = "density")
+      else{
+        if(type=="h")
+          phi.vals <- cbind(phi.vals - phi.off, 
+                            phi.vals + phi.off)
+        matplot(phi.vals, t(phi.table), type = type,
+                lwd = lwd, lty = lty, ylim = ldots$yl, 
+                col = col, xlab = expression(phi),
+                ylab = "density", add = add)
+      }
+    }
+  }
+  if(tausq.rel.dist){
+    if(x$prior$tausq.rel$status == "fixed")
+      cat("parameter \"tausq.rel\" is fixed\n")
+    else{
+      tausq.rel.vals <- x$posterior$tausq.rel$tausq.rel.marginal[,"tausq.rel"]
+      tausq.rel.off <- 0.1 * diff(tausq.rel.vals[1:2])
+      tausq.rel.table <- rbind(x$prior$tausq.rel$probs,
+                               x$posterior$tausq.rel$dist)
+      colnames(tausq.rel.table) <-  tausq.rel.vals
+      ## thining
+      ntausq.rel <- length(tausq.rel.vals)
+      ind <- seq(1, ntausq.rel, by = thin[2])
+      tausq.rel.vals <- tausq.rel.vals[ind]
+      tausq.rel.table <- tausq.rel.table[,ind]
+      if(is.null(ldots$ylim)) ldots$ylim <- c(0,1.1*max(tausq.rel.table))
+      if(type == "bars")
+        barplot(tausq.rel.table, legend.text=c("prior", "posterior"),
+                beside=TRUE, col=col, ylim = ldots$yl, 
+                xlab = expression(tau[rel]^2), ylab = "density")
+      else{
+        if(type=="h")
+          tausq.rel.vals <- cbind(tausq.rel.vals - tausq.rel.off,
+                                  tausq.rel.vals + tausq.rel.off)
+        matplot(t(tausq.rel.table), type = type, lwd = lwd, lty = lty,
+                col = col, ylim = ldots$yl, 
+                xlab = expression(tausq.rel), ylab = "density", add = add)
+      }
+    }
+  }
+  return(invisible())
+}
+
+##"lines.posterior.krige.bayes" <-
+##  function(x, parameter = c("beta", "sigmasq", "phi", "tausq.rel"), ...)#
+##{
+##  if(parameter == "beta"){
+##    attach(x$posterior$beta, pos=1)
+##    
+##  return(invisible())#
+##}
+
+  
+"print.betavar" <-
+  function(x, ...)
+{
+  size <- attr(x, "Size")
+  x <- matrix(x, size, size)
+  betavar <- matrix(NA, size, size)
+  betavar[row(betavar) >= col(betavar)] <- x[row(betavar) >= col(betavar)]
+  if(size > 1){
+    labels <- paste("beta", 0:(size-1), sep="")
+    dimnames(betavar) <- list(labels, labels)
+  }
+  print(betavar, na="")
+  return(invisible(x))
+}
+
+
+"hist.krige.bayes" <-
+  function(x, pars, density.est = TRUE,
+           histogram = T, ...)
+{
+  Ldots <- list(...)
+  if(missing(pars)){
+    pars <- c("sigmasq", "phi")
+    if(x$prior$tausq.rel$status == "random")
+      pars <- c(pars, "tausq")
+  }
+  res <- list(histogram = list(), density.estimation = list())
+  for(ipar in pars){
+    if(ipar == "beta") xl <- expression(beta)
+    if(ipar == "sigmasq") xl <- expression(sigma^2)
+    if(ipar == "phi") xl <- expression(phi)
+    if(ipar == "tausq.rel") xl <- expression(tau[rel]^2)
+    y <- as.vector(x$posterior$sample[[ipar]])
+    ymax <- 0
+    if(histogram){
+      res$histogram[[ipar]] <- plH <- hist(y, prob = FALSE, plot = FALSE, ...)
+      ymax <- max(plH$dens)
+    }
+    if(density.est){
+      if(is.null(Ldots$width)){
+        if(require(MASS))
+          plD <- density(y,width=bandwidth.nrd(y), ...)
+        else plD <- density(y, ...)
+      }
+      else
+        plD <- lines(density(y, width = Ldots$width))
+      res$density.estimation[[ipar]] <- plD 
+      ymax <- max(c(ymax, plD$y))
+    }
+    if(histogram){
+      plot(plH, ylim =c(0, ymax), freq = FALSE,
+           xlab=xl, main= Ldots$main, ...)
+      if(density.est) lines(plD)
+    }
+    else
+      if(density.est) plot(plD, xlab=xl, ...)
+  }
+  return(invisible(res))
+}

@@ -11,12 +11,11 @@
 }
 
 \usage{
-plot.variog4(obj, omnidirectional=FALSE, same.plot=TRUE,
-             legend = TRUE, ...)
+plot.variog4(x, omnidirectional=FALSE, same.plot=TRUE, legend = TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{obj}{an object of the class \code{variog4}, typically an output of the function \code{\link{variog4}}. }
+  \item{x}{an object of the class \code{variog4}, typically an output of the function \code{\link{variog4}}. }
   \item{omnidirectional}{logical. Indicates whether the omnidirectional
     variogram is included in the plot. }
   \item{same.plot}{logical. Indicates whether the directional variograms

@@ -1,4 +1,111 @@
 
+
+		=============================
+		CHANGES IN geoR VERSION 1.1-1
+		=============================
+
+
+NEW FEATURES
+
+    o  new function hist.krige.bayes() which plots histograms
+       and/or density estimation of the samples from the posterior
+       of the model parameters
+
+    o  new function plot.krige.bayes() plots discrete prior and posterior
+       for the parameters phi and/or tausq.rel
+
+    o  BoxCox group of functions including parameter estimation 
+       by maximum likelihood, random generation, density
+       and methods for printing and ploting
+
+    o  krige.bayes, krige.conv and ksline now selects prediction
+       locations inside borders. Selection computed by the 
+       new auxiliary function locations.inside()
+
+    o  plot.xvalid now reads attributes from output of xvalid 
+
+    o  internal changes in C code
+
+    o  image.kriging, image.krige.bayes, persp.kriging and 
+       persp.krige.bayes now reads attributes of the related function 
+	
+    o  the version number is now printed when geoR is loaded
+
+    o  Windows distribution now includes .chtml help files
+
+    o  Matern correlation function now implemented in the  
+       .c code "cor_diag" 
+    
+    o  new C wrapper function corr.diaglowertri for cor_diag
+
+    o  major reformulation of the function krige.bayes including
+   
+       - "conjugate" priors for beta and sigmasq
+
+       - flexibility in which parameters are considered random
+ 
+       - unified and more versatile output for whatever prior 
+         specification
+
+       - parameters are reffered by greek letters and not
+         using geostatistical jargon
+
+       - internal changes to improve efficiency and memory handling
+
+       - changes in arguments of control functions
+
+       - inclusion of prior information in the output
+
+       - major reformulation in the output of krige.bayes()
+
+    o  new function sample.prior() to sample from priors used in 
+       krige.bayes()
+
+    o  new function sample.posterior() to sample from posteriors 
+       returned by krige.bayes()
+
+    o  new function statistics.predictive() to compute statistics
+       from simulations of predictive returned by krige.bayes()
+       and/or krige.conv()
+
+    o  grf returns "spacing" or "xspacing" and "yspacing"
+       attributes for regular grids
+
+    o  output.control is an isolated function with its own documentation
+       and now also used by krige.conv() 
+
+    o  krige.conv() can return outputs from the posterior distribution
+       as for krige.bayes. This includes quantiles, thresholds
+       and others defined by output.control()
+
+    o  new functions for the Scaled-Inverse-ChiSquare distribution
+       rinvchisq() and dinvchisq
+
+    o krige.bayes() and krige.conv() now backtransform moments analitically
+      for kappa = 0.5
+
+    o  Functions (typically) internally used
+
+    	o  new function cond.sim() to simulate from predictive.
+           Typically internally called by krige.conv() and krige.bayes()
+
+    	o  new function print.betavar() for nive print of covariance matrices
+
+    	o  new function beta.sigmasq.post() for key calculations on 
+           posteriors and predictive
+
+        o new functions transform.data() and backtransformed.moemnts()
+
+
+BUG FIXES
+    
+    o  parentesis matching in documentation for krige.conv()
+       and xvalid() 
+
+    o variance in krige.bayes for normal prior for the parameter beta
+
+
+
 		=============================
 		CHANGES IN geoR VERSION 1.0-8
 		=============================

@@ -1,7 +1,7 @@
 \name{plot.proflik}
 
 \alias{plot.proflik}
-\alias{plot.proflik.aux1}
+\alias{proflik.plot.aux1}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -13,19 +13,17 @@
 }
 
 \usage{
-plot.proflik(obj.proflik, pages = c("user", "one", "two"),
-     uni.only = FALSE, bi.only = F,
-     type.bi = c("contour", "persp"), conf.int = c(0.9, 0.95),
-     yaxis.lims = c("conf.int", "as.computed"),
-     by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
-     par.mar.persp = c(0, 0, 0, 0), ask = FALSE, ...)
+plot.proflik(x, pages = c("user", "one", "two"), uni.only = FALSE, bi.only = F,
+             type.bi = c("contour", "persp"), conf.int = c(0.9, 0.95),
+             yaxis.lims = c("conf.int", "as.computed"),
+             by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
+             par.mar.persp = c(0, 0, 0, 0), ask = FALSE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{obj.proflik}{an object of the class \code{proflik}, typically an
-    output of the function
-    \code{\link{proflik}}.  }
+  \item{x}{an object of the class \code{proflik}, typically an
+    output of the function \code{\link{proflik}}.  }
   \item{pages}{specify how the plots will be arranged in the
     graphics device. The default option, \code{"user"}, uses the current
     graphical parameters. The option \code{"one"} places all the
@@ -53,6 +51,8 @@ plot.proflik(obj.proflik, pages = c("user", "one", "two"),
   \item{use.splines}{logical. If \code{TRUE} (the default) the function
     \code{\link{spline}} is used to interpolate between the points
     computed by \code{proflik}.  }
+  \item{par.mar.persp}{graphical parameters to be used with
+    \code{\link{persp}} plots. For more details see \code{\link{par}}.  }
   \item{ask}{logical. Defines whether or not the user is prompted before
     each plot is produced.  }
   \item{\dots}{additional arguments to be passed to the functions

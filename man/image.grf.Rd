@@ -12,14 +12,14 @@
 }
 
 \usage{
-image.grf(obj, sim.number = 1, ...)
+image.grf(x, sim.number = 1, ...)
 
-persp.grf(obj, sim.number = 1, ...)
+persp.grf(x, sim.number = 1, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{obj}{an object of the class \code{grf}, typically an output of the function
+  \item{x}{an object of the class \code{grf}, typically an output of the function
     \code{\link{grf}}.  }
   \item{sim.number}{simulation number.
     Indicates the number of the simulation top be plotted.
@@ -63,7 +63,7 @@ par(mar=c(3,3,1,1))
 par(mgp = c(2,1,0))
 par(pty="s")
 for (i in 1:4)
-  image.grf(sim, sim.n=i)
+  image(sim, sim.n=i)
 par(op)
 }
 

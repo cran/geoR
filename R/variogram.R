@@ -330,18 +330,18 @@
 }
 
 "plot.variog4" <-
-  function (obj, omnidirectional = FALSE, same.plot = TRUE, legend = TRUE,...)
+  function (x, omnidirectional = FALSE, same.plot = TRUE, legend = TRUE,...)
 {
-  ymax <- max(c(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v), na.rm=TRUE)
-  n.o <- names(obj)[1:4]
+  ymax <- max(c(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v), na.rm=TRUE)
+  n.o <- names(x)[1:4]
   GP <- list(...)
   if(is.null(GP$xlab)) GP$xlab <- "distance"
   if(is.null(GP$ylab)) GP$ylab<- "semi-variance"
   if (same.plot) {
-    xx <- obj[[5]]$u
-    yy <- cbind(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v)
+    xx <- x[[5]]$u
+    yy <- cbind(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v)
     if (omnidirectional)
-      yy <- cbind(obj[[5]]$v, yy)
+      yy <- cbind(x[[5]]$v, yy)
     if (is.null(GP$lty))
       GP$lty <- 1:5
     if (is.null(GP$lwd))
@@ -461,13 +461,13 @@
         GP$type <- c(rep(GP$type, 2))
     }
     for (i in 1:4) {
-      plot.default(obj[[i]]$u, obj[[i]]$v,
-                   xlim = c(0, max(obj[[i]]$u)), ylim = c(0, ymax),
+      plot.default(x[[i]]$u, x[[i]]$v,
+                   xlim = c(0, max(x[[i]]$u)), ylim = c(0, ymax),
                    type = GP$type[i],
            col = GP$col[i], lwd = GP$lwd[i], lty = GP$lty[i],
            pch = GP$pch[i], xlab=GP$xlab, ylab=GP$ylab)
       if (omnidirectional) {
-        lines(obj$omnidirectional, type = GP$type[5],
+        lines(x$omnidirectional, type = GP$type[5],
               col = GP$col[5], lwd = GP$lwd[5], lty = GP$lty[5])
         legend(0, ymax, legend = c(substitute(a * degree,
                           list(a = n.o[i])), "omn.", expression()),
@@ -652,34 +652,34 @@
 }
 
 "plot.variogram" <-
-  function (obj, max.dist, vario.col = "all", scaled = FALSE,  
+  function (x, max.dist, vario.col = "all", scaled = FALSE,  
             var.lines = FALSE,  envelope.obj = NULL,
             bin.cloud = FALSE,  ...) 
 {
-  if(missing(max.dist)) max.dist <- max(obj$u)
+  if(missing(max.dist)) max.dist <- max(x$u)
   Ldots <- list(...)
   if(is.null(Ldots$xlab)) Ldots$xlab <- "distance"
   if(is.null(Ldots$ylab)) Ldots$ylab <- "semi-variance"
   if(is.null(Ldots$ty)){
-    if (obj$output.type == "bin") Ldots$type <- "p"
-    if (obj$output.type == "smooth") Ldots$type <- "l"
-    if (obj$output.type == "cloud") Ldots$type <- "p"
+    if (x$output.type == "bin") Ldots$type <- "p"
+    if (x$output.type == "smooth") Ldots$type <- "l"
+    if (x$output.type == "cloud") Ldots$type <- "p"
   }
 # if (bin.cloud == TRUE &&  Ldots$type != "b") 
 #    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
-  if (bin.cloud == TRUE && all(is.na(obj$bin.cloud))) 
+  if (bin.cloud == TRUE && all(is.na(x$bin.cloud))) 
     stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
-  if (bin.cloud == TRUE && any(!is.na(obj$bin.cloud))) 
-    boxplot(obj$bin.cloud, varwidth = TRUE, 
+  if (bin.cloud == TRUE && any(!is.na(x$bin.cloud))) 
+    boxplot(x$bin.cloud, varwidth = TRUE, 
             xlab = "midpoints of distance class",
             ylab = paste("variogram values / ", 
-              obj$estimator.type, "estimator"))
+              x$estimator.type, "estimator"))
   else {
-    u <- obj$u[obj$u <= max.dist]
-    v <- obj$v
-    if(is.vector(v) | length(v) == length(obj$u))
+    u <- x$u[x$u <= max.dist]
+    v <- x$v
+    if(is.vector(v) | length(v) == length(x$u))
       v <- matrix(v, ncol=1)
-    v <- v[obj$u <= max.dist,, drop=FALSE]
+    v <- v[x$u <= max.dist,, drop=FALSE]
     if(vario.col == "all")
       vario.col <- 1:dim(v)[2]
     else
@@ -687,7 +687,7 @@
         stop("argument vario.col must be equals to \"all\" or a vector indicating the column numbers to be plotted")
     v <- v[, vario.col, drop=F]
     if (scaled)
-      v <- t(t(v)/obj$var.mark[vario.col])
+      v <- t(t(v)/x$var.mark[vario.col])
     if (is.null(Ldots$ylim)){
       ymax <- max(v)
       if (!is.null(envelope.obj)) 
@@ -708,7 +708,7 @@
            xlab = Ldots$xlab, ylab = Ldots$ylab, type = Ldots$type)
     if (var.lines) {
       if (scaled) abline(h = 1, lty = 3)
-      else abline(h = obj$var.mark, lty = 3)
+      else abline(h = x$var.mark, lty = 3)
     }
     if (!is.null(envelope.obj)) {
       lines(u, envelope.obj$v.lower, lty = 4)
@@ -718,17 +718,261 @@
   return(invisible())
 }
 
-"lines.variogram" <-
-function (obj, max.dist, type = "o", scaled = FALSE, ...) 
+"lines.variomodel" <-
+  function (x, max.dist, scaled = FALSE,...)
 {
-  if(missing(max.dist)) max.dist <- max(obj$u)
+  my.l <- list()
+  if(missing(max.dist)){
+    my.l$max.dist <- x$max.dist
+    if (is.null(my.l$max.dist)) 
+      stop("argument max.dist needed for this object")
+  }
+  else
+    my.l$max.dist <- max.dist
+  if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
+      x$cov.model == "cauchy" | x$cov.model == "gneiting-matern") 
+    my.l$kappa <- x$kappa
+  else kappa <- NULL
+  if (is.vector(x$cov.pars)) 
+    my.l$sill.total <- x$nugget + x$cov.pars[1]
+  else my.l$sill.total <- x$nugget + sum(x$cov.pars[, 1])
+  my.l$cov.pars <- x$cov.pars
+  my.l$cov.model <- x$cov.model
+  if (scaled){
+    if(is.vector(x$cov.model))
+      my.l$cov.pars[1] <-  my.l$cov.pars[1]/sill.total
+    else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/sill.total
+    my.l$sill.total <- 1
+  }
+  gamma.f <- function(x, my.l)
+    {
+      return(my.l$sill.total -
+             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
+                         cov.pars = my.l$cov.pars))
+    }
+  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
+  return(invisible())
+}
+
+
+"lines.variogram" <-
+function (x, max.dist, type = "o", scaled = FALSE, ...) 
+{
+  if(missing(max.dist)) max.dist <- max(x$u)
   if (scaled) 
-    obj$v <- obj$v/obj$var.mark
-  if (!is.matrix(obj$v)) 
-    lines(obj$u[obj$u <= max.dist], obj$v[obj$u <= max.dist], 
+    x$v <- x$v/x$var.mark
+  if (!is.matrix(x$v)) 
+    lines(x$u[x$u <= max.dist], x$v[x$u <= max.dist], 
           type = type, ...)
   else {
-    for (j in 1:ncol(obj$v)) lines(obj$u[obj$u <= max.dist], 
-                                   obj$v[obj$u <= max.dist, j], type = type, ...)
+    for (j in 1:ncol(x$v)) lines(x$u[x$u <= max.dist], 
+                                   x$v[x$u <= max.dist, j], type = type, ...)
   }
 }
+
+"variog.model.env" <-
+  function(geodata, coords = geodata$coords, obj.variog,
+           model.pars, nsim = 99, save.sim = FALSE,
+           messages.screen = TRUE) 
+{
+  call.fc <- match.call()
+  obj.variog$v <- NULL
+  ##
+  ## reading input
+  ##
+  if(!is.null(model.pars$beta)) beta <- model.pars$beta
+  else beta <- 0
+  if(!is.null(model.pars$cov.model))
+    cov.model <- model.pars$cov.model
+  else cov.model <- "exponential"
+  if(!is.null(model.pars$kappa)) kappa <- model.pars$kappa
+  else kappa <- 0.5
+  if(!is.null(model.pars$nugget)) nugget <- model.pars$nugget
+  else nugget <- 0
+  cov.pars <- model.pars$cov.pars
+  if(!is.null(obj.variog$estimator.type))
+    estimator.type <- obj.variog$estimator.type
+  else estimator.type <- "classical"
+  if (obj.variog$output.type != "bin") 
+    stop("envelops can be computed only for binned variogram")
+  ##
+  ## generating simulations from the model with parameters provided
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: generating", nsim, "simulations (with ",
+              obj.variog$n.data, 
+              "points each) using the function grf\n"))
+  simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
+                cov.model = cov.model, cov.pars = cov.pars,
+                nugget = nugget, kappa = kappa, nsim = nsim,
+                messages.screen = FALSE, lambda = obj.variog$lambda)
+  if(messages.screen)
+    cat("variog.env: adding the mean or trend\n")
+  x.mat <- trend.spatial(trend=obj.variog$trend, coords=coords)
+  simula$data <- as.vector(x.mat %*% beta) + simula$data
+  ##
+  ## computing empirical variograms for the simulations
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: computing the empirical variogram for the", 
+              nsim, "simulations\n"))
+  nbins <- length(obj.variog$bins.lim) - 1
+  if(is.R()){
+    bin.f <- function(sim){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(obj.variog$n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(obj.variog$bins.lim)),
+                 as.integer(estimator.type == "robust"),
+                 as.double(max(obj.variog$u)),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin)
+                 )$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f)
+    simula.bins <- simula.bins[obj.variog$ind.bin,]
+  }
+  else{
+    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(bins.lim)),
+                 as.integer(estimator.type == "robust"),
+                 as.double(max.u),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin)
+                 )$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
+    simula.bins <- simula.bins[obj.variog$ind.bin,]
+  }
+  if(save.sim == FALSE) simula$data <- NULL
+  ##
+  ## computing envelops
+  ##
+  if (messages.screen) 
+    cat("variog.env: computing the envelops\n")
+  limits <- apply(simula.bins, 1, range)
+  res.env <- list(u = obj.variog$u, v.lower = limits[1, ],
+                  v.upper = limits[2,])
+  if(save.sim) res.env$simulated <- simula$data
+  res.env$call <- call.fc
+  class(res.env) <- "variogram.envelope"
+  return(res.env)
+}
+
+"variog.mc.env" <-
+  function (geodata, coords = geodata$coords, data = geodata$data,
+            obj.variog, nsim = 99, save.sim = FALSE,
+            messages.screen = TRUE) 
+{
+  call.fc <- match.call()
+  ##
+  ## Checking input
+  ##
+  obj.variog$v <- NULL
+  if((is.matrix(data) | is.data.frame(data)))
+    if(ncol(data) > 1)
+      stop("envelops can be computed for only one data set at once")
+  if(!is.null(obj.variog$estimator.type))
+    estimator.type <- obj.variog$estimator.type
+  else estimator.type <- "classical"
+  ##
+  ## generating several "data-sets" by permutating data values
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: generating", nsim,
+              "simulations by permutating data values\n"))
+  simula <- list(coords = coords)
+  n.data <- length(data)
+  perm.f <- function(i, data, n.data){return(data[sample(1:n.data)])}
+  simula$data <- apply(as.matrix(1:nsim),1, perm.f, data=data, n.data=n.data) 
+  ##
+  ## computing empirical variograms for the simulations
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: computing the empirical variogram for the", 
+              nsim, "simulations\n"))
+  nbins <- length(obj.variog$bins.lim) - 1
+  if(is.R()){
+    bin.f <- function(sim){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(obj.variog$n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(obj.variog$bins.lim)),
+                 as.integer(estimator.type == "robust"),
+                 as.double(max(obj.variog$u)),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin)
+                 )$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f)
+    simula.bins <- simula.bins[obj.variog$ind.bin,]
+  }
+  else{
+    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(bins.lim)),
+                 as.integer(estimator.type == "robust"),
+                 as.double(max.u),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin)
+                 )$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
+    simula.bins <- simula.bins[obj.variog$ind.bin,]
+  }
+  if(save.sim == FALSE) simula$data <- NULL
+  ##
+  ## computing envelops
+  ##
+  if (messages.screen) 
+    cat("variog.env: computing the envelops\n")
+  limits <- apply(simula.bins, 1, range)
+  res.env <- list(u = obj.variog$u, v.lower = limits[1, ],
+                  v.upper = limits[2,])
+  if(save.sim) res.env$simulations <- simula$data
+  res.env$call <- call.fc
+  class(res.env) <- "variogram.envelope"
+  return(res.env)
+}
+
+"lines.variogram.envelope" <-
+  function(x, lty=3, ...)
+{
+  lines(x$u, x$v.lower, ...)
+  lines(x$u, x$v.upper, ...)
+  return(invisible())
+}
+

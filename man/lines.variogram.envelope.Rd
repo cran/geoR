@@ -11,11 +11,11 @@
 }
 
 \usage{
-lines.variogram.envelope(obj, lty = 3, ...)
+lines.variogram.envelope(x, lty = 3, ...)
 }
 
 \arguments{
-  \item{obj}{an object of the class \code{"variogram.envelope"},
+  \item{x}{an object of the class \code{"variogram.envelope"},
     typically an output of the functions \code{\link{variog.model.env}} or
     \code{\link{variog.mc.env}}.  } 
   \item{lty}{line type. Defaults to 3.  }

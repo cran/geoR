@@ -13,15 +13,18 @@
 }
 
 \usage{
-summary.variomodel(obj)
+summary.variomodel(object, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{obj}{an object of the class \code{"variomodel"}
+  \item{object}{an object of the class \code{"variomodel"}
     typically an output of
     \code{\link{variofit}}.}
+  \item{\dots}{other arguments to be passed to the function
+    \code{\link{print}} or \code{\link{summary}}.  }
+
 }
 
 %\details{

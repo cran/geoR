@@ -11,14 +11,14 @@
 }
 
 \usage{
-plot.variogram(obj, max.dist, vario.col = "all", 
-               scaled = FALSE, var.lines = FALSE,
-               envelope.obj = NULL, bin.cloud = FALSE,  ...)
+plot.variogram(x, max.dist, vario.col = "all", scaled = FALSE,
+               var.lines = FALSE, envelope.obj = NULL,
+               bin.cloud = FALSE,  ...)
 }
 
 
 \arguments{
-  \item{obj}{an object of the class \code{"variogram"}, typically an
+  \item{x}{an object of the class \code{"variogram"}, typically an
     output of the function \code{\link{variog}}.  }
   \item{max.dist}{maximum distance for the x-axis. The default is
     the maximum distance for which the sample variogram was computed.}

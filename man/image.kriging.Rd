@@ -13,21 +13,23 @@
 }
 
 \usage{
-image.kriging(obj, locations, borders, values = obj$predict,
+image.kriging(x, locations, borders, values = obj$predict,
               coords.data, x.leg, y.leg, cex.leg = 0.75,
               vertical = FALSE, ...)
 
-persp.kriging(obj, locations, borders, values = obj$predict, ...)
+persp.kriging(x, locations, borders, values = obj$predict, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{obj}{an object of the  class \code{kriging}, typically
+  \item{x}{an object of the  class \code{kriging}, typically
     with the output of the functions \code{\link{krige.conv}} or \code{\link{ksline}}.  }
   \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates of the prediction locations, which should define a
     regular grid
-    in order to be plotted by \code{\link{image}} or \code{\link{persp}}.  }
+    in order to be plotted by \code{\link{image}} or
+    \code{\link{persp}}. By default does not need to be provided and
+    evaluates the attribute "prediction.locations" from the input object. }
   \item{borders}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates defining the borders of a region inside the grid defined
     by \code{locations}. Elements in the

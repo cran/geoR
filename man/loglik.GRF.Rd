@@ -7,10 +7,10 @@
   realisation of a Gaussian random field.
 }
 \usage{
-loglik.GRF(geodata, coords=geodata$coords, data=geodata$data,
-           cov.model="exp", cov.pars, nugget=0, kappa=0.5,
-           lambda=1, psiR=1, psiA=0,
-           trend="cte", method="ML", compute.dists=TRUE)
+loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
+           cov.model = "exp", cov.pars, nugget = 0, kappa = 0.5,
+           lambda = 1, psiR = 1, psiA = 0,
+           trend = "cte", method.lik = "ML", compute.dists = TRUE)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -46,7 +46,7 @@ loglik.GRF(geodata, coords=geodata$coords, data=geodata$data,
     on the coordinates), \code{"2nd"} (a second degree polynomial
     on the coordinates), or a formula of the type \code{~X} where \code{X}
     is a matrix with the covariates (external trend). Defaults to \code{"cte"}.  }
-  \item{method}{options are \code{"ML"} for likelihood and \code{"REML"} for
+  \item{method.lik}{options are \code{"ML"} for likelihood and \code{"REML"} for
     restricted likelihood. Defaults to \code{"ML"}.  }
   \item{compute.dists}{for internal use with other function. Don't
     change the default unless you know what you are doing.  }

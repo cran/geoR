@@ -7,7 +7,7 @@
 \alias{sic.some}
 \alias{sic.borders}
 
-\non_function{}
+\non_function{SIC}
 
 \title{Spatial Interpolation Comparison data}
 
@@ -28,7 +28,7 @@
     \item{\code{data}}{rainfall values. The unit is milimeters.  }
     \item{\code{altitude}}{elevation values. The unit is milimeters.  }
   }
-
+  
   Additionally an matrix \code{sic.borders} with the borders of the country.
 }
 
@@ -37,15 +37,11 @@
   see \url{ftp://ftp.geog.uwo.ca/SIC97/}
 }
 
-%\references{
-%  Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
+\references{
   
-%  Papritz, A. and Moyeed, R. (2001) Parameter uncertainty in spatial
-%  prediction: checking its importance by cross-validating the Wolfcamp
-%  and Rongelap data sets. \emph{GeoENV 2000: Geostatistical for
-%    Environmental Applications. Ed. P. Monestiez, D. Allard,
-%    R. Froidevaux}. Kluwer. 
-%}
+  Christensen, O.F., Diggle, P.J. and Ribeiro Jr, P.J. (2001)  Analysing positive-valued spatial data: the transformed Gaussian model.  In Monestiez, P., Allard, D. and Froidevaux (eds), GeoENV III - Geostatistics for environmental applications. Quantitative Geology and Geostatistics, Kluwer Series, 11, 287--298.
+
+}
 
 \examples{
 data(SIC)
@@ -54,4 +50,3 @@ points(sic.100, borders=sic.borders)
 
 \keyword{datasets}
 \keywords{spatial}
- 

@@ -4,6 +4,7 @@
             output.reestimate = FALSE, locations.xvalid = "all",
             data.xvalid = NULL, messages.screen = TRUE, ...) 
 {
+  call.fc <- match.call()
   n <- nrow(coords)
   data <- as.vector(data)
   if (length(data) != n) 
@@ -13,6 +14,7 @@
   ## Locations to be used in the cross-validation
   ##
   if(all(locations.xvalid == "all") | is.vector(locations.xvalid)){
+    autocross <- TRUE
     if(locations.xvalid == "all")
       locations.xvalid <- 1:n
     else
@@ -21,6 +23,7 @@
     crossvalid <- TRUE
   }
   else{
+    autocross <- FALSE
     if(is.matrix(locations.xvalid) | is.data.frame(locations.xvalid))
       if(dim(locations.xvalid)[2] <= 2){
         if(dim(locations.xvalid)[2] == 1){
@@ -136,7 +139,8 @@
                          trend.l = ~xmat.out + 0, cov.model = CVmod$cov.model, 
                          cov.pars = CVmod$cov.pars, nugget = CVmod$nugget, 
                          kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
-                         aniso.pars = val.pars[c("psiA", "psiR")]), mess = FALSE)
+                         aniso.pars = val.pars[c("psiA", "psiR")]),
+                       output = output.control(mess = FALSE))
       res <- c(data.out, kr$pred, kr$krige.var)
       if(output.reestimate) res <- c(res, CVpars)
       ##, err = (data.out - kr$pred), e.rel = (data.out - kr$pred)/sqrt(kr$krige.var), 
@@ -165,7 +169,8 @@
                        trend.l = ~xmat.val.loc + 0, cov.model = model$cov.model, 
                        cov.pars = model$cov.pars, nugget = model$nugget, 
                        kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
-                       aniso.pars = val.pars[c("psiA", "psiR")]), mess = FALSE)[1:2]
+                       aniso.pars = val.pars[c("psiA", "psiR")]),
+                      output = output.control(mess = FALSE))[1:2]
     res <- data.frame(data.xvalid, res$pred, res$krige.var)
   } 
   if(messages.screen) cat("\nxvalid: end of cross-validation\n")
@@ -191,14 +196,22 @@
     res <- res[,c((1:3), ((3+np+1):(6+np)),(4:(3+np)))] 
   }
   attr(res,"row.names") <- NULL
+  if(autocross){
+    if(!is.null(call.fc$geodata))
+      attr(res,"geodata.xvalid") <- call.fc$geodata
+    else
+      attr(res,"locations.xvalid") <- call.fc$locations.xvalid
+  }
+  else
+    if(!is.null(locations.xvalid))
+      attr(res,"locations.xvalid") <- call.fc$locations.xvalid
   attr(res, "class") <- "xvalid"
   return(res)
 }
 
 "plot.xvalid" <-
-  function (obj, valid.obj, coords=valid.obj$coords, 
-            error.plots = TRUE, std.error.plots = TRUE,
-            borders = NULL, ask = TRUE)
+  function (x, coords, error.plots = TRUE,
+            std.error.plots = TRUE, borders = NULL, ask = TRUE, ...)
 {
   ##
   ## Saving original par() parameters
@@ -218,16 +231,22 @@
         stop("argument borders must be a two column matrix or a data frame with the coordinates of the borders")
       else borders <- as.matrix(borders)
   }
+  if(missing(coords)){
+    if(!is.null(attr(x,"geodata.xvalid")))
+      coords <- eval(attr(x,"geodata.xvalid"))$coords
+    if(!is.null(attr(x,"locations.xvalid")))
+      coords <- eval(attr(x,"locations.xvalid"))       
+  }
   ##
   ## auxiliary computations for plots
   ##
-  n <- length(obj$data)
-  xylim <- range(c(obj$data, obj$pred))
-  prelim <- range(obj$pred)
-  datlim <- range(obj$data)
-  errlim <- max(abs(range(obj$error)))
+  n <- length(x$data)
+  xylim <- range(c(x$data, x$pred))
+  prelim <- range(x$pred)
+  datlim <- range(x$data)
+  errlim <- max(abs(range(x$error)))
   errlim <- c(-errlim, errlim)
-  err.std <- sqrt(var(obj$error))
+  err.std <- sqrt(var(x$error))
   if(n > 90){
     seqerr <- seq(-3.5*err.std, 3.5*err.std, l=15)
     seqstd <- seq(-3.5, 3.5, l=15)
@@ -236,17 +255,17 @@
     seqerr <- seq(-4*err.std, 4*err.std, l=9)
     seqstd <- seq(-4, 4, l=9)
   }
-  stdlim <- max(c(3, abs(range(obj$std.error))))
+  stdlim <- max(c(3, abs(range(x$std.error))))
   stdlim <- c(-stdlim, stdlim)
   # indicator for negative and positive errors
-  error.cut <- cut(obj$error, breaks=c(errlim[1], 0, errlim[2]), include.l=TRUE, labels=FALSE)
+  error.cut <- cut(x$error, breaks=c(errlim[1], 0, errlim[2]), include.l=TRUE, labels=FALSE)
   ##
   ## Data vs predicted
   ##
   par(pty = "s")
-  plot(obj$data, obj$pred, type = "n", xlim = xylim, ylim = xylim,
+  plot(x$data, x$pred, type = "n", xlim = xylim, ylim = xylim,
        xlab = "data", ylab = "predicted")
-  points(obj$data, obj$pred, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+  points(x$data, x$pred, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
   abline(0,1)
   ##
   ##
@@ -258,7 +277,7 @@
     ## P-P plot
     ##
     par(pty = "s")  
-    plot(ppoints(n), obj$prob[order(obj$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
+    plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
     abline(0,1)
   }
   if(error.plots){
@@ -266,7 +285,7 @@
     ## Plotting errors
     ##
     ## sizes proportional to errors values
-    err.abs <- abs(obj$error)
+    err.abs <- abs(x$error)
     coords.order <- coords[order(err.abs), ]
     err.order <- err.abs[order(err.abs)]
     cut.order <- error.cut[order(err.abs)]
@@ -296,24 +315,24 @@
     ## errors histogram
     ##
     par(pty = "m")
-    if(min(obj$error) < min(seqerr)) seqerr <- c(min(obj$error), seqerr)
-    if(max(obj$error) > max(seqerr)) seqerr <- c(seqerr, max(obj$error))
-    hist(obj$error, prob=T, main="", breaks=seqerr, xlab="data - predicted")
+    if(min(x$error) < min(seqerr)) seqerr <- c(min(x$error), seqerr)
+    if(max(x$error) > max(seqerr)) seqerr <- c(seqerr, max(x$error))
+    hist(x$error, prob=T, main="", breaks=seqerr, xlab="data - predicted")
     ##
     ## errors vs predicted
     ##
     par(pty = "m")
-    plot(obj$pred, obj$error, type = "n", xlim = prelim, ylim = errlim,
+    plot(x$pred, x$error, type = "n", xlim = prelim, ylim = errlim,
          xlab = "predicted", ylab = "data - predicted")
-    points(obj$pred, obj$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+    points(x$pred, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
     abline(h=0)
     ##
     ## errors vs data
     ##
     par(pty = "m")
-    plot(obj$data, obj$error, type = "n", xlim = datlim, ylim = errlim,
+    plot(x$data, x$error, type = "n", xlim = datlim, ylim = errlim,
          xlab = "data", ylab = "data - predicted")
-    points(obj$data, obj$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+    points(x$data, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
     abline(h=0)
     ##
   }
@@ -322,15 +341,15 @@
     ## P-P plot
     ##
     par(pty = "s")  
-    plot(ppoints(n), obj$prob[order(obj$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
+    plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
     abline(0,1)
   }
   if(std.error.plots){
     ##
-    ## Plotting std errors
+    ## Plotting std residuals
     ##
     ## sizes proportional to errors values
-    err.abs <- abs(obj$std.error)
+    err.abs <- abs(x$std.error)
     coords.order <- coords[order(err.abs), ]
     err.order <- err.abs[order(err.abs)]
     cut.order <- error.cut[order(err.abs)]
@@ -360,24 +379,24 @@
     ## std. errors histogram
     ##
     par(pty = "m")
-    if(min(obj$std.error) < min(seqstd)) seqstd <- c(min(obj$std.error), seqstd)
-    if(max(obj$std.error) > max(seqstd)) seqstd <- c(seqstd, max(obj$std.error))
-    hist(obj$std.error, prob=T, main="", breaks = seqstd, xlab="std error")
+    if(min(x$std.error) < min(seqstd)) seqstd <- c(min(x$std.error), seqstd)
+    if(max(x$std.error) > max(seqstd)) seqstd <- c(seqstd, max(x$std.error))
+    hist(x$std.error, prob=T, main="", breaks = seqstd, xlab="std residuals")
     ##
     ## std. errors vs predicted
     ##
     par(pty = "m")
-    plot(obj$pred, obj$std.error, type = "n", xlim = prelim, ylim = stdlim,
-         xlab = "predicted", ylab = "std error")
-    points(obj$pred, obj$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+    plot(x$pred, x$std.error, type = "n", xlim = prelim, ylim = stdlim,
+         xlab = "predicted", ylab = "std residuals")
+    points(x$pred, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
     abline(h=0)
     ##
     ## std. errors vs data
     ##
     par(pty = "m")
-    plot(obj$data, obj$std.error, type = "n", xlim = datlim, ylim = stdlim,
-         xlab = "data", ylab = "std error")
-    points(obj$data, obj$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+    plot(x$data, x$std.error, type = "n", xlim = datlim, ylim = stdlim,
+         xlab = "data", ylab = "std residuals")
+    points(x$data, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
     abline(h=0)
     ##
   }

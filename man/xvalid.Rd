@@ -14,7 +14,7 @@
   done for all or some of the locations.
   Alternativelly, other validation locations which are not the same as the
   original data locations can be used. 
-
+  
 }
 
 \usage{
@@ -59,13 +59,13 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
     coordinates of the validation points should be provided and the the
     argument \code{locations.data} should also be provided.  }
   \item{data.xvalid}{data values at the validation locations.
-  Only used if the validation locations are not the same or a
-  subset of the original data coordinates.  }
+    Only used if the validation locations are not the same or a
+    subset of the original data coordinates.  }
   \item{messages.screen}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
-  \item{\dots}{further arguments to the minimization functions used by \code{\link{likfit}},
-    \code{\code{\link{variofit}}.  }
+  \item{\dots}{further arguments to the minimization functions used by
+    \code{\link{likfit}}, \code{\link{variofit}}.  }
 }
 
 \details{
@@ -75,7 +75,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
   For models fitted by \code{\link{variofit}} the
   parameters \eqn{\kappa}{kappa}, \eqn{\psi_A}{psiA}, \eqn{\psi_R}{psiR}
   and \eqn{\lambda}{lambda} are always regarded as fixed.
-
+  
   See documentation of the function \code{\link{likfit}} for more
   details on the model and its parameters.
 }
@@ -160,7 +160,7 @@ if(is.R()) data(s100)
   xvm2 <- xvalid(s100, model=m1, locations.xvalid=ap$coords, data.xvalid=ap$data)
   bor <- s100$coords[chull(s100$coords),]
   par(mfcol=c(5,2),mar=c(3,3,1,0),mgp=c(2,.5,0))  
-  plot(xvm2, s100, border=bor)
+  plot(xvm2, border=bor)
   # RML
   rm1 <- likfit(s100, ini=c(.5,.5), fix.nug=F, met = "REML", cov.model="mat", kappa=1)
   xvrm1 <- xvalid(s100, model=m1, loc=sample(1:100,5))

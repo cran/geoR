@@ -16,15 +16,15 @@
 }
 
 \usage{
-plot.geodata(geodata, coords=geodata$coords, data = geodata$data,
-     borders = NULL, trend="cte", lambda = 1, col.data = 1,
-     weights.divide = FALSE, window.new = FALSE, ...)
+plot.geodata(x, coords=x$coords, data = x$data,
+             borders = NULL, trend="cte", lambda = 1, col.data = 1,
+             weights.divide = FALSE, window.new = FALSE, ...)
 }
 
 %- maybe also `usage' for other objects do cumented here.
 
 \arguments{
-  \item{geodata}{a list containing elements \code{coords} and
+  \item{x}{a list containing elements \code{coords} and
     \code{data} described next. Typically an object of the class
     \code{"geodata"} - a \bold{geoR} data-set. If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }

@@ -14,30 +14,31 @@
 }
 
 \usage{
-image.krige.bayes(obj, locations, borders,
-           values.to.plot=c("moments.mean", "moments.variance",
-                      "mean.simulations", "variance.simulations",
-                      "quantiles", "probability", "simulation"),
-           number.col, coords.data, x.leg, y.leg, cex.leg = 0.75,
-           vertical = FALSE, ...)
+image.krige.bayes(x, locations, borders,
+                  values.to.plot=c("mean", "variance",
+                            "mean.simulations", "variance.simulations",
+                            "quantiles", "probabilities", "simulation"),
+                  number.col, coords.data, x.leg, y.leg, cex.leg = 0.75,
+                  vertical = FALSE, ...)
 
 
 
-persp.krige.bayes(obj, locations, borders,
-           values.to.plot=c("moments.mean", "moments.variance",
+persp.krige.bayes(x, locations, borders,
+                  values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
-                        "quantiles", "probability", "simulation"),
-           number.col, ...)
+                       "quantiles", "probabilities", "simulation"),
+                  number.col, ...)
 }
 
 \arguments{
-  \item{obj}{an object of the class \code{krige.bayes}, typically an
+  \item{x}{an object of the class \code{krige.bayes}, typically an
     output of the function \code{\link{krige.bayes}}.  }
   \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates of the prediction locations, which should define a
     regular grid
     in order to be plotted by \code{\link{image}} or
-    \code{\link{persp}}.  }
+    \code{\link{persp}}. By default does not need to be provided and
+    evaluates the attribute "prediction.locations" from the input object.  }
   \item{borders}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates defining the borders of a region inside the grid defined
     by \code{locations}. Elements in the
@@ -46,8 +47,8 @@ persp.krige.bayes(obj, locations, borders,
   \item{values.to.plot}{select the element of the predictive
     distribution to be plotted. See DETAILS below.}
   \item{number.col}{Specifies the number of the column to be plotted.
-    Only used if previous argument is set to one of \code{"quantile"}, 
-    \code{"probability"}  or \code{"simulation"}.  }
+    Only used if previous argument is set to one of \code{"quantiles"}, 
+    \code{"probabilities"}  or \code{"simulation"}.  }
   \item{coords.data}{optional. If an \eqn{n \times 2}{n x 2}
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the

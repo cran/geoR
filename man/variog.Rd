@@ -187,6 +187,7 @@ legend(0, 1.2, legend=c("omnidirectional", expression(0 * degree)), lty=c(2,1))
 
 \keyword{spatial}
 \keyword{smooth}
+\keyword{robust}
 
 
 

@@ -179,4 +179,5 @@ image.grf(sim3)
 }
 
 \keyword{spatial}
+\keyword{datagen}
 

@@ -3,6 +3,7 @@
 \title{Defunct Functions in the Package geoR}
 
 \alias{geoRdefunct}
+
 \alias{olsfit}
 \alias{wlsfit}
 \alias{likfit.old}

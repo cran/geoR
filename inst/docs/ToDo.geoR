@@ -12,9 +12,12 @@ Things to be done and/or checked in the package geoR
 
 - Un-equally spaced grid for "phi" in krige.bayes
 
+- analytical computation of probabilities and (maybe) quantiles
+  in krige.bayes and krige.conv
+
 - Implement the robust variogram estimator as described in Genton, 1998
 
-- Implement "glsfit"
+- Implement "glsfit" for variogram
 
 - Check whether is possible to make a more extensive use of the QR 
 decomposition throughout the package, in particular in "varcov.spatial" and 
@@ -27,7 +30,5 @@ the "likfit" functions.
 - Pocket plots including moving windows 
 
 - OLS/WLS/GLS fit of anisotropic variograms
-
-- incorporate conjugate proper prior (Sc.Inv Chi^2) for sill in krige.bayes
 
 - use methods logLik for likfit

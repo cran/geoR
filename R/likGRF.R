@@ -7,7 +7,7 @@
             fix.psiA = TRUE, psiA = 0, 
             fix.psiR = TRUE, psiR = 1, 
             cov.model = "matern",
-            method = "ML",
+            method.lik = "ML",
             components = FALSE, nospatial = TRUE,
             limits = likfit.limits(), 
             print.pars = FALSE, messages.screen = TRUE, ...) 
@@ -30,13 +30,13 @@
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
   ##
-  if(method == "REML" | method == "reml" | method == "rml") 
-    method <- "RML"
-  if(method == "ML" | method == "ml")
-    method <- "ML"
-  if(method == "ML" & cov.model == "power")
-    stop("\n\"power\" model can only be used with method=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
-  temp.list$method <- method
+  if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
+    method.lik <- "RML"
+  if(method.lik == "ML" | method.lik == "ml")
+    method.lik <- "ML"
+  if(method.lik == "ML" & cov.model == "power")
+    stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
+  temp.list$method.lik <- method.lik
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
     ini.cov.pars <- as.matrix(ini.cov.pars)
     if(nrow(ini.cov.pars) == 1)
@@ -72,7 +72,7 @@
     ini.temp <- matrix(ini.cov.pars, ncol=2)
     grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
     temp.f <- function(parms, temp.list){
-      return(loglik.GRF(coords=temp.list$coords, data=temp.list$z, cov.model=temp.list$cov.model, cov.pars=parms[1:2], nugget=parms["tausq"], kappa=parms["kappa"], lambda=parms["lambda"], psiR=parms["psiR"], psiA=parms["psiA"], trend= temp.list$trend, method=temp.list$method, compute.dists=F))
+      return(loglik.GRF(coords=temp.list$coords, data=temp.list$z, cov.model=temp.list$cov.model, cov.pars=parms[1:2], nugget=parms["tausq"], kappa=parms["kappa"], lambda=parms["lambda"], psiR=parms["psiR"], psiA=parms["psiA"], trend= temp.list$trend, method.lik=temp.list$method.lik, compute.dists=F))
     }
     grid.lik <- apply(grid.ini, 1, temp.f, temp.list=temp.list)
     ini.temp <- grid.ini[which(grid.lik == max(grid.lik)),, drop=FALSE]
@@ -82,7 +82,7 @@
       print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
       cat(paste("likelihood value:", max(grid.lik), "\n"))
     }
-    names(ini.temp) <- NULL
+    dimnames(ini.temp) <- NULL
     ini.cov.pars <- ini.temp[1:2]
     nugget <- ini.temp[3]
     kappa <- ini.temp[4]
@@ -100,7 +100,7 @@
   ## Box-Cox transformation for fixed lambda
   ##
   if(fix.lambda) {
-    if(round(lambda, dig=4) == 1) {
+    if(abs(lambda - 1) < 0.0001) {
       temp.list$log.jacobian <- 0
       temp.list$z <- as.vector(data)
     }
@@ -112,8 +112,7 @@
         temp.list$log.jacobian <- log(prod(Jdata))
       else temp.list$log.jacobian <- sum(log(Jdata))
       Jdata <- NULL
-      if(is.R()) gc(verbose=FALSE)
-      if(round(lambda, dig=4) == 0)
+      if(abs(lambda) < 0.0001)
         temp.list$z <- log(data)
       else temp.list$z <- ((data^lambda) - 1)/lambda
     }
@@ -216,13 +215,13 @@
   ##
   ## Constant term in the likelihood
   ##
-  if(method == "ML"){
+  if(method.lik == "ML"){
     if(ip$f.tausq & (tausq > 0))
       temp.list$loglik.cte <-  (n/2)*(-log(2*pi))
     else
       temp.list$loglik.cte <-  (n/2)*(-log(2*pi) + log(n) -1)
   }
-  if(method == "RML"){
+  if(method.lik == "RML"){
     xx.eigen <- eigen(crossprod(temp.list$xmat), symmetric = TRUE, only.values = TRUE)
     if(ip$f.tausq & (tausq > 0))
       temp.list$loglik.cte <- - ((n-beta.size)/2)*(log(2*pi)) +
@@ -233,7 +232,7 @@
           0.5 * sum(log(xx.eigen$values))
   }
   ##
-  ## Numarical minimization
+  ## Numerical minimization of the -loglikelihood
   ##
   if(is.R()){
     lik.minim <- optim(par = ini, fn = negloglik.GRF, method="L-BFGS-B",
@@ -415,7 +414,7 @@
   ## Transforming data acccording to the estimated lambda (Box-Cox) parameter
   ##
   if(!fix.lambda) {
-    if(round(lambda, dig=4) == 1) {
+    if(abs(lambda - 1) < 0.0001) {
       log.jacobian.max <- 0
       temp.list$z <- data
     }
@@ -480,10 +479,10 @@
   xivy <- crossprod(sivx, sivy)
   betahat <- solve(xivx, xivy)
   res <- as.vector(temp.list$z - temp.list$xmat %*% betahat)
-  if(!fix.nugget | (round(1e+12 * nugget) == 0)){
+  if(!fix.nugget | (nugget < 1e-12)){
     res <- as.vector(temp.list$z - temp.list$xmat %*% betahat)
     ssres <- as.vector(crossprod(crossprod(siv,res)))
-    if(method == "ML")
+    if(method.lik == "ML")
       sigmasq <- ssres/n
     else
       sigmasq <- ssres/(n - beta.size)
@@ -516,12 +515,14 @@
   lik.results <- list(cov.model = cov.model,
                       nugget = tausq,
                       cov.pars=c(sigmasq, phi),
+                      sigmasq = sigmasq,
+                      phi = phi,
                       kappa = kappa,
                       beta = as.vector(betahat),
                       beta.var = betahat.var,
                       lambda = lambda,
                       aniso.pars = c(psiA = psiA, psiR = psiR),
-                      method = method, trend = trend,
+                      method.lik = method.lik, trend = trend,
                       loglik = loglik.max,
                       npars = npars,
                       AIC = (loglik.max - npars),
@@ -539,11 +540,11 @@
     if(fix.lambda){
       beta.ns <- solve(crossprod(temp.list$xmat), crossprod(temp.list$xmat, temp.list$z))
       ss.ns <- sum((as.vector(temp.list$z - temp.list$xmat %*% beta.ns))^2)
-      if(method == "ML"){
+      if(method.lik == "ML"){
         nugget.ns <- ss.ns/n
         loglik.ns <- (n/2)*((-log(2*pi)) - log(nugget.ns) - 1) + temp.list$log.jacobian
       }
-      if(method == "RML"){
+      if(method.lik == "RML"){
         nugget.ns <- ss.ns/(n-beta.size)
         loglik.ns <- ((n-beta.size)/2)*((-log(2*pi)) - log(nugget.ns) -1) + temp.list$log.jacobian
       }
@@ -551,31 +552,28 @@
       lambda.ns <- lambda
     }
     else{
-      bc.list <- list(n = n, beta.size = beta.size,
-                      data = data, xmat = temp.list$xmat,
-                      method = method)
       if(is.R())
-        lik.lambda.ns <- optim(par=1, fn = boxcox.ns, method="L-BFGS-B",
-                               lower=limits$lambda["lower"], upper=limits$lambda["upper"], bc.list=bc.list)
+        lik.lambda.ns <- optim(par=1, fn = boxcox.negloglik, method = "L-BFGS-B",
+                               lower = limits$lambda["lower"], upper = limits$lambda["upper"],
+                               data = data, xmat = temp.list$xmat, lik.method = method.lik)
       else
-        lik.lambda.ns <- nlminb(par=1, fn = boxcox.ns,
-                                lower=limits$lambda["lower"], upper=limits$lambda["upper"], data=data,
-                                bc.list = bc.list)
-      bc.list <- NULL
-      if(is.R()) gc(verbose=FALSE)
+        lik.lambda.ns <- nlminb(par=1, fn = boxcox.negloglik,
+                                lower=limits$lambda["lower"], upper=limits$lambda["upper"],
+                                data = data, xmat = temp.list$xmat, lik.method = method.lik)
       lambda.ns <- lik.lambda.ns$par
-      tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
+      if(abs(lambda) < 0.0001) tdata.ns <- log(data)
+      else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
       beta.ns <- solve(crossprod(temp.list$xmat),crossprod(temp.list$xmat,tdata.ns))
       ss.ns <- sum((as.vector(tdata.ns - temp.list$xmat %*% beta.ns))^2)
       if(is.R())
         value.min.ns <- lik.lambda.ns$value
       else
         value.min.ns <- lik.lambda.ns$objective
-      if(method == "ML"){
+      if(method.lik == "ML"){
         loglik.ns <- (- value.min.ns)+ (n/2)*((-log(2*pi)) + log(n) - 1)
         nugget.ns <- ss.ns/n
       }
-      if(method == "RML"){
+      if(method.lik == "RML"){
         nugget.ns <- ss.ns/(n-beta.size)
         loglik.ns <- (- value.min.ns)+ ((n-beta.size)/2)*((-log(2*pi)) +
                                                           log(n-beta.size) - 1)
@@ -921,9 +919,7 @@
   ## Absurd values
   ##
   if(kappa < 1e-04) return(.Machine$double.xmax/10000)
-  if(round(1e+16*(tausq+sigmasq)) == 0) return(.Machine$double.xmax/10000)
-#  if(kappa < 1e-04) return(1e64)
-#  if(round(1e+16*(tausq+sigmasq)) == 0) return(1e64)
+  if((tausq+sigmasq) < 1e-16) return(.Machine$double.xmax/10000)
   ##
   ## Anisotropy
   ##
@@ -936,7 +932,7 @@
   ## Box-Cox transformation
   ##
   if(!ip$f.lambda){
-    if(round(lambda, dig=4) == 1) {
+    if(abs(lambda - 1) < 0.0001) {
       log.jacobian <- 0
     }
     else {
@@ -947,7 +943,7 @@
       else log.jacobian <- sum(log(data))
       data <- NULL
     }
-    if(round(lambda, dig=4) == 0)
+    if(abs(lambda) < 0.0001)
       data <- log(temp.list$z)
     else data <- ((temp.list$z^lambda) - 1)/lambda
   }
@@ -981,13 +977,13 @@
   betahat <- solve(xivx, xivy)
   res <- data - temp.list$xmat %*% betahat
   ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
-  if(temp.list$method == "ML"){
+  if(temp.list$method.lik == "ML"){
     if(ip$f.tausq & (tausq > 0))
       negloglik <- iv$log.det.to.half +  0.5 * ssres - log.jacobian
     else
       negloglik <- (n/2) * log(ssres) +  iv$log.det.to.half - log.jacobian
   }
-  if(temp.list$method == "RML"){
+  if(temp.list$method.lik == "RML"){
     if(length(as.vector(xivx)) == 1) {
       choldet <- 0.5 * log(xivx)
     }
@@ -1009,39 +1005,6 @@
     cat(paste("value of the log-likelihood =", -negloglik, "\n"))
   return(negloglik) 
 }
-
-"boxcox.ns" <- function(lambda, bc.list)
-{
-  data <- bc.list$data
-  n <- bc.list$n
-  ##
-  if(round(lambda, dig=4) == 1) {
-    log.jacobian <- 0
-    y <- data
-  }
-  else {
-    if(any(data <= 0))
-      stop("Transformation option not allowed when there are zeros or negative data")
-    Jdata <- data^(lambda - 1)
-    if(any(Jdata <= 0))
-      log.jacobian <- log(prod(Jdata))
-    else log.jacobian <- sum(log(Jdata))
-    Jdata <- NULL
-    if(is.R()) gc(verbose=FALSE)
-    if(round(lambda, dig=4) == 0)
-      y <- log(data)
-    else y <- ((data^lambda) - 1)/lambda
-  }
-  beta.ns <- solve(crossprod(bc.list$xmat), crossprod(bc.list$xmat, y))
-  ss.ns <- sum((as.vector(y) - as.vector(bc.list$xmat %*% beta.ns))^2)
-  if(bc.list$method == "ML")
-    neglik <- (n/2) * log(ss.ns) - log.jacobian
-  if(bc.list$method == "RML")
-    neglik <- ((n-bc.list$beta.size)/2) * log(ss.ns) - log.jacobian
-  ##
-  return(as.vector(neglik))
-}
-
 "likfit.limits" <-
   function(phi = c(lower=0, upper=+Inf),
            sigmasq = c(lower=0, upper=+Inf),
@@ -1093,57 +1056,57 @@
 }
 
 "print.likGRF" <-
-  function(obj, digits = "default", ...)
+  function(x, digits = "default", ...)
 {
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
-  est.pars <- as.vector(obj$parameters.summary[obj$parameters.summary[,1] == "estimated",2])
-  names.est.pars <- dimnames(obj$parameters.summary[obj$parameters.summary[,1] == "estimated",])[[1]]
+  est.pars <- as.vector(x$parameters.summary[x$parameters.summary[,1] == "estimated",2])
+  names.est.pars <- dimnames(x$parameters.summary[x$parameters.summary[,1] == "estimated",])[[1]]
   names(est.pars) <- names.est.pars
   cat("likfit: estimated model parameters:\n")
   print(round(est.pars, digits=digits))
   cat("\nlikfit: maximised log-likelihood = ")
-  cat(round(obj$loglik, digits=digits))
+  cat(round(x$loglik, digits=digits))
   cat("\n")
   return(invisible())
 }  
 
 "summary.likGRF" <-
-  function(obj, ...)
+  function(object, ...)
 {
-  names.pars <- dimnames(obj$parameters.summary)[[1]]
+  names.pars <- dimnames(object$parameters.summary)[[1]]
   summ.lik <- list()
-  if(obj$method == "ML")
-    summ.lik$method <- "maximum likelihood"
-  if(obj$method == "RML")
-    summ.lik$method <- "restricted maximum likelihood"
-  summ.lik$mean.component <- obj$beta
-  names(summ.lik$mean.component) <- names.pars[1:length(obj$beta)]
-  summ.lik$cov.model <- obj$cov.model
-  summ.lik$spatial.component <- obj$parameters.summary[c("sigmasq", "phi"),]
-  summ.lik$spatial.component.extra <- obj$parameters.summary[c("kappa", "psiA", "psiR"),]
-  summ.lik$nugget.component <- obj$parameters.summary[c("tausq"),, drop=FALSE]
-  summ.lik$transformation  <- obj$parameters.summary[c("lambda"),, drop=FALSE]
-  summ.lik$likelihood <- c(log.L = obj$loglik, n.params = as.integer(obj$npars),
-                               AIC = obj$AIC, BIC = obj$BIC)
-  summ.lik$estimated.pars <- dimnames(obj$parameters.summary[obj$parameters.summary[,1] == "estimated",])[[1]]
-  likelihood.info <- c(log.L = obj$loglik, n.params = as.integer(obj$npars),
-                       AIC = obj$AIC, BIC = obj$BIC)
-  summ.lik$call <- obj$call
+  if(object$method.lik == "ML")
+    summ.lik$method.lik <- "maximum likelihood"
+  if(object$method.lik == "RML")
+    summ.lik$method.lik <- "restricted maximum likelihood"
+  summ.lik$mean.component <- object$beta
+  names(summ.lik$mean.component) <- names.pars[1:length(object$beta)]
+  summ.lik$cov.model <- object$cov.model
+  summ.lik$spatial.component <- object$parameters.summary[c("sigmasq", "phi"),]
+  summ.lik$spatial.component.extra <- object$parameters.summary[c("kappa", "psiA", "psiR"),]
+  summ.lik$nugget.component <- object$parameters.summary[c("tausq"),, drop=FALSE]
+  summ.lik$transformation  <- object$parameters.summary[c("lambda"),, drop=FALSE]
+  summ.lik$likelihood <- c(log.L = object$loglik, n.params = as.integer(object$npars),
+                               AIC = object$AIC, BIC = object$BIC)
+  summ.lik$estimated.pars <- dimnames(object$parameters.summary[object$parameters.summary[,1] == "estimated",])[[1]]
+  likelihood.info <- c(log.L = object$loglik, n.params = as.integer(object$npars),
+                       AIC = object$AIC, BIC = object$BIC)
+  summ.lik$call <- object$call
   class(summ.lik) <- "summary.likGRF"
   return(summ.lik)
 }
 
 "print.summary.likGRF" <-
-  function(obj, digits = "default", ...)
+  function(x, digits = "default", ...)
 {
-  if(class(obj) != "summary.likGRF")
+  if(class(x) != "summary.likGRF")
     stop("object is not of the class \"summary.likGRF\"")
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
   cat("Summary of the parameter estimation\n")
   cat("-----------------------------------\n")
-  cat(paste("Estimation method:", obj$method, "\n"))
+  cat(paste("Estimation method:", x$method.lik, "\n"))
   cat("\n")
   ##
   ## Estimates of the model components
@@ -1151,29 +1114,29 @@
   ##
   cat("Parameters of the mean component (trend):")
   cat("\n")
-  print(round(obj$mean.component, digits=digits))
+  print(round(x$mean.component, digits=digits))
   cat("\n")
   ##
   cat("Parameters of the spatial component:")
   cat("\n")
-  cat(paste("   correlation function:", obj$cov.model))
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(obj$spatial.component[1,2], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(obj$spatial.component[2,2], dig=digits)))
-  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
-     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern"){
-    kappa <- obj$spatial.component.extra["kappa",2]
-    if(obj$spatial.component.extra["kappa",1] == "estimated")
+  cat(paste("   correlation function:", x$cov.model))
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(x$spatial.component[1,2], dig=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(x$spatial.component[2,2], dig=digits)))
+  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
+     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern"){
+    kappa <- x$spatial.component.extra["kappa",2]
+    if(x$spatial.component.extra["kappa",1] == "estimated")
       cat(paste("\n      (estimated) extra parameter kappa =", round(kappa, digits=digits)))
     else{
       cat(paste("\n      (fixed) extra parameter kappa = ", kappa))
-      if(obj$cov.model == "matern" & (round(kappa, digits=digits)  == 0.5))
+      if(x$cov.model == "matern" & (round(kappa, digits=digits)  == 0.5))
       cat(" (exponential)")
     }
   }
   cat("\n")
   ##
-  aniso <-  obj$spatial.component.extra[c("psiA", "psiR"),]
-  psiApsiR <- obj$spatial.component.extra[c("psiA", "psiR"),2]
+  aniso <-  x$spatial.component.extra[c("psiA", "psiR"),]
+  psiApsiR <- x$spatial.component.extra[c("psiA", "psiR"),2]
   cat("   anisotropy parameters:")
   if(aniso["psiA",1] == "estimated")
     cat(paste("\n      (estimated) anisotropy angle =",
@@ -1190,42 +1153,42 @@
   cat("\n")
   cat("\n")  
   cat("Parameter of the error component:")
-  if(obj$nugget.component[,1] == "estimated")
-    cat(paste("\n      (estimated) nugget = ", round(obj$nugget.component[,2], dig=digits)))
+  if(x$nugget.component[,1] == "estimated")
+    cat(paste("\n      (estimated) nugget = ", round(x$nugget.component[,2], dig=digits)))
   else
-    cat(paste("\n      (fixed) nugget =", obj$nugget.component[,2]))
+    cat(paste("\n      (fixed) nugget =", x$nugget.component[,2]))
   cat("\n")
   cat("\n")
   cat("Transformation parameter:")
   cat("\n")
-  lambda <- obj$transformation[,2]
-  if(obj$transformation[,1] == "estimated")
+  lambda <- x$transformation[,2]
+  if(x$transformation[,1] == "estimated")
     cat(paste("      (estimated) Box-Cox parameter =", round(lambda, dig=digits)))
   else{
     cat(paste("      (fixed) Box-Cox parameter =", lambda))
-    if(lambda == 1) cat(" (no transformation)")
-    if(lambda == 0) cat(" (log-transformation)")
+    if(abs(lambda - 1) <  0.0001) cat(" (no transformation)")
+    if(abs(lambda) < 0.0001) cat(" (log-transformation)")
   }
   cat("\n")
   cat("\n")
   cat("Maximised Likelihood:")
   cat("\n")
-  print(round(obj$likelihood, digits=digits))
+  print(round(x$likelihood, digits=digits))
   cat("\n")
   cat("Call:")
   cat("\n")
-  print(obj$call)
+  print(x$call)
   cat("\n")
-  invisible(obj)
+  invisible(x)
 }
 
 "loglik.GRF" <-
-  function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method="ML", compute.dists = TRUE)
+  function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method.lik="ML", compute.dists = TRUE)
 {
-  if(method == "REML" | method == "reml" | method == "rml") 
-    method <- "RML"
-  if(method == "ML" | method == "ml")
-    method <- "ML"
+  if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
+    method.lik <- "RML"
+  if(method.lik == "ML" | method.lik == "ml")
+    method.lik <- "ML"
   n <- nrow(coords)
   xmat <- trend.spatial(trend=trend, coords=coords)
   beta.size <- ncol(xmat)
@@ -1236,9 +1199,7 @@
   ## Absurd values
   ##
   if(kappa < 1e-04) return(-(.Machine$double.xmax/10000))
-  if(round(1e+16*(nugget+sigmasq)) == 0) return(-(.Machine$double.xmax/10000))
-#  if(kappa < 1e-04) return(-1e64)
-#  if(round(1e+16*(nugget+sigmasq)) == 0) return(-1e64)
+  if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax/10000))
   ##
   ## Anisotropy
   ##
@@ -1251,9 +1212,8 @@
   ##
   ## Box-Cox transformation
   ##
-  if(round(lambda, dig=4) == 1) {
+  if(abs(lambda - 1) < 0.0001)
     log.jacobian <- 0
-  }
   else {
     if(any(z <= 0))
       stop("Transformation not allowed for zero or negative data")
@@ -1261,7 +1221,7 @@
     if(any(data <= 0)) log.jacobian <- log(prod(data))
     else log.jacobian <- sum(log(data))
     data <- NULL
-    if(round(lambda, dig=4) == 0)
+    if(abs(lambda) < 0.0001)
       data <- log(z)
     else data <- ((z^lambda) - 1)/lambda
   }
@@ -1294,10 +1254,10 @@
   betahat <- solve(xivx, xivy)
   res <- data - xmat %*% betahat
   ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
-  if(method == "ML"){
+  if(method.lik == "ML"){
     negloglik <- (n/2)*(log(2*pi)) + iv$log.det.to.half +  0.5 * ssres - log.jacobian
   }
-  if(method == "RML"){
+  if(method.lik == "RML"){
     if(length(as.vector(xivx)) == 1) {
       choldet <- 0.5 * log(xivx)
     }

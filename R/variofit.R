@@ -328,85 +328,85 @@
 }
 
 "print.variomodel" <-
-  function(obj, digits = "default", ...)
+  function(x, digits = "default", ...)
 {
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
-  if(obj$fix.nugget){
-    est.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-    if(obj$fix.kappa == FALSE)
-      est.pars <- c(est.pars, kappa = obj$kappa)
+  if(x$fix.nugget){
+    est.pars <- c(sigmasq = x$cov.pars[1], phi=x$cov.pars[2])
+    if(x$fix.kappa == FALSE)
+      est.pars <- c(est.pars, kappa = x$kappa)
   }
   else{
-    est.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])    
-    if(obj$fix.kappa == FALSE)
-      est.pars <- c(est.pars, kappa = obj$kappa)
+    est.pars <- c(tausq = x$nugget, sigmasq = x$cov.pars[1], phi=x$cov.pars[2])    
+    if(x$fix.kappa == FALSE)
+      est.pars <- c(est.pars, kappa = x$kappa)
   }
-  if(obj$weights == "equal")
+  if(x$weights == "equal")
     cat("variofit: model parameters estimated by OLS (ordinary least squares):\n")
   else
     cat("variofit: model parameters estimated by WLS (weighted least squares):\n")
-  cat(paste("covariance model is:", obj$cov.model))
-  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
-     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern")
-    if(obj$fix.kappa) cat(paste(" with fixed kappa =", obj$kappa)) 
-  if(obj$cov.model == "matern" & obj$fix.kappa & obj$kappa == 0.5)
+  cat(paste("covariance model is:", x$cov.model))
+  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
+     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern")
+    if(x$fix.kappa) cat(paste(" with fixed kappa =", x$kappa)) 
+  if(x$cov.model == "matern" & x$fix.kappa & x$kappa == 0.5)
     cat(" (exponential)")
   cat("\n")
-  if(obj$fix.nugget)
-    cat(paste("fixed value for tausq = ", obj$nugget,"\n"))
+  if(x$fix.nugget)
+    cat(paste("fixed value for tausq = ", x$nugget,"\n"))
   cat("parameter estimates:\n")
   print(round(est.pars, digits=digits))
-  if(obj$weights == "equal")
+  if(x$weights == "equal")
     cat("\nvariofit: minimised sum of squares = ")
   else
       cat("\nvariofit: minimised weighted sum of squares = ")
-  cat(round(obj$value, digits=digits))
+  cat(round(x$value, digits=digits))
   cat("\n")
   return(invisible())
 }  
 
 "summary.variomodel" <-
-  function(obj)
+  function(object, ...)
 {
   summ.lik <- list()
-  if(obj$weights == "equal")
+  if(object$weights == "equal")
     summ.lik$pmethod <- "OLS (ordinary least squares)"
   else
     summ.lik$pmethod <- "WLS (weighted least squares)"
-  summ.lik$cov.model <- obj$cov.model
-  summ.lik$spatial.component <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-  summ.lik$spatial.component.extra <- c(kappa = obj$kappa)
-  summ.lik$nugget.component <- c(tausq = obj$nugget)
-  summ.lik$fix.nugget <- obj$fix.nugget
-  summ.lik$fix.kappa <- obj$fix.kappa
-  summ.lik$sum.of.squares <- c(value = obj$value)
-  if(obj$fix.nugget){
-    summ.lik$estimated.pars <- c(sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-    if(obj$fix.kappa == FALSE)
-      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = obj$kappa)
+  summ.lik$cov.model <- object$cov.model
+  summ.lik$spatial.component <- c(sigmasq = object$cov.pars[1], phi=object$cov.pars[2])
+  summ.lik$spatial.component.extra <- c(kappa = object$kappa)
+  summ.lik$nugget.component <- c(tausq = object$nugget)
+  summ.lik$fix.nugget <- object$fix.nugget
+  summ.lik$fix.kappa <- object$fix.kappa
+  summ.lik$sum.of.squares <- c(value = object$value)
+  if(object$fix.nugget){
+    summ.lik$estimated.pars <- c(sigmasq = object$cov.pars[1], phi=object$cov.pars[2])
+    if(object$fix.kappa == FALSE)
+      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = object$kappa)
   }
   else{
-    summ.lik$estimated.pars <- c(tausq = obj$nugget, sigmasq = obj$cov.pars[1], phi=obj$cov.pars[2])
-    if(obj$fix.kappa == FALSE)
-      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = obj$kappa)
+    summ.lik$estimated.pars <- c(tausq = object$nugget, sigmasq = object$cov.pars[1], phi=object$cov.pars[2])
+    if(object$fix.kappa == FALSE)
+      summ.lik$estimated.pars <- c(summ.lik$estimated.pars, kappa = object$kappa)
   }
-  summ.lik$weights <- obj$weights
-  summ.lik$call <- obj$call
+  summ.lik$weights <- object$weights
+  summ.lik$call <- object$call
   class(summ.lik) <- "summary.variomodel"
   return(summ.lik)
 }
 
 "print.summary.variomodel" <-
-  function(obj, digits = "default", ...)
+  function(x, digits = "default", ...)
 {
-  if(class(obj) != "summary.variomodel")
+  if(class(x) != "summary.variomodel")
     stop("object is not of the class \"summary.variomodel\"")
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
   cat("Summary of the parameter estimation\n")
   cat("-----------------------------------\n")
-  cat(paste("Estimation method:", obj$pmethod, "\n"))
+  cat(paste("Estimation method:", x$pmethod, "\n"))
   cat("\n")
   ##
   ## Estimates of the model components
@@ -414,44 +414,44 @@
   ##
 #  cat("Parameters of the mean component (trend):")
 #  cat("\n")
-#  print(round(obj$mean.component, digits=digits))
+#  print(round(x$mean.component, digits=digits))
 #  cat("\n")
   ##
   cat("Parameters of the spatial component:")
   cat("\n")
-  cat(paste("   correlation function:", obj$cov.model))
-  if(obj$cov.model == "matern" & obj$fix.kappa & obj$spatial.component.extra == 0.5)
+  cat(paste("   correlation function:", x$cov.model))
+  if(x$cov.model == "matern" & x$fix.kappa & x$spatial.component.extra == 0.5)
     cat(" (exponential)")
-  if(obj$cov.model == "matern" | obj$cov.model == "powered.exponential" |
-     obj$cov.model == "cauchy" | obj$cov.model == "gneiting.matern"){
-    if(obj$fix.kappa)
-      cat(paste("\n      (fixed) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
+  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
+     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern"){
+    if(x$fix.kappa)
+      cat(paste("\n      (fixed) extra parameter kappa = ", round(x$spatial.component.extra, digits=digits)))
     else
-      cat(paste("\n      (estimated) extra parameter kappa = ", round(obj$spatial.component.extra, digits=digits)))
+      cat(paste("\n      (estimated) extra parameter kappa = ", round(x$spatial.component.extra, digits=digits)))
   }
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(obj$spatial.component[1], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(obj$spatial.component[2], dig=digits)))
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(x$spatial.component[1], dig=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(x$spatial.component[2], dig=digits)))
   cat("\n")
   ##
   cat("\n")  
   cat("Parameter of the error component:")
-  if(obj$fix.nugget)
-    cat(paste("\n      (fixed) nugget =", round(obj$nugget.component, digits = digits)))
+  if(x$fix.nugget)
+    cat(paste("\n      (fixed) nugget =", round(x$nugget.component, digits = digits)))
   else
-    cat(paste("\n      (estimated) nugget = ", round(obj$nugget.component, dig=digits)))
+    cat(paste("\n      (estimated) nugget = ", round(x$nugget.component, dig=digits)))
   cat("\n")
   cat("\n")
-  names(obj$sum.of.squares) <- NULL
-  if(obj$weights == "equal") cat("Minimised sum of squares: ")
+  names(x$sum.of.squares) <- NULL
+  if(x$weights == "equal") cat("Minimised sum of squares: ")
   else cat("Minimised weighted sum of squares: ")
-  cat(round(obj$sum.of.squares, digits=digits))
+  cat(round(x$sum.of.squares, digits=digits))
   cat("\n")
   cat("\n")
   cat("Call:")
   cat("\n")
-  print(obj$call)
+  print(x$call)
   cat("\n")
-  invisible(obj)
+  invisible(x)
 }
 
 ##"beta.variofit" <-
