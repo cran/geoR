@@ -1,5 +1,33 @@
 
 		=============================
+		CHANGES IN geoR VERSION 1.3-9
+		=============================
+
+NEW FEATURES
+	
+     o new method function summary.geodata
+	
+     o changes in plot.geodata: histogram now drawn instead of the "spike" plot
+       package scatterplot3d is not longer required for geoR
+
+     o trySilent() from package `methods` is now using in several geoR's functions
+       replacing "not as elegant" previous code    
+
+BUGS
+
+     o internal changes in structures of the type is.null(class())
+       to avoid problems with "methods" in R-1.7.0
+
+     o internal changes in some functions to satisfy checks in R-1.7.0
+
+     o several minor adjusts in the documentation
+
+     o bug fix in solve.geoR
+
+     o removal of unnecessary element $cov in the ca20 data-set
+
+
+		=============================
 		CHANGES IN geoR VERSION 1.3-8
 		=============================
 
@@ -11,6 +39,7 @@ NEW FEATURES
 BUGS
 
      o bug fix prevents crash in variog4
+
 
      o krige.conv no longer accepts nested covariance models to avoid a bug
        (this may be re-implemented in the future)

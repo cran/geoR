@@ -39,7 +39,7 @@
   if(missing(model))
     model <- model.control()
   else{
-    if(is.null(class(model)) || class(model) != "model.geoR"){
+    if(length(class(model)) == 0 || class(model) != "model.geoR"){
       if(!is.list(model))
         stop("krige.bayes: the argument model only takes a list or an output of the function model.control")
       else{
@@ -77,7 +77,7 @@
   if(missing(prior))
     prior <- prior.control()
   else{
-    if(is.null(class(prior)) || class(prior) != "prior.geoR"){
+    if(length(class(prior)) == 0 || class(prior) != "prior.geoR"){
       if(!is.list(prior))
         stop("krige.bayes: the argument prior only takes a list or an output of the function prior.control")
       else{
@@ -193,7 +193,7 @@
   if(missing(output))
     output <- output.control()
   else{
-    if(is.null(class(output)) || class(output) != "output.geoR"){
+    if(length(class(output)) == 0 || class(output) != "output.geoR"){
       if(!is.list(output))
         stop("krige.bayes: the argument output only takes a list or an output of the function output.control")
       else{
@@ -322,8 +322,8 @@
         stop("krige.bayes: model$trend.d and model$trend.l must have similar specification\n")
     }
     else{
-      if((!is.null(class(model$trend.d)) && class(model$trend.d) == "trend.spatial") &
-         (!is.null(class(model$trend.l)) && class(model$trend.l) == "trend.spatial")){
+      if((length(class(model$trend.d)) > 0 && class(model$trend.d) == "trend.spatial") &
+         (length(class(model$trend.l)) > 0 && class(model$trend.l) == "trend.spatial")){
         if(ncol(model$trend.d) != ncol(model$trend.l))
           stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
       }
@@ -511,12 +511,12 @@
     if(is.null(phi.discrete)){
       phi.discrete <- seq(0, 2 * data.dist.max, l=51)[-1]
       if(messages.screen)
-        cat("krige.bayes: argument \"phi.discrete\" not provided, using default values\n")
+        cat("krige.bayes: argument `phi.discrete` not provided, using default values\n")
     } 
     if(!is.numeric(phi.discrete))
       stop("non-numerical value provided in phi.discrete")
     if(length(phi.discrete) == 1)
-      stop("only one value provided in phi.discrete. Use prior.phi=\"fixed\"")
+      stop("only one value provided in phi.discrete. Use prior.phi=`fixed`")
     n.phi.discrete <- length(phi.discrete)
     n.tausq.rel.discrete <- length(tausq.rel.discrete)
     phi.names <- paste("phi", phi.discrete, sep="")
@@ -1238,10 +1238,9 @@
 
 "post2prior" <- function(obj)
 {
-  if(class(obj) == "krige.bayes")
-    obj <- obj$posterior
-  if(class(obj) != "posterior.krige.bayes")
-    stop("post.prior: argument must be an object of the class \"krige.bayes\" or \"posterior.krige.bayes\"")
+  if(any(class(obj) == "krige.bayes")) obj <- obj$posterior
+  if(all(class(obj) != "posterior.krige.bayes"))
+    stop("post.prior: argument must be an object of the class `krige.bayes` or `posterior.krige.bayes`")
   ##
   ## beta
   ##
@@ -1335,20 +1334,20 @@
     stop("prior.control: argument beta must be provided with fixed prior for this parameter")
   if(beta.prior == "normal"){
     if(is.null(beta) | is.null(beta.var.std))
-      stop("prior.control: arguments \"beta\" and \"beta.var.std\" must be provided with normal prior for the parameter beta")
+      stop("prior.control: arguments `beta` and `beta.var.std` must be provided with normal prior for the parameter beta")
   }
   ##
   ## sigmasq
   ##
   sigmasq.prior <- match.arg(sigmasq.prior)
   if(sigmasq.prior == "fixed" & is.null(sigmasq))
-    stop("prior.control: argument \"sigmasq\" must be provided with fixed prior for the parameter sigmasq")
+    stop("prior.control: argument `sigmasq' must be provided with fixed prior for the parameter sigmasq")
   if(sigmasq.prior == "sc.inv.chisq")
     if(is.null(sigmasq) | is.null(df.sigmasq))
-      stop("prior.control: arguments \"sigmasq\" and \"df.sigmasq\" must be provided for this choice of prior distribution")
+      stop("prior.control: arguments `sigmasq` and `df.sigmasq' must be provided for this choice of prior distribution")
   if(!is.null(sigmasq))
-    if(sigmasq < 0)
-      stop("prior.control: negative values not allowed for \"sigmasq\"")
+    if(any(sigmasq < 0))
+      stop("prior.control: negative values not allowed for `sigmasq'")
   ##
   ## phi
   ##
@@ -1368,13 +1367,13 @@
     phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
   if(phi.prior == "fixed"){
     if(is.null(phi)){
-      stop("prior.control: argument \"phi\" must be provided with fixed prior for this parameter")
+      stop("prior.control: argument `phi` must be provided with fixed prior for this parameter")
     }
     phi.discrete <- phi
   }
   else{
     if(phi.prior == "exponential" & (is.null(phi) | (length(phi) > 1)))
-      stop("prior.control: argument \"phi\" must be provided when using the exponential prior for the parameter phi")
+      stop("prior.control: argument `phi` must be provided when using the exponential prior for the parameter phi")
     ##    if(any(phi.prior == c("reciprocal", "squared.reciprocal")) &
     ##       any(phi.discrete == 0)){
     ##      warning("degenerated prior at phi = 0. Excluding value phi.discrete[1] = 0")
@@ -1383,7 +1382,7 @@
     if(!is.null(phi.discrete)){
       discrete.diff <- diff(phi.discrete)
       if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-        stop("prior.control: the current implementation requires equally spaced values in the argument \"phi.discrete\"\n")
+        stop("prior.control: the current implementation requires equally spaced values in the argument `phi.discrete`\n")
     }
   }
   if(any(phi.discrete < 0))
@@ -1407,15 +1406,15 @@
     tausq.rel.prior <- match.arg(tausq.rel.prior)
   if(tausq.rel.prior == "fixed"){
     if(is.null(tausq.rel))
-      stop("prior.control: argument \"tausq.rel\" must be provided with fixed prior for the parameter tausq.rel")
+      stop("prior.control: argument `tausq.rel` must be provided with fixed prior for the parameter tausq.rel")
     tausq.rel.discrete <- tausq.rel
   }
   else{
     if(is.null(tausq.rel.discrete))
-      stop("prior.control: argument \"tausq.rel.discrete\" must be provided with chosen prior for the parameter tausq.rel")  
+      stop("prior.control: argument `tausq.rel.discrete` must be provided with chosen prior for the parameter tausq.rel")  
     discrete.diff <- diff(tausq.rel.discrete)
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("prior.control: the current implementation requires equally spaced values in the argument \"tausq.rel.discrete\"\n")
+      stop("prior.control: the current implementation requires equally spaced values in the argument `tausq.rel.discrete`\n")
   }
   if(any(tausq.rel.discrete) < 0)
     stop("prior.control: negative values not allowed for parameter tausq.rel")
@@ -1440,9 +1439,10 @@
       else{
         if((length(beta))^2 != length(beta.var.std))
           stop("prior.control: beta and beta.var.std have incompatible dimensions")
-        if(inherits(try(solve.geoR(beta.var.std)), "try-error"))
+        require(methods)
+        if(inherits(trySilent(solve.geoR(beta.var.std)), "try-error"))
           stop("prior.control: singular matrix in beta.var.std")
-        if(inherits(try(chol(beta.var.std)), "try-error"))
+        if(inherits(trySilent(chol(beta.var.std)), "try-error"))
           stop("prior.control: no Cholesky decomposition for beta.var.std")
         if(any(beta.var.std != t(beta.var.std)))
           stop("prior.control: non symmetric matrix in beta.var.std")
@@ -1654,7 +1654,7 @@
   ##
   ## 1. Computing parameters of posterior for beta
   ##
-  if(beta.info$iv == Inf){
+  if(any(beta.info$iv == Inf)){
     beta.post <- beta.info$beta.fixed
     beta.var.std.post <- 0
     inv.beta.var.std.post <- Inf
@@ -1674,7 +1674,7 @@
   else{
     df.post <- n + sigmasq.info$df.sigmasq - beta.info$p
     ##
-    if(beta.info$iv == Inf){
+    if(any(beta.info$iv == Inf)){
       S2.post <- sigmasq.info$n0S0 + yiRy -
         2*crossprod(beta.post, xiRy.x[,1]) +
         crossprod(beta.post, (xiRy.x[,-1] %*% beta.post))
@@ -1976,11 +1976,12 @@
   function(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
            type = c("bars", "h", "l", "b", "o", "p"), thin, ...)
 {
-  if(class(x) != "krige.bayes")
-    stop("object x must be of the class \"krige.bayes\"")
+  if(all(class(x) != "krige.bayes"))
+    stop("object x must be of the class `krige.bayes`")
   if(missing(thin)) thin <- c(1,1)
   if(length(thin) == 1) thin <- rep(thin, 2)
   ##
+  type <- match.arg(type)
   ldots <- list(...)
   if(is.null(ldots$col)){
     if(type == "bars") col <- 0:1
@@ -1996,7 +1997,7 @@
   ##
   if(phi.dist){
     if(x$prior$phi$status == "fixed")
-      cat("parameter \"phi\" is fixed\n")
+      cat("parameter `phi` is fixed\n")
     else{
       phi.vals <- x$posterior$phi$phi.marginal[,"phi"]
       phi.off <- 0.1 * diff(phi.vals[1:2])
@@ -2025,7 +2026,7 @@
   }
   if(tausq.rel.dist){
     if(x$prior$tausq.rel$status == "fixed")
-      cat("parameter \"tausq.rel\" is fixed\n")
+      cat("parameter `tausq.rel` is fixed\n")
     else{
       tausq.rel.vals <- x$posterior$tausq.rel$tausq.rel.marginal[,"tausq.rel"]
       tausq.rel.off <- 0.1 * diff(tausq.rel.vals[1:2])
@@ -2152,12 +2153,13 @@
     else my.l$kappa <- NULL
   }
   ##
+  posterior <- match.arg(posterior)
   if(is.function(summary.posterior)) spost <- post.fc <- summary.posterior
   else spost <- match.arg(summary.posterior, choices = c("mode", "median", "mean"))
   ##
   if(!is.null(x$posterior$sample) & posterior == "variogram"){
     if(!is.function(spost))
-      stop("summary.posterior must be a function when posterior = \"variogram\"")
+      stop("summary.posterior must be a function when posterior = `variogram`")
     if(missing(uvec)) my.l$uvec <- seq(0, my.l$max.dist, l=51)
     calc.vario <- function(x, info = my.l){
       return((x[1] * (1 + x[3])) -
@@ -2172,7 +2174,7 @@
   }
   else{
     if(is.function(spost))
-      stop("summary.posterior must be one of \"mean\", \"median\" or \"mode\" when posterior = \"parameters\"")
+      stop("summary.posterior must be one of `mean`, `median` or `mode` when posterior = `parameters`")
     if(spost == "mode")
       spost1 <- "mode.cond"
     else spost1 <- spost

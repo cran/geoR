@@ -65,7 +65,7 @@
 }
 
 \examples{
-## See examples in the documentation of the function krige.bayes
+## See documentation for krige.bayes
 }
 
 \keyword{spatial}

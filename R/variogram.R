@@ -254,8 +254,7 @@
       }
     }
     if (option == "smooth") {
-      if (is.R()) 
-        require(modreg)
+      if (is.R()) require(modreg)
       if (is.matrix(v)) 
         stop("smooth not yet available for several variables")
       temp <- ksmooth(u, v, ...)
@@ -665,8 +664,9 @@
   result <- list(u = u, v = v, n = n, sd = sd, output.type = "bin", bins.lim = bins.lim)
   if (!is.matrix(cloud$v) && bin.cloud == TRUE) 
     result$bin.cloud <- bins.clouds
-  if (!is.null(class(cloud))) 
-    class(result) <- class(cloud)
+  ##  if (!is.null(class(cloud))) 
+  if (length(class(cloud)) > 0) 
+  class(result) <- class(cloud)
   return(result)
 }
 

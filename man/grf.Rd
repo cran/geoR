@@ -140,8 +140,8 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     and to unconditional simulation of random fields}. Tech. Report
   ST--99--10, Dept Maths and Stats, Lancaster University.
   
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 

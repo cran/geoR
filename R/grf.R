@@ -1,5 +1,5 @@
 "grf" <-
-  function(n, grid = "irreg",
+  function(n, grid = "irreg", 
            nx, ny, xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
            cov.model = "matern",
            cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
@@ -51,6 +51,7 @@
   ##
   ## defining the locations for the simulated data
   ##
+  if(is.character(grid)) grid <- match.arg(grid, choices=c("irreg", "reg"))
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
     if (messages.screen) 
@@ -75,7 +76,7 @@
         if(diff(xlims) == 0) nx <- 1
         else nx <- n
       else
-        if(grid == "reg") nx <- round(sqrt(n))
+        if(is.character(grid) && grid == "reg") nx <- round(sqrt(n))
         else nx <- n
     }
     if(missing(ny)){
@@ -83,13 +84,13 @@
         if(diff(ylims) == 0) ny <- 1
         else ny <- n
       else
-        if(grid == "reg") ny <- round(sqrt(n))
+        if(is.character(grid) && grid == "reg") ny <- round(sqrt(n))
         else ny <- n
     }
     ##
     ## defining the grid
     ##
-    if (grid == "irreg") {
+    if (is.character(grid) && grid == "irreg") {
       results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]),
                               y = runif(ny, ylims[1], ylims[2]))
       if (messages.screen) 
@@ -137,7 +138,7 @@
   }
   else {
     if (method == "circular.embedding") {
-      if (grid == "irreg") 
+      if (is.character(grid) && grid == "irreg") 
         stop("Option for \"circular.embedding\" algorithm only allowed for regular grids. You might have to include the argument grid=\"reg\"")
       if(cov.model == "power")
         stop("power covariance model not implemented for the circular embedding method") 
@@ -215,7 +216,7 @@
                               sim.dim = ifelse(sim1d, "1d", "2d"),
                               .Random.seed = rseed, messages = messa,
                               call = call.fc))
-  if(grid == "reg"){
+  if(is.character(grid) && grid == "reg"){
     if(equal.spacing) attr(results, "spacing") <- xspacing
     else{
       attr(results, "xspacing") <- xspacing

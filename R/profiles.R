@@ -1413,7 +1413,7 @@ function(phi.lambda, ...)
 "plot.proflik" <-
   function(x, pages = c("user", "one", "two"),
            uni.only, bi.only, type.bi = c("contour", "persp"),
-           conf.int = c(0.90000000000000002,0.94999999999999996),
+           conf.int = c(0.90,0.95),
            yaxis.lims = c("conf.int", "as.computed"),
            by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
            par.mar.persp = c(0, 0, 0, 0), ask = FALSE, 

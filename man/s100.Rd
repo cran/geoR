@@ -3,10 +3,16 @@
 \alias{s100}
 \alias{s121}
 
-\non_function{s100, s121}
+\non_function{}
 
 \title{Simulated Data-Sets which Illustrate the Usage of the Package
   geoR  }
+
+\usage{
+data(s100)
+
+data(s121)
+}
 
 \description{
   These two simulated data sets are the ones used in the Technical
@@ -16,11 +22,6 @@
   documentation.
 }
 
-\usage{
-data(s100)
-
-data(s121)
-}
 
 \format{
   Two objects of the \code{\link{class}} \code{geodata}. Both are lists
@@ -42,9 +43,9 @@ data(s121)
   library for S-PLUS. \emph{Technical report ST-99-09, Dept of Maths and
   Stats, Lancaster University}. 
   
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \keyword{datasets}
-\keyword{spatial}
+

@@ -12,7 +12,8 @@
   if(missing(krige))
     krige <- krige.control()
   else{
-    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
+##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
+    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
       if(!is.list(krige))
         stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
       else{
@@ -73,7 +74,8 @@
   if(missing(output))
     output <- output.control()
   else{
-    if(is.null(class(output)) || class(output) != "output.geoR"){
+    ##    if(is.null(class(output)) || class(output) != "output.geoR"){
+    if(length(class(krige)) == 0 || class(output) != "output.geoR"){
       if(!is.list(output))
         stop("krige.conv: the argument output can take only a list or an output of the function output.control")
       else{
@@ -493,8 +495,10 @@
       stop("krige.control: trend.d and trend.l must have similar specification")
   }
   else{
-    if((!is.null(class(trend.d)) && class(trend.d) == "trend.spatial") &
-       (!is.null(class(trend.l)) && class(trend.l) == "trend.spatial")){
+##    if((!is.null(class(trend.d)) && class(trend.d) == "trend.spatial") &
+##       (!is.null(class(trend.l)) && class(trend.l) == "trend.spatial")){
+    if((length(class(trend.d)) > 0 && class(trend.d) == "trend.spatial") &
+       (length(class(trend.l)) > 0 && class(trend.l) == "trend.spatial")){
       if(ncol(trend.d) != ncol(trend.l))
         stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
     }

@@ -181,8 +181,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
 
   Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
   
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \author{

@@ -1,8 +1,8 @@
 \name{ca20}
 \alias{ca20}
-\non_function{ca20}
+\non_function{}
 \title{Calcium content in soil samples}
-
+\usage{data(ca20)}
 \description{
   This data set contains the calcium content measured in soil samples
   taken from the 0-20cm layer at 178 locations within a certain study area divided in three
@@ -15,8 +15,6 @@
   The third region has recieved fertilizers recently and is frequently
   used as an experimental area.
 }
-
-\usage{data(ca20)}
 
 \format{
   The object \code{ca20} belongs to the class \code{geodata}
@@ -58,9 +56,8 @@
 }
 
 \references{
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \keyword{datasets}
-\keyword{spatial}

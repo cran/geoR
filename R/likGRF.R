@@ -672,7 +672,8 @@
   if(length(lik.results$beta.var) == 1)
     lik.results$beta.var <- as.vector(lik.results$beta.var)
   if(length(lik.results$beta) > 1){
-    if(inherits(trend, "formula") || (!is.null(class(trend)) && class(trend=="trend.spatial")))
+    ##    if(inherits(trend, "formula") || (!is.null(class(trend)) && any(class(trend) == "trend.spatial")))
+    if(inherits(trend, "formula") || (length(class(trend)) > 0 && any(class(trend) == "trend.spatial")))
       beta.names <- c("intercept", paste("covar", 1:(ncol(xmat)-1), sep = ""))
     else
       if(trend == "1st")
@@ -1069,13 +1070,14 @@
     sivy <- crossprod(iv$sqrt.inverse, z)
     xivy <- crossprod(sivx, sivy)
     betahat <- solve.geoR(xivx, xivy)
-   if(inherits(betahat, "try-error")){
-        error.now <- options()$show.error.message
-      options(show.error.messages = FALSE)
+    if(inherits(betahat, "try-error")){
+      ## error.now <- options()$show.error.message
+      ## options(show.error.messages = FALSE)
+      require(methods)
       t.ei <- eigen(xivx, symmetric = TRUE)
-      betahat <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
-      if(is.null(error.now) || error.now == TRUE)
-        options(show.error.messages = TRUE)        
+      betahat <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
+      ##if(is.null(error.now) || error.now == TRUE)
+      ##  options(show.error.messages = TRUE)        
     }
     if(inherits(betahat, "try-error"))
       stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude") 
@@ -1410,26 +1412,5 @@
   return(as.vector(-sumnegloglik))
 }
 
-"solve.geoR" <-
-  function(a, b = NULL, ...)
-{
-  error.now <- options()$show.error.message
-  options(show.error.messages = FALSE)
-  if(is.null(b))
-    res <- try(solve(a, ...))
-  else
-    res <- try(solve(a, b, ...))
-  if(inherits(res, "try-error")){
-    t.ei <- eigen(a, symmetric = TRUE)
-    if(is.null(b))
-      res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
-    else
-      res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
-  }  
-  if(is.null(error.now) || error.now == TRUE)
-    options(show.error.messages = TRUE)        
-  if(inherits(res, "try-error"))
-    stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude")
-  return(res)
-}
+
 

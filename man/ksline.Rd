@@ -159,8 +159,8 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \note{

@@ -1,3 +1,72 @@
+"summary.geodata" <- function(object, ...)
+{
+  x <- object
+  res <- list()
+  res$coords.summary <- apply(x$coords, 2, range)
+  rownames(res$coords.summary) <- c("min", "max")
+  if(!is.null(x$borders)){
+    res$borders.summary <- apply(x$borders, 2, range)
+    rownames(res$borders.summary) <- c("min", "max")
+  }
+  res$data.summary <- drop(apply(as.matrix(x$data), 2, summary))
+  if(!is.null(x$units.m))
+    res$units.m.summary <- drop(apply(as.matrix(x$units.m), 2, summary))
+  if(!is.null(x$covariate))
+    res$covariate.summary <- summary(x$covariate)
+  return(res)
+}
+
+"print.summary.geodata" <- function(x, ...)
+{
+  cat("Coordinates summary\n")
+  print(x$coords.summary)
+  if(!is.null(x$borders.summary)){
+    cat("\nBorders summary\n")
+    print(x$borders.summary)
+  }
+  cat("\nData summary\n")
+  print(x$data.summary)
+  if(!is.null(x$units.m.summary)){
+    cat("\nOffset variable summary\n")
+    print(x$units.m.summary)
+  }
+  if(!is.null(x$covariate.summary)){
+    cat("\nCovariates summary\n")
+    print(x$covariate.summary)
+  }
+  return(invisible())
+}
+
+"solve.geoR" <-
+  function (a, b = NULL, ...) 
+{
+  require(methods)
+  a <- eval(a)
+  b <- eval(b)
+##  error.now <- options()$show.error.messages
+##  if (is.null(error.now) | error.now) 
+##    on.exit(options(show.error.messages = TRUE))
+##  options(show.error.messages = FALSE)
+  if (is.null(b)) res <- trySilent(solve(a, ...))
+  else res <- trySilent(solve(a, b, ...))
+  if (inherits(res, "try-error")) {
+    test <- all.equal.numeric(a, t(a), 100 * .Machine$double.eps)
+    if(!(is.logical(test) && test)){
+##      options(show.error.messages = TRUE)
+      stop("matrix `a' is not symmetric")
+    }
+    t.ei <- eigen(a, symmetric = TRUE)
+    if (is.null(b)) 
+      res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
+    else res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
+    if (any(is.na(res)) | any(is.nan(res)) | any(is.infinite(res))) 
+      class(res) <- "try-error"
+  }
+  if (inherits(res, "try-error")) 
+    stop("Singular matrix. Covariates may have different orders of magnitude.")
+  return(res)
+}
+
 "trend.spatial" <-
   function (trend, geodata) 
 {
@@ -10,7 +79,8 @@
     on.exit(detach("geodata"), add=TRUE)
   }
   if (inherits(trend, "formula")) {
-    trend.mat <- try(model.matrix(trend))
+    require(methods)
+    trend.mat <- trySilent(model.matrix(trend))
     if (inherits(trend.mat, "try-error")) 
       stop("\ntrend elements not found")
   }
@@ -53,17 +123,17 @@
 #      class(trend.mat) <- "try-error"
 #    }
 #    else
-#      trend.mat <- try(model.matrix(trend, data = trend.frame))
+#      trend.mat <- trySilent(model.matrix(trend, data = trend.frame))
 #    if (inherits(trend.mat, "try-error")) {
 #      if (!is.null(geodata$covariate))
 #        trend.mat <-
-#          try(model.matrix(trend, 
+#          trySilent(model.matrix(trend, 
 #                           data = as.data.frame(geodata$covariate)))
 #      if (inherits(trend.mat, "try-error"))
 #      	if(is.data.frame(geodata$data) | is.list(geodata$data))
-#          trend.mat <- try(model.matrix(trend, data = as.data.frame(geodata$data)))
+#          trend.mat <- trySilent(model.matrix(trend, data = as.data.frame(geodata$data)))
 #      if (inherits(trend.mat, "try-error")) 
-#        trend.mat <- try(model.matrix(trend))
+#        trend.mat <- trySilent(model.matrix(trend))
 #      if (inherits(trend.mat, "try-error")) 
 #        stop("\ntrend elements not found")
 #    }

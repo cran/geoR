@@ -31,9 +31,9 @@ data(s256i)
   \emph{Technical report ST-99-08, Dept of Maths and
     Stats, Lancaster University}. 
   
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information about the \bold{geoR} package can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \keyword{datasets}
-\keyword{spatial}
+

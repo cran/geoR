@@ -1,10 +1,9 @@
 \name{parana}
-
+\alias{parana}
 \alias{maijun}
-
-\non_function{mainjun}
-
+\non_function{}
 \title{Rainfall Data from Parana State, Brasil}
+\usage{data(parana)}
 
 \description{
   This data-set was used by Diggle and Ribeiro (2001) to illustrate the methods
@@ -15,8 +14,6 @@
   (dry-season). It was collected at 143 recording stations throughout \eqn{\mbox{Paran\'{a}}}{Parana} State,
   Brasil.
 }
-
-\usage{data(parana)}
 
 \format{
   The object \code{maijun} of the class \code{geodata}, which is a list
@@ -48,12 +45,10 @@
 }
 
 \references{
-  Diggle, P.J. and Ribeiro Jr, P.J. (2001). Bayesian inference in
-  Gaussian model-based geostatistics. \emph{Geographical and Environmental Modeling} (to appear) 
-  
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Diggle, P.J. \& Ribeiro Jr, P.J. (2002) Bayesian inference in
+  Gaussian model-based geostatistics. Geographical and Environmental
+  Modelling, Vol. 6, No. 2, 129-146.
 }
 
 \keyword{datasets}
-\keyword{spatial}
+

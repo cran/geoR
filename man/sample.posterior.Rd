@@ -30,7 +30,10 @@ sample.posterior(n, kb.obj)
   A \eqn{n \times 4}{n x 4} data-frame with samples from the posterior distribution of the model parameters.
 }
 
-%\references{ ~put references to the literature/web site here ~ }
+\references{
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
+}
 
 \author{
   Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr

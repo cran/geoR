@@ -257,10 +257,11 @@
         result <- optim(ini, loss.vario, method = "L-BFGS-B",
                         hessian = TRUE, lower = lower,
                         g.l = .global.list, ...)
-        op.sem <- options()$show.error.messages
-        options(show.error.messages = FALSE)
-        hess <- try(solve(as.matrix(result$hessian)))
-        options(show.error.messages = op.sem)
+        ##op.sem <- options()$show.error.messages
+        ##options(show.error.messages = FALSE)
+        require(methods)
+        hess <- trySilent(solve(as.matrix(result$hessian)))
+        ##options(show.error.messages = op.sem)
         if(!inherits(hess, "try-error"))
           hess <- sqrt(diag(hess))
         else print("WARNING: hessian could not be computed")

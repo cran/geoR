@@ -97,8 +97,8 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information on the package \bold{geoR} can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \author{Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
@@ -171,7 +171,7 @@ data(s100)
   xvm2 <- xvalid(s100, model=m1, locations.xvalid=ap$coords, data.xvalid=ap$data)
   bor <- s100$coords[chull(s100$coords),]
   par(mfcol=c(5,2),mar=c(3,3,1,0),mgp=c(2,.5,0))  
-  plot(xvm2, border=bor)
+  plot(xvm2, borders=bor)
   # RML
   rm1 <- likfit(s100, ini=c(.5,.5), fix.nug=FALSE, met = "REML", cov.model="mat", kappa=1)
   xvrm1 <- xvalid(s100, model=m1, loc=sample(1:100,5))

@@ -65,6 +65,7 @@ sample.prior            Samples from the prior
 set.coords.lims         Sets Limits to Scale Plots
 statistics.predictive   Summary statistics from predictive
                         distributions
+summary.geodata         Summaries for geodata object
 summary.likGRF          Summarizes Parameter Estimation Results for
                         Gaussian Random Fields
 summary.variomodel      Summarize Results of Variogram Estimation

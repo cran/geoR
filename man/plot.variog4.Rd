@@ -36,8 +36,8 @@
 }
 
 \references{
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
+  Further information about the \bold{geoR} package can be found at:\cr
+  \url{http://www.est.ufpr.br/geoR}.
 }
 
 \author{Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr

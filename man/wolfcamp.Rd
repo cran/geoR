@@ -1,12 +1,8 @@
 \name{wolfcamp}
-
 \alias{wolfcamp}
 \alias{wolf}
-
 \non_function{}
-
 \title{Wolfcamp Aquifer Data}
-
 \usage{data(wolfcamp)}
 
 \description{
@@ -52,5 +48,5 @@ plot(wolfcamp)
 }
 
 \keyword{datasets}
-\keywords{spatial}
+
 

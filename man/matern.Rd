@@ -44,11 +44,6 @@ matern(u, phi, kappa)
   correlation function for the given distances.
 }
 
-\references{
-  Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
-}
-
 \author{
   Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
