@@ -213,7 +213,6 @@
       else
         colnames(res[[3]]) <- covar.names
     }
-    res[[3]] <- as.data.frame(res[[3]])
   }
   ##
   ## Dealing with NA's
@@ -298,6 +297,7 @@
       cat("WARNING: there are data at coincident locations, some of the geoR's functions will not work.\n")
   }
   ##
+  if(!is.null(covar.col)) res[[3]] <- as.data.frame(res[[3]])
   class(res) <- "geodata"
   return(res)
 }

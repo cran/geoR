@@ -129,7 +129,7 @@
 }
 
 "cond.sim" <-
-  function(env.loc, env.iter, loc.coincide, tmean, Rinv, mod, vbetai,
+  function(env.loc, env.iter, loc.coincide, coincide.cond, tmean, Rinv, mod, vbetai,
            fixed.sigmasq)
   {
     NTOT <- mod$nloc * mod$Nsims
@@ -154,17 +154,16 @@
     if(ncol(tmean) > 1){
       if(ncol.tmean != mod$Nsims)
         stop("cond.sim: size of tmean does not matches with Nsims")
-      require(geoRglm)
       diff.mean <- as.integer(1)
     }      
     else
       diff.mean <- as.integer(0)
     ##
     normalsc <- rnorm(NTOT)
-    if(is.null(loc.coincide))
-      locations <- get("locations", envir=env.loc)
-    else
-      locations <- get("locations", envir=env.loc)[-loc.coincide,,drop=FALSE]
+##    if(is.null(loc.coincide))
+##      locations <- get("locations", envir=env.loc)
+##    else
+##      locations <- get("locations", envir=env.loc)[-loc.coincide,,drop=FALSE]
     ##
     ##
 ##    R0 <- varcov.spatial(coords = locations,
@@ -182,9 +181,8 @@
 ##    if(!is.numeric(Vchol)) print(try(chol(Vmat)))
     ##
     ##
-    if(is.null(loc.coincide))
-      loccoin <- TRUE
-    else loccoin <- -loc.coincide
+    if(coincide.cond) loccoin <- -loc.coincide
+    else loccoin <- TRUE
     normalsc <- .C("kb_sim_new",
                    as.double(as.vector(tmean)),
                    out = as.double(normalsc),

@@ -36,9 +36,8 @@
       nugget.values <-  nugget.rel.values <- FALSE
   if(missing(nugget.values)) nugget.values <- FALSE
   if(missing(nugget.rel.values)) nugget.rel.values <- FALSE
-  if(missing(lambda.values) | obj.likfit$transform.info$fix.lambda == TRUE)
-    lambda.values <- FALSE  
-  if(uni.only == TRUE){
+  if(missing(lambda.values) | obj.likfit$transform.info$fix.lambda) lambda.values <- FALSE  
+  if(uni.only){
     sillrange.values <- sillnugget.values <- rangenugget.values <-
       sillnugget.rel.values <- rangenugget.rel.values <- 
         silllambda.values <- rangelambda.values <- 
@@ -563,8 +562,9 @@
     proflik <- proflik.aux1(phi = phi)
   else {
     .temp.list$phi <<- phi
-    proflik <-  - (optim(.temp.list$lambda, proflik.aux1.1, method="L-BFGS-B", lower
-                         = -2, upper = 2, ...)$value)
+#    proflik <-  - (optim(.temp.list$lambda, proflik.aux1.1, method="L-BFGS-B", lower
+#                         = -2, upper = 2, ...)$value)
+    proflik <-  - (optimise(proflik.aux1.1, lower = -5, upper = 5, ...)$objective)
     return(proflik)
   }
 }
@@ -695,8 +695,9 @@
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasqphi <<- as.vector(sigmasqphi)
   if(.temp.list$fix.lambda == TRUE) {
-      tausq.res <- optim(.temp.list$tausq.est, proflik.aux14, method="L-BFGS-B", lower
-			 = 0, ...)$value
+##      tausq.res <- optim(.temp.list$tausq.est, proflik.aux14, method="L-BFGS-B", lower
+##			 = 0, ...)$value
+      tausq.res <- optimise(proflik.aux14, lower = 0, upper = .Machine$double.xmax^0.25, ...)$objective
   }
   else {
     tausq.res <- optim(
@@ -740,8 +741,9 @@
                                       proflik.aux16))
   ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   if(.temp.list$fix.lambda == TRUE) {
-    phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
-                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+#    phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
+#                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+    phi.res <- optimise(proflik.aux16, lower = .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$objective
   }
   else {
     phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", 
@@ -783,11 +785,12 @@
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$phitausq <<- as.vector(phitausq)
   if(.temp.list$fix.lambda == TRUE) {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux18))
-    ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
-    sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
-                         lower = .temp.list$lower.sigmasq, ...)$value
+##    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
+##                                        proflik.aux18))
+##    ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
+##    sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
+##                         lower = .temp.list$lower.sigmasq, ...)$value
+    sigmasq.res <- optimise(proflik.aux18, lower = .temp.list$lower.sigmasq, upper = .Machine$double.xmax^0.25, ...)$objective
   }
   else {
     sigmasq.res <- optim(c(.temp.list$sigmasq.est, .temp.list$lambda
@@ -829,8 +832,10 @@
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasqtausq.rel <<- as.vector(sigmasqtausq.rel)
   if(.temp.list$fix.lambda == TRUE) {
-    phi.res <- optim(.temp.list$phi.est, proflik.aux20, method="L-BFGS-B", lower = 
-                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+##    phi.res <- optim(.temp.list$phi.est, proflik.aux20, method="L-BFGS-B", lower = 
+##                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+    phi.res <- optimise(proflik.aux20, lower = 
+                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$objective
   }
   else {
     phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda, ...), proflik.aux20, method="L-BFGS-B", 
@@ -854,9 +859,12 @@
                                       proflik.aux3))
   ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   if(.temp.list$fix.lambda == TRUE) {
-    phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B",
+##    phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B",
+ ##                    lower = .temp.list$lower.phi,
+  ##                   upper=.temp.list$upper.phi, ...)$value
+    phi.res <- optimise(proflik.aux3,
                      lower = .temp.list$lower.phi,
-                     upper=.temp.list$upper.phi, ...)$value
+                     upper=.temp.list$upper.phi, ...)$objective
   }
   else {
     phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B",
@@ -1038,8 +1046,9 @@ function(phitausq.rel, ...)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux3))
   ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
-  phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
-                   lower.phi, upper = .temp.list$upper.phi, ...)$value
+##  phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
+##                   lower.phi, upper = .temp.list$upper.phi, ...)$value
+  phi.res <- optimise(proflik.aux3, lower = .temp.list$lower.phi, upper = .temp.list$upper.phi, ...)$objective
   .temp.list$log.jacobian <<- NULL
   .temp.list$sigmasq <<- NULL
   .temp.list$z <<- .temp.list$data
@@ -1088,11 +1097,12 @@ function(phitausq.rel, ...)
   ## It requires the minimisation of the function wrt \lambda for each value of (\sigma^2, \phi)
   ## This is an auxiliary function called by likfit.proflik
   ##
-  ini.seq <- seq(-1.5, 1.5, l=7)
-  .temp.list$sigmasqphi <<- as.vector(sigmasqphi)
-  lambda.lik <- apply(as.matrix(ini.seq), 1, proflik.aux4)
-  ini <- ini.seq[lambda.lik == max(lambda.lik)]
-    lambda.res <- optim(ini, proflik.aux4, method="L-BFGS-B", lower = -2.5, upper = 2.5, ...)$value
+##  ini.seq <- seq(-1.5, 1.5, l=7)
+##  .temp.list$sigmasqphi <<- as.vector(sigmasqphi)
+##  lambda.lik <- apply(as.matrix(ini.seq), 1, proflik.aux4)
+##  ini <- ini.seq[lambda.lik == max(lambda.lik)]
+##  lambda.res <- optim(ini, proflik.aux4, method="L-BFGS-B", lower = -2.5, upper = 2.5, ...)$value
+  lambda.res <- optimise(proflik.aux4, lower = -5, upper = 5, ...)$objective
   .temp.list$sigmasqphi <<- NULL
   return( - lambda.res)
 }
@@ -1108,8 +1118,9 @@ function(phitausq.rel, ...)
     proflik <- proflik.aux21(phitausq.rel = phitausq.rel)
   else {
     .temp.list$phitausq.rel <<- phitausq.rel
-    proflik <-  - (optim(.temp.list$lambda, proflik.aux21.1, method="L-BFGS-B", lower =
-                         -2, upper = 2, ...)$value)
+##    proflik <-  - (optim(.temp.list$lambda, proflik.aux21.1, method="L-BFGS-B", lower =
+##                         -2, upper = 2, ...)$value)
+    proflik <-  - (optimise(proflik.aux21.1, lower = -5, upper = 5, ...)$objective)
     .temp.list$phitausq.rel <<- NULL
   }
   return(proflik)
@@ -1157,8 +1168,9 @@ function(phitausq.rel, ...)
   philambda <- as.vector(philambda)
   .temp.list$phi <<- philambda[1]
   .temp.list$lambda <- philambda[2]
-  tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", lower = 
-                         0, upper=100, ...)$value
+##  tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", lower = 
+##                         0, upper=100, ...)$value
+  tausq.rel.res <- optimise(proflik.aux8, lower =  0, upper=1000, ...)$objective
   .temp.list$phi <<- NULL
   return( - tausq.rel.res)
 }
@@ -1216,13 +1228,15 @@ function(phitausq.rel, ...)
       .temp.list$z <<- log(.temp.list$z)
     else .temp.list$z <<- ((.temp.list$z^lambda) - 1)/lambda
   }
-  phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = .temp.list$
-                    lower.phi, upper=.temp.list$upper.phi, ...)$value
+##  phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = .temp.list$
+##                    lower.phi, upper=.temp.list$upper.phi, ...)$value
+  phi.res <- optimise(proflik.aux6, lower = .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$objective
   .temp.list$log.jacobian <<- NULL
   .temp.list$nugget.rel <<- NULL
   .temp.list$z <<- .temp.list$data
   return( - phi.res)
 }
+
 "proflik.aux4" <-
   function(lambda, ...)
 {
@@ -1262,8 +1276,10 @@ function(phitausq.rel, ...)
   ## This is an auxiliary function called by proflik.
   .temp.list$nugget.rel <<- as.vector(tausq.rel)
   if(.temp.list$fix.lambda == TRUE) {
-    phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = 
-                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+##    phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = 
+##                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
+    phi.res <- optimise(proflik.aux6, lower = 
+                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$objective
   }
   else {
     phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda), proflik.aux6, method="L-BFGS-B", 
@@ -1310,8 +1326,9 @@ function(phi.lambda, ...)
   .temp.list$phi <<- as.vector(phi)
   if(.temp.list$fix.lambda == TRUE) {
     .temp.list$lambda <<- 1
-    tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", 
-                           lower = 0, upper=100, ...)$value
+##    tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", 
+##                           lower = 0, upper=100, ...)$value
+    tausq.rel.res <- optimise(proflik.aux8, lower = 0, upper=1000, ...)$objective
     .temp.list$lambda <<- NULL
   }
   else {
@@ -1320,6 +1337,7 @@ function(phi.lambda, ...)
   .temp.list$phi <<- NULL
   return( - tausq.rel.res)
 }
+
 "proflik.aux8" <-
   function(tausq.rel.lambda, ...)
 {

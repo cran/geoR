@@ -918,18 +918,21 @@
       Nsims <- ind.table[iter]
       if (signal) Dval <- 1.0 else Dval <-  1.0 + tausq.rel
       iter.env <- sys.frame(sys.nframe())
-      if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=pred.env))))
-        tmean[get("loc.coincide", envir=pred.env)] <-
-          get("data.coincide", envir=pred.env)
-      coincide.cond <- (((tausq.rel < 1e-12) | signal) & !is.null(get("loc.coincide", envir=pred.env)))
-      nloc <- ni - n.loc.coincide
+      ## removing this because seens redundant with part (**) below
+      ##      if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=pred.env))))
+      ##        tmean[get("loc.coincide", envir=pred.env)] <- get("data.coincide", envir=pred.env)
+      coincide.cond <- (((tausq.rel < 1e-12) | !signal) & !is.null(get("loc.coincide", envir=pred.env)))
       if(coincide.cond){
+        nloc <- ni - n.loc.coincide
         ind.not.coincide <- -(get("loc.coincide", envir=pred.env))
         v0 <- v0[, ind.not.coincide, drop=FALSE]
         tmean <- tmean[ind.not.coincide]
         b <- b[,ind.not.coincide, drop=FALSE]
       }
-      else ind.not.coincide <- TRUE
+      else{
+        nloc <- ni
+        ind.not.coincide <- TRUE
+      }
       if(prior$beta.prior == "normal" && npr > 1)
         info.id <- par.set
       else info.id <- 1
@@ -939,20 +942,23 @@
         vbetai <- matrix(drop(phidist$varbeta[phi.ind, nug.ind,  ]),
                          ncol = beta.size, nrow = beta.size)
       simul <- matrix(NA, nrow=ni, ncol=Nsims)
-      simul[ind.not.coincide,] <-
-        cond.sim(env.loc = base.env, env.iter = iter.env,
-                 loc.coincide = get("loc.coincide", envir=pred.env),
-                 tmean = tmean,
-                 Rinv = list(lower= drop(inv.lower[phi.ind, nug.ind,]),
-                   diag = drop(inv.diag[phi.ind, nug.ind,])),
-                 mod = list(beta.size = beta.size, nloc = nloc,
-                   Nsims = Nsims, n = n, Dval = Dval,
-                   df.model = df.model,
-                   s2 = phidist$s2[phi.ind, nug.ind],
-                   cov.model.number = cov.model.number,
-                   phi = phi, kappa = kappa),
-                 vbetai = vbetai,
-                 fixed.sigmasq = (sigmasq.info$df.sigmasq == Inf))
+      if(nloc > 0)
+        simul[ind.not.coincide,] <-
+          cond.sim(env.loc = base.env, env.iter = iter.env,
+                   loc.coincide = get("loc.coincide", envir=pred.env),
+                   coincide.cond = coincide.cond,
+                   tmean = tmean,
+                   Rinv = list(lower= drop(inv.lower[phi.ind, nug.ind,]),
+                     diag = drop(inv.diag[phi.ind, nug.ind,])),
+                   mod = list(beta.size = beta.size, nloc = nloc,
+                     Nsims = Nsims, n = n, Dval = Dval,
+                     df.model = df.model,
+                     s2 = phidist$s2[phi.ind, nug.ind],
+                     cov.model.number = cov.model.number,
+                     phi = phi, kappa = kappa),
+                   vbetai = vbetai,
+                   fixed.sigmasq = (sigmasq.info$df.sigmasq == Inf))
+      ## (**) this made previous bit redundant
       if(coincide.cond)
         simul[get("loc.coincide", envir=pred.env),] <-
           rep(get("data.coincide", envir=pred.env), Nsims)

@@ -326,12 +326,16 @@
     x$data <- as.matrix(x$data)
     n <- nrow(x$data)
     if (nx * ny != n) 
-      stop("cannot produce perspective plot, probably irregular grid")
+      stop("cannot produce image plot probably due to data on irregular grid")
     m <- matrix(x$data[, sim.number], ncol = ny)
     coords.lims <- set.coords.lims(coords=x$coords)
+    x.ex <- diff(range(coords.lims[,1]))/(2*(nx-1))
+    y.ex <- diff(range(coords.lims[,2]))/(2*(ny-1))
+    xlim.ex <- coords.lims[,1] + c(-x.ex, x.ex)
+    ylim.ex <- coords.lims[,2] + c(-y.ex, y.ex)
     pty.prev <- par()$pty
     par(pty = "s")
-    image(xl, yl, m, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
+    image(xl, yl, m, xlim= xlim.ex, ylim=ylim.ex,...)
     par(pty=pty.prev)
   }
   return(invisible())

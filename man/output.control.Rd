@@ -76,7 +76,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     is different from zero.  }  
   \item{messages.screen}{logical. Indicates
     whether or not status messages are printed on the output device
-    while the function is running. Defalts to \code{TRUE}. }
+    while the function is running. Defaults to \code{TRUE}. }
 
 }
 

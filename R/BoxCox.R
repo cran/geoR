@@ -17,34 +17,32 @@
   ##  lik.method <- match.arg(lik.method, choices = c("ML", "RML"))
   lik.method <- "ML"
   ##
-  if(missing(lambda)) lambda.ini <- seq(-2, 2, by=0.2)
-  else lambda.ini <- lambda
-  absmin <- 1.001 * abs(min(data))
+  absmin <- 1.001 * abs(min(data)) + 0.001 * range(data) 
   if(!is.null(lambda2)){
-    if(lambda2 == TRUE) lambda2.ini <- abs(min(data))
+    if(missing(lambda)) lambda.ini <- seq(-2, 2, by=0.2)
+    else lambda.ini <- lambda
+    lambda2.ini <- 0
+    if(lambda2 == TRUE) lambda2.ini <- absmin
     if(is.numeric(lambda2)) lambda2.ini <- lambda2
-  }
-  else lambda2.ini <- 0
-  lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
-  ##
-  if(length(as.matrix(lambdas.ini)) > 2){
-    lamlik <- apply(lambdas.ini, 1, boxcox.negloglik, data=data + absmin,
-                    xmat=xmat, lik.method=lik.method)
-    lambdas.ini <- drop(lambdas.ini[which(lamlik == min(lamlik)),])
-  }
-  names(lambdas.ini) <- NULL
-  ##
-  if(is.null(lambda2))
-    lik.lambda <- optim(par=lambdas.ini[1], fn = boxcox.negloglik,
-                        data = data, xmat = xmat, hessian = TRUE,
-                        lik.method = lik.method)
-  else
+    lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
+    ##
+    if(length(as.matrix(lambdas.ini)) > 2){
+      lamlik <- apply(lambdas.ini, 1, boxcox.negloglik, data=data + absmin,
+                      xmat=xmat, lik.method=lik.method)
+      lambdas.ini <- drop(lambdas.ini[which(lamlik == min(lamlik)),])
+    }
+    names(lambdas.ini) <- NULL
     lik.lambda <- optim(par=lambdas.ini, fn = boxcox.negloglik,
                         method="L-BFGS-B", hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
+  }
+  else{
+    lik.lambda <- optimize(boxcox.negloglik, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
+    lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective, convergence = 0, message = "function optimize used")
+  }
   ##
-  hess <- sqrt(diag(solve(as.matrix(lik.lambda$hessian))))
+  ##  hess <- sqrt(diag(solve(as.matrix(lik.lambda$hessian))))
   lambda.fit <- lik.lambda$par
   if(length(lambda.fit) == 1) lambda.fit <- c(lambda.fit, 0)
   data <- data + lambda.fit[2]
@@ -74,8 +72,9 @@
   if(length(lik.lambda$par) == 1) lambda.fit <- lambda.fit[1]
   if(length(lik.lambda$par) == 2) names(lambda.fit) <- c("lambda", "lambda2")
   res <- list(lambda = lambda.fit, beta.normal = drop(beta),
-              sigmasq.normal = sigmasq, hessian = c(lambda = hess), 
+              sigmasq.normal = sigmasq, 
               loglik = loglik, optim.results = lik.lambda)
+  ## res$hessian <- c(lambda = hess) 
   res$call <- call.fc
   class(res) <- "boxcox.fit"
   return(res)

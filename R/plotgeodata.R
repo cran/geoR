@@ -2,7 +2,8 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
     trend = "cte", lambda = 1, col.data = 1, weights.divide = NULL, 
     window.new = FALSE, ...) 
 {
-    if (is.R()) 
+  if(missing(x)) x <- list(coords=coords, data = data)
+  if (is.R()) 
         par.ori <- par(no.readonly = TRUE)
     else par.ori <- par()
     on.exit(par(par.ori))

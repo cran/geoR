@@ -347,14 +347,17 @@
                                        ncol=n.predictive))
     }
     else{
-      coincide.cond <- (((round(1e12 * nugget) == 0) | signal) & (!is.null(loc.coincide)))
-      nloc <- ni - length(loc.coincide)
+      coincide.cond <- (((round(1e12 * nugget) == 0) | !signal) & (!is.null(loc.coincide)))
       if(coincide.cond){
+        nloc <- ni - length(loc.coincide)
         ind.not.coincide <- -(loc.coincide) 
         v0 <- v0[,ind.not.coincide, drop=FALSE]
         b <- b[,ind.not.coincide, drop=FALSE]
       }
-      else ind.not.coincide <- TRUE
+      else{
+        nloc <- ni
+        ind.not.coincide <- TRUE
+      }
       if (signal) Dval <- 1.0 + tausq.rel.micro
       else Dval <-  1.0 + tausq.rel
       if(beta.prior == "deg")
@@ -363,22 +366,24 @@
         vbetai <- matrix(ittivtt, ncol = beta.size, nrow = beta.size)
       df.model <- ifelse(beta.prior == "deg", n, n-beta.size)
       kc$simulations <- matrix(NA, nrow=ni, ncol=n.predictive)
-      kc$simulations[ind.not.coincide,] <- 
-        cond.sim(env.loc = base.env, env.iter = base.env,
-                 loc.coincide = loc.coincide,
-                 tmean = kc$predict[ind.not.coincide],
-                 Rinv = invcov,
-                 mod = list(beta.size = beta.size, nloc = nloc,
-                   Nsims = n.predictive, n = n, Dval = Dval,
-                   df.model = df.model, s2 = sill.partial,
-                   cov.model.number = cor.number(cov.model),
-                   phi = phi, kappa = kappa),
-                 vbetai = vbetai,
-                 fixed.sigmasq = TRUE)
+      if(nloc > 0)
+        kc$simulations[ind.not.coincide,] <- 
+          cond.sim(env.loc = base.env, env.iter = base.env,
+                   loc.coincide = loc.coincide,
+                   coincide.cond = coincide.cond, 
+                   tmean = kc$predict[ind.not.coincide],
+                   Rinv = invcov,
+                   mod = list(beta.size = beta.size, nloc = nloc,
+                     Nsims = n.predictive, n = n, Dval = Dval,
+                     df.model = df.model, s2 = sill.partial,
+                     cov.model.number = cor.number(cov.model),
+                     phi = phi, kappa = kappa),
+                   vbetai = vbetai,
+                   fixed.sigmasq = TRUE)
       remove("v0", "b", "locations", "invcov")
       if(is.R()) gc(verbose = FALSE)
       if(coincide.cond)
-        kc$simulations[loc.coincide,] <- rep(data.coincide, Nsims)
+        kc$simulations[loc.coincide,] <- rep(data.coincide, n.predictive)
     }
     ##
     ## Backtransforming simulations
@@ -476,8 +481,7 @@
     if(is.null(beta) | !is.numeric(beta))
       stop("\nkrige.conv: argument beta must be provided in order to perform simple kriging")
   cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential",
-                           "gaussian",
+                         choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic",
                            "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
