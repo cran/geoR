@@ -1,6 +1,8 @@
 \name{ca20}
 \alias{ca20}
-\non_function{}
+
+\docType{data}
+
 \title{Calcium content in soil samples}
 \usage{data(ca20)}
 \description{

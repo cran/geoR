@@ -1132,8 +1132,10 @@
   if(nrow(locations) != length(values)){
     if(!is.null(borders)){
       borders <- as.matrix(as.data.frame(borders))
-      if(is.R()) require(splancs)
+      if(require(splancs))
       inout.vec <- as.vector(inout(pts = locations, poly = borders))
+      else
+        stop("you must install the package splancs to perform this operation")
       if(sum(inout.vec) != length(values))
         stop("length of the argument values is incompatible with number of elements inside the borders.")
       temp <- rep(NA, nrow(locations))
@@ -1645,7 +1647,7 @@
     if(is.numeric(quantile.estimator))
       if(any(quantile.estimator) < 0 | any(quantile.estimator) > 1)
         stop("output.control: quantiles indicators must be numbers in the interval [0,1]\n")
-    if(quantile.estimator == TRUE)
+    if(all(quantile.estimator == TRUE))
       quantile.estimator <- c(0.025, 0.5, 0.975)
   }
   if(!is.null(probability.estimator)){
@@ -2178,7 +2180,7 @@
     }
     if(density.est){
       if(is.null(Ldots$width)){
-        if(require(MASS))
+        if(require(MASS, quietly=TRUE))
           plD <- density(y,width=bandwidth.nrd(y), ...)
         else plD <- density(y, ...)
       }

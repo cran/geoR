@@ -22,7 +22,7 @@
   ##
   if(all(locations.xvalid == "all") | is.vector(locations.xvalid)){
     autocross <- TRUE
-    if(locations.xvalid == "all")
+    if(all(locations.xvalid == "all"))
       locations.xvalid <- 1:n
     else
       if(any(locations.xvalid > n) | !is.numeric(locations.xvalid))

@@ -18,7 +18,7 @@
 \usage{
 grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     nsim = 1, cov.model = "matern",
-    cov.pars = stop("cov. parameters (sigmasq and phi) needed"), 
+    cov.pars = stop("covariance parameters (sigmasq and phi) needed"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     method = c("cholesky", "svd", "eigen", "circular.embedding"),
     messages.screen = TRUE)
@@ -176,10 +176,11 @@ image(sim3, xlab="X Coord", ylab="Y Coord")
 ##
 ## 1-D simulations using the same seed and different noise/signal ratios
 ##
+set.seed(234)
 sim11 <- grf(100, ny=1, cov.pars=c(1, 0.25), nug=0)
-assign(".Random.seed",  sim11$.Random.seed, envir=.GlobalEnv)
+set.seed(234)
 sim12 <- grf(100, ny=1, cov.pars=c(0.75, 0.25), nug=0.25)
-assign(".Random.seed",  sim11$.Random.seed, envir=.GlobalEnv)
+set.seed(234)
 sim13 <- grf(100, ny=1, cov.pars=c(0.5, 0.25), nug=0.5)
 ##
 par.ori <- par(no.readonly = TRUE)

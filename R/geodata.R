@@ -14,15 +14,15 @@
 
 "read.geodata" <-
   function(file, header = FALSE, coords.col= 1:2, data.col = 3,
-           data.names = NULL, covar.col = NULL, covar.names = "header",
-           realisations = NULL,
-           na.action = c("ifany", "ifdata", "ifcovar"),
+           data.names = NULL, covar.col = NULL,
+           covar.names = "header", realisations = NULL,
+           na.action = c("ifany", "ifdata", "ifcovar", "none"),
            rep.data.action, rep.covar.action, ...)
 {
   call.fc <- match.call()
   ##
   obj <- read.table(file = file, header = header, ...)
-  if(covar.names == "header"){
+  if(all(covar.names == "header")){
     if(!is.null(covar.col)){
       col.names <- names(obj)
       covar.names <- col.names[covar.col]
@@ -76,14 +76,14 @@
   ##
   if(!is.null(covar.col)){
     res[[3]] <- as.data.frame(obj[,covar.col])
-    if(covar.names == "obj.names"){
+    if(all(covar.names == "obj.names")){
       if(is.matrix(obj))      
         col.names <- dimnames(obj)[2]
       if(is.data.frame(obj))      
         col.names <- names(obj)
     }
     names(res)[3] <- "covariate"
-    if(covar.names == "obj.names")
+    if(all(covar.names == "obj.names"))
       if(is.null(col.names)) names(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
       else  names(res[[3]]) <- col.names[covar.col]
     else
@@ -158,7 +158,7 @@
       if(!is.function(rep.action) && rep.action == "first")
         return(x[!rep.dup])
       else
-        return((as.vector(by(x, rep.lev, rep.action))[codes(factor(rep.lev))])[!rep.dup])
+        return((as.vector(by(x, rep.lev, rep.action))[unclass(factor(rep.lev))])[!rep.dup])
     }
     res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
     if(!is.null(covar.col))
@@ -188,6 +188,7 @@
   res <- list()
   res$coords.summary <- apply(x$coords, 2, range)
   rownames(res$coords.summary) <- c("min", "max")
+  if(is.null(colnames(object$coords))) colnames(res$coords.summary) <- c("Coord.X", "Coord.Y")
   require(mva)
   res$distances.summary <- range(dist(x$coords))
   names(res$distances.summary) <- c("min", "max")  

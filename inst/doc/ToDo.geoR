@@ -1,7 +1,11 @@
 Things to be done and/or checked in the package geoR
 ======================================================
+- implement block kriging via simulation with options for 
+  squares or arbitrary polygons
 
-- chack for possible bug in xvalid for external trend
+- implement composite log-likelihood
+
+- check for possible bug in xvalid for external trend
 
 - plot.variomodel (?) (currently done using curve or plot on cov.spatial)
 
@@ -61,3 +65,4 @@ Things to be done and/or checked in the package geoR
 - OLS/WLS/GLS fit of anisotropic variograms
 
 - use methods logLik for likfit
+

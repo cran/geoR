@@ -6,13 +6,13 @@
   Computes directional variograms for 4 directions provided by the user.
 }
 \usage{
-variog4(geodata, coords = geodata$coords, data = geodata$data,
-        uvec = "default", breaks, trend = "cte", lambda = 1,
+variog4(geodata, coords = geodata$coords, data = geodata$data, 
+        uvec = "default", breaks = "default", trend = "cte", lambda = 1,
         option = c("bin", "cloud", "smooth"),
-        estimator.type = c("classical", "modulus"),
-        nugget.tolerance = 0, max.dist, pairs.min = 2,
-        bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4),
-        tolerance = pi/8, unit.angle = c("radians", "degrees"),
+        estimator.type = c("classical", "modulus"), 
+        nugget.tolerance, max.dist, pairs.min = 2,
+        bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
+        unit.angle = c("radians", "degrees"),
         messages.screen = TRUE, \dots)
 }
 %- maybe also `usage' for other objects documented here.

@@ -18,7 +18,7 @@
 \usage{
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders = NULL, trend="cte", lambda = 1, col.data = 1,
-             weights.divide = FALSE, scatter3d = FALSE, \dots)
+             weights.divide = NULL, scatter3d = FALSE, \dots)
 }
 
 %- maybe also `usage' for other objects do cumented here.

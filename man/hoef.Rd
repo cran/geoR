@@ -1,6 +1,8 @@
 \name{hoef}
+\docType{data}
+
 \alias{hoef}
-\non_function{}
+
 \title{Data for spatial analysis of experiments}
 \usage{data(hoef)}
 \description{

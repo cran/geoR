@@ -4,6 +4,7 @@ boxcox.fit              Parameter Estimation for the Box-Cox
 boxcox.geodata          Box-Cox transformation for geodata objects
 boxcox                  The Box-Cox Transformed Normal Distribution
 ca20                    Calcium content in soil samples
+cite.geoR               Citing Package geoR in Publications
 coords.aniso            Geometric Anisotropy Correction
 cov.spatial             Computes Value of the Covariance Function
 elevation               Surface Elevations

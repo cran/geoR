@@ -1,8 +1,8 @@
 \name{s256i}
+\docType{data}
 
 \alias{s256i}
 
-\non_function{s256i}
 
 \title{Simulated Data-Set which Illustrate the Usage of krige.bayes  }
 

@@ -4,6 +4,8 @@
 \alias{rfm.bin}
 \alias{define.bins}
 
+\concepts{variogram}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Compute Empirical Variograms}
@@ -19,13 +21,14 @@
 }
 
 \usage{
-variog(geodata, coords=geodata$coords, data=geodata$data, 
-       uvec = "default", breaks, trend = "cte", lambda = 1, 
-       option = c("bin", "cloud", "smooth"), 
+variog(geodata, coords = geodata$coords, data = geodata$data, 
+       uvec = "default", breaks = "default",
+       trend = "cte", lambda = 1,
+       option = c("bin", "cloud", "smooth"),
        estimator.type = c("classical", "modulus"), 
-       nugget.tolerance = 0, max.dist, pairs.min = 2, 
-       bin.cloud = FALSE, direction = "omnidirectional",
-       tolerance = pi/8, unit.angle = c("radians", "degrees"),
+       nugget.tolerance, max.dist, pairs.min = 2,
+       bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
+       unit.angle = c("radians","degrees"),
        messages.screen = TRUE, \dots) 
 }
 
@@ -123,9 +126,6 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \bold{Defining the bins}
 
   \emph{The defaults}\cr
-  If an vector is passed to the argument \code{breaks} its elements are
-  taken as the limits of the bins and the argument \code{uvec} is ignored.
-
   If arguments \code{breaks} and \code{uvec} are not provided, the
   binning is defined as follows:\cr
   \enumerate{
@@ -135,8 +135,11 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
       max.dist, l = 13)}.
     \item the interval spanned by each bin is given by the mid-points
     between the centers of the bins.
-    \item The center of the first bin is set to \code{u[1] = u[2]/4}.
+%    \item The center of the first bin is set to \code{u[1] = u[2]/4}.
   }
+
+  If an vector is passed to the argument \code{breaks} its elements are
+  taken as the limits of the bins (classes of distance) and the argument \code{uvec} is ignored.
 
   \emph{Variations on the default}\cr
   The default definition of the bins is different for some particular

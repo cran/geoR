@@ -1,12 +1,12 @@
 "variog" <-
-  function (geodata, coords = geodata$coords, data = geodata$data, 
-            uvec = "default", breaks = "default",
-            trend = "cte", lambda = 1,
-            option = c("bin", "cloud", "smooth"),
-            estimator.type = c("classical", "modulus"), 
-            nugget.tolerance, max.dist, pairs.min = 2,
-            bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
-            unit.angle = c("radians","degrees"),
+  function(geodata, coords = geodata$coords, data = geodata$data, 
+       uvec = "default", breaks = "default",
+       trend = "cte", lambda = 1,
+       option = c("bin", "cloud", "smooth"),
+       estimator.type = c("classical", "modulus"), 
+       nugget.tolerance, max.dist, pairs.min = 2,
+       bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
+       unit.angle = c("radians","degrees"), 
             messages.screen = TRUE, ...) 
 {
   require(mva)
@@ -195,7 +195,7 @@
     data <- drop(data)
     v <- drop(v)
     if (option == "cloud") result <- list(u = u, v = v)
-     if (option == "bin") {
+    if (option == "bin") {
       if (missing(max.dist)) umax <- max(u)
       else umax <- max(u[u < max.dist])
       if(bin.cloud == 'diff') dd <- diffpairs(coords,data)$diff
@@ -222,11 +222,12 @@
       }
       else{
         if (pairs.min > 0) {
-          indp <- (result$n >= pairs.min)
+#          indp <- (result$n >= pairs.min)
           if(!nt.ind){
             for(i in 1:5) result[[i]] <- result[[i]][-1]
-            indp <- indp[-1]
+#            indp <- indp[-1]
           }
+          indp <- (result$n >= pairs.min)
           if (is.matrix(result$v)) {
             result$v <- result$v[indp, ]
             result$sd <- result$sd[indp, ]
@@ -242,7 +243,7 @@
       }
     }
     if (option == "smooth") {
-      if (is.R()) require(modreg)
+      require(modreg)
       if (is.matrix(v)) stop("smooth not yet available for more than one data-set")
       temp <- ksmooth(u, v, ...)
       result <- list(u = temp[[1]], v = temp[[2]])
@@ -275,7 +276,8 @@
             estimator.type = c("classical", "modulus"), 
             nugget.tolerance, max.dist, pairs.min = 2,
             bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
-            unit.angle = c("radians", "degrees"), messages.screen = TRUE, ...) 
+            unit.angle = c("radians", "degrees"),
+            messages.screen = TRUE, ...) 
 {
   require(mva)
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
@@ -509,8 +511,7 @@
       if (bin.cloud == 'diff') bins.clouds[[i]] <- cloud$d[ind]
       NULL
     }
-    if (uvec[1] == 0) 
-      uvec[1] <- (bins.lim[1] + bins.lim[2])/2
+    if (uvec[1] == 0) uvec[1] <- (bins.lim[1] + bins.lim[2])/2
     if (min.dist == 0) {
       ind <- (cloud$u == 0)
       n.zero <- sum(ind)
@@ -530,18 +531,18 @@
       nbin <- c(n.zero, nbin)
       sdbin <- c(sd.zero, sdbin)
     }
-    if(keep.NA == FALSE){
-      u <- uvec[!is.na(vbin)]
-      v <- vbin[!is.na(vbin)]
-      n <- nbin[!is.na(vbin)]
-      sd <- sdbin[!is.na(vbin)]
-    }
-    else{
+#    if(keep.NA == FALSE){
+#      u <- uvec[!is.na(vbin)]
+#      v <- vbin[!is.na(vbin)]
+#      n <- nbin[!is.na(vbin)]
+#      sd <- sdbin[!is.na(vbin)]
+#    }
+#    else{
       u <- uvec
       v <- vbin
       n <- nbin
       sd <- sdbin
-    }
+#    }
     if (bin.cloud == TRUE | bin.cloud == 'diff') 
       bins.clouds <- bins.clouds[!is.na(vbin)]
   }
@@ -1000,7 +1001,7 @@
   obj.variog$v <- NULL
   if((is.matrix(data) | is.data.frame(data)))
     if(ncol(data) > 1)
-      stop("envelops can be computed for only one data set at once")
+    	stop("envelops can be computed for only one data set at once")
   if(!is.null(obj.variog$estimator.type))
     estimator.type <- obj.variog$estimator.type
   else estimator.type <- "classical"

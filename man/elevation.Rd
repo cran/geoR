@@ -1,4 +1,5 @@
 \name{elevation}
+\docType{data}
 \alias{elevation}
 \title{Surface Elevations}
 \description{

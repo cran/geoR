@@ -1,4 +1,5 @@
 \name{SIC}
+\docType{data}
 
 \alias{sic}
 \alias{SIC}
@@ -7,8 +8,6 @@
 \alias{sic.all}
 \alias{sic.some}
 \alias{sic.borders}
-
-\non_function{SIC}
 
 \title{Spatial Interpolation Comparison data}
 

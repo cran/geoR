@@ -13,7 +13,7 @@
 }
 
 \usage{
-\method{lines.variomodel}{grf}(x, max.dist = max(dist(obj$coords)),
+\method{lines.variomodel}{grf}(x, max.dist = max(dist(x$coords)),
 length = 100, lwd = 2, \dots)
 }
 %- maybe also `usage' for other objects documented here.

@@ -1130,11 +1130,12 @@
 "likfit.limits" <-
   function(phi = c(lower=0, upper=+Inf),
            sigmasq = c(lower=0, upper=+Inf),
-           tausq.rel = c(lower=0, upper=+Inf),
+           nugget.rel = c(lower=0, upper=+Inf),
            kappa = c(lower=0, upper=+Inf),
            lambda = c(lower=-3, upper=3),
            psiR = c(lower=1, upper=+Inf),
-           psiA = c(lower=0, upper=2*pi)
+           psiA = c(lower=0, upper=2*pi),
+           tausq.rel = nugget.rel
            )
 {
   if(length(phi) != 2)

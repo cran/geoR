@@ -1,6 +1,8 @@
 \name{isaaks}
-\alias{isaaks}
 \docType{data}
+
+\alias{isaaks}
+
 \title{Data from Isaaks and Srisvastava's book}
 \description{
   Toy example used in the book \emph{An Introduction to Geostatistics} to

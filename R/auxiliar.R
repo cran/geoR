@@ -139,7 +139,7 @@
   borders <- as.matrix(borders)
   if(ncol(borders) != 2)
     stop("borders must be a matrix or data-frame with two columns")
-  if (require(splancs) == FALSE)
+  if (!require(splancs))
     cat("package splancs in required to select points inside the borders\n")
   locations <- locations[as.vector(inout(pts = locations,
                                          poly = borders)),]
@@ -151,10 +151,9 @@
   function(xgrid, ygrid, borders, vec.inout = FALSE)
 {
   ## checking for splancs
-  if(is.R())
-    if(!require(splancs))
-      cat("ERROR: cannot run the function\npackage \"splancs\" should be installed/loaded")
-    else library(splancs)
+  if(!require(splancs))
+    cat("ERROR: cannot run the function\npackage \"splancs\" should be installed/loaded")
+  else library(splancs)
   ## checking input
   if(!is.list(xgrid) && is.vector(drop(xgrid))){
     if(missing(ygrid)) stop("xgrid must have x and y coordinates or a vector must be provided for ygrid")

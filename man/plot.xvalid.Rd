@@ -51,11 +51,26 @@
     \code{\link{plot}}.  }
 
 }
-%\details{
-%  ~~ If necessary, more details than the __description__  above ~~
-%}
+
+\details{
+  The number of plots to be produced will depend on the input options.
+  If the graphics device is set to just one plot (something equivalent
+  to \option{par(mfcol=c(1,1))}) after each graphic being displayed the user will be prompt
+  to press \kbd{<return>} to see the next graphic.
+
+  Alternativaly the user can set the graphical parameter to have several
+  plots in one page. With default options for the arguments the maximum
+  number of plots (10) is produced and setting \option{par(mfcol=c(5,2))})
+  will display them in the same page.
+
+  The \dQuote{errors} for the plots are defined as
+  \deqn{error = data - predicted}
+  and the plots uses the color blue to indicate positive errors and
+  red to indicate negative erros. 
+}
+
 \value{
-  No value returned. Plots are produced on the current graphics device.
+  No value returned. Plots are produced on the current graphics device.  
 }
 
 %\note{ ~~further notes~~ }
@@ -76,8 +91,6 @@ par(mgp = c(2,1,0))
 plot(xvl, error = FALSE, ask = FALSE)
 plot(xvl, std.err = FALSE, ask = FALSE)
 par(op)
-
-
 }
 
 \keyword{spatial}%-- one or more ...

@@ -1,9 +1,10 @@
 \name{s100 and s121}
 
+\docType{data}
+
 \alias{s100}
 \alias{s121}
 
-\non_function{}
 
 \title{Simulated Data-Sets which Illustrate the Usage of the Package
   geoR  }

@@ -13,8 +13,7 @@
   model. This can be
   done for all or some of the locations.
   Alternativelly, other validation locations which are not the same as the
-  original data locations can be used. 
-  
+  original data locations can be used.   
 }
 
 \usage{

@@ -2,6 +2,7 @@
 
 \alias{image.kriging}
 \alias{persp.kriging}
+\alias{contour.kriging}
 \alias{prepare.graph.kriging}
 \alias{plot.1d}
 
@@ -17,8 +18,9 @@
 \usage{
 \method{image}{kriging}(x, locations, borders, values = x$predict,
               coords.data, xlim, ylim, x.leg, y.leg, \dots)
-
-persp.kriging(x, locations, borders, values = obj$predict, \dots)
+\method{contour}{kriging}(x, locations, borders, values = x$predict,
+              coords.data, xlim, ylim, filled=FALSE, \dots)
+\method{persp}{kriging}(x, locations, borders, values = x$predict, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -44,11 +46,11 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
     plot.  }
   \item{xlim, ylim} {the range to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
-%  \item{cex.leg}{controls the size of the numerical values in the legend.  }
-%  \item{vertical}{logical, defining whether the legend is drawn in
-%    horizontal (default) or vertical position.  }
+  \item{filled}{logical. If \code{FALSE} the function
+    \code{\link{contour}} is used otherwise
+    \code{\link{filled.contour}}. Defaults to \code{FALSE}.  }
   \item{\dots}{further arguments to be passed to the functions
-    \code{\link{image}}, \code{\link{persp}} or
+    \code{\link{image}}, \code{\link{contour}}, \code{\link{filled.contour}}, \code{\link{persp}} or
     \code{\link{legend.krige}}.
     For instance, the
     argument \code{zlim} can be used to set the the minimum and maximum
@@ -83,7 +85,7 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
  
 \seealso{\code{\link{krige.conv}} and \code{\link{ksline}} for kriging
   calculations. Documentation for
-  \code{\link{image}} and  \code{\link{persp}} contain basic information
+  \code{\link{image}}, \code{\link{contour}}, \code{\link{filled.contour}} and  \code{\link{persp}} contain basic information
   on the plotting functions.}
 
 \examples{
@@ -92,15 +94,19 @@ loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
 
+image(kc, loc=loci)
+contour(kc, loc=loci)
+persp(kc, loc=loci, theta=20, phi=20)
+
 op <- par(no.readonly = TRUE)
 par(mfrow=c(1,2), mar=c(3,3,0,0), mgp=c(1.5, .8,0))
 image(kc, loc=loci)
-image(kc, loc=loci, val=kc$krige.var)
+image(kc, loc=loci, val=sqrt(kc$krige.var))
 
 # notice different ways to add the legends and pass arguments:
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
 image(kc, loc=loci, val=kc$krige.var, ylim=c(-0.2, 1))
-legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=kc$krige.var)
+legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=sqrt(kc$krige.var))
 
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), cex=1.5)
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), off=0.5)

@@ -1,7 +1,7 @@
 \name{parana}
 \alias{parana}
 \alias{maijun}
-\non_function{}
+\docType{data}
 \title{Rainfall Data from Parana State, Brasil}
 \usage{data(parana)}
 
@@ -16,7 +16,7 @@
 }
 
 \format{
-  The object \code{maijun} of the class \code{geodata}, which is a list
+  The object \code{parana} of the class \code{geodata}, which is a list
   containing the following components:
   
   \describe{    

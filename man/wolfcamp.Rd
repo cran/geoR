@@ -1,7 +1,9 @@
 \name{wolfcamp}
+\docType{data}
+
 \alias{wolfcamp}
 \alias{wolf}
-\non_function{}
+
 \title{Wolfcamp Aquifer Data}
 \usage{data(wolfcamp)}
 
