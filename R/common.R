@@ -414,8 +414,11 @@
     if (func.inv == "solve") {
       if (det) 
         stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
+      error.now <- options()$show.error.message
       options(show.error.messages = FALSE)
       invcov <- try(solve(varcov))
+      if(is.null(error.now) || error.now == TRUE)
+        options(show.error.messages = TRUE)        
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"

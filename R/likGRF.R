@@ -1055,6 +1055,8 @@
       options(show.error.messages = FALSE)
       t.ei <- eigen(xivx, symmetric = TRUE)
       betahat <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
+      if(is.null(error.now) || error.now == TRUE)
+        options(show.error.messages = TRUE)        
     }
     if(inherits(betahat, "try-error"))
       stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude") 
@@ -1390,6 +1392,7 @@
 "solve.geoR" <-
   function(a, b = NULL, ...)
 {
+  error.now <- options()$show.error.message
   options(show.error.messages = FALSE)
   if(is.null(b))
     res <- try(solve(a, ...))
@@ -1402,6 +1405,8 @@
     else
       res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
   }  
+  if(is.null(error.now) || error.now == TRUE)
+    options(show.error.messages = TRUE)        
   if(inherits(res, "try-error"))
     stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude")
   return(res)

@@ -4,14 +4,14 @@ SIC                      Spatial Interpolation Comparison data
 as.geodata               Converts an Object to the Class "geodata"
 coords.aniso             Geometric Anisotropy Correction
 cov.spatial              Computes Value of the Covariance Function
-geoRdefunct              Defunct Functions in the Package geoR
+geoR-defunct             Defunct Functions in the Package geoR
+geoR-internal            geoR internal functions
 grf                      Simulation of Gaussian Random Fields
 hist.krige.bayes         Plots Sample from Posterior Distributions
 image.grf                Image or Perspective Plot of Simulated Gaussian
                          Random Field
 image.krige.bayes        Plots Results of the Predictive Distribution
 image.kriging            Image or Perspective Plot with Kriging Results
-geoR.aux                 geoR internal functions
 krige.bayes              Bayesian Analysis for Gaussian Geostatistical
                          Models
 krige.conv               Spatial Prediction -- Conventional Kriging

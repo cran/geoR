@@ -3,7 +3,7 @@
 {
   if (inherits(trend, "formula")) {
     trend.frame <- geodata[attr(terms(trend), "term.labels")]
-    if(any(names(trend.frame) == "NA")){
+    if(any(is.na(names(trend.frame)))){
       trend.mat <- data.frame()
       class(trend.mat) <- "try-error"
     }
