@@ -731,37 +731,18 @@
             max.dist, scaled = FALSE, ...)
 {
   if(missing(x)) x <- seq(0, max.dist, l=100)
+  if(is.list(x))
+    for(i in names(x)) assign(i, x[[i]])
   if(is.numeric(x) && missing(max.dist)) max.dist <- max(x, na.rm=TRUE)
-  ## reading model/other components
-  if(missing(cov.model)){
-    if(missing(x) || is.null(x$cov.model)) 
-      stop("argument cov.model must be provided")
-    else cov.model <- x$cov.model
-  }
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave",
-                           "linear", "power", "powered.exponential", "cauchy",
-                           "gneiting", "gneiting.matern", "pure.nugget"))
-  if(missing(cov.pars)){
-    if(missing(x) || is.null(x$cov.pars)) 
-      stop("argument cov.pars must be provided")
-    else cov.pars <- x$cov.pars
-  }
+  ## reading and checking model/other components
+  fn.env <- sys.frame(sys.nframe())
+  check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+                  env=fn.env, output=FALSE)
   if(missing(nugget)){
     if(missing(x) || is.null(x$nugget)) 
       stop("argument nugget must be provided")
     else nugget <- x$nugget
   }
-  if (cov.model == "matern" | cov.model == "powered.exponential" | 
-      cov.model == "cauchy" | cov.model == "gneiting.matern"){
-    if(missing(kappa)){
-      if(missing(x) || is.null(x$kappa)) 
-        stop("argument kappa must be provided")
-      else kappa <- x$kappa
-    }
-  }
-  else kappa <- 0.5
   if(missing(max.dist)){
     if(missing(x) || is.null(x$max.dist)) 
       stop("argument max.dist must be provided")

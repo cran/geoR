@@ -4,7 +4,7 @@
            cov.model = "matern",
            cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
-           method = c("cholesky", "svd", "eigen", "circular.embedding"),
+           method = c("cholesky", "svd", "eigen"),
            messages)
 {
   ##
@@ -16,7 +16,9 @@
   else messages.screen <- messages
   method <- match.arg(method)
   if((method == "circular.embedding") & messages.screen)
-    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
+    error("method  \"circular.embedding\" is no longer available in geoR. Use the package
+RandomFields")
+##    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
   ##
   ## defining the model to simulate from
   ##
@@ -122,8 +124,6 @@
   ## transforming to the isotropic space 
   ##
   if(!is.null(aniso.pars)) {
-    if(method == "circular.embedding")
-      stop("anisotropic models not implemented for the circular embedding method. \nConsider using the package \"RandomFields")
     if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if(messages.screen)
@@ -139,47 +139,13 @@
                            nrow = n, ncol = nsim)
   }
   else {
-    if (method == "circular.embedding") {
-      if (is.character(grid) && grid == "irreg") 
-        stop("Option for \"circular.embedding\" algorithm only allowed for regular grids. You might have to include the argument grid=\"reg\"")
-      if(cov.model == "power")
-        stop("power covariance model not implemented for the circular embedding method") 
-      stepx <- (xlims[2] - xlims[1])/(nx - 1)
-      stepy <- (ylims[2] - ylims[1])/(ny - 1)
-      if (round(1e+08 * stepx) != round(1e+08 *stepy)) 
-        stop("grf: distance between grid points must be the same in X and Y directions")
-      temp <- list(n = n, nst = nst, sigmasq = sigmasq, 
-                   xlims = xlims, ylims = ylims, stepx = stepx, 
-                   cov.model = cov.model, phi = phi, kappa = kappa)
-      if(messages.screen)
-        cat("\ngrf: WARNING:\nmessages of the type mtot=XXXXX will appear on your screen. \nIf there are many (3 or more, say) or they run indefinitely, you should stop the simulation and try again with a different grid (e.g. try to add 1 point in each direction)\n")
-      grf.aux3 <- function (nsim, temp) {
-        realiz <- rep(0, temp$n)
-        for (i in 1:temp$nst) {
-          realiz <- realiz + sqrt(temp$sigmasq[i]) *
-            grf.aux2(xlim = temp$xlims, 
-                     ylim = temp$ylims, step = temp$stepx,
-                     cov.model = temp$cov.model,
-                     phi = temp$phi[i], kappa = temp$kappa)
-          NULL
-        }
-        return(realiz)
-      }      
-      results$data <- apply(as.matrix(1:nsim), 1, grf.aux3, temp = temp)
-      if (nugget != 0) {
-        results$data <- results$data +
-          matrix(rnorm((n * nsim), sd = sqrt(nugget)), ncol = nsim)
-      }
-    }
-    else{
-      results$data <- matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)
-      cov.decomp <- t(varcov.spatial(coords = results$coords, 
+    results$data <- matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)
+    cov.decomp <- t(varcov.spatial(coords = results$coords, 
                                    cov.model = cov.model, kappa = kappa,
                                    nugget = nugget, cov.pars = cov.pars, 
                                    only.decomposition = TRUE,
                                    func.inv = method)$sqrt.varcov)
-      results$data <- cov.decomp %*% results$data
-    }
+    results$data <- cov.decomp %*% results$data
     if (nsim == 1) 
       results$data <- as.vector(results$data)
   }
@@ -252,27 +218,6 @@
     }
   }
   return(list(nst = cov.nst, nugget = cov.nugget, cov.structures = cov.message))
-}
-
-"grf.aux2" <-
-  function (xlim, ylim, step, cov.model, phi, kappa = 0.5) 
-{
-  if(is.null(kappa)) kappa <- 1
-  nx <- c(diff(xlim)/step + 1, diff(ylim)/step + 1)
-  res <- double(nx[1] * nx[2])
-  ln <- as.integer(2)
-  mm <- integer(ln)
-  x <- .C("woodandchan",
-          as.integer(cor.number(cov.model)),
-          as.integer(nx),
-          ln,
-          as.double(step),
-          as.double(phi),
-          as.double(kappa), 
-          res = res,
-          m = mm, PACKAGE = "geoR")$res
-  cat("\n")
-  return(x)
 }
 
 "lines.variomodel.grf" <-
@@ -454,12 +399,19 @@
   else
     data <- x$data          
   sim.bin <- variog(x, data=data)
-  plot(sim.bin, ...)
+  ldots <- list(...)
+  if(is.null(ldots$ylim))
+    plot(sim.bin, ylim=c(0, max(c(sill.total, sim.bin$v))),...)
+  else
+    plot(sim.bin, ...)    
   if (model.line){
-    var.model <- list(nugget = x$nugget, cov.pars = x$cov.pars, 
-                      kappa = x$kappa, max.dist = max(sim.bin$u),
-                      cov.model = x$cov.model)
-    lines.variomodel(var.model, lwd = 3)
+    model <- list(nugget = x$nugget, cov.pars = x$cov.pars, 
+                  kappa = x$kappa, max.dist = max(sim.bin$u),
+                  cov.model = x$cov.model)
+    if(is.null(ldots$lty))
+      lines.variomodel(model, lty=2)
+    else
+      lines.variomodel(model, ...)
   }
   return(invisible())
 }

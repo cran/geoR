@@ -1,6 +1,8 @@
 \name{xvalid}
 
 \alias{xvalid}
+\alias{summary.xvalid}
+\alias{print.summary.xvalid}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \concept{cross-validation}
@@ -92,6 +94,9 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
     prediction variances.  }
   \item{prob}{the cumulative probability at original value under a
     normal distribution with parameters given by the cross-validation results.  }
+
+  A method for \code{summary} returns summary statistics for the errors
+  and standard errors.
   
   If \code{reestimate = TRUE} and \code{output = TRUE} additional
   columns are added to the data-frame. Each column will contain the
@@ -146,6 +151,7 @@ plot(s100.xv.wls)
 par(par.ori)
 #
 \testonly{
+set.seed(234)
 data(s100)
   vr <- variog(s100, max.dist=1)
   ## OLS#

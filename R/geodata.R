@@ -1,11 +1,11 @@
 ##
 ## Basic data manipulation for the geoR package
-## --------------------------------------------
+## ---------------------------------------------------------------
 ##
 ## Functions for reading data and basic exploratory analysis. 
 ## These functions include
-##    - creates objets of the class geodata
-##    - methods for this class
+##    - creating objets of the (S3) class "geodata"
+##    - (S3) methods for this class
 ##
 
 "is.geodata" <- function (x){
@@ -195,24 +195,68 @@
 
 "summary.geodata" <- function(object, ...)
 {
-  x <- object
-  res <- list()
-  res$n <- nrow(object$coords)
-  res$coords.summary <- apply(x$coords, 2, range)
-  rownames(res$coords.summary) <- c("min", "max")
-  if(is.null(colnames(object$coords))) colnames(res$coords.summary) <- c("Coord.X", "Coord.Y")
   if(! "package:stats" %in% search()) require(mva)
-  res$distances.summary <- range(dist(x$coords))
-  names(res$distances.summary) <- c("min", "max")  
-  if(!is.null(x$borders)){
-    res$borders.summary <- apply(x$borders, 2, range)
+  res <- list()
+  if(!is.null(object$realisations)){
+    by2matrix <- function(x){
+      print(x)
+      x <- unclass(x)
+      attributes(x) <- NULL
+      x.names <- names(x[[1]])
+      x.n <- length(x)
+      x <- matrix(unlist(x), nr=x.n, byrow=TRUE)
+      colnames(x) <- x.names
+      rownames(x) <- paste("real.", 1:x.n, sep="")
+      print(111)
+      return(x)
+    }
+    rr <- as.factor(object$realisations)
+    rr.names <- paste("real.", levels(rr), sep="")
+    res$n <- as.vector(by(object$coords, rr, nrow))
+    names(res$n) <- rr.names
+    print(100)
+    res$coords.summary <- by(ap$coords, rr,
+                             function(x) {res <- apply(x,2,range);
+                                          rownames(res) <- c("min", "max");
+                                          if(is.null(colnames(res))) colnames(res) <- c("Coord.X", "Coord.Y"); 
+                                          res})
+    print(101)
+    attr(res$coords.summary, "dimnames") <- list(realisation = levels(rr)) 
+    res$distances.summary <- by2matrix(by(object$coords, rr,
+                                function(x){ res <- range(dist(x));
+                                             names(res) <- c("min", "max");  
+                                             res}))
+    res$data.summary <- by(object$data, rr,
+                           function(x) drop(apply(as.matrix(x), 2, summary)))
+    if(ncol(as.matrix(object$data)) == 1)
+      res$data.summary <- by2matrix(res$data.summary)
+    if(!is.null(object$units.m)){
+      res$units.m.summary <- by(object$units.m, rr,
+                                function(x) drop(apply(as.matrix(x), 2, summary)))
+      if(ncol(as.matrix(object$units.m)) == 1)
+        res$units.m.summary <- by2matrix(res$units.m.summary)
+    }
+      if(!is.null(object$covariate))
+      res$covariate.summary <- by(object$covariate, rr, summary)
+  }
+  else{
+    res$n <- nrow(object$coords)
+    res$coords.summary <- apply(object$coords, 2, range)
+    rownames(res$coords.summary) <- c("min", "max")
+    if(is.null(colnames(object$coords)))
+      colnames(res$coords.summary) <- c("Coord.X", "Coord.Y")
+    res$distances.summary <- range(dist(object$coords))
+    names(res$distances.summary) <- c("min", "max")  
+    res$data.summary <- drop(apply(as.matrix(object$data), 2, summary))
+    if(!is.null(object$units.m))
+      res$units.m.summary <- drop(apply(as.matrix(object$units.m), 2, summary))
+    if(!is.null(object$covariate))
+      res$covariate.summary <- summary(object$covariate)
+  }
+  if(!is.null(object$borders)){
+    res$borders.summary <- apply(object$borders, 2, range)
     rownames(res$borders.summary) <- c("min", "max")
   }
-  res$data.summary <- drop(apply(as.matrix(x$data), 2, summary))
-  if(!is.null(x$units.m))
-    res$units.m.summary <- drop(apply(as.matrix(x$units.m), 2, summary))
-  if(!is.null(x$covariate))
-    res$covariate.summary <- summary(x$covariate)
   return(res)
 }
 

@@ -1,7 +1,6 @@
 \name{grf}
 
 \alias{grf}
-\alias{grf.aux2}
 \alias{grf.aux1}
 \alias{grfclass}
 \alias{lines.grf}
@@ -23,7 +22,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     nsim = 1, cov.model = "matern",
     cov.pars = stop("covariance parameters (sigmasq and phi) needed"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
-    method = c("cholesky", "svd", "eigen", "circular.embedding"),
+    method = c("cholesky", "svd", "eigen"),
     messages)
 }
 
@@ -88,22 +87,10 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   three available methods differs in the way they compute the
   square root of the (positive definite) covariance matrix.
 
-  For \code{method = "circular.embedding"} the algorithm implements
-  the method described by Wood & Chan (1994) which is based on Fourier
-  transforms.
-  Only regular and equally spaced grids can be generated using this method.
-  \cr
-  The code for the \code{"circular.embedding"} method
-  was provided by Martin Schlather, University of Bayreuth\cr
-  (\url{http://btgyn8.geo.uni-bayreuth.de/~martin/}).
- 
-  \bold{WARNING:} The code for the \code{"circular.embedding"} method is
-  no longer being maintained. Martin has released a
-  package called \pkg{RandomFields} (available on \acronym{CRAN})
-  for simulation of random fields.
-  We strongly recommend the use of this package for simulations on fine
-  grids with large number of locations. 
-
+  The previouly available
+  method \code{method = "circular.embedding"} is no longer available
+  in \pkg{geoR}. For simulations in a fine grid and/or with a large number
+  of points use the package \pkg{RandomFields}
 }
 
 
@@ -172,10 +159,6 @@ plot(sim1)
 # a "smallish" simulation
 sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 
 image(sim2, xlab="X Coord", ylab="Y Coord")
-#
-# a "bigger" one
-sim3 <- grf(40401, grid = "reg", cov.pars = c(10, .2), met = "circ") 
-image(sim3, xlab="X Coord", ylab="Y Coord")
 ##
 ## 1-D simulations using the same seed and different noise/signal ratios
 ##

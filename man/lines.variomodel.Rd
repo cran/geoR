@@ -25,10 +25,12 @@ lines.variomodel(x, \dots)
 
 \arguments{
   \item{x}{a list with the values for the following components: \code{cov.model}, \code{cov.pars},
-    \code{nugget}, \code{kappa} (not aways compulsory, see argument
-    kappa below), \code{max.dist}.
-    This argument is optional if the other arguments in the function
+    \code{nugget}, \code{kappa} , \code{max.dist}; or a numeric vector
+    with x-axis values for the variogram.
+    This argument is not required if the other arguments in the function
     are provided, otherwise is compulsory.
+    If a list is provided the arguments which match the list elements
+    are ignored.
   }
   \item{cov.model}{a string with the type of the variogram function. See
     documentation of \code{\link{cov.spatial}} for further details.
@@ -45,7 +47,9 @@ lines.variomodel(x, \dots)
   }
   \item{max.dist}{maximum distance (x-axis) to compute and draw the line
     representing the  variogram model.
-    The default is the distance given by \code{obj$max.dist}.  }
+    If a list is provided in \code{x} the default is the distance given by
+    \code{x$max.dist}. If a vector is provided in \code{x} it takes \code{max(x)}.
+  }
   \item{scaled}{logical. If \code{TRUE} the total sill in the plot is
     equals to \eqn{1}.  }
   \item{\dots}{arguments to be passed to the function
@@ -86,12 +90,12 @@ lines.variomodel(x, \dots)
 
 \examples{
 data(s100)
-# compute and plot empirical variogram
+# computing and ploting empirical variogram
 vario <- variog(s100, max.dist = 1)
 plot(vario)
-# estimate parameters
+# estimating parameters by weighted least squares
 vario.wls <- variofit(vario, ini = c(1, .3), fix.nugget = TRUE)
-# adds fitted model to the plot  
+# adding fitted model to the plot  
 lines(vario.wls)
 #
 # Ploting different variogram models
@@ -103,7 +107,14 @@ max.dist = 1)
 lines.variomodel(my.model, lwd = 2)
 # now adding another model
 lines.variomodel(cov.m = "mat", cov.p = c(.7, .25), nug = 0.3,
-                 max.dist = 1, kappa = 1, lty = 2) 
+                 max.dist = 1, kappa = 1, lty = 2)
+# adding the so-called "nested" models
+# two exponential structures
+lines.variomodel(seq(0,1,l=101), cov.model="exp",
+                 cov.pars=rbind(c(0.6,0.15),c(0.4,0.25)), nug=0, col=2)
+## exponential and spherical structures
+lines.variomodel(seq(0,1,l=101), cov.model=c("exp", "sph"),
+                 cov.pars=rbind(c(0.6,0.15), c(0.4,0.75)), nug=0, col=3)
 }
 \keyword{spatial}
 \keyword{aplot}

@@ -83,6 +83,14 @@
     ##
     ##  Checking initial values
     ##
+    umax <- max(vario$u)
+    vmax <- max(vario$v)
+    if(missing(ini.cov.pars)){
+      ini.cov.pars <- as.matrix(expand.grid(c(vmax/2, 3*vmax/4, vmax),
+                                            seq(0, 0.8*umax, len=6)))
+      if(!fix.nugget) nugget <- c(nugget, vmax/4, vmax/2)
+      warning("initial values not provided - default search performed")
+    }
     if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
       ini.cov.pars <- as.matrix(ini.cov.pars)
       if(nrow(ini.cov.pars) == 1)
@@ -141,6 +149,19 @@
       kappa <- ini.temp[4]
       grid.ini <- NULL
     }
+    ##
+    ## checking for unreasonable initial values
+    ##
+    if(ini.cov.pars[1] > 2*vmax)
+      warning("unreasonable initial value for sigmasq (too high)")
+    if(ini.cov.pars[1] + nugget > 3*vmax)
+      warning("unreasonable initial value for sigmasq + nugget (too high)")
+    if(ini.cov.pars[1] + nugget < 0.3*vmax)
+      warning("unreasonable initial value for sigmasq + nugget (too low)")
+    if(nugget > 2*vmax)
+      warning("unreasonable initial value for nugget (too high)")
+    if(ini.cov.pars[2] > 1.5*umax)
+      warning("unreasonable initial value for phi (too high)")
     ##
     ## transforming kappa for constraint minimisation
     ##

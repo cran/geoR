@@ -2,6 +2,7 @@
 
 \alias{cov.spatial}
 \alias{cor.number}
+\alias{check.cov.model}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Computes Value of the Covariance Function}

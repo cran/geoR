@@ -48,16 +48,15 @@
   return(cornumber)
 }
 
-"cov.spatial" <-
-  function(obj, cov.model = 'matern', cov.pars = stop("no cov.pars argument provided"),
-           kappa = 0.5)
-{
-  ## extracting covariance paramters
+"check.cov.model" <-
+  function(cov.model, cov.pars, kappa, env=NULL, output=TRUE)
+{  
+  ## extracting covariance parameters
   if(is.vector(cov.pars)) sigmasq <- cov.pars[1]
   else sigmasq <- cov.pars[, 1]
   if(is.vector(cov.pars)) phi <- cov.pars[2]
   else phi <- cov.pars[, 2]
-  if(is.null(kappa)) kappa <- NA
+  if(missing(kappa) || is.null(kappa)) kappa <- NA
   ## checking for nested models 
   if(is.vector(cov.pars)) ns <- 1
   else{
@@ -102,6 +101,24 @@
       if(any(phi[i] >= 2) | any(phi[i] <= 0))
         stop("for power model the phi parameters must be in the interval ]0,2[")
   }
+  if(!is.null(env)){
+    assign("sigmasq", sigmasq, env=env)
+    assign("phi", phi, env=env)
+    assign("kappa", kappa, env=env)
+    assign("ns", ns, env=env)
+    assign("cov.model", cov.model, env=env)
+  }
+  if(output) return(list(cov.model=cov.model, sigmasq=sigmasq, phi=phi, kappa=kappa, ns=ns))
+  else return(invisible())
+}
+
+"cov.spatial" <-
+  function(obj, cov.model = 'matern', cov.pars = stop("no cov.pars argument provided"),
+           kappa = 0.5)
+{
+  fn.env <- sys.frame(sys.nframe())
+  check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+                  env=fn.env, output=FALSE)
   ##
   ## computing correlations/covariances
   ##

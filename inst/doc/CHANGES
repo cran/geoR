@@ -1,11 +1,80 @@
 
 		==============================
+ 		     CHANGES IN geoR VERSION 1.5-2
+		==============================
+
+NEW FEATURES
+
+        o summary method for "xvalid" object
+
+
+BUGS
+
+        o in eyefit() when pressing the SAVE button
+
+        o likfit() was reporting wrong number of parameters for the non-spatial model 
+
+
+
+		==============================
+ 		     CHANGES IN geoR VERSION 1.5-1
+		==============================
+
+NEW FEATURES
+
+        o grf() no longer implements the "circular embedding".
+           Users shoud use the package RandomFields for simulations with
+           larger number of locations.Future realeases
+           may contain a wrapper for RandomFields functions
+
+        o variofit() now has a default serch for initial values if they are not provided
+           and check for unreasonable initial values
+
+        o likfit() now has a default serch for initial values if they are not provided
+           and check for unreasonable initial values
+
+        o new internal function check.locations() used to test
+	  the argument 'locations' in krige.conv(), ksline() and
+	  krige.bayes()
+
+        o summary.geodata() now handles "realisations", providing (by default) 
+          separate summaries for each of them 
+
+        o new internal function check.cov.model() to check input parameters
+          So far used by lines.variomodel() and cov.spatial()
+          but may be used by other in future.
+          The ideia is to unify the checks to facilitate futere upgrades in
+          the package
+
+        o lines.variomodel() can now handle nested variograms
+
+        o modifications in "Suggests" and "Depends" in the DESCRIPTION file
+
+        o sliding bar for the kappa parameters in the tcl/tk interface 
+          implemented in eyefit()
+
+
+
+BUGS
+
+        o bug fix in maximum value of range (phi) in eyefit()
+
+        o plot.grf() now produces by default ylim compatible with both
+          empirical and theoretical parameters
+
+        o more changes in krige.bayes() to avoid problems computing
+          posterior probabilities for large data-sets
+
+
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.4-9
 		==============================
 
 NEW FEATURES
 
-        o e few \concept entries added in the documentation
+        o a few \concept{} entries added in the documentation
 
         o reciprocal prior for tausq.rel parameter in krige.bayes() (prior.control())
 

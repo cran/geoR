@@ -42,7 +42,9 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
   \item{data}{a vector with \emph{n} data values. By default it takes the
     component \code{data} of the argument \code{geodata}, if provided.  }
   \item{locations}{an \eqn{N \times 2}{N x 2} matrix or data-frame with the 2-D
-    coordinates of the \eqn{N} prediction locations. }
+    coordinates of the \eqn{N} prediction locations, or a list for which
+    the first two components are used. Input is internally checked by the
+    function \code{check.locations}.  } 
   \item{borders}{optional. If a two column matrix defining a polygon is
     provided the prediction is performed only at locations inside this polygon. }
   \item{cov.pars}{a vector with 2 elements or an \eqn{n \times 2}{n x

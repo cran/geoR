@@ -6,6 +6,46 @@
 ## to perform internal calculations
 ##
 
+"check.locations" <-
+  function(locations)
+{
+  if(all(locations == "no")) return("no")
+  if(!is.list(locations) && is.vector(locations)) {
+    ##
+    ## Checking the spatial dimension for prediction
+    ##  1 (data/prediction on a transect) or 2 (data/prediction on an area)
+    ##
+    if(length(locations) == 2) {
+      locations <- t(as.matrix(locations))
+      warning("assuming that there is only 1 prediction point")
+    }
+    else{
+      warning("locations provided as a vector, assuming one spatial dimension")
+      locations <- as.matrix(cbind(locations, 0))
+    }
+  }
+  else{
+    if(is.matrix(locations) | is.data.frame(locations)){
+      if(ncol(locations) < 2)
+        stop("locations must be a 2 column matrix, data-frame or a list with 2 components")
+      if(ncol(locations) > 2){
+        warning("locations provided with a matrix or data-frame with more than 2 columns. Only the first two columns used as coordinates")
+        locations <- locations[,1:2]
+      }
+    }
+    else{
+      if(is.list(locations)){
+        if(length(locations) < 2)
+          stop("locations must be a 2 column matrix, data-frame or a list with 2 components")
+        if(length(locations) > 2)
+          warning("locations provided as a list with more than 2 components. Only the 2 first will be used as coordinates")
+        locations <- matrix(unlist(locations[1:2]), nc=2)
+      }
+    }
+  }
+  return(as.matrix(locations))
+}
+
 "solve.geoR" <-
   function (a, b = NULL, ...) 
 {

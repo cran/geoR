@@ -58,7 +58,9 @@ post2prior(obj)
   \item{data}{a vector with \emph{n} data values. By default it takes the
     component \code{data} of the argument \code{geodata}, if provided.  }
   \item{locations}{an \eqn{N \times 2}{N x 2} matrix or data-frame with the 2-D
-    coordinates of the \eqn{N} prediction locations.
+    coordinates of the \eqn{N} prediction locations, or a list for which
+    the first two components are used. Input is internally checked by the
+    function \code{check.locations}. 
     Defaults to \code{"no"} in which case
     the function returns only results on the posterior distributions of
     the model parameters.  }

@@ -4,6 +4,7 @@
 {
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
+  locations <- check.locations(locations)
   call.fc <- match.call()
   base.env <- sys.frame(sys.nframe())
   ##
@@ -145,18 +146,6 @@
     warning("krige.conv: coordinates provided as a vector, assuming one spatial dimension")
   }
   coords <- as.matrix(coords)
-  if(is.vector(locations)) {
-    if(length(locations) == 2) {
-      locations <- t(as.matrix(locations))
-      if(messages.screen) 
-        warning("krige.conv: assuming that there is only 1 prediction point")
-    }
-    else{
-      warning("krige.conv: locations provided as a vector, assuming one spatial dimension")
-      locations <- as.matrix(cbind(locations, 0))
-    }
-  }
-  else locations <- as.matrix(locations)
   ##
   ## selecting locations inside the borders 
   ##
@@ -827,4 +816,5 @@
   }
   return(invisible())
 }
+
 

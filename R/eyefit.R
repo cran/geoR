@@ -44,13 +44,15 @@ eyefit <- function(vario, silent=FALSE)
   assign("eyefit.tmp", list(), envir=eyefit.env)
   ##  .eyefit.tmp <<- list()
   
+  dmax <- max(vario$u)
+ 
   kappa1 <- tclVar("0.5")
   kappa2 <- tclVar("1.0")    
   kernel<- tclVar("exponential")
   mdist <- tclVar((max(vario$u)))
   nugget <- tclVar(0.2*(max(vario$v)))
   sill <- tclVar(0.8*(max(vario$v)))	
-  range <- tclVar((max(vario$v))/3)
+  range <- tclVar(dmax/3)
   
   replot <- function(...) {        
     k <- as.character(tclObj(kernel))
@@ -91,18 +93,24 @@ eyefit <- function(vario, silent=FALSE)
       if (var == "gneiting.matern") 
 	{
           tkconfigure(entry.kappa1,state="normal")
+    	  tkconfigure(ts5,state="normal")
           tkfocus(entry.kappa1)
           tkconfigure(entry.kappa2,state="normal")
+    	  tkconfigure(ts6,state="normal")
 	}
       else if (var == "powered.exponential" || var =="cauchy" || var == "matern") 
 	{
           tkconfigure(entry.kappa1,state="normal")
+  	  tkconfigure(ts5,state="normal")
           tkfocus(entry.kappa1)
-          tkconfigure(entry.kappa2,state="disabled")		
+          tkconfigure(entry.kappa2,state="disabled")
+    	  tkconfigure(ts6,state="disabled")		
 	}
       else
 	{
-          tkconfigure(entry.kappa1,state="disabled")
+	  tkconfigure(ts5,state="disabled")
+  	  tkconfigure(ts6,state="disabled")
+	  tkconfigure(entry.kappa1,state="disabled")
           tkconfigure(entry.kappa2,state="disabled")
 	}
        replot()    
@@ -119,7 +127,7 @@ eyefit <- function(vario, silent=FALSE)
   tkpack(tklabel(frame1,text="Parameters"),fill="both",side="top")    
   
   entry.mdist <-tkentry(frame1,width="4",textvariable=mdist)    
-  tkpack(ts1<-tkscale(frame1, label="Max. Distance",command=replot, from=0.00, to=max(vario$u),
+  tkpack(ts1<-tkscale(frame1, label="Max. Distance",command=replot, from=0.00, to=dmax,
                       showvalue=0, variable=mdist,
                       resolution=0.01, orient="horiz",relief="groove"),
          fill="both",expand=1,padx=3,pady=2,ipadx=3,ipady=2,side="left")
@@ -137,7 +145,7 @@ eyefit <- function(vario, silent=FALSE)
   
   frame4 <- tkframe(left.frm, relief="groove", borderwidth=2)
   entry.range <-tkentry(frame4,width="4",textvariable=range)        
-  tkpack(ts3<-tkscale(frame4, label="Range (phi):",command=replot, from=0.00, to=2*max(vario$v),
+  tkpack(ts3<-tkscale(frame4, label="Range (phi):",command=replot, from=0.00, to=2*dmax,
                       showvalue=1, variable=range,
                       resolution=0.01, orient="horiz",relief="groove"),
          fill="x",expand=1,padx=3,pady=2,ipadx=3,ipady=2,side="left")	    
@@ -155,15 +163,22 @@ eyefit <- function(vario, silent=FALSE)
   
   frame6 <- tkframe(left.frm, relief="groove", borderwidth=2)
   tkpack(tklabel(frame6,text="Kappa"),fill="both",side="top")        
-  l1<-tklabel(frame6,text="kappa 1:")
   entry.kappa1<-tkentry(frame6,width="4",textvariable=kappa1,state="disabled")    
-  tkpack(l1,side="left",fill="x")       
-  tkpack(entry.kappa1,side="right",fill="none")           
+  tkpack(ts5<-tkscale(frame6, label="Kappa 1:",command=replot,
+                      from=0.00, to=10.00,
+                      showvalue=1, variable=kappa1,state="disabled",
+                      resolution=0.01, orient="horiz",relief="groove"),
+         fill="x",expand=1,padx=3,pady=2,ipadx=3,ipady=2,side="left")
+  tkpack(entry.kappa1,side="right",fill="none")
+  
   
   frame7 <- tkframe(left.frm, relief="groove", borderwidth=2)        
-  l2<-tklabel(frame7,text="kappa 2:")
   entry.kappa2 <-tkentry(frame7,width="4",textvariable=kappa2,state="disabled")
-  tkpack(l2,side="left",fill="none")
+  tkpack(ts6<-tkscale(frame7, label="Kappa 2:",command=replot,
+                      from=0.00, to=10.00,
+                      showvalue=1, variable=kappa2,state="disabled",
+                      resolution=0.01, orient="horiz",relief="groove"),
+         fill="x",expand=1,padx=3,pady=2,ipadx=3,ipady=2,side="left")
   tkpack(entry.kappa2,side="right",fill="none")
   
   frame2 <- tkframe(right.frm, relief="groove", borderwidth=2)
@@ -197,12 +212,13 @@ eyefit <- function(vario, silent=FALSE)
     {
       k <- as.character(tclObj(kernel))
       kp1 <- as.numeric(tclObj(kappa1))
-      kp2 <- as.numeric(tclObj(kappa2))
+      if(k == "gneiting.matern")
+        kp2 <-  as.numeric(tclObj(kappa2))
+      else kp2 <- NULL
       maxdist <- as.numeric(tclObj(mdist))
       sigmasq <- as.numeric(tclObj(sill))	
       phi <- as.numeric(tclObj(range))
-      tausq <- as.numeric(tclObj(nugget))			
-      
+      tausq <- as.numeric(tclObj(nugget))
       aux <- list(cov.model=k, cov.pars=c(sigmasq, phi), 
                   nugget=tausq, kappa=c(kp1,kp2), max.dist=maxdist)				
       

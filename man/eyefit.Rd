@@ -6,8 +6,6 @@
 \alias{print.summary.eyefit}
 \alias{plot.eyefit}
 
-\concept{variogram parameter estimation}
-
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Interactive Variogram Estimation}
 \description{
@@ -42,18 +40,8 @@ eyefit(vario, silent = FALSE)
 \seealso{\code{\link{variofit}} for least squares variogram fit,
   \code{\link{likfit}} for likelihood based parameter estimation
   and \code{\link{krige.bayes}} to obtain the posterior distribution for the model parameters. }
-\examples{
-data(s100)
-s100.v <- variog(s100, max.dist=1)
-# open the TCL/TK intervace with:
-# fit <- eyefit(s100.v)
-# after fit the model click in SAVE and then CLOSE
-# and try this:
-# fit
-# summary(fit)
-# plot(s100.v)
-# lines(fit)
-}
+%\examples{
+%}
 \keyword{spatial}% at least one, from doc/KEYWORDS
 \keyword{models}% __ONLY ONE__ keyword per line
 \keyword{dynamic}% __ONLY ONE__ keyword per line

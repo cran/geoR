@@ -92,6 +92,11 @@
   ##
   ## Initial values for parameters
   ##
+#  var.data <- max(tapply(data, realisations, var))
+#  d.max <- max(by(ap$coords, ap$realisations, function(x) max(dist(x))))
+#  if(missing(ini.cov.pars))
+#    ini.cov.pars <- expand.grid(var.data/2, 3*var.data/4, var.data)
+    
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
     ini.cov.pars <- as.matrix(ini.cov.pars)
     if(nrow(ini.cov.pars) == 1)
@@ -641,7 +646,7 @@
         loglik.ns <- ((n-beta.size)/2)*((-log(2*pi)) - log(nugget.ns) -1) +
           temp.list$log.jacobian
       }
-      npars.ns <- beta.size + 1 + fix.lambda
+      npars.ns <- beta.size + 1 + !fix.lambda
       lambda.ns <- lambda
     }
     else{
@@ -676,7 +681,7 @@
         loglik.ns <- (- value.min.ns)+ ((n-beta.size)/2)*((-log(2*pi)) +
                                                           log(n-beta.size) - 1)
       }      
-      npars.ns <- beta.size + 1 + fix.lambda
+      npars.ns <- beta.size + 1 + !fix.lambda
     }
     lik.results$nospatial <- list(beta.ns = beta.ns, variance.ns = nugget.ns,
                                   loglik.ns = loglik.ns, npars.ns = npars.ns,

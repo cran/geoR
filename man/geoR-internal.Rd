@@ -8,7 +8,8 @@
 \alias{rMVnorm}
 \alias{solve.geoR}
 \alias{print.grf}
-  
+\alias{check.locations}
+
 \title{geoR internal functions}
 
 \description{

@@ -465,3 +465,22 @@
   ##
   return(invisible())
 }
+
+"summary.xvalid" <-
+  function(object, ...)
+{
+  res <- list()
+  res$error <- c(summary(object$error), sd=sd(object$error))
+  res$std.error <- c(summary(object$std.error), sd=sd(object$std.error))
+  class(res) <- "summary.xvalid"
+  return(res)
+}
+
+"print.summary.xvalid" <-
+  function(x, ...)
+{
+   res <- rbind(x$error,x$std.error)
+   rownames(res) <- c("errors","std.errors")
+   print(res)
+   return(invisible())
+ }

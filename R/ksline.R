@@ -16,6 +16,7 @@
   ##
   ## selecting locations inside the borders 
   ##
+  locations <- check.locations(locations)
   if(!is.null(borders)){
     locations <- locations.inside(locations, borders)
     if(messages.screen)

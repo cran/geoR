@@ -288,6 +288,7 @@
       stop("size of beta incompatible with the trend model (covariates)")
   }
   if(do.prediction) {
+    locations <- check.locations(locations)    
     ##
     ## selecting locations inside the borders 
     ##
@@ -300,18 +301,6 @@
       if(messages.screen)
         cat("krige.bayes: results will be returned only for prediction locations inside the borders\n")
     }
-    ##
-    ## Checking the spatial dimension for prediction
-    ##  1 (data/prediction on a transect) or 2 (data/prediction on an area)
-    ##
-    if(is.vector(locations)) {
-      if(length(locations) == 2) {
-        locations <- t(as.matrix(locations))
-        warning("krige.bayes: THE FUNCTION IS CONSIDERING THAT YOU HAVE ENTERED WITH 1 POINT TO BE PREDICTED IN A TWO DIMENSION REGION\n")
-      }
-      else locations <- as.matrix(cbind(locations, 0))
-    }
-    else locations <- as.matrix(locations)
     ##
     ## Checking for 1D prediction 
     ##
@@ -559,7 +548,7 @@
       par.set <- get("parset", envir=counter.env)
       if(messages.screen)
         krige.bayes.counter(.temp.ap = par.set, n.points = ntocount)
-      assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
+      on.exit(assign("parset", get("parset", envir=counter.env)+1, envir=counter.env))
       phi <- phinug[1]
       tausq.rel <- phinug[2]
       if(prior$beta.prior == "normal" && npr > 1) info.id <- par.set
@@ -608,6 +597,16 @@
 #      logprobphitausq <- logprobphitausq + 4*bsp$df.post
 #      logprobphitausq <- logprobphitausq - 2*n - (bsp$df.post/2)
 #      logprobphitausq <- logprobphitausq - n^2 - (bsp$df.post/2)
+#      print(c(par.set,logprobphitausq))
+      if(get("add.cte", envir=counter.env) && is.finite(logprobphitausq)){
+        assign("cte", logprobphitausq, envir=counter.env)
+        assign("add.cte", FALSE, envir=counter.env)
+      }
+      if(get("cte", envir=counter.env) > 0)
+        logprobphitausq <- logprobphitausq - get("cte", envir=counter.env)
+      else
+        logprobphitausq <- logprobphitausq + get("cte", envir=counter.env)
+#      print(logprobphitausq)
       bsp$probphitausq <- drop(exp(logprobphitausq))
 #      print(logprobphitausq)
 #      print(bsp$probphitausq)
@@ -657,6 +656,8 @@
     ##
     counter.env <- new.env()
     assign("parset", 1, envir=counter.env)
+    assign("add.cte", TRUE, envir=counter.env)
+    assign("cte", 0, envir=counter.env)
     if(messages.screen){
       ntocount <- nrow(phidist$phitausq)
       cat(paste("krige.bayes: computing the posterior probabilities.\n             Number of parameter sets: ", ntocount,"\n"))
