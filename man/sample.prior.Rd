@@ -32,7 +32,7 @@ sample.prior(n, kb.obj=NULL, prior=prior.control())
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

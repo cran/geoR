@@ -21,7 +21,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     cov.pars = stop("covariance parameters (sigmasq and phi) needed"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     method = c("cholesky", "svd", "eigen", "circular.embedding"),
-    messages.screen = TRUE)
+    messages)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -71,7 +71,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     by the function \code{\link{coords.aniso}}.  }
   \item{method}{simulation method. Defaults to the \emph{Cholesky}
     decomposition.  See section \code{DETAILS} below.  }
-  \item{messages.screen}{logical,  indicating
+  \item{messages}{logical,  indicating
     whether or not status messages are printed on the screen (or output device)
     while the function is running. Defaults to \code{TRUE}.  } 
 }
@@ -96,7 +96,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
  
   \bold{WARNING:} The code for the \code{"circular.embedding"} method is
   no longer being maintained. Martin has released a
-  package called \code{RandomFields} (available on \code{CRAN})
+  package called \pkg{RandomFields} (available on \acronym{CRAN})
   for simulation of random fields.
   We strongly recommend the use of this package for simulations on fine
   grids with large number of locations. 
@@ -140,7 +140,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     and to unconditional simulation of random fields}. Tech. Report
   ST--99--10, Dept Maths and Stats, Lancaster University.
   
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

@@ -1,9 +1,3 @@
-"olsfit" <- function(...)
-  stop("this function is now obsolete.\nuse variofit() instead.")
-
-"wlsfit" <- function(...)
-  stop("this function is now obsolete.\nuse variofit() instead.")
-
 "variofit" <-
   function (vario, ini.cov.pars, cov.model = "matern",
             fix.nugget = FALSE, nugget = 0, 
@@ -11,9 +5,12 @@
             simul.number = NULL,  max.dist = vario$max.dist,
             weights = c("npairs", "equal", "cressie"),
             minimisation.function,
-            messages.screen = TRUE, ...) 
+            messages, ...) 
 {
   call.fc <- match.call()
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
     warning("object vario should preferably  be of the class \"variogram\"")
   weights <- match.arg(weights)

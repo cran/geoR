@@ -21,7 +21,7 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
 \arguments{
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} as described next. 
-    Typically an object of the class \code{"geodata"} - a \bold{geoR}
+    Typically an object of the class \code{"geodata"} - a \pkg{geoR}
     data-set.
     If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
@@ -84,7 +84,7 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

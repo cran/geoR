@@ -25,3 +25,10 @@ cite.geoR <- function()
     cat("   }\n\n")
 }
 
+#geoR.options <- function(messages = TRUE, ...)
+#{
+#  res <- list(...)
+#  res$messages <- messages
+#  .geoR.options <<- res
+#  return(invisible())
+#}

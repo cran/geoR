@@ -3,7 +3,7 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Citing Package geoR in Publications}
 \description{
-  How to cite the package geoR in publications.
+  How to cite the package \pkg{geoR} in publications.
 }
 \usage{
 cite.geoR()

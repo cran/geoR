@@ -29,7 +29,9 @@ is.geodata(x)
 \arguments{
   \item{obj}{a matrix or data-frame where each line corresponds to one
     spatial location. It should contain values of 2D coordinates,
-    data and, optionally, covariate(s) value(s) at the locations.  }
+    data and, optionally, covariate(s) value(s) at the locations.
+    It can also take an output of the function \code{\link{grf}}, see
+    DETAILS below. }
   \item{coords.col}{a vector with the column numbers corresponding to the
     spatial coordinates.  }
   \item{data.col}{a scalar or vector with column number(s) corresponding
@@ -67,11 +69,11 @@ is.geodata(x)
 
 \details{
   Objects of the class \code{"geodata"} contain data for
-  geostatistical analysis using the package \bold{geoR}.
-  Storing data in this format facilitates the usage of the functions in \bold{geoR}.
+  geostatistical analysis using the package \pkg{geoR}.
+  Storing data in this format facilitates the usage of the functions in \pkg{geoR}.
   However, conversion of objects to this class is not obligatory
   to carry out the analysis.
-
+  
   \code{NA}'s are not allowed in the coordinates. By default the
   respective rows will not be included in the output.
 
@@ -83,17 +85,21 @@ is.geodata(x)
   points in time and independence between time points is assumed,
   each time can be considered a different "replicate" or "realisation"
   of the same process. The argument \code{realisations} takes a vector
-  indication the replication number and can be passed to other \code{geoR}
+  indication the replication number and can be passed to other \pkg{geoR}
   functions as, for instance, \code{\link{likfit}}.
 
   The data format is similar to the usual \code{geodata} format in
-  \code{geoR}.
+  \pkg{geoR}.
   Suppose there are realisations (times) \eqn{1, \ldots, J}{1, ..., J}
   and for each realisations \eqn{n_1, ..., n_j} observations are available.
   The coordinates for different realisations
   should be combined in a single \eqn{n \times 2}{nx2} object,
   where \eqn{n=n_1 + \ldots + n_J}{n=n_1 + ... + n_J}.
   Similarly for the data vector and covariates (if any).
+
+  \bold{grf objects}\cr
+  If an object of the class \code{grf} is provided the functions just
+  extracts the elements \code{coords} and \code{data} of this object. 
 }
 
 \value{
@@ -114,7 +120,7 @@ is.geodata(x)
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

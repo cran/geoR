@@ -58,7 +58,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
         rangenugget.rel.values = FALSE, silllambda.values = FALSE,
         rangelambda.values = TRUE,  nuggetlambda.values = FALSE,
         nugget.rellambda.values = FALSE,
-        uni.only = TRUE, bi.only = FALSE, \dots)
+        uni.only = TRUE, bi.only = FALSE, messages, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -68,7 +68,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
     output of the function \code{\link{likfit}}.}
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set. If not provided the arguments
+    \code{"geodata"} - a \pkg{geoR} data-set. If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
   \item{coords}{ an \eqn{n \times 2}{n x 2} matrix containing in each row Euclidean
     coordinates of the \eqn{n} data locations. By default it takes the
@@ -105,6 +105,9 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
   \item{nugget.rellambda.values}{as above.  }
   \item{uni.only}{as above.  }
   \item{bi.only}{as above.  }
+  \item{messages}{logical. Indicates whether
+    status messages should be printed on the screen (i.e. current output device)
+    while the function is running.  }
 %  \item{minimisation.function}{minimization function to be
 %    used. Defaults to \code{\link{optim}}.  }
   \item{\dots}{additional parameters to be passed to the minimization
@@ -128,7 +131,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

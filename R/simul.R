@@ -5,12 +5,15 @@
            cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
            method = c("cholesky", "svd", "eigen", "circular.embedding"),
-           messages.screen = TRUE)
+           messages)
 {
   ##
   ## reading and checking input
   ##
   call.fc <- match.call()
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   method <- match.arg(method)
   if((method == "circular.embedding") & messages.screen)
     cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
@@ -22,8 +25,7 @@
                            "spherical", "circular", "cubic", "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  if (cov.model == "matern" && kappa == 0.5)
-    cov.model <- "exponential"
+  if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
   tausq <- nugget
   if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]

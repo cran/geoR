@@ -13,8 +13,7 @@
 
 \usage{
 variog.model.env(geodata, coords = geodata$coords, obj.variog,
-                 model.pars, nsim = 99, save.sim = FALSE,
-                 messages.screen = TRUE)
+                 model.pars, nsim = 99, save.sim = FALSE, messages)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -22,7 +21,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
 \arguments{
   \item{geodata}{a list containing element \code{coords}
     as described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set.
+    \code{"geodata"} - a \pkg{geoR} data-set.
     If not provided the argument
     \code{coords} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix, each row containing
@@ -53,7 +52,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
     Defaults to 99.  }
   \item{save.sim}{logical. Indicates whether or not the simulated data
     are included in the output. Defaults to \code{FALSE}.  }
-  \item{messages.screen}{logical. If \code{TRUE}, the default, status messages
+  \item{messages}{logical. If \code{TRUE}, the default, status messages
     are printed while the function is running.  }
 }
 
@@ -80,7 +79,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

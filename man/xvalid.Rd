@@ -20,14 +20,14 @@
 xvalid(geodata, coords = geodata$coords, data = geodata$data,
        model, reestimate = FALSE, variog.obj = NULL,
        output.reestimate = FALSE, locations.xvalid = "all",
-       data.xvalid = NULL, messages.screen = TRUE, \dots)
+       data.xvalid = NULL, messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
   \item{geodata}{a list containing element \code{coords}
     as described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set.
+    \code{"geodata"} - a \pkg{geoR} data-set.
     If not provided the arguments
     \code{coords} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
@@ -60,7 +60,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
   \item{data.xvalid}{data values at the validation locations.
     Only used if the validation locations are not the same or a
     subset of the original data coordinates.  }
-  \item{messages.screen}{logical. Indicates whether
+  \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
   \item{\dots}{further arguments to the minimization functions used by
@@ -96,7 +96,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

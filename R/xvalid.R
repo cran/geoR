@@ -2,12 +2,15 @@
   function (geodata, coords = geodata$coords, data = geodata$data, 
             model, reestimate = FALSE, variog.obj = NULL,
             output.reestimate = FALSE, locations.xvalid = "all",
-            data.xvalid = NULL, messages.screen = TRUE, ...) 
+            data.xvalid = NULL, messages, ...) 
 {
   ##
   ## Checking and organising input
   ##
   call.fc <- match.call()
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   n <- nrow(coords)
   data <- as.vector(data)
@@ -96,7 +99,7 @@
                           psiA = val.pars["psiA"], fix.lambda = fix.pars["lambda"], 
                           lambda = val.pars["lambda"], cov.model = model$cov.model, 
                           trend = ~cv.xmat + 0, method = model$method, 
-                          messages.screen = FALSE, ...)
+                          messages = FALSE, ...)
           if(output.reestimate){
             CVpars <- (CVmod$parameters.summary[c("tausq", "kappa", "psiA", "psiR", "lambda"), 2])
             CVpars <- c(CVmod$cov.pars, CVpars[fix.pars == FALSE])
@@ -114,12 +117,12 @@
                           bin.cloud = FALSE, direction = variog.obj$direction,
                           tolerance = variog.obj$tolerance,
                           unit.angle = "radians",
-                          messages.screen = FALSE, ...)
+                          messages = FALSE, ...)
           CVmod <- variofit(vario = CVvar, ini=model$cov.pars, cov.model = model$cov.model,
                             fix.nugget = model$fix.nugget, nugget = model$nugget,
                             fix.kappa = model$fix.kappa, kappa = model$kappa, max.dist = model$max.dist,
                             minimisation.function = model$minimisation.function,
-                            weights = model$weights, messages.screen = FALSE, ...)
+                            weights = model$weights, messages = FALSE, ...)
           if(output.reestimate){
             CVpars <- CVmod$cov.pars
             if(CVmod$fix.nugget == FALSE) CVpars <- c(CVpars, CVmod$nugget)

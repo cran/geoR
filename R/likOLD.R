@@ -6,8 +6,11 @@
             predicted = FALSE, residuals = FALSE, 
             minimisation.function = c("optim","nlmP", "nlm"),
             automatic.refit = FALSE, range.limits,
-            messages.screen = TRUE, ...) 
+            messages = TRUE, ...) 
 {
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
   call.fc <- match.call()

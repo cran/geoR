@@ -5,7 +5,7 @@
 \title{Sets Limits to Scale Plots}
 \description{
   This is an function typically called by functions in the package
-  \code{geoR} to set limits for the axis when plotting spatial data.
+  \pkg{geoR} to set limits for the axis when plotting spatial data.
 }
 
 \usage{

@@ -18,13 +18,14 @@
                   values.to.plot=c("mean", "variance",
                             "mean.simulations", "variance.simulations",
                             "quantiles", "probabilities", "simulation"),
-                  number.col, coords.data, xlim, ylim, x.leg, y.leg, \dots)
+                  number.col, coords.data, xlim, ylim, x.leg, y.leg,
+                  messages, \dots)
 
 \method{persp}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
                        "quantiles", "probabilities", "simulation"),
-                  number.col, \dots)
+                  number.col, messages, \dots)
 }
 
 \arguments{
@@ -55,9 +56,10 @@
 %  \item{cex.leg}{controls the size of the numerical values in the legend.  }
 %  \item{vertical}{logical, defining whether the legend is drawn in
 %    horizontal (default) or vertical position.  }
+  \item{messages}{logical, if TRUE status messages are printed while
+    running the function.  }
   \item{\dots}{extra arguments to be passed to the plotting function
     \code{\link{image}} or \code{\link{persp}}.  }
-  
 }
 
 \details{
@@ -79,7 +81,6 @@
 
   The documentation for the function \code{\link{krige.bayes}} provides
   further details about these options.
-
 }
 
 \value{
@@ -88,7 +89,7 @@
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

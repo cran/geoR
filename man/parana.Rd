@@ -8,7 +8,7 @@
 \description{
   This data-set was used by Diggle and Ribeiro (2001) to illustrate the methods
   discussed in the paper. The data reported analysis was
-  carried out using the package \bold{geoR}. 
+  carried out using the package \pkg{geoR}. 
   
   The data refers to average rainfall over different years for the period May-June
   (dry-season). It was collected at 143 recording stations throughout \eqn{\mbox{Paran\'{a}}}{Parana} State,

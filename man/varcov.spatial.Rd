@@ -81,7 +81,7 @@ varcov.spatial(coords = NULL, dists.lowertri = NULL,
 \details{
   The elements of the covariance matrix are computed by the function
   \code{\link{cov.spatial}}. Typically  this is an auxiliary function  called by other
-  functions in the \bold{geoR} package.
+  functions in the \pkg{geoR} package.
 }
 
 
@@ -103,7 +103,7 @@ varcov.spatial(coords = NULL, dists.lowertri = NULL,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

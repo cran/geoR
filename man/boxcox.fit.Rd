@@ -83,8 +83,8 @@ lines.boxcox.fit(x, data = eval(x$call$data), \dots)
   expression and more on the
   Box-Cox transformation,
   the minimization function \code{\link{optim}},
-  the function \code{\link[MASS]{boxcox}} in the package \code{MASS} and
-  the function \code{\link[car]{boxcox}} in the package \code{car}.
+  the function \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
+  the function \code{\link[car]{boxcox}} in the package \pkg{car}.
 }
 
 \examples{

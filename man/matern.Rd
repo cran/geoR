@@ -53,7 +53,7 @@ matern(u, phi, kappa)
 
 
 \seealso{\code{\link{cov.spatial}} for the correlation functions
-  implemented in \bold{geoR}, and \code{\link{besselK}} for computation
+  implemented in \pkg{geoR}, and \code{\link{besselK}} for computation
   of the Bessel functions.}
 
 \examples{

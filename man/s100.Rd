@@ -17,7 +17,7 @@ data(s121)
 
 \description{
   These two simulated data sets are the ones used in the Technical
-  Report which describes the package \bold{geoR}
+  Report which describes the package \pkg{geoR}
   (see reference below). 
   These data-sets are used in several examples throughout the package
   documentation.
@@ -44,7 +44,7 @@ data(s121)
   library for S-PLUS. \emph{Technical report ST-99-09, Dept of Maths and
   Stats, Lancaster University}. 
   
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

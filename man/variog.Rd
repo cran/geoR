@@ -28,8 +28,7 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
        estimator.type = c("classical", "modulus"), 
        nugget.tolerance, max.dist, pairs.min = 2,
        bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
-       unit.angle = c("radians","degrees"),
-       messages.screen = TRUE, \dots) 
+       unit.angle = c("radians","degrees"), messages, \dots) 
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -37,7 +36,7 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
 \arguments{
   \item{geodata}{a list containing element \code{coords}
     as described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set.
+    \code{"geodata"} - a \pkg{geoR} data-set.
     If not provided the arguments
     \code{coords} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
@@ -97,7 +96,7 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
   \item{unit.angle}{defines the unit for the specification of angles in
     the two previous arguments. Options are \code{"radians"} and
     \code{"degrees"}, with default to \code{"radians"}. }
-  \item{messages.screen}{logical. Indicates whether
+  \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
   \item{\dots}{arguments to be passed to the function \code{\link{ksmooth}}, if
@@ -204,7 +203,7 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
 \references{
   Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
   
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

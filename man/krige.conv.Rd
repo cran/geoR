@@ -33,7 +33,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
   
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} as described next. Typically an object of the \code{\link{class}}
-    \code{"geodata"} - a \bold{geoR} data-set. If not provided the arguments
+    \code{"geodata"} - a \pkg{geoR} data-set. If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix or data-frame with the 2-D
     coordinates of the \eqn{n} data locations.
@@ -147,7 +147,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

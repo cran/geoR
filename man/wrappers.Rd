@@ -1,7 +1,7 @@
 \name{wrappers}
 
 \alias{wrappers}
-\alias{distdiag}
+%\alias{distdiag}
 \alias{diffpairs}
 \alias{loccoords}
 \alias{diagquadraticformXAX}
@@ -14,13 +14,13 @@
 \description{
   These functions are \emph{wrappers} for some (but not all)
   the C functions
-  included in the \bold{geoR} package.\cr
-  Typically the C code is directly  called from the \bold{geoR}
+  included in the \pkg{geoR} package.\cr
+  Typically the C code is directly  called from the \pkg{geoR}
   functions but these functions allows independent calls.
 }
 
 \usage{
-distdiag(coords)
+%distdiag(coords)
 diffpairs(coords, data)
 loccoords(coords, locations)
 diagquadraticformXAX(X, lowerA, diagA) 
@@ -53,9 +53,8 @@ corr.diaglowertri(coords, cov.model, phi, kappa)
   
     \item{loccoords}{returns a \eqn{n \times N}{n x N}  matrix with distances
       between data points and prediction locations.  }
-    \item{distdiag}{returns a vector with distances between data
-      locations, including 
-      the diagonal zero values.  }
+%    \item{distdiag}{returns a vector with distances between data
+%      locations, including the diagonal zero values.  }
     \item{diagquadraticformXAX}{returns a vector with the diagonal term of the
       quadratic form \eqn{X' A X}{t(X) \%*\% A \%*\% X}.  }
     \item{bilinearformXAY}{returns a vector or a matrix with the terms of the
@@ -65,7 +64,7 @@ corr.diaglowertri(coords, cov.model, phi, kappa)
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

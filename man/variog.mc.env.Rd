@@ -13,8 +13,7 @@
 
 \usage{
 variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
-              obj.variog, nsim = 99, save.sim = FALSE,
-              messages.screen = TRUE) 
+              obj.variog, nsim = 99, save.sim = FALSE, messages) 
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -22,7 +21,7 @@ variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
 \arguments{
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} as described next. 
-    Typically an object of the class \code{"geodata"} - a \bold{geoR}
+    Typically an object of the class \code{"geodata"} - a \pkg{geoR}
     data-set.
     If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
@@ -37,7 +36,7 @@ variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
     99.  }
   \item{save.sim}{logical. Indicates whether or not the simulated data
     are included in the output. Defaults to \code{FALSE}.  }
-  \item{messages.screen}{logical. If \code{TRUE}, the default, status messages
+  \item{messages}{logical. If \code{TRUE}, the default, status messages
     are printed while the function is running.  }
 }
 
@@ -63,7 +62,7 @@ variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

@@ -12,14 +12,13 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
         estimator.type = c("classical", "modulus"), 
         nugget.tolerance, max.dist, pairs.min = 2,
         bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
-        unit.angle = c("radians", "degrees"),
-        messages.screen = TRUE, \dots)
+        unit.angle = c("radians", "degrees"), messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{geodata}{a list containing element \code{coords}
     as described next. Typically an object of the class
-    \code{"geodata"} - a \bold{geoR} data-set.
+    \code{"geodata"} - a \pkg{geoR} data-set.
     If not provided the arguments
     \code{coords} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
@@ -77,7 +76,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
     \eqn{[0, 90]} degrees.  Defaults to \eqn{\pi/8}{pi/8}.  }
   \item{unit.angle}{defines the unit for the specification of angles in
     the two previous arguments. Options are \code{"degrees"} and \code{"radians"}. }
-  \item{messages.screen}{logical. Indicates whether
+  \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
   \item{\dots}{arguments to be passed to the function \code{\link{ksmooth}}, if
@@ -98,7 +97,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

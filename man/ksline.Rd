@@ -25,15 +25,14 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
        lambda = 1, m0 = "ok", nwin = "full",
        n.samples.backtransform = 500, trend = 1, d = 2,
        ktedata = NULL, ktelocations = NULL, aniso.pars = NULL,
-       signal = FALSE, dist.epsilon = 1e-10,
-       messages.screen = TRUE)
+       signal = FALSE, dist.epsilon = 1e-10, messages)
 }
 
 
 \arguments{
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} as described next. Typically an object of the \code{\link{class}}
-    \code{"geodata"} - a \bold{geoR} data-set. If not provided the arguments
+    \code{"geodata"} - a \pkg{geoR} data-set. If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix where each row has the 2-D
     coordinates of the \eqn{n} data locations.
@@ -124,7 +123,7 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
   \item{dist.epsilon}{a numeric value. Points which are separated
     by a distance less than this value
     are considered co-located.  }
-  \item{messages.screen}{logical. Indicates
+  \item{messages}{logical. Indicates
     whether or not status messages are printed on the screen (or other output device)
     while the function is running.}
 }
@@ -159,7 +158,7 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

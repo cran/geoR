@@ -27,15 +27,15 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE)
 }
 
 \details{
-  This function requires the package \code{splancs}.
+  This function requires the package \pkg{splancs}.
 
   The function works as follows:
   First it creates a grid using the \R function
   \code{\link[base]{expand.grid}} and then it uses the function
-  \code{\link[splancs]{inout}} from the package \code{splancs} to extract the points
+  \code{\link[splancs]{inout}} from the package \pkg{splancs} to extract the points
   of the grid which are inside the polygon.
   
-  Within the package \bold{geoR}
+  Within the package \pkg{geoR}
   this function is typically used to select points in a non-rectangular
   region to perform spatial prediction
   using \code{\link{krige.bayes}}, \code{\link{krige.conv}} or
@@ -51,7 +51,7 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE)
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

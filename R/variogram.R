@@ -7,12 +7,14 @@
        nugget.tolerance, max.dist, pairs.min = 2,
        bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
        unit.angle = c("radians","degrees"), 
-            messages.screen = TRUE, ...) 
+       messages, ...) 
 {
   require(mva)
   require(modreg)
   call.fc <- match.call()
-  if(missing(geodata)) geodata <- list(coords = coords, data = data)
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   keep <- list(...)
   if(is.null(keep$keep.NA)) keep.NA <- FALSE
   else keep.NA <- keep$keep.NA
@@ -75,7 +77,7 @@
   ##
   ## trend removal
   ##
-  xmat <- unclass(trend.spatial(trend = trend, geodata = geodata))
+  xmat <- unclass(trend.spatial(trend = trend, geodata = list(coords=coords, data=data)))
   if (nrow(xmat) != n.data) 
     stop("coords and trend have incompatible sizes")
   if (trend != "cte") {
@@ -277,10 +279,13 @@
             nugget.tolerance, max.dist, pairs.min = 2,
             bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
             unit.angle = c("radians", "degrees"),
-            messages.screen = TRUE, ...) 
+            messages, ...) 
 {
   require(mva)
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if(missing(nugget.tolerance)) nugget.tolerance <- 1e-12
   u <- as.vector(dist(as.matrix(coords)))
   if(length(direction) != 4)
@@ -307,7 +312,7 @@
              direction = angle,
              tolerance = tolerance,
              unit.angle = unit.angle,
-             messages.screen = TRUE, keep.NA = TRUE)
+             messages = messages.screen, keep.NA = TRUE)
     NULL
   }
   if (exists(".variog4.nomessage", w=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
@@ -322,7 +327,7 @@
                                 direction = "omnidirectional",
                                 tolerance = tolerance,
                                 unit.angle = unit.angle,
-                                messages.screen = TRUE,
+                                messages = messages.screen,
                                 keep.NA = TRUE 
                                 )
   class(res) <- "variog4"
@@ -884,11 +889,13 @@
 
 "variog.model.env" <-
   function(geodata, coords = geodata$coords, obj.variog,
-           model.pars, nsim = 99, save.sim = FALSE,
-           messages.screen = TRUE) 
+           model.pars, nsim = 99, save.sim = FALSE, messages) 
 {
   call.fc <- match.call()
   obj.variog$v <- NULL
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   ##
   ## reading input
   ##
@@ -917,7 +924,7 @@
   simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
                 cov.model = cov.model, cov.pars = cov.pars,
                 nugget = nugget, kappa = kappa, nsim = nsim,
-                messages.screen = FALSE, lambda = obj.variog$lambda)
+                messages = FALSE, lambda = obj.variog$lambda)
   if(messages.screen)
     cat("variog.env: adding the mean or trend\n")
   x.mat <- unclass(trend.spatial(trend=obj.variog$trend, geodata = geodata))
@@ -990,11 +997,13 @@
 
 "variog.mc.env" <-
   function (geodata, coords = geodata$coords, data = geodata$data,
-            obj.variog, nsim = 99, save.sim = FALSE,
-            messages.screen = TRUE) 
+            obj.variog, nsim = 99, save.sim = FALSE, messages) 
 {
   call.fc <- match.call()
   if(missing(geodata)) geodata <- list(coords=coords, data=data)
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   ##
   ## Checking input
   ##
@@ -1077,7 +1086,7 @@
              nugget.tolerance = obj.variog$nugget.tolerance, max.dist = obj.variog$max.dist,
              pairs.min = obj.variog$pairs.min,
              direction = obj.variog$direction, tolerance=obj.variog$tolerance,
-             messages.screen = F, ...)$v 
+             messages.screen = FALSE, ...)$v 
     simula.bins <- apply(simula$data, 2, variog.vbin)
   }
   simula.bins <- simula.bins[obj.variog$ind.bin,]

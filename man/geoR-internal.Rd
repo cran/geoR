@@ -13,7 +13,7 @@
 
 \description{
   These are functions internally called by other functions
-  in the package \code{geoR} and not meant to be called by the user.
+  in the package \pkg{geoR} and not meant to be called by the user.
 }
 
 %\usage{

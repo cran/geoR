@@ -13,7 +13,7 @@
 \usage{
 output.control(n.posterior, n.predictive, moments, n.back.moments,
                simulations.predictive, mean.var, quantile,
-               threshold, signal, messages.screen)
+               threshold, signal, messages)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -73,7 +73,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     to be predicted. Defaults to \code{NULL} and changed internally in
     the functions which call \code{output.control}. See \code{DETAILS}
     below.  }
-  \item{messages.screen}{logical. Indicates
+  \item{messages}{logical. Indicates
     whether or not status messages are printed on the output device
     while the function is running. Defaults to \code{TRUE}. }
 
@@ -83,7 +83,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
 
   \bold{SIGNAL}
 
-  This function is typically called by the \code{geoR}'s prediction functions
+  This function is typically called by the \pkg{geoR}'s prediction functions
   \code{\link{krige.bayes}} and \code{\link{krige.conv}}
   defining the output to be returned by these functions.
 

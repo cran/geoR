@@ -4,7 +4,6 @@
 #include <math.h> 
 #include <R.h>
 #include <Rmath.h>
-#include <S.h>
 
 #define Integer int
 #define Real double

@@ -17,11 +17,15 @@
            nugget.rellambda.values = FALSE,
            uni.only = TRUE,
            bi.only = FALSE,
+           messages,
            ...)
 {
   ##
   ## 1. setting arguments
   ##
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
   require(mva)
@@ -199,7 +203,7 @@
   if(bi.only == FALSE) {
     if(any(sill.values != FALSE)) {
       n.uni <- n.uni + 1
-      cat("proflik: computing profile likelihood for the sill\n")
+      if(messages.screen) cat("proflik: computing profile likelihood for the sill\n")
       if(n.cov.pars == 2) {
         if(tausq == 0) {
           if(obj.likfit$transform.info$fix.lambda == FALSE) {
@@ -253,7 +257,7 @@
     ##
     if(any(range.values != FALSE)) {
       n.uni <- n.uni + 1
-      cat("proflik: computing profile likelihood for the range\n")
+      if(messages.screen) cat("proflik: computing profile likelihood for the range\n")
       if(n.cov.pars == 2) {
         if(tausq == 0) {
           .temp.list$nugget <<- 0
@@ -283,7 +287,7 @@
     if(n.cov.pars == 3) {
       if(any(nugget.values != FALSE)) {
         n.uni <- n.uni + 1
-        cat("proflik: computing profile likelihood for the nugget\n"
+        if(messages.screen) cat("proflik: computing profile likelihood for the nugget\n"
               )
         pl.tausq <- apply(matrix(nugget.values, ncol = 
                                  1), 1, proflik.aux11, ...)
@@ -299,7 +303,7 @@
       ## 3.4 Profile for relative \tau^2
       ##
       if(any(nugget.rel.values != FALSE)) {
-        cat("proflik: computing profile likelihood for the relative nugget\n"
+        if(messages.screen) cat("proflik: computing profile likelihood for the relative nugget\n"
               )
         n.uni <- n.uni + 1
         pl.tausq.rel <- apply(matrix(nugget.rel.values,
@@ -321,7 +325,7 @@
       .temp.temp.list <<- .temp.list
       .temp.temp.list$coords <<- coords
       n.uni <- n.uni + 1
-      cat("proflik: computing profile likelihood for lambda\n"
+      if(messages.screen) cat("proflik: computing profile likelihood for lambda\n"
             )
       if(n.cov.pars == 2) {
         if(tausq == 0) {
@@ -358,7 +362,7 @@
   if(uni.only == FALSE){
     if(any(sillrange.values != FALSE)) {
       n.bi <- n.bi + 1
-      cat("proflik: computing 2-D profile likelihood for the sill and range parameters\n")
+      if(messages.screen) cat("proflik: computing 2-D profile likelihood for the sill and range parameters\n")
       if(n.cov.pars == 2) {
         if(tausq == 0) {
           .temp.list$nugget <<- 0
@@ -391,7 +395,7 @@
     ##  
     if(any(sillnugget.values != FALSE)) {
       n.bi <- n.bi + 1
-      cat("proflik: computing 2-D profile likelihood for the sill and nugget\n")
+      if(messages.screen) cat("proflik: computing 2-D profile likelihood for the sill and nugget\n")
       if(obj.likfit$transform.info$fix.lambda == FALSE)
         ini.grid <- as.matrix(expand.grid(seq(min(range.values),
                                               max(range.values), l = 
@@ -415,7 +419,7 @@
     ##
     if(any(rangenugget.values != FALSE)) {
       n.bi <- n.bi + 1
-      cat("proflik: computing 2-D profile likelihood for the range and nugget\n"
+      if(messages.screen) cat("proflik: computing 2-D profile likelihood for the range and nugget\n"
             )
       .temp.list$ini.grid <<- as.matrix(seq(sigmasq/4, 5 * 
                                           sigmasq, l = 15))
@@ -434,7 +438,7 @@
     ##
     if(any(sillnugget.rel.values != FALSE)) {
       n.bi <- n.bi + 1
-      cat("proflik: computing 2-D profile likelihood for the sill and relative nugget parameters\n"
+      if(messages.screen) cat("proflik: computing 2-D profile likelihood for the sill and relative nugget parameters\n"
             )
       if(.temp.list$fix.lambda == FALSE)
         ini.grid <- as.matrix(expand.grid(seq(min(range.values), max(range.values), l = 
@@ -461,7 +465,7 @@
     ##
     if(any(rangenugget.rel.values != FALSE)) {
       n.bi <- n.bi + 1
-      cat("proflik: computing 2-D profile likelihood for the range and relative nugget parameters\n"
+      if(messages.screen) cat("proflik: computing 2-D profile likelihood for the range and relative nugget parameters\n"
             )
       pl.phitausq.rel <- apply(rangenugget.rel.values, 1, proflik.aux30, ...)
       names(pl.phitausq.rel) <- NULL
@@ -479,7 +483,7 @@
   ##
   if(any(silllambda.values != FALSE)) {
     n.bi <- n.bi + 1
-    cat("proflik: computing 2-D profile likelihood for the sill and transformation parameters\n"
+    if(messages.screen) cat("proflik: computing 2-D profile likelihood for the sill and transformation parameters\n"
           )
     if(n.cov.pars == 2) {
       ini.grid <- as.matrix(seq(min(range.values), max(
@@ -1037,7 +1041,7 @@ function(phitausq.rel, ...)
                        cov.model = .temp.list$cov.model,
                        kappa = .temp.list$kappa, fix.lambda = TRUE,
                        lambda = lambda,
-                       messages.screen = FALSE)$loglik
+                       messages = FALSE)$loglik
   .temp.list <<- .temp.temp.list
   return(lambda.res)
 }

@@ -55,7 +55,7 @@ cov.spatial(obj, cov.model= "matern",
   parameter \eqn{\sigma^2}{sigma^2} times a positive definite
   \emph{correlation function} \eqn{\rho(h)}{rho(h)}:
   \deqn{C(h) = \sigma^2 \rho(h).}{C(h) = sigma^2 * rho(h).}
-  The expressions of the covariance functions available in \bold{geoR}
+  The expressions of the covariance functions available in \pkg{geoR}
   are given below. We recommend the \emph{LaTeX} (and/or the corresponding
   \emph{.dvi}, \emph{.pdf} or \emph{.ps}) version of this document for
   better visualization of the formulas.
@@ -193,14 +193,14 @@ cov.spatial(obj, cov.model= "matern",
     simulation of random fields}. Technical report ST 99-10, Dept. of Maths and Statistics,
     Lancaster University. 
 
-%    For \bold{geoR} implementation: \cr   
+%    For \pkg{geoR} implementation: \cr   
 %    Ribeiro, P.J. Jr. and Diggle, P.J. (1999) \emph{geoR: a geostatistical package/library for R/S-PLUS}. Tech. Report ST-99-09, Dept
 %  Maths and Stats, Lancaster University.\cr
 %  Available on-line at: 
 %  \url{http://www.maths.lancs.ac.uk/~ribeiro/publications.html}.
   
 
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

@@ -231,7 +231,7 @@
                                  simulations.predictive = output$simulations.predictive,
                                  mean.var = output$mean.var, quantile = output$quantile,
                                  threshold = output$threshold, signal = output$signal,
-                                 messages.screen = output$messages.screen)
+                                 message = output$messages.screen)
       }
     }
   }
@@ -1066,34 +1066,37 @@
 
 "prepare.graph.krige.bayes" <-
   function (obj, locations, borders, 
-            values.to.plot, number.col, xlim, ylim) 
+            values.to.plot, number.col, xlim, ylim, messages) 
 {
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   if (!is.numeric(values.to.plot)){
     switch(values.to.plot,
            mean = {
              values <- obj$predictive$mean
-             cat("image.krige.bayes: mapping the means of the predictive distribution\n")
+             if(messages.screen) cat("mapping the means of the predictive distribution\n")
            },
            variance = {
              values <- obj$predictive$variance
-             cat("mapping the variances of the predictive distribution\n")
+             if(messages.screen) cat("mapping the variances of the predictive distribution\n")
            },
            mean.simulations = {
              values <- obj$predictive$mean.simulations
-             cat("mapping the means of simulations from the predictive distribution\n")
+             if(messages.screen) cat("mapping the means of simulations from the predictive distribution\n")
            },
            variance.simulations =
            {
              values <- obj$predictive$variance.simulations
-             cat("mapping the variances of simulations from the predictive distribution\n")
+             if(messages.screen) cat("mapping the variances of simulations from the predictive distribution\n")
            },
            median = {
              values <- obj$predictive$median
-             cat("mapping the medians of the predictive distribution\n")
+             if(messages.screen) cat("mapping the medians of the predictive distribution\n")
            },
            uncertainty = {
              values <- obj$predictive$uncertainty
-             cat("mapping the uncertainty of the predictive distribution\n")
+             if(messages.screen) cat("mapping the uncertainty of the predictive distribution\n")
            },
            quantiles =
            {
@@ -1104,7 +1107,7 @@
                  values <- as.matrix(obj$predictive$quantiles)[,number.col]
              else
                values <- as.matrix(obj$predictive$quantiles)[,1]
-             cat("mapping a quantile of the predictive distribution\n")
+             if(messages.screen) cat("mapping a quantile of the predictive distribution\n")
            },
            probabilities =
            {
@@ -1117,12 +1120,12 @@
              else{
                values <- as.matrix(obj$predictive$probab)[,1]
              }
-             cat("mapping a probability of beeing bellow threshold of the predictive distribution\n")
+             if(messages.screen) cat("mapping a probability of beeing bellow threshold of the predictive distribution\n")
            },
            simulation =
            {
              values <- as.matrix(obj$predictive$simulations)[,number.col]
-             cat("mapping a simulation from the predictive distribution\n")
+             if(messages.screen) cat("mapping a simulation from the predictive distribution\n")
            },
            stop("wrong specification for values to plot")
            )
@@ -1163,7 +1166,7 @@
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
             number.col, coords.data, xlim, ylim,
-            x.leg, y.leg, ...) 
+            x.leg, y.leg, messages, ...) 
 {
   if(missing(x)) x <- NULL
   attach(x)
@@ -1200,7 +1203,7 @@
                                            borders=borders,
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
-                                           xlim = xlim, ylim = ylim)
+                                           xlim = xlim, ylim = ylim, messages=messages)
     pty.prev <- par()$pty
     par(pty = "s")
     image(locations$x, locations$y, locations$values,
@@ -1225,7 +1228,7 @@
   function (x, locations, borders, 
             values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
-              "quantiles", "probabilities", "simulation"), number.col, ...) 
+              "quantiles", "probabilities", "simulation"), number.col, messages, ...) 
 {
   if(missing(x)) x <- NULL
   attach(x)
@@ -1253,7 +1256,7 @@
     locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            values.to.plot=values.to.plot,
-                                           number.col = number.col)
+                                           number.col = number.col, messages=messages)
     persp(locations$x, locations$y, locations$values, ...)
   }
   return(invisible())
@@ -1611,7 +1614,7 @@
 "output.control" <-
   function(n.posterior, n.predictive, moments, n.back.moments, 
            simulations.predictive, mean.var, quantile,
-           threshold, signal, messages.screen)
+           threshold, signal, messages)
 {
   ##
   ## Assigning default values
@@ -1632,7 +1635,9 @@
   if(missing(threshold)) probability.estimator <- NULL 
   else probability.estimator <- threshold
   if(missing(signal)) signal <- NULL
-  if(missing(messages.screen)) messages.screen <- TRUE
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   ##
   ##
   ##

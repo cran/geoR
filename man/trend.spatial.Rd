@@ -59,7 +59,7 @@ trend.spatial(trend, geodata)
   }
   
   \bold{Search path for covariates}\cr
-  Typically, functions in the package \code{geoR} which calls
+  Typically, functions in the package \pkg{geoR} which calls
   \code{trend.spatial} will have the arguments \code{geodata},
   \code{coords} and \code{data}. 
   
@@ -83,7 +83,7 @@ trend.spatial(trend, geodata)
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 
@@ -93,7 +93,7 @@ trend.spatial(trend, geodata)
 }
 
 \note{This is an auxiliary function typically called by
-  other \bold{geoR} functions.
+  other \pkg{geoR} functions.
 }
 
 \seealso{The section \code{DETAILS} in the documentation for

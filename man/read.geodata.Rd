@@ -7,7 +7,7 @@
 \description{
   Reads data from a \emph{ASCII} file and converts it to an object of the
   \code{\link{class}} \code{geodata}, the standard data format for the
-  \bold{geoR} package.
+  \pkg{geoR} package.
 }
 
 \usage{
@@ -33,7 +33,7 @@ read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
     By default the names in the original object are used.  }
   \item{covar.col}{optional. A scalar or vector with the number
     of the column(s) with the values of the covariate(s).  }
-  \item{covar.names}{a string or vector of strings with the name(s) of
+  \item{covar.names}{optional. A vector with the names of the
     the covariates. By default the names in the original object are
     used.  }
   \item{realisations}{optional. A vector indicating the replication
@@ -64,7 +64,7 @@ to an object of the \code{\link{class}} \code{geodata}.
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

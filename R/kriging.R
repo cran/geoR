@@ -112,7 +112,7 @@
                                  quantile = output$quantile,
                                  threshold = output$threshold,
                                  signal = output$signal,
-                                 messages.screen = output$messages.screen)
+                                 messages = output$messages.screen)
       }
     }
   }

@@ -19,7 +19,7 @@
             method.lik = "ML",
             components = FALSE, nospatial = TRUE,
             limits = likfit.limits(), 
-            print.pars = FALSE, messages.screen = TRUE, ...) 
+            print.pars = FALSE, messages, ...) 
 {
   if(is.R()) require(mva)
   ##
@@ -28,6 +28,9 @@
   call.fc <- match.call()
   temp.list <- list()
   temp.list$print.pars <- print.pars
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   ##
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
@@ -286,7 +289,7 @@
     }
   }
   ##  
-  if(messages.screen == TRUE) {
+  if(messages.screen) {
     cat("---------------------------------------------------------------\n")
     cat("likfit: likelihood maximisation using the function ")
     if(is.R()){if(justone) cat("optimize.\n") else cat("optim.\n")} else cat("nlminb.\n")
@@ -317,7 +320,7 @@
                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
   ##
-  if(messages.screen == TRUE) cat("likfit: end of numerical maximisation.\n")
+  if(messages.screen) cat("likfit: end of numerical maximisation.\n")
   par.est <- lik.minim$par
   if(any(par.est < 0)) par.est <- round(par.est, dig=12)
   phi <- par.est[1]

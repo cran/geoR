@@ -22,16 +22,15 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        cov.model = "matern", realisations,
        method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = likfit.limits(),
-       print.pars = FALSE, messages.screen = TRUE, \dots)
+       print.pars = FALSE, messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
   \item{geodata}{a list containing elements \code{coords} and
     \code{data} as described next. 
-    Typically an object of the class \code{"geodata"} - a \bold{geoR}
-    data-set.
-    If not provided the arguments
+    Typically an object of the class \code{"geodata"}.
+        If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix where each row has the 2-D
     coordinates of the \eqn{n} data locations.
@@ -54,20 +53,15 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     estimated (\code{fix.nugget = FALSE}). Defaults to
     \code{FALSE}.  }    
   \item{nugget}{value of the nugget parameter.
-    Regarded as a
-    fixed value if \code{fix.nugget = TRUE} otherwise
-    as the initial value for the 
-    minimisation algorithm. 
-    Defaults to zero.  }
+    Regarded as a fixed value if \code{fix.nugget = TRUE} otherwise
+    as the initial value for the minimisation algorithm. Defaults to zero.  }
   \item{fix.kappa}{logical, indicating whether the extra parameter
     \eqn{\kappa}{kappa} should be regarded as fixed
     (\code{fix.kappa = TRUE}) or should be 
-    estimated (\code{fix.kappa = FALSE}). Defaults to
-    \code{TRUE}.  }    
+    estimated (\code{fix.kappa = FALSE}). Defaults to \code{TRUE}.  }    
   \item{kappa}{value of the extra parameter \eqn{\kappa}{kappa}.
     Regarded as a fixed value if \code{fix.kappa = TRUE}
-    otherwise as the initial value for the
-    minimisation algorithm. Defaults to
+    otherwise as the initial value for the minimisation algorithm. Defaults to
     \eqn{0.5}. This parameter is valid only if the covariance function is one
     of: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} or
     \code{"gneiting.matern"}.  For more details on covariance functions
@@ -75,13 +69,11 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{fix.lambda}{logical, indicating whether the Box-Cox transformation parameter
     \eqn{\lambda}{lambda} should be regarded as fixed
     (\code{fix.lambda = TRUE}) or should be
-    be estimated (\code{fix.lambda = FALSE}). Defaults to
-    \code{TRUE}.  }    
+    be estimated (\code{fix.lambda = FALSE}). Defaults to \code{TRUE}.  }    
   \item{lambda}{value of the Box-Cox transformation parameter
     \eqn{\lambda}{lambda}.
     Regarded as a fixed value if \code{fix.lambda = TRUE} otherwise 
-    as the initial value for the
-    minimisation algorithm. Defaults to
+    as the initial value for the minimisation algorithm. Defaults to
     \eqn{1}. Two particular cases are \eqn{\lambda = 1}{lambda = 1}
     indicating no transformation and \eqn{\lambda = 0}{lambda
       = 0} indicating log-transformation.  }
@@ -93,45 +85,39 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{psiA}{value (in radians) for the anisotropy angle parameter
     \eqn{\psi_A}{psi_A}. 
     Regarded as a fixed value if \code{fix.psiA = TRUE}
-    otherwise  as the initial value for the
-    minimisation algorithm.
+    otherwise  as the initial value for the minimisation algorithm.
     Defaults to \eqn{0}. See \code{\link{coords.aniso}} for further
     details on anisotropy correction.  }
   \item{fix.psiR}{logical, indicating whether the anisotropy ratio parameter
     \eqn{\psi_R}{psi_R} should be regarded as fixed
-    (\code{fix.psiR = TRUE}) or should be 
-    estimated (\code{fix.psiR = FALSE}). Defaults to
+    (\code{fix.psiR = TRUE}) or should be estimated (\code{fix.psiR = FALSE}). Defaults to
     \code{TRUE}.  }    
   \item{psiR}{value, always greater than 1, for the anisotropy ratio  parameter
     \eqn{\psi_R}{psi_R}. 
     Regarded as a fixed value if \code{fix.psiR = TRUE}
-    otherwise as the initial value for the
-    minimisation algorithm.
+    otherwise as the initial value for the minimisation algorithm.
     Defaults to \eqn{1}. See \code{\link{coords.aniso}} for further
     details on anisotropy correction.  }
   \item{cov.model}{a string specifying the model for the correlation
-    function. For further details see 
-    documentation for \code{\link{cov.spatial}}.
+    function. For further details see documentation for \code{\link{cov.spatial}}.
     Defaults are equivalent to the \emph{exponential} model.  }
-  \item{realisations}{optional. 
-    A vector indicating the number of replication
+  \item{realisations}{optional. A vector indicating the number of replication
     for each datum. For further information see \code{DETAILS} below and
     documentation for \code{\link{as.geodata}}. }
   \item{method.lik}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
     values for the three model components: trend, spatial and residuals.
-    See the section \code{DETAILS} below for the model specification.}
+    See the section \code{DETAILS} below for the model specification.  }
   \item{nospatial}{logical. If \code{TRUE} parameter estimates for the
     model without spatial component are included in the output.  }
   \item{limits}{values defining lower and upper limits for the model
     parameters used in the numerical minimisation.
-    The auxiliary function \code{likfit.limits()} is called to set the
-    limits.  }
+    The auxiliary function \code{likfit.limits()} is called to set the limits.  }
   \item{print.pars}{logical. If \code{TRUE} the parameters and the value
   of the negative log-likelihood (up to a constant) are printed each
   time the function to be minimised is called.  }
-  \item{messages.screen}{logical. Indicates whether
+  \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
   \item{\dots}{additional parameters to be passed to the minimisation
@@ -264,7 +250,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \references{
-  Further information on the package \bold{geoR} can be found at:\cr
+  Further information on the package
+  \pkg{geoR}
+  can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

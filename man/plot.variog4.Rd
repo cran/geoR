@@ -36,7 +36,7 @@
 }
 
 \references{
-  Further information about the \bold{geoR} package can be found at:\cr
+  Further information about the \pkg{geoR} package can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
 }
 

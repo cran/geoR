@@ -8,8 +8,11 @@
             n.samples.backtransform = 500, 
             trend = 1, d = 2, ktedata = NULL, ktelocations = NULL,
             aniso.pars = NULL,  signal = FALSE,  dist.epsilon = 1e-10,
-            messages.screen = TRUE) 
+            messages) 
 {
+  if(missing(messages))
+    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+  else messages.screen <- messages
   ##
   ## selecting locations inside the borders 
   ##
