@@ -12,7 +12,7 @@
   ##
   ## Locations to be used in the cross-validation
   ##
-  if(locations.xvalid == "all" | is.vector(locations.xvalid)){
+  if(all(locations.xvalid == "all") | is.vector(locations.xvalid)){
     if(locations.xvalid == "all")
       locations.xvalid <- 1:n
     else
@@ -26,6 +26,8 @@
         if(dim(locations.xvalid)[2] == 1){
           locations.xvalid <- is.vector(locations.xvalid)
           crossvalid <- TRUE
+          if(any(locations.xvalid) > n | length(locations.xvalid) > n)
+            stop("incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
         }
         else{
           if(messages.screen)
@@ -38,11 +40,12 @@
       else
         if(!is.vector(locations.xvalid) | !is.numeric(locations.xvalid))
           stop("\nargument locations.xvalid must be either:\n a numeric vector with numbers indicating the locations to be cross-validated\n a matrix with coordinates for the locations to be cross-validated.")
-    if(any(locations.xvalid) > n | length(locations.xvalid) > n)
-      stop("incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
+        else
+          if(any(locations.xvalid) > n | length(locations.xvalid) > n)
+            stop("incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
   }
-  n.pt.xv <- length(locations.xvalid)
   if(crossvalid == FALSE) n.pt.xv <- dim(locations.xvalid)[[1]]
+  else n.pt.xv <- length(locations.xvalid)
   if(messages.screen){
     cat(paste("xvalid: number of data locations       =", n))
     cat("\n")
@@ -194,7 +197,8 @@
 
 "plot.xvalid" <-
   function (obj, valid.obj, coords=valid.obj$coords, 
-            error.plots = TRUE, std.error.plots = TRUE, ask = TRUE)
+            error.plots = TRUE, std.error.plots = TRUE,
+            borders = NULL, ask = TRUE)
 {
   ##
   ## Saving original par() parameters
@@ -203,6 +207,17 @@
     par.ori <- par(no.readonly = TRUE)
   else par.ori <- par()
   on.exit(par(par.ori))
+  ##
+  ## checking input
+  ##
+  if(!is.null(borders)){
+    if(!is.matrix(borders) & !is.data.frame(borders))
+      stop("argument borders must be a two column matrix or a data frame with the coordinates of the borders")
+    else
+      if(ncol(borders) > 2)
+        stop("argument borders must be a two column matrix or a data frame with the coordinates of the borders")
+      else borders <- as.matrix(borders)
+  }
   ##
   ## auxiliary computations for plots
   ##
@@ -273,6 +288,10 @@
     if (is.R()) {
       points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
     }
+    else
+      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+    if(!is.null(borders))
+      lines(borders)
     ##
     ## errors histogram
     ##
@@ -333,6 +352,10 @@
     if (is.R()) {
       points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
     }
+    else
+      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+    if(!is.null(borders))
+      lines(borders)
     ##
     ## std. errors histogram
     ##

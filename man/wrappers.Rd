@@ -9,7 +9,7 @@
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Wrappers for the C functions used in geoR}
 \description{
-  These functions are \emph{wrappers} for some, but no tall,
+  These functions are \emph{wrappers} for some (but not all)
   the C functions
   included in the \bold{geoR} package.\cr
   Typically the C code is directly  called from the \bold{geoR}
@@ -28,7 +28,7 @@ bilinearform(X, lowerA, diagA, Y)
 \arguments{
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix with the data
     coordinates.  }
-  \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
+  \item{locations}{an \eqn{N \times 2}{N x 2} matrix with the
     coordinates of the prediction locations. }
   \item{lowerA}{a vector with the diagonal terms of the symmetric matrix 
     A. }
@@ -39,11 +39,10 @@ bilinearform(X, lowerA, diagA, Y)
 %\details{
 %}
 \value{
-  The outputs are: 
+  The outputs for the different functions are: 
   
-  \itemize{
-    \item{loccoords}{returns a vector with distances between data points and
-      prediction locations.  }
+    \item{loccoords}{returns a \eqn{n \times N}{n x N}  matrix with distances
+      between data points and prediction locations.  }
     \item{distdiag}{returns a vector with distances between data
       locations, including 
       the diagonal zero values.  }
@@ -51,7 +50,7 @@ bilinearform(X, lowerA, diagA, Y)
       quadratic form \eqn{X' A X}{t(X) \%*\% A \%*\% X}.  }
     \item{bilinearform}{returns a vector or a matrix with the terms of the
       quadratic form \eqn{X' A Y}{t(X) \%*\% A \%*\% Y}.  }
-  }
+
 }
 
 \references{

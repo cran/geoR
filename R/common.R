@@ -214,101 +214,45 @@
   if (nx * ny != n) 
     stop("Probably irregular grid")
   m <- matrix(obj$data[, sim.number], ncol = ny)
-  coords.lims <- apply(obj$coords,2,range)
-  coords.diff <- diff(coords.lims)
-  if(coords.diff[1] != coords.diff[2]){
-    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-    ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[,ind.min] <- coords.lims[,ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
-  }
+  coords.lims <- set.coords.lims(coords=obj$coords)
+  pty.prev <- par()$pty
   par(pty = "s")
   image(x, y, m, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
+  par(pty=pty.prev)
   return(invisible())
 }
 
-"image.kriging" <-
-  function (kriging.obj, locations = kriging.obj$locations, values = kriging.obj$predict, coords.data, ...) 
-{
-##  par.ori <- par(no.readonly = TRUE)
-##  on.exit(par(par.ori))
-  if(is.null(locations))
-    stop("prediction locations must be provided")
-  if(is.null(values))
-    stop("data.to be plotted must be provided")
-  locations <- locations[order(locations[, 2], locations[,1]), ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
-  ny <- length(y)
-  if  (nx == ny) 
-    par(pty = "s")
-  values <- matrix(values, ncol = ny)
-  coords.lims <- apply(locations,2,range)
-  coords.diff <- diff(coords.lims)
-  if(coords.diff[1] != coords.diff[2]){
-    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-    ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[,ind.min] <- coords.lims[,ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
-  }
-  par(pty = "s")
-  image(x, y, values, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
-  if(!missing(coords.data))
-    points(coords.data)
-  return(invisible())
-}
-
-"lines.variogram" <-
-function (obj, max.dist = max(obj$u), type = "o", scaled = FALSE, ...) 
-{
-  if (scaled) 
-    obj$v <- obj$v/obj$var.mark
-  if (!is.matrix(obj$v)) 
-    lines(obj$u[obj$u <= max.dist], obj$v[obj$u <= max.dist], 
-          type = type, ...)
-  else {
-    for (j in 1:ncol(obj$v)) lines(obj$u[obj$u <= max.dist], 
-                                   obj$v[obj$u <= max.dist, j], type = type, ...)
-  }
-}
 "lines.variomodel" <-
-function (obj, max.dist = obj$max.dist, n.points = 100, scaled = FALSE,...)
+  function (obj, max.dist, scaled = FALSE,...)
 {
-  if (is.null(max.dist)) 
-    stop("argument max.dist needed for this object")
+  my.l <- list()
+  if(missing(max.dist)){
+    my.l$max.dist <- obj$max.dist
+    if (is.null(my.l$max.dist)) 
+      stop("argument max.dist needed for this object")
+  }
   if (obj$cov.model == "matern" | obj$cov.model == "powered.exponential" | 
       obj$cov.model == "cauchy" | obj$cov.model == "gneiting-matern") 
-    kappa <- obj$kappa
+    my.l$kappa <- obj$kappa
   else kappa <- NULL
-  distance <- seq(0, max.dist, length = n.points)
   if (is.vector(obj$cov.pars)) 
-    sill.total <- obj$nugget + obj$cov.pars[1]
-  else sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
+    my.l$sill.total <- obj$nugget + obj$cov.pars[1]
+  else my.l$sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
+  my.l$cov.pars <- obj$cov.pars
+  my.l$cov.model <- obj$cov.model
   if (scaled){
-    if(is.vector(obj$cov.model)) obj$cov.model[1] <-  obj$cov.model[1]/sill.total
-    else obj$cov.model[,1] <-  obj$cov.model[,1]/sill.total
-    sill.total <- 1
+    if(is.vector(obj$cov.model))
+      my.l$cov.pars[1] <-  my.l$cov.pars[1]/sill.total
+    else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/sill.total
+    my.l$sill.total <- 1
   }
-  if (obj$cov.pars[2] < 1e-12)
-    gamma <- rep(sill.total, n.points)
-  else
-    gamma <- sill.total - cov.spatial(distance, cov.model = obj$cov.model, 
-                                    kappa = kappa, cov.pars = obj$cov.pars)
-  lines(distance, gamma, ...)
-}
-
-"persp.kriging" <- 
-  function(kriging.obj, locations = kriging.obj$locations, values = kriging.obj$
-           predict, ...)
-{
-  locations <- locations[order(locations[, 2], locations[, 1]),  ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
-  ny <- length(y)
-  if(nx == ny)
-    par(pty = "s")
-  values <- matrix(values, ncol = ny)
-  persp(x, y, values, ...)
+  gamma.f <- function(x, my.l)
+    {
+      return(my.l$sill.total -
+             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
+                         cov.pars = my.l$cov.pars))
+    }
+  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
   return(invisible())
 }
 
@@ -359,7 +303,7 @@ function(obj, sim.number = 1, ...)
 {
   nsim <- ncol(obj$data)
   if (plot.grid) 
-    plot(obj$coords[, 1], obj$coords[, 2], xlab = "Coord X", ylab = "Coord Y")
+    points.geodata(obj, pt.siz="equal", xlab = "Coord X", ylab = "Coord Y")
   if (is.vector(obj$cov.pars)) 
     sill.total <- obj$nugget + obj$cov.pars[1]
   else sill.total <- obj$nugget + sum(obj$cov.pars[, 1])
@@ -369,8 +313,8 @@ function(obj, sim.number = 1, ...)
   }
   else
     data <- obj$data          
-  sim.bin <- variog(obj)
-  plot(sim.bin, var.lines = FALSE, ylim = c(0,max(sim.bin$v, sill.total)), ...)
+  sim.bin <- variog(obj, data=data)
+  plot(sim.bin, ...)
   if (model.line){
     var.model <- list(nugget = obj$nugget, cov.pars = obj$cov.pars, 
                       kappa = obj$kappa, max.dist = max(sim.bin$u),
@@ -424,7 +368,7 @@ function(obj, sim.number = 1, ...)
   	require(splancs)
   if(exists("inout")){
     xygrid <- expand.grid(x = xgrid, y = ygrid)
-    ind <- as.vector(inout(xygrid, poly))
+    ind <- as.vector(inout(pts=xygrid, poly=poly))
     xypoly <- xygrid[ind == T,  ]
     if(vec.inout == F)
       return(xypoly)
@@ -909,19 +853,15 @@ function(obj, sim.number = 1, ...)
   par(mfrow = c(2, 2))
   par(mar = c(4, 4, 0, 0.5))
   data.quantile <- quantile(data)
-  coords.lims <- apply(coords, 2, range)
-  coords.diff <- diff(coords.lims)
-  if (coords.diff[1] != coords.diff[2]) {
-    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-    ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
-                                                         coords.diff.diff)/2
-  }
+  coords.lims <- set.coords.lims(coords=coords)
   par(pty = "s")
   plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
        xlim = coords.lims[, 1], ylim = coords.lims[, 2])
   if (is.R()) {
-    data.cut <- cut(data, breaks=quantile(data), include.l=TRUE, labels=FALSE)
+    data.breaks <- unique(quantile(data))
+    n.breaks <- length(data.breaks)
+    data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, 
+                    labels = FALSE)
 #    points(coords, cex = c(0.4,0.6, 0.9, 1.2)[data.cut], pch=21, bg=c("blue", "green", "yellow2", "red")[data.cut])
     points(coords, pch = (1:4)[data.cut], col=c("blue", "green", "yellow2", "red")[data.cut])
   }
@@ -942,7 +882,7 @@ function(obj, sim.number = 1, ...)
   if (is.R()) {
     if (require(scatterplot3d) == FALSE) {
       hist(data)
-      warning("plot.geodata: a 3d plot will be draw instead of the histogram if the package \"scatterplot3d\" is available")
+      cat("plot.geodata: a 3d plot would be drawn instead of the histogram if the package \"scatterplot3d\" is available\n")
     }
     else scatterplot3d(x = coords[, 1], y = coords[, 2], 
                        z = data, box = F, type = "h", pch = 16, xlab = "Coord X", 
@@ -957,3 +897,16 @@ function(obj, sim.number = 1, ...)
 }
 
 
+"set.coords.lims" <-
+  function(coords)
+  {
+    coords.lims <- apply(coords, 2, range)
+    coords.diff <- diff(coords.lims)
+    if (coords.diff[1] != coords.diff[2]) {
+      coords.diff.diff <- abs(diff(as.vector(coords.diff)))
+      ind.min <- which(coords.diff == min(coords.diff))
+      coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
+                                                           coords.diff.diff)/2
+    }
+    return(coords.lims)
+  }

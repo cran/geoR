@@ -2,6 +2,7 @@
 
 \alias{image.krige.bayes}
 \alias{persp.krige.bayes}
+\alias{prepare.graph.krige.bayes}
 
 \title{Plots Results of the Predictive Distribution}
 
@@ -13,14 +14,14 @@
 }
 
 \usage{
-image.krige.bayes(obj, locations,
+image.krige.bayes(obj, locations, borders,
            values.to.plot=c("moments.mean", "moments.variance",
                       "mean.simulations", "variance.simulations",
                       "quantiles", "probability", "simulation"),
            number.col, coords.data, ...)
 
 
-persp.krige.bayes(obj, locations,
+persp.krige.bayes(obj, locations, borders,
            values.to.plot=c("moments.mean", "moments.variance",
                        "mean.simulations", "variance.simulations",
                         "quantiles", "probability", "simulation"),
@@ -33,7 +34,13 @@ persp.krige.bayes(obj, locations,
   \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates of the prediction locations, which should define a
     regular grid
-    in order to be plotted by \code{\link{image}} or \code{\link{persp}}.  }
+    in order to be plotted by \code{\link{image}} or
+    \code{\link{persp}}.  }
+  \item{borders}{an \eqn{n \times 2}{n x 2} matrix with the
+    coordinates defining the borders of a region inside the grid defined
+    by \code{locations}. Elements in the
+    argument \code{values} are assigned to locations internal to the
+    borders  and \code{NA}'s to the external ones.  }
   \item{values.to.plot}{select the element of the predictive
     distribution to be plotted. See DETAILS below.}
   \item{number.col}{Specifies the number of the column to be plotted.

@@ -27,3 +27,6 @@ the "likfit" functions.
 - Pocket plots including moving windows 
 
 - OLS/WLS/GLS fit of anisotropic variograms
+
+- incorporate conjugate proper prior (Sc.Inv Chi^2) for sill in krige.bayes
+

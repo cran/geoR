@@ -33,11 +33,13 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     data-set.
     If not provided the arguments
     \code{coords} and \code{data} must be provided instead.  }
-  \item{coords}{an \eqn{n \times 2}{n x 2} matrix, each row containing Euclidean
-    coordinates of the \emph{n} data locations. By default it takes the
-    element \code{coords} of the argument \code{geodata}.  }
-  \item{data}{a vector with data values. By default it takes the
-    element \code{data} of the argument \code{geodata}.  }
+  \item{coords}{an \eqn{n \times 2}{n x 2} matrix where each row has the 2-D
+    coordinates of the \eqn{n} data locations.
+    By default it takes the
+    component \code{coords} of the argument \code{geodata}, if provided.
+  }
+  \item{data}{a vector with \emph{n} data values. By default it takes the
+    component \code{data} of the argument \code{geodata}, if provided.  }
   \item{trend}{specifies the mean part of the model.
     The options are:
     \code{"cte"} (constant mean),

@@ -19,11 +19,14 @@
 }
 
 \format{
-  The format is:
-  List of 2
-  $ coords: num [1:85, 1:2]  68.85 -44.09  -1.87 -29.96 155.24 ...
-  $ data  : num [1:85] 446 778 658 748 535 ...
-  - attr(*, "class")= chr "geodata"
+  An object of the \code{\link{class}}  \code{"geodata"}, which is list with two components:
+  
+  \describe{
+    \item{\code{coords}}{the coordinates of the data locations. The
+      distance are given in kilometers.  }
+    \item{\code{data}}{values of the piezometric head. The unit is heads
+      to meters.  }
+  }
 }
 
 \source{

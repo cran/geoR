@@ -30,7 +30,7 @@ polygrid(xgrid, ygrid, poly, vec.inout = FALSE)
 
   The function works as follows:
   First it creates a grid using the \R function
-  \code{\link{expand.grid}} and then it uses the function
+  \code{\link[base]{expand.grid}} and then it uses the function
   \code{\link[splancs]{inout}} from the package \code{splancs} to extract the points
   of the grid which are inside the polygon.
   

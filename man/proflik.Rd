@@ -58,8 +58,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
         rangenugget.rel.values = FALSE, silllambda.values = FALSE,
         rangelambda.values = TRUE,  nuggetlambda.values = FALSE,
         nugget.rellambda.values = FALSE,
-        uni.only = TRUE, bi.only = FALSE,
-        minimisation.function = c("optim", "nlmP"), ...)
+        uni.only = TRUE, bi.only = FALSE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -106,8 +105,8 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
   \item{nugget.rellambda.values}{as above.  }
   \item{uni.only}{as above.  }
   \item{bi.only}{as above.  }
-  \item{minimisation.function}{minimization function to be
-    used. Defaults to \code{\link{optim}}.  }
+%  \item{minimisation.function}{minimization function to be
+%    used. Defaults to \code{\link{optim}}.  }
   \item{\dots}{additional parameters to be passed to the minimization
     function.  }
 }

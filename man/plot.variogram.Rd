@@ -11,10 +11,9 @@
 }
 
 \usage{
-plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
+plot.variogram(obj, max.dist, vario.col = "all", 
                scaled = FALSE, var.lines = FALSE,
-               envelope.obj = NULL, bin.cloud = FALSE,
-               type = NULL, ...)
+               envelope.obj = NULL, bin.cloud = FALSE,  ...)
 }
 
 
@@ -23,14 +22,13 @@ plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
     output of the function \code{\link{variog}}.  }
   \item{max.dist}{maximum distance for the x-axis. The default is
     the maximum distance for which the sample variogram was computed.}
-  \item{ylim}{limits for the variogram values in the y-axis. The default
-    is from 0 to the maximum value in \code{obj$v}.  }
-  \item{type}{type of line for the empirical variogram. The default is
-    \code{"b"} (dots and lines).  For further details see documentation
-    for \code{\link{lines}}.  }
+  \item{vario.col}{only used if \code{obj} has information on more than
+    one empirical variogram. The default \code{"all"} indicates that
+    variograms of all variables should be plotted.  Alternativelly a
+    numerical vector can be used to select  variables. }
   \item{scaled}{If \code{TRUE} the variogram values are divided by the
-    sample variance. This allows comparison between variograms from
-    different variables.  }
+    sample variance. This allows comparison of variograms 
+    of variables measured in different scales.  }
   \item{var.lines}{If \code{TRUE} a horizontal line is drawn at the value
     of the variance of the data (if \code{scaled = F}) or at 1 (if
     \code{scaled = T}).  }
@@ -42,19 +40,21 @@ plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
     was computed with the option \code{keep.cloud = TRUE}, box-plots
     of values at each bin are plotted instead of the empirical
     variograms.  }
-  \item{type}{type of line. For further details see documentation for \code{\link{plot}}.  }
   \item{\dots}{other arguments to be passed to the function
-    \code{\link{plot}}.  }
+    \code{\link{plot}} or \code{\link{matplot}}  }
 
 }
 
 \details{
-  This function allows visualization of sample variogram and
-  together with \code{\link{lines.variogram}} can be
-  used to compare sample variograms for different variables.
-  Furthermore, together with \code{\link{lines.variomodel}} can be used
-  to compare theoretical and/or fitted variogram models against the
+  This function plots empirical  variograms.
+  Toghether with  \code{\link{lines.variogram}}
+  can be used to compare sample variograms of different variables
+  and 
+  to compare variogram models against the
   empirical variogram.
+  
+  It uses the function \code{\link{matplot}} when plotting variograms
+  for more them one variable.
 }
 
 \value{
@@ -82,16 +82,17 @@ plot.variogram(obj, max.dist = max(obj$u), ylim = "default",
   \code{\link{lines.variogram}} and \code{\link{lines.variomodel}} for
   adding lines to the current plot,
   \code{\link{variog.model.env}} and \code{\link{variog.mc.env}} for
-  variogram envelops computation,
+  variogram envelops computation, \code{\link{matplot}} for multiple
+  lines plot 
   and \code{\link{plot}} for generic plot function.
 }
 
 \examples{
 op <- par(no.readonly = TRUE)
-sim <- grf(100, cov.pars=c(1, .2))# generates simulated data
+sim <- grf(100, cov.pars=c(1, .2)) # simulates data
 vario <- variog(sim, max.dist=1)  # computes sample variogram
 par(mfrow=c(1,2))
-plot(vario)                       # the sample variogram
+plot(vario)                                        # the sample variogram
 plot(vario, scaled = TRUE)             # the scaled sample variogram
 par(op)
 }

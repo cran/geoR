@@ -90,7 +90,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
     prediction variances.  }
   \item{prob}{the cumulative probability at original value under a
     normal distribution with parameters given by the cross-validation results.  }
-
+  
   If \code{reestimate = TRUE} and \code{output = TRUE} additional
   columns are added to the data-frame. Each column will contain the
   values of the re-estimated parameters.
@@ -133,6 +133,7 @@ s100.xv.ml <- xvalid(s100, model = s100.ml)
 s100.xv.wls <- xvalid(s100, model = s100.wls)
 
 \testonly{
+if(is.R()) data(s100)
   vr <- variog(s100, max.dist=1)
   ## OLS#
   o1 <- variofit(vr, ini=c(.5, .5), fix.nug=T, wei="equal")
@@ -155,6 +156,11 @@ s100.xv.wls <- xvalid(s100, model = s100.wls)
   # ML
   m1 <- likfit(s100, ini=c(.5,.5), fix.nug=F, cov.model="mat", kappa=1)
   xvm1 <- xvalid(s100, model=m1, loc=sample(1:100,5))
+  ap <- grf(10, cov.pars=c(1, .25))
+  xvm2 <- xvalid(s100, model=m1, locations.xvalid=ap$coords, data.xvalid=ap$data)
+  bor <- s100$coords[chull(s100$coords),]
+  par(mfcol=c(5,2),mar=c(3,3,1,0),mgp=c(2,.5,0))  
+  plot(xvm2, s100, border=bor)
   # RML
   rm1 <- likfit(s100, ini=c(.5,.5), fix.nug=F, met = "REML", cov.model="mat", kappa=1)
   xvrm1 <- xvalid(s100, model=m1, loc=sample(1:100,5))

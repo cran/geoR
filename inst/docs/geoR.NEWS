@@ -1,5 +1,51 @@
 
 		=============================
+		CHANGES IN geoR VERSION 1.0-7
+		=============================
+
+
+NEW FEATURES
+
+    o  data SIC added to the package
+
+    o  new argument "borders" for image.kriging(), persp.kriging(),
+       image.krige.bayes(), persp.krige.bayes().
+
+    o  function points.geodata() takes argument "borders" to include borders
+       of the region in the plot.
+
+    o  additional optional argument in plot.xvalid() for including 
+       the borders of the area in the errors plot
+
+    o  argument "ask" included in plot.proflik()
+
+    o  lines.variomodel() and lines.krige.bayes() 
+       now uses curve() to draw the variogram model. 
+       Some arguments have been changed.
+
+
+BUG FIXES
+
+    o  fixed bug when using option scale=T in lines.variomodel.
+       Internal changes in this functions.
+
+    o  proflik() missing jacobian value for $\lambda \neq 1$ and fixed 
+
+    o  problem with splines and duplicated values in plot.proflik() 
+
+    o  variog4 and plot.variog4: NA's and different lags
+
+    o  krige.bayes: changes in arguments names of nugget parameters
+       to make clear when relative nugget is used.
+       
+    o  repairs in the documentation of krige.bayes()
+    
+    o  fixed bug in xvalid when entering with external validation data
+
+
+
+
+		=============================
 		CHANGES IN geoR VERSION 1.0-6
 		=============================
 

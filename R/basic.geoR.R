@@ -531,211 +531,25 @@ function(pars)
   return(result)
 }
 
-"plot.variogram" <-
-  function (obj, max.dist = max(obj$u), ylim = "default",
-            scaled = FALSE,
-            var.lines = FALSE, envelope.obj = NULL,
-            bin.cloud = FALSE, type = NULL, ...) 
-{
-  if(is.null(type)){
-    if (obj$output.type == "bin") type <- "b"
-    if (obj$output.type == "smooth") type <- "l"
-    if (obj$output.type == "cloud") type <- "p"
-  }
-  if (bin.cloud == TRUE && type != "b") 
-    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
-  if (bin.cloud == TRUE && all(is.na(obj$bin.cloud))) 
-    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
-  if (bin.cloud == TRUE && any(!is.na(obj$bin.cloud))) 
-    boxplot(obj$bin.cloud, varwidth = TRUE, names = as.character(obj$u), 
-            xlab = "midpoints of distance class", ylab = paste("variogram values / ", 
-                                                    obj$estimator.type, "estimator"), ...)
-  else {
-    u <- obj$u[obj$u <= max.dist]
-    obj$v <- as.matrix(obj$v)
-    v <- obj$v[obj$u <= max.dist, 1]
-    ymax <- max(obj$v[obj$u <= max.dist, ])
-    if (!is.null(envelope.obj)) 
-      ymax <- max(envelope.obj$v.upper, ymax)
-    if (scaled) v <- v/obj$var.mark
-    if (ylim == "default") 
-      plot(u, v, xlim = c(0, max.dist), ylim = c(0, ymax), 
-           xlab = "Distance", ylab = "Semi-variance", type = type, ...)
-    else
-      plot(u, v, xlim = c(0, max.dist), ylim = ylim, xlab = "Distance", 
-           ylab = "Semi-variance", type = type, ...)
-    if (var.lines) {
-      if (scaled) abline(h = 1, lty = 3)
-      else abline(h = obj$var.mark, lty = 3)
-    }
-    if (ncol(obj$v) > 2) {
-      lines.f <- function(v){lines(u,v, type=type)} 
-      apply(obj$v[,-1],2, lines.f)
-    }
-    if (!is.null(envelope.obj)) {
-      lines(u, envelope.obj$v.lower, lty = 4)
-      lines(u, envelope.obj$v.upper, lty = 4)
-    }
-  }
-  return(invisible())
-}
-
-"rfm.bin" <-
-  function (cloud, l = 15, uvec = "default", nugget.tolerance = 0, 
-            estimator.type = c("classical", "robust"), bin.cloud = FALSE,
-            max.dist) 
-{
-  if (all(uvec == "default")) 
-    uvec <- seq(0, max(cloud$u), l = l)
-  estimator.type <- match.arg(estimator.type)
-  ##  if(nugget.tolerance > 0) {
-  ##    dnug <- mean(cloud$u[cloud$u <= nugget.tolerance])
-  ##    cloud$u[cloud$u <= nugget.tolerance] <- 0
-  ##    uvec <- uvec[uvec > nugget.tolerance]
-  ##  }
-  ##  u <- c(0, uvec)
-  ##  n <- length(u)
-  if(all(uvec == "default"))
-    uvec <- seq(0, max.dist, l = 15)
-  ubin <- c(0, uvec)
-  nvec <- length(ubin)
-  d <- 0.5 * diff(ubin[2:nvec])
-  bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 2] + ubin[
-                                                                 nvec]))
-  if(uvec[1] == 0 & nugget.tolerance == 0)
-    uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-  if(nugget.tolerance > 0) {
-    bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >
-                                                nugget.tolerance])
-    uvec <- c(0, (bins.lim[ - (1:2)] - 0.5 * diff(bins.lim)[
-                                                            -1]))
-  }
-  nbins <- nc <- length(bins.lim) - 1
-  if(is.null(max.dist))
-    max.dist <- max(bins.lim)
-  min.dist <- min(cloud$u)
-  ##	d <- 0.5 * (u[3:n] - u[2:(n - 1)])
-  ##	low <- c(0, (u[2:(n - 1)] + d))
-  ##	high <- c((u[3:n] - d), (d[n - 2] + u[n]))
-  ##	nc <- n - 1
-  if (!is.matrix(cloud$v)) {
-    vbin <- rep(0, nc)
-    nbin <- rep(0, nc)
-    sdbin <- rep(0, nc)
-    if (bin.cloud == TRUE) 
-      bins.clouds <- list()
-    for (i in 1:nc) {
-      ind <- (cloud$u > bins.lim[i]) & (cloud$u <= bins.lim[i+1])
-      vbin[i] <- mean(cloud$v[ind])
-      if (bin.cloud == TRUE) 
-        bins.clouds[[i]] <- cloud$v[ind]
-      nbin[i] <- sum(ind)
-      if (estimator.type == "robust") 
-        vbin[i] <- ((vbin[i])^4)/(0.914 + (0.988/nbin[i]))
-      if (nbin[i] > 0) 
-        sdbin[i] <- sqrt(var(cloud$v[ind]))
-      else sdbin[i] <- NA
-      NULL
-    }
-    if (uvec[1] == 0) 
-      uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-    if (min.dist == 0) {
-      ind <- (cloud$u == 0)
-      n.zero <- sum(ind)
-      v.zero <- mean(cloud$v[ind])
-      if (bin.cloud == TRUE) {
-        bins.clouds[2:(length(bins.clouds) + 1)] <- bins.clouds[1:nc]
-        bins.clouds[[1]] <- cloud$v[ind]
-      }
-      if (estimator.type == "robust") 
-        v.zero <- ((v.zero)^4)/(0.914 + (0.988/n.zero))
-      if (n.zero > 0) 
-        sd.zero <- sqrt(var(cloud$v[ind]))
-      else sd.zero <- NA
-      uvec <- c(0, uvec)
-      vbin <- c(v.zero, vbin)
-      nbin <- c(n.zero, nbin)
-      sdbin <- c(sd.zero, sdbin)
-    }
-    u <- uvec[!is.na(vbin)]
-    v <- vbin[!is.na(vbin)]
-    n <- nbin[!is.na(vbin)]
-    sd <- sdbin[!is.na(vbin)]
-    if (bin.cloud == TRUE) 
-      bins.clouds <- bins.clouds[!is.na(vbin)]
-  }
-  else {
-    if (bin.cloud == TRUE) 
-      stop("option bins.cloud=T allowed only for 1 variable")
-    nvcols <- ncol(cloud$v)
-    vbin <- matrix(0, nrow = nc, ncol = nvcols)
-    nbin <- rep(0, nc)
-    sdbin <- matrix(0, nrow = nc, ncol = nvcols)
-    for (i in 1:nc) {
-      ind <- (cloud$u >= bins.lim[i]) & (cloud$u < bins.lim[i+1])
-      nbin[i] <- sum(ind)
-      for (j in 1:nvcols) {
-        vbin[i, j] <- mean(cloud$v[ind, j])
-        if (estimator.type == "robust") 
-          vbin[i, j] <- ((vbin[i, j])^4)/(0.914 + (0.988/nbin[i]))
-        if (nbin[i] > 0) 
-          sdbin[i, j] <- sqrt(var(cloud$v[ind, j]))
-        else sdbin[i, j] <- NA
-      }
-      NULL
-    }
-    if (uvec[1] == 0) 
-      uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-    if (min.dist == 0) {
-      v.zero <- rep(0, nvcols)
-      n.zero <- rep(0, nvcols)
-      sd.zero <- rep(0, nvcols)
-      for (j in 1:nvcols) {
-        ind <- (cloud$u == 0)
-        n.zero[j] <- sum(ind)
-        v.zero[j] <- mean(cloud$v[ind, j])
-        if (estimator.type == "robust") 
-          v.zero[j] <- ((v.zero[j])^4)/(0.914 + (0.988/n.zero[j]))
-        if (n.zero[j] > 0) 
-          sd.zero[j] <- sqrt(var(cloud$v[ind, j]))
-        else sd.zero[j] <- NA
-        uvec <- c(0, uvec)
-        vbin <- rbind(v.zero, vbin)
-        nbin <- c(n.zero, nbin)
-        sdbin <- rbind(sd.zero, sdbin)
-      }
-    }
-    u <- uvec[!is.na(vbin[, 1])]
-    n <- nbin[!is.na(vbin[, 1])]
-    v <- matrix(0, nrow = length(u), ncol = nvcols)
-    sd <- matrix(0, nrow = length(u), ncol = nvcols)
-    for (j in 1:nvcols) {
-      v[, j] <- vbin[!is.na(vbin[, j]), j]
-      sd[, j] <- sdbin[!is.na(vbin[, j]), j]
-    }
-  }
-  if (nugget.tolerance > 0) {
-    u[1] <- nugget.tolerance
-  }
-  result <- list(u = u, v = v, n = n, sd = sd, output.type = "bin", bins.lim = bins.lim)
-  if (!is.matrix(cloud$v) && bin.cloud == TRUE) 
-    result$bin.cloud <- bins.clouds
-  if (!is.null(class(cloud))) 
-    class(result) <- class(cloud)
-  return(result)
-}
-
 "points.geodata" <-
   function (geodata, coords = geodata$coords, data = geodata$data, 
-            data.col = 1, pt.sizes = c("data.proportional",
-                            "rank.proportional", "quintiles",
-                            "quartiles", "deciles", "equal"),
+            data.col = 1, borders = NULL,
+            pt.sizes = c("data.proportional",
+              "rank.proportional", "quintiles",
+              "quartiles", "deciles", "equal"),
             cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
   pt.sizes <- match.arg(pt.sizes)
+  if(!is.vector(data))
+       data <- (as.data.frame(data))[,data.col]
+  if(nrow(coords) != length(data))
+    stop("coords and data have incompatible sizes")
   if (add.to.plot == FALSE) {
-    coords.lims <- apply(coords, 2, range)
+    if(is.null(borders))
+      coords.lims <- apply(coords, 2, range)
+    else
+      coords.lims <- apply(rbind(coords, borders), 2, range)
     coords.diff <- diff(coords.lims)
     if (coords.diff[1] != coords.diff[2]) {
       coords.diff.diff <- abs(diff(as.vector(coords.diff)))
@@ -746,13 +560,13 @@ function(pars)
     par(pty = "s")
     plot(apply(coords, 2, range), type = "n", xlim = coords.lims[, 
                                                 1], ylim = coords.lims[, 2], ...)
+    if(!is.null(borders))
+      lines(borders)
   }
   if (missing(cex.min)) 
     cex.min <- 0.5
   if (missing(cex.max)) 
     cex.max <- 1.5
-  if (is.matrix(data)) 
-    data <- as.vector(data[, data.col])
   graph.list <- list()
   if (pt.sizes == "quintiles" | pt.sizes == "quartiles" | pt.sizes == 
       "deciles") {

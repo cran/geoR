@@ -39,7 +39,7 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   to \eqn{[0,1]}.  }
   \item{nsim}{Number of simulations. Defaults to 1.}
   \item{cov.model}{correlation function. See \code{\link{cov.spatial}} for
-    further details. Defaults are equivalent to the 
+    further details. Defaults to the 
     \emph{exponential} model.  }
   \item{cov.pars}{a vector with 2 elements or an \eqn{n \times 2}{n x 2}
     matrix with values of  the covariance parameters
@@ -96,12 +96,11 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   (\url{http://btgyn8.geo.uni-bayreuth.de/~martin/}).
  
   \bold{WARNING:} The code for the \code{"circular.embedding"} method is
-  no longer being maintained.
-  Martin has released a
+  no longer being maintained. Martin has released a
   package called \code{RandomFields} (available on \code{CRAN})
-  for unconditional simulation of random fields.
-  We recommend the use of this package for simulation of random
-  fields with large number of points. 
+  for simulation of random fields.
+  We strongly recommend the use of this package for simulations on fine
+  grids with large number of locations. 
 
 }
 
@@ -113,7 +112,7 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   \item{data}{a vector (if \code{nsim = 1}) or a matrix with the
     simulated values. For the latter each column corresponds to one
     simulation.  }
-  \item{cov.model}{a string with the name of the correlation.  }
+  \item{cov.model}{a string with the name of the correlation function.  }
   \item{nugget}{the value of the nugget parameter.}
   \item{cov.pars}{a vector with the values of \eqn{\sigma^2}{sigma^2}
     and \eqn{\phi}{phi}, respectively.  }
@@ -159,8 +158,6 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
 }
 
 \examples{
-# initial value for the random numbers generator (if needed)
-if(is.R()) .Random.seed <- 1:3
 #
 sim1 <- grf(100, cov.pars = c(1, .25))
 # a display of simulated locations and values
@@ -175,7 +172,10 @@ image.grf(sim2)
 # a "bigger" one
 sim3 <- grf(40401, grid = "reg", cov.pars = c(10, .2), met = "circ") 
 image.grf(sim3)
-
+\testonly{
+#sim1 <- grf(100, cov.pars=c(1, .3), nsim=5)
+#plot(sim1)
+}
 }
 
 \keyword{spatial}

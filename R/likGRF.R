@@ -202,7 +202,7 @@
                   f.psiR = fix.psiR, f.psiA = fix.psiA)
   ##  
   if(messages.screen == TRUE) {
-    cat("-----------------------------------------------------------------------\n")
+    cat("-------------------------------------------------------\n")
     cat("likfit: Initialising likelihood maximisation using the function ")
     if(is.R()) cat("optim.\n") else cat("nlminb.\n")
     cat("likfit: Use control() to pass arguments for the maximisation function.")
@@ -210,7 +210,7 @@
     if(is.R()) cat("optim.\n") else cat("nlminb.\n")        
     cat("likfit: It is highly advisable to run this function several\n        times with different initial values for the parameters.\n")
     cat("likfit: WARNING: This step can be time demanding!\n")
-    cat("-----------------------------------------------------------------------\n")
+    cat("-------------------------------------------------------\n")
   }
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
   if(is.R()){
@@ -994,11 +994,12 @@
     else
       negloglik <- ((n-p)/2) * log(ssres) +  iv$log.det.to.half +
         choldet - log.jacobian
-  }
-  
-#  if(negloglik > 1e64) negloglik <- 1e64
-  if(negloglik > (.Machine$double.xmax/10000)) negloglik <- (.Machine$double.xmax/10000)
-  if(temp.list$print.pars) cat(paste("negloglik.value =", negloglik, "\n"))
+  }  
+  ##  if(negloglik > 1e64) negloglik <- 1e64
+  if(negloglik > (.Machine$double.xmax/10000))
+    negloglik <- (.Machine$double.xmax/10000)
+  if(temp.list$print.pars)
+    cat(paste("negloglik.value =", negloglik, "\n"))
   return(negloglik)
 }
 
@@ -1212,7 +1213,7 @@
 }
 
 "loglik.GRF" <-
-  function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method="ML", compute.dists=T)
+  function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method="ML", compute.dists = TRUE)
 {
   if(method == "REML" | method == "reml" | method == "rml") 
     method <- "RML"

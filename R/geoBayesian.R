@@ -8,10 +8,12 @@
              beta = NULL, beta.var = NULL,
              sill.prior = c("reciprocal", "fixed"), sill = NULL, 
              range.prior = c("uniform", "exponential", "fixed",
-               "squared.reciprocal","reciprocal"), exponential.prior.par = 1,
+               "squared.reciprocal","reciprocal"),
+             exponential.prior.par = 1,
              range = NULL, range.discrete = NULL, 
-             nugget.prior = c("fixed", "uniform"), nugget = 0,
-             nugget.discrete = NULL),
+             nugget.rel.prior = c("fixed", "uniform"),
+             nugget.fixed  = 0,
+             nugget.rel.discrete = NULL),
            output = output.control(
              n.posterior = 1000, n.predictive = NULL, moments = TRUE,
              simulations.predictive = TRUE, keep.simulations = TRUE,
@@ -43,7 +45,7 @@
   beta.var <- prior$beta.var
   sill <- prior$sill
   ##range <- prior$range
-  nugget <- prior$nugget
+  nugget <- prior$nugget.fixed
   exponential.prior.par <- prior$exponential.prior.par  
   ##
   n.posterior <- output$n.posterior
@@ -58,7 +60,7 @@
     warning("krige.bayes: vector of coordinates: one spatial dimention assumed")
   }
   coords <- as.matrix(coords)
-  data.dist<- as.vector(dist(coords))
+  data.dist <- as.vector(dist(coords))
   data.dist.range <- range(data.dist)
   data.dist.min <- data.dist.range[1]
   data.dist.max <- data.dist.range[2]
@@ -68,11 +70,11 @@
   if(all(locations == "no")) {
     if(prior$beta.prior != "fixed" & prior$sill.prior != "fixed"  & prior$range.prior != "fixed")
       if(messages.screen){
-        cat("krige.bayes: no prediction locations provided.")
-        cat("             Only Bayesian estimates of model parameters will be returned. \n ")
+        cat("krige.bayes: no prediction locations provided.\n")
+        cat("             Only samples of the posterior for the parameters will be returned. \n ")
       }
       else
-        stop("krige.bayes: locations to be predicted not provided. Bayesian parameter estimation allowed only if priors are provided for beta, sill and range")
+        stop("krige.bayes: no prediction locations provided and fixed parameters.\n If priors are specified for beta, sill and range sample of the posterior will be returned.")
   }
   ##  if(!is.null(smaller.locations)){
   ##    if(if(is.R()) require(akima) == FALSE)
@@ -106,15 +108,14 @@
     discrete.diff <- NULL
     if(is.R()) gc(verbose=FALSE)
   }    
-  if(prior$nugget.prior != "fixed"){
-    if(is.null(prior$nugget.discrete))
-      stop("krige.bayes: to include the nugget as random in the Bayesian analysis the argument nugget.discrete must be provided\n")
-    if(prior$nugget.prior != "fixed")
-      if(any(prior$nugget.discrete > 1))
-        warning("krige.bayes: when nugget is considered as random in the Bayesian analysis the values in the argument nugget.discrete must be relative nugget: tausq/sigmasq\n")
-    discrete.diff <- diff(prior$nugget.discrete)
+  if(prior$nugget.rel.prior != "fixed"){
+    if(is.null(prior$nugget.rel.discrete))
+      stop("krige.bayes: to include the nugget as random in the Bayesian analysis the argument nugget.rel.discrete must be provided\n")
+    if(any(prior$nugget.rel.discrete > 1))
+      warning("krige.bayes: when nugget is considered as random in the Bayesian analysis the values in the argument nugget.rel.discrete must be relative nugget: tausq/sigmasq\n")
+    discrete.diff <- diff(prior$nugget.rel.discrete)
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
-      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"nugget.discrete\"\n")
+      stop("krige.bayes: the current implementation requires equally spaced values in the argument \"nugget.rel.discrete\"\n")
     discrete.diff <- NULL
     if(is.R()) gc(verbose=FALSE)
   }
@@ -137,7 +138,7 @@
   }
   if(lambda != 1 & lambda != 0 & moments) {
     moments <- FALSE
-    cat(paste("WARNING: moments cannot be computed with lambda =", 
+    cat(paste("WARNING: moments cannot be computed with lambda = ", 
               lambda,".\n         Argument moments was set to FALSE\n",
               sep=""))
   }
@@ -475,17 +476,17 @@
     }
     else
       phidist$phi <- prior$range.discrete
-    if(is.null(prior$nugget.discrete)){
-      nugget.discrete <- nugget
+    if(is.null(prior$nugget.rel.discrete)){
+      nugget.rel.discrete <- nugget
       if(messages.screen)
         cat(paste("krige.bayes: nugget assumed to be fixed and equals to", nugget, "\n"))
     }
     else
-      nugget.discrete <- prior$nugget.discrete
+      nugget.rel.discrete <- prior$nugget.rel.discrete
     n.range <- length(phidist$phi)
-    n.nugget <- length(nugget.discrete)
+    n.nugget <- length(nugget.rel.discrete)
     phi.val <- phidist$phi
-    phidist$phi <- as.matrix(expand.grid(phidist$phi, nugget.discrete))
+    phidist$phi <- as.matrix(expand.grid(phidist$phi, nugget.rel.discrete))
     dimnames(phidist$phi) <- list(NULL, NULL)
     krige.bayes.aux1 <- function(phinug){
       phi <- phinug[1]
@@ -628,10 +629,10 @@
     range.mode <- phi.val[range.marg == max(range.marg)]
     nugget.marg <- apply(phidist$probphi, 2, sum)
     nugget.marg <- nugget.marg/(sum(nugget.marg))
-    nugget.mean <- nugget.discrete %*% nugget.marg
+    nugget.mean <- nugget.rel.discrete %*% nugget.marg
     nugget.median <- median(phi.sam[, 2])
     ## check == here
-    nugget.mode <- nugget.discrete[nugget.marg == max(nugget.marg)]
+    nugget.mode <- nugget.rel.discrete[nugget.marg == max(nugget.marg)]
     ##
     ## Computing the conditional (on phi and tausq.rel,
     ## the later if the case) modes for beta and sigmasq
@@ -685,10 +686,10 @@
       c(mean = sill.mean, median = sill.median, mode.cond = sill.mode.cond)
     kb.results$posterior$phi.summary <- c(mean = range.mean, median = 
                                           range.median, mode = range.mode)
-    if(prior$nugget.prior != "fixed")
+    if(prior$nugget.rel.prior != "fixed")
       kb.results$posterior$tausq.summary <- c(mean = nugget.mean,
-                                              median = nugget.median, mode = 
-                                              nugget.mode)
+                                              median = nugget.median,
+                                              mode = nugget.mode)
     else
       kb.results$posterior$tausq.summary <- paste("fixed tausq with value =", nugget)
     kb.results$posterior$beta.samples <- as.matrix(beta)[vecpars.back.order,  ]
@@ -701,7 +702,7 @@
     sigmasq <- NULL
     if(is.R()) gc(verbose=FALSE)
     kb.results$posterior$phi.samples <- phi.sam[vecpars.back.order,1]
-    if(prior$nugget.prior != "fixed")
+    if(prior$nugget.rel.prior != "fixed")
       kb.results$posterior$tausq.samples <- phi.sam[vecpars.back.order,2]
     else
       kb.results$posterior$tausq.samples <- paste("fixed tausq with value =", nugget)
@@ -711,7 +712,7 @@
                  sampled = as.vector(table(factor(phi.sam[, 1],
                    levels = phi.lev)))/n.posterior)
     nug.lev <- unique(phidist$phi[, 2])
-    if(prior$nugget.prior != "fixed")
+    if(prior$nugget.rel.prior != "fixed")
       kb.results$posterior$nugget.marginal <-
         data.frame(nugget = nug.lev, expected = apply(phidist$probphi, 2, sum),
                    sampled = as.vector(table(factor(phi.sam[, 2],
@@ -793,7 +794,7 @@
           phinug <- as.vector(phinug)
           phi.ind <- order(phi.val)[round(100000000. * phi.val) ==
                                     round(100000000. * phinug[1])]
-          nug.ind <- order(nugget.discrete)[round(100000000. * nugget.discrete) ==
+          nug.ind <- order(nugget.rel.discrete)[round(100000000. * nugget.rel.discrete) ==
                                             round(100000000. * phinug[2])]
           v0 <- cov.spatial(obj = d0mat, cov.model = cov.model, kappa
                             = kappa, cov.pars = c(1, phinug[1]))
@@ -907,7 +908,7 @@
           phinug <- as.vector(phinug)
           phi.ind <- order(phi.val)[round(100000000. * phi.val) ==
                                     round(100000000. * phinug[1])]
-          nug.ind <- order(nugget.discrete)[round(100000000. * nugget.discrete) ==
+          nug.ind <- order(nugget.rel.discrete)[round(100000000. * nugget.rel.discrete) ==
                                             round(100000000. * phinug[2])]
           v0 <- cov.spatial(obj = d0mat, cov.model = cov.model, kappa
                             = kappa, cov.pars = c(1, phinug[1]))
@@ -1123,7 +1124,7 @@
                        sampled = as.vector(table(factor(phi.sam[, 1],
                          levels = phi.lev)))/n.predictive)
           nug.lev <- unique(phidist$phi[, 2])
-          if(prior$nugget.prior != "fixed")
+          if(prior$nugget.rel.prior != "fixed")
             data.frame(nugget = nug.lev, expected = apply(phidist$probphi, 2, sum),
                        sampled = as.vector(table(factor(phi.sam[, 2],
                          levels = nug.lev)))/n.predictive)
@@ -1148,7 +1149,7 @@
         print(kb.results$message.prediction)
     }
   }
-  if(all(nugget != 0) & prior$nugget.prior == "fixed")
+  if(all(nugget != 0) & prior$nugget.rel.prior == "fixed")
     kb.results$nugget.fixed <- nugget
   kb.results$.Random.seed <- seed
 #  if(info.for.prediction == TRUE & prior$range.prior != "fixed")
@@ -1166,6 +1167,7 @@
 #           output$quantile.estimator, output$probability.estimator = 
 #           output$probability.estimator, ind = ind, lambda = 
 #           lambda, moments = moments)
+  kb.results$max.dist <- data.dist.max
   kb.results$call <- call.fc
   class(kb.results) <- c("krige.bayes", "kriging")
   if(messages.screen)
@@ -1204,189 +1206,168 @@ function(x, cutoff)
   zsim <- as.vector(cov.decomp %*% rnorm(beta.size))
   return(zsim)
 }
+
 "lines.krige.bayes" <- 
-  function(obj, max.dist, length = 100, summary.posterior = c("mode", "median", "mean"), ...)
+  function(obj, max.dist,
+           summary.posterior = c("mode", "median", "mean"), ...)
 {
+  my.l <- list()
+  if(missing(max.dist)){
+    my.l$max.dist <- obj$max.dist
+    if (is.null(my.l$max.dist) | !is.numeric(my.l$max.dist)) 
+      stop("numerical argument max.dist needed for this object")
+  }
+  else my.l$max.dist <- max.dist
   spost <- match.arg(summary.posterior)
   if(is.null(obj$call$cov.model))
-    cov.model <- "exponential"
+    my.l$cov.model <- "exponential"
   else {
-    cov.model <- obj$call$cov.model
+    my.l$cov.model <- obj$call$cov.model
     if(obj$call$cov.model == "matern" | obj$call$cov.model == "powered.exponential" | obj$
        call$cov.model == "cauchy" | obj$call$cov.model == "gneiting-matern")
-      kappa <- obj$call$kappa
-    else kappa <- NULL
+      my.l$kappa <- obj$call$kappa
+    else my.l$kappa <- NULL
   }
-  distance <- seq(0, max.dist, length = length)
   if(spost == "mode")
     spost1 <- "mode.cond"
   else spost1 <- spost
-  cov.pars <- c(obj$posterior$sigmasq.summary[spost1], obj$posterior$phi.summary[spost])
-  names(cov.pars) <- NULL
+  my.l$cov.pars <- c(obj$posterior$sigmasq.summary[spost1], obj$posterior$phi.summary[spost])
+  names(my.l$cov.pars) <- NULL
   if(is.numeric(obj$posterior$tausq.summary))
-    nugget <- obj$posterior$tausq.summary[spost] * cov.pars[1]
+    nugget <- obj$posterior$tausq.summary[spost] * my.l$cov.pars[1]
   else nugget <- 0
   names(nugget) <- NULL
-  sill.total <- nugget + cov.pars[1]
-  gamma <- (nugget + cov.pars[1]) - cov.spatial(distance, cov.model = cov.model, kappa = kappa, 
-                                                cov.pars = cov.pars)
-  lines(distance, gamma, ...)
+  my.l$sill.total <- nugget + my.l$cov.pars[1]
+  gamma.f <- function(x, my.l)
+    {
+      return(my.l$sill.total -
+             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
+                         cov.pars = my.l$cov.pars))
+    }
+  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
+  return(invisible())
 }
 
-"image.krige.bayes" <-
-  function (obj, locations,
-            values.to.plot = c("moments.mean", "moments.variance",
-              "mean.simulations", "variance.simulations",
-              "quantiles", "probability", "simulation"),
-            number.col, coords.data, ...) 
+"prepare.graph.krige.bayes" <-
+  function (obj, locations, borders, 
+            values.to.plot, number.col) 
 {
-  if(is.null(locations))
-    stop("prediction locations must be provided")
-  locations <- locations[order(locations[, 2], locations[,1]), ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
-  ny <- length(y)
-  coords.lims <- apply(locations,2,range)
-  coords.diff <- diff(coords.lims)
-  if(coords.diff[1] != coords.diff[2]){
-    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-    ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[,ind.min] <- coords.lims[,ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
-  }
-  par(pty = "s")
-  if (is.numeric(values.to.plot)){
-    image(x, y, matrix(values.to.plot, ncol=ny), xlim= coords.lims[,1], ylim=coords.lims[,2],...)
-  }
-  else{
-    values <- match.arg(values.to.plot)
-    switch(values,
+  if (!is.numeric(values.to.plot)){
+    switch(values.to.plot,
            moments.mean =
            {
-             values <- matrix(obj$predictive$moments$expect.y0, ncol = ny);
-             cat("plotting map the mean of the predictive distribution\n")
+             values <- obj$predictive$moments$expect.y0
+             cat("image.krige.bayes: plotting map the mean of the predictive distribution\n")
            },
            moments.variance = {
-             values <- matrix(obj$predictive$moments$var.y0, ncol = ny);
+             values <- obj$predictive$moments$var.y0
              cat("plotting map the variance of the predictive distribution\n")
            },
            mean.simulations=
            {
-             values <- matrix(obj$predictive$mean.simulations, ncol = ny);
+             values <- obj$predictive$mean.simulations
              cat("plotting map the mean of the simulations from the predictive distribution\n")
            },
            variance.simulations =
            {
-             values <- matrix(obj$predictive$variance.simulations, ncol = ny);
+             values <- obj$predictive$variance.simulations
              cat("plotting map the variance of the predictive distribution\n")
            },
            quantile =
            {
              if(!is.vector(obj$predictive$quantiles))
-               if(missing(number.col))
+               if(is.null(number.col))
                  stop("argument number.col must be provided")
                else
-                 values <- matrix(obj$predictive$quantiles[,number.col], ncol = ny)
+                 values <- obj$predictive$quantiles[,number.col]
              else
-               values <- matrix(obj$predictive$quantiles, ncol = ny);
+               values <- obj$predictive$quantiles
              cat("plotting map a quantile of the predictive distribution\n")
            },
            probability =
            {
              if(!is.vector(obj$predictive$probability))
-               if(missing(number.col))
+               if(is.null(number.col))
                  stop("argument number.col must be provided")
                else
-                 values <- matrix(obj$predictive$probability[,number.col], ncol = ny)
+                 values <- obj$predictive$probability[,number.col]
              else
-               values <- matrix(obj$predictive$probability, ncol = ny);
+               values <- obj$predictive$probability
              cat("plotting map a simulation of the predictive distribution\n")
            },
            simulation =
            {
-             values <- matrix(obj$predictive$simulations[,number.col], ncol = ny);
+             values <- obj$predictive$simulations[,number.col]
              cat("plotting map the variance of the predictive distribution\n")
            },
            stop("wrong specification for values to plot")
            )
-    image(x, y, values, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
   }
-  if(!missing(coords.data))
+  else values <- values.to.plot
+  remove("values.to.plot")
+  if(!is.null(borders)){
+    borders <- as.matrix(as.data.frame(borders))
+    if(is.R())
+      require(splancs)
+    inout.vec <- as.vector(inout(pts = locations, poly = borders))
+    if(sum(inout.vec) != length(values))
+      stop("image.krige.bayes: length of the argument values is incompatible with number of elements inside the borders.")
+    temp <- rep(NA, nrow(locations))
+    temp[inout.vec == T] <- values
+    values <- temp
+    remove("temp")
+  }
+  locations <- locations[order(locations[, 2], locations[,1]), ]
+  x <- as.numeric(levels(as.factor(locations[, 1])))
+  nx <- length(x)
+  y <- as.numeric(levels(as.factor(locations[, 2])))
+  ny <- length(y)
+  coords.lims <- set.coords.lims(coords=locations)
+  return(list(x=x, y=y, values = matrix(values,ncol=ny), coords.lims=coords.lims))
+}
+
+"image.krige.bayes" <-
+  function (obj, locations, borders, 
+            values.to.plot = c("moments.mean", "moments.variance",
+              "mean.simulations", "variance.simulations",
+              "quantiles", "probability", "simulation"),
+            number.col, coords.data, ...)
+{
+  if(all(is.character(values.to.plot)))
+    values.to.plot <- match.arg(values.to.plot)
+  if(missing(borders)) borders <- NULL
+  if(missing(number.col)) number.col <- NULL
+  if(missing(coords.data)) coords.data <- NULL
+  locations <- prepare.graph.krige.bayes(obj=obj, locations=locations,
+                                         borders=borders,
+                                         values.to.plot=values.to.plot,
+                                         number.col = number.col)
+  pty.prev <- par()$pty
+  par(pty = "s")
+  image(locations$x, locations$y, locations$values,
+        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2],...)
+  if(!is.null(coords.data))
     points(coords.data)
+  if(!is.null(borders))
+    lines(borders, lwd=2)
+  par(pty=pty.prev)
   return(invisible())
 }
 
 "persp.krige.bayes" <-
-  function (obj, locations,
+  function (obj, locations, borders, 
             values.to.plot = c("moments.mean", "moments.variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probability", "simulation"), number.col, ...) 
 {
-  if(is.null(locations))
-    stop("prediction locations must be provided")
-  locations <- locations[order(locations[, 2], locations[,1]), ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
-  ny <- length(y)
-  if (nx == ny) 
-    par(pty = "s")
-  if (is.numeric(values.to.plot)){
-    persp(x,y,matrix(values.to.plot, ncol=ny), ...)
-  }
-  else{
-    values <- match.arg(values.to.plot)
-    switch(values,
-           moments.mean =
-           {
-             values <- matrix(obj$predictive$moments$expect.y0, ncol = ny);
-             cat("plotting map the mean of the predictive distribution\n")
-           },
-           moments.variance = {
-             values <- matrix(obj$predictive$moments$var.y0, ncol = ny);
-             cat("plotting map the variance of the predictive distribution\n")
-           },
-           mean.simulations=
-           {
-             values <- matrix(obj$predictive$mean.simulations, ncol = ny);
-             cat("plotting map the mean of the simulations from the predictive distribution\n")
-           },
-           variance.simulations =
-           {
-             values <- matrix(obj$predictive$variance.simulations, ncol = ny);
-             cat("plotting map the variance of the predictive distribution\n")
-           },
-           quantile =
-           {
-             if(!is.vector(obj$predictive$quantiles))
-               if(missing(number.col))
-                 stop("argument number.col must be provided")
-               else
-                 values <- matrix(obj$predictive$quantiles[,number.col], ncol = ny)
-             else
-               values <- matrix(obj$predictive$quantiles, ncol = ny);
-             cat("plotting map a quantile of the predictive distribution\n")
-           },
-           probability =
-           {
-             if(!is.vector(obj$predictive$probability))
-               if(missing(number.col))
-                 stop("argument number.col must be provided")
-               else
-                 values <- matrix(obj$predictive$probability[,number.col], ncol = ny)
-             else
-               values <- matrix(obj$predictive$probability, ncol = ny);
-             cat("plotting map a simulation of the predictive distribution\n")
-           },
-           simulation =
-           {
-             values <- matrix(obj$predictive$simulations[,number.col], ncol = ny);
-             cat("plotting map the variance of the predictive distribution\n")
-           },
-           stop("wrong specification for values to plot")
-           )
-    persp(x, y, values, ...)
-  }
+  values.to.plot <- match.arg(values.to.plot)
+  if(missing(borders)) borders <- NULL
+  if(missing(number.col)) number.col <- NULL
+  locations <- prepare.graph.krige.bayes(obj=obj, locations=locations,
+                                         borders=borders,
+                                         values.to.plot=values.to.plot,
+                                         number.col = number.col)
+  persp(locations$x, locations$y, locations$values, ...)
   return(invisible())
 }
 
@@ -1410,22 +1391,24 @@ function(x, cutoff)
            beta = NULL, beta.var = NULL,
            sill.prior = c("reciprocal", "fixed"), sill = NULL, 
            range.prior = c("uniform", "exponential", "fixed",
-             "squared.reciprocal","reciprocal"), exponential.prior.par = 1,
+             "squared.reciprocal","reciprocal"),
+           exponential.prior.par = 1,
            range = NULL, range.discrete = NULL, 
-           nugget.prior = c("fixed", "uniform"), nugget = 0,
-           nugget.discrete = NULL)
+           nugget.rel.prior = c("fixed", "uniform"), nugget.fixed = 0,
+           nugget.rel.discrete = NULL)
 {
   beta.prior <- match.arg(beta.prior)
   sill.prior <- match.arg(sill.prior)
   range.prior <- match.arg(range.prior)
-  nugget.prior <- match.arg(nugget.prior)
+  nugget.rel.prior <- match.arg(nugget.rel.prior)
   return(list(beta.prior = beta.prior, beta = beta, beta.var = beta.var,
               sill.prior = sill.prior, sill = sill, 
               range.prior = range.prior,
               exponential.prior.par = exponential.prior.par,
               range = range, range.discrete = range.discrete, 
-              nugget.prior = nugget.prior, nugget = nugget,
-              nugget.discrete = nugget.discrete))
+              nugget.rel.prior = nugget.rel.prior,
+              nugget.fixed = nugget.fixed,
+              nugget.rel.discrete = nugget.rel.discrete))
 }
 
 "output.control" <-
@@ -1447,8 +1430,7 @@ function(x, cutoff)
 
 "krige.bayes.messages" <- 
 function(moments, n.disc, .temp.ap, ind.length)
-{
-  
+{  
   if(moments){
     if(n.disc <= 50)
       cat(paste("computing moments: point",
@@ -1490,7 +1472,4 @@ function(moments, n.disc, .temp.ap, ind.length)
       }
   }
 }
-
-
-
 

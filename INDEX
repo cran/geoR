@@ -1,3 +1,4 @@
+SIC                      Spatial Interpolation Comparison data
 as.geodata               Converts an Object to the Class "geodata"
 coords.aniso             Geometric Anisotropy Correction
 cov.spatial              Computes Value of the Covariance Function
@@ -37,6 +38,7 @@ proflik                  Computes Profile Likelihoods
 read.geodata             Reads and Converts Data to geoR Format
 s100 and s121            Simulated Data-Sets which Illustrate the Usage
                          of the Package geoR
+set.coords.lims          Sets Limits to Scale Plots
 summary.likGRF           Summarizes Parameter Estimation Results for
                          Gaussian Random Fields
 summary.variomodel       Summarize Results of Variogram Estimation

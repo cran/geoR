@@ -17,14 +17,13 @@
            nugget.rellambda.values = FALSE,
            uni.only = TRUE,
            bi.only = FALSE,
-           minimisation.function = c("optim", "nlmP"), ...)
+           ...)
 {
   ##
   ## 1. setting arguments
   ##
   require(mva)
   call.fc <- match.call()
-  minimisation.function <- match.arg(minimisation.function)
   n.cov.pars <- obj.likfit$npars - length(obj.likfit$beta)
   if(obj.likfit$transform.info$fix.lambda == FALSE)
     n.cov.pars <- n.cov.pars - 1
@@ -182,8 +181,7 @@
                             phi.est = phi,
                             tausq.rel.est = tausq.rel,
                             tausq.est = tausq,
-                            sigmasq.est = sigmasq,
-                            minimisation.function = minimisation.function), pos=1)
+                            sigmasq.est = sigmasq), pos=1)
   if(obj.likfit$transform.info$fix.lambda == TRUE) {
     .temp.list$log.jacobian <<- obj.likfit$transform.info$log.jacobian
   }
@@ -206,8 +204,7 @@
                                                   seq(-1,1,l = 5)))
           }
           else {
-            ini.grid <- as.matrix(
-                                            seq(min(range.values),
+            ini.grid <- as.matrix(seq(min(range.values),
                                                 max(range.values),
                                                 l = 10))
           }
@@ -562,15 +559,10 @@
     proflik <- proflik.aux1(phi = phi)
   else {
     .temp.list$phi <<- phi
-    if(.temp.list$minimisation.function == "optim")
-      proflik <-  - (optim(.temp.list$lambda, proflik.aux1.1, method="L-BFGS-B", lower
-                           = -2, upper = 2, ...)$value)
-    else
-      proflik <-  - (nlmP(proflik.aux1.1, .temp.list$lambda, lower
-                          = -2, upper = 2, ...)$minimum)
-    .temp.list$phi <<- NULL
+    proflik <-  - (optim(.temp.list$lambda, proflik.aux1.1, method="L-BFGS-B", lower
+                         = -2, upper = 2, ...)$value)
+    return(proflik)
   }
-  return(proflik)
 }
 "proflik.aux1" <-
   function(philambda, ...)
@@ -597,7 +589,8 @@
 "proflik.aux10" <-
   function(phitausq.rel.lambda, ...)
 {
-  if(length(phitausq.rel.lambda) == 3) lambda <- phitausq.rel.lambda[3]
+  if(length(phitausq.rel.lambda) == 3)
+    lambda <- phitausq.rel.lambda[3]
   else lambda <- 1
   phitausq.rel.lambda <- as.vector(phitausq.rel.lambda)
   n <- .temp.list$n
@@ -627,33 +620,16 @@
   ## This is an auxiliary function called by proflik.
   .temp.list$nugget <<- as.vector(tausq)
   if(.temp.list$fix.lambda == TRUE) {
-    if(.temp.list$minimisation.function == "optim"){
-      sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est),
-                              proflik.aux12,method="L-BFGS-B",
-                              lower = c(.temp.list$lower.sigmasq,
-                                .temp.list$lower.phi),
-                              upper=c(+Inf, .temp.list$upper.phi), ...)$value
-    }
-    else{
-      sigmasqphi.res <- nlmP(proflik.aux12,
-                             c(.temp.list$sigmasq.est, .temp.list$phi.est),
-                             lower = c(.temp.list$lower.sigmasq,
-                               .temp.list$lower.phi),
-                             upper=c(+Inf, .temp.list$upper.phi), ...)$minimum
-    }
+    sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est),
+                            proflik.aux12,method="L-BFGS-B",
+                            lower = c(.temp.list$lower.sigmasq,
+                              .temp.list$lower.phi),
+                            upper=c(+Inf, .temp.list$upper.phi), ...)$value
   }
   else {
-    if(.temp.list$minimisation.function == "optim"){
-      sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$
-                                phi.est, .temp.list$lambda), proflik.aux12,method="L-BFGS-B",  lower = c(.temp.list$lower.sigmasq, .temp.list$lower.phi, -2),
-                              upper = c( + Inf, .temp.list$upper.phi, 2), ...)$value
-    }
-    else{
-      sigmasqphi.res <- nlmP(proflik.aux12,c(.temp.list$sigmasq.est, .temp.list$
-                                             phi.est, .temp.list$lambda),
-                             lower = c(.temp.list$lower.sigmasq, .temp.list$lower.phi, -2),
-                             upper = c( + Inf, .temp.list$upper.phi, 2), ...)$minimum
-    }    
+    sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$
+                              phi.est, .temp.list$lambda), proflik.aux12,method="L-BFGS-B",  lower = c(.temp.list$lower.sigmasq, .temp.list$lower.phi, -2),
+                            upper = c( + Inf, .temp.list$upper.phi, 2), ...)$value
   }
   .temp.list$nugget <<- NULL
   return( - sigmasqphi.res)    
@@ -715,22 +691,13 @@
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasqphi <<- as.vector(sigmasqphi)
   if(.temp.list$fix.lambda == TRUE) {
-    if(.temp.list$minimisation.function == "optim") 
       tausq.res <- optim(.temp.list$tausq.est, proflik.aux14, method="L-BFGS-B", lower
 			 = 0, ...)$value
-    else
-      tausq.res <- nlmP(proflik.aux14, .temp.list$tausq.est, lower
-                        = 0, ...)$minimum
   }
   else {
-    if(.temp.list$minimisation.function == "optim") 
-      tausq.res <- optim(
-                         c(.temp.list$tausq.est, .temp.list$lambda), proflik.aux14, method="L-BFGS-B",lower = c(0, -2
-                                                                                                        ), upper = c( +Inf, 2), ...)$value
-    else
-      tausq.res <- nlmP(
-                        proflik.aux14, c(.temp.list$tausq.est, .temp.list$lambda),lower = c(0, -2
-                                                                                    ), upper = c( +Inf, 2), ...)$minimum
+    tausq.res <- optim(
+                       c(.temp.list$tausq.est, .temp.list$lambda), proflik.aux14, method="L-BFGS-B",lower = c(0, -2
+                                                                                                      ), upper = c( +Inf, 2), ...)$value
   }
   .temp.list$sigmasqphi <<- NULL
   return( - tausq.res)
@@ -770,26 +737,17 @@
                                         proflik.aux16))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                          ])
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
-                       .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
-    else
-      phi.res <- nlmP(proflik.aux16, ini, lower = 
-                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$minimum
+    phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
+                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
   }
   else {
     ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                         proflik.aux16))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                          ])
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", 
-                       lower = c(.temp.list$lower.phi, -2),
-                       upper = c(.temp.list$upper.phi, 2), ...)$value
-    else
-      phi.res <- nlmP(proflik.aux16, ini, 
-                      lower = c(.temp.list$lower.phi, -2),
-                      upper = c(.temp.list$upper.phi, 2), ...)$minimum
+    phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", 
+                     lower = c(.temp.list$lower.phi, -2),
+                     upper = c(.temp.list$upper.phi, 2), ...)$value
   }
   .temp.list$sigmasqtausq <<- NULL
   return( - phi.res)
@@ -829,22 +787,13 @@
     ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                         proflik.aux18))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),])
-    if(.temp.list$minimisation.function == "optim") 
-      sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
-                           lower = .temp.list$lower.sigmasq, ...)$value
-    else
-      sigmasq.res <- nlmP(proflik.aux18, ini, 
-                          lower = .temp.list$lower.sigmasq, ...)$minimum
+    sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
+                         lower = .temp.list$lower.sigmasq, ...)$value
   }
   else {
-    if(.temp.list$minimisation.function == "optim") 
-      sigmasq.res <- optim(c(.temp.list$sigmasq.est, .temp.list$lambda
-                             ), proflik.aux18, method="L-BFGS-B", lower = c(.temp.list$lower.sigmasq,
-                                                                    -2), upper = c( + Inf, 2), ...)$value
-    else
-      sigmasq.res <- nlmP(proflik.aux18, c(.temp.list$sigmasq.est, .temp.list$lambda
-                                           ), lower = c(.temp.list$lower.sigmasq,
-                                                -2), upper = c( + Inf, 2), ...)$minimum
+    sigmasq.res <- optim(c(.temp.list$sigmasq.est, .temp.list$lambda
+                           ), proflik.aux18, method="L-BFGS-B", lower = c(.temp.list$lower.sigmasq,
+                                                                  -2), upper = c( + Inf, 2), ...)$value
   }
   .temp.list$phitausq <<- NULL
   return( - sigmasq.res)
@@ -881,31 +830,24 @@
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasqtausq.rel <<- as.vector(sigmasqtausq.rel)
   if(.temp.list$fix.lambda == TRUE) {
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(.temp.list$phi.est, proflik.aux20, method="L-BFGS-B", lower = 
-                       .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
-    else
-      phi.res <- nlmP(proflik.aux20, .temp.list$phi.est, lower = 
-                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$minimum
+    phi.res <- optim(.temp.list$phi.est, proflik.aux20, method="L-BFGS-B", lower = 
+                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
   }
   else {
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda, ...), proflik.aux20, method="L-BFGS-B", 
-                       lower = c(.temp.list$lower.phi, -2),
-                       upper = c(.temp.list$upper.phi, 2), ...)$value
-    else
-      phi.res <- nlmP(proflik.aux20, c(.temp.list$phi.est, .temp.list$lambda, ...), 
-                      lower = c(.temp.list$lower.phi, -2),
-                      upper = c(.temp.list$upper.phi, 2), ...)$minimum
+    phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda, ...), proflik.aux20, method="L-BFGS-B", 
+                     lower = c(.temp.list$lower.phi, -2),
+                     upper = c(.temp.list$upper.phi, 2), ...)$value
   }
   .temp.list$sigmasqtausq.rel <<- NULL
   return( - phi.res)
 }
+
+
 "proflik.aux2" <-
   function(sigmasq, ...)
 {
   ## This function computes the value of the profile likelihood for the random field scale (variance) parameter \sigma^2 when nugget effect is not included in the model.
-  ## It requires the minimisation of the function wrt \phi for each value of \sigma^2
+  ## It requires the minimisation of the function wrt \phi and maybe \lambda for each value of \sigma^2
   ## This is an auxiliary function called by likfit.proflik
   ##
   .temp.list$sigmasq <<- as.vector(sigmasq)
@@ -914,23 +856,17 @@
                                         proflik.aux3))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                          ])
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B", lower = .temp.list$lower.phi,upper=.temp.list$upper.phi, ...)$value
-    else
-      phi.res <- nlmP(proflik.aux3, ini , lower = .temp.list$lower.phi,upper=.temp.list$upper.phi, ...)$minimum
+    phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B",
+                     lower = .temp.list$lower.phi,
+                     upper=.temp.list$upper.phi, ...)$value
   }
   else {
     ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                         proflik.aux3))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),])
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B",
-                       lower = c(.temp.list$lower.phi, -2),
-                       upper = c(.temp.list$upper.phi, 2), ...)$value
-    else
-      phi.res <- nlmP(proflik.aux3, ini,
-                      lower = c(.temp.list$lower.phi, -2),
-                      upper = c(.temp.list$upper.phi, 2), ...)$minimum
+    phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B",
+                     lower = c(.temp.list$lower.phi, -2),
+                     upper = c(.temp.list$upper.phi, 2), ...)$value
   }
   .temp.list$sigmasq <<- NULL
   return( - phi.res)
@@ -1105,12 +1041,8 @@ function(phitausq.rel, ...)
                                       proflik.aux3))
   ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                        ])
-  if(.temp.list$minimisation.function == "optim") 
-    phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
-                     lower.phi, upper = .temp.list$upper.phi, ...)$value
-  else
-    phi.res <- nlmP(proflik.aux3, ini, lower = .temp.list$
-                    lower.phi, upper = .temp.list$upper.phi, ...)$minimum
+  phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
+                   lower.phi, upper = .temp.list$upper.phi, ...)$value
   .temp.list$log.jacobian <<- NULL
   .temp.list$sigmasq <<- NULL
   .temp.list$z <<- .temp.list$data
@@ -1144,14 +1076,9 @@ function(phitausq.rel, ...)
                                       proflik.aux10))
   ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                        ])        
-  if(.temp.list$minimisation.function == "optim") 
-    phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
-                              lower = c(.temp.list$lower.phi,
-                                0), upper=c(.temp.list$upper.phi, 100), ...)$value
-  else
-    phitausq.rel.res <- nlmP(proflik.aux10, ini,
-                             lower = c(.temp.list$lower.phi,
-                               0), upper=c(.temp.list$upper.phi, 100), ...)$minimum
+  phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
+                            lower = c(.temp.list$lower.phi,
+                              0), upper=c(.temp.list$upper.phi, 100), ...)$value
   .temp.list$log.jacobian <<- NULL
   .temp.list$sigmasq <<- NULL
   .temp.list$z <<- .temp.list$data
@@ -1169,10 +1096,7 @@ function(phitausq.rel, ...)
   .temp.list$sigmasqphi <<- as.vector(sigmasqphi)
   lambda.lik <- apply(as.matrix(ini.seq), 1, proflik.aux4)
   ini <- ini.seq[lambda.lik == max(lambda.lik)]
-  if(.temp.list$minimisation.function == "optim") 
     lambda.res <- optim(ini, proflik.aux4, method="L-BFGS-B", lower = -2.5, upper = 2.5, ...)$value
-  else
-    lambda.res <- nlmP(proflik.aux4, ini, lower = -2.5, upper = 2.5, ...)$minimum
   .temp.list$sigmasqphi <<- NULL
   return( - lambda.res)
 }
@@ -1188,40 +1112,42 @@ function(phitausq.rel, ...)
     proflik <- proflik.aux21(phitausq.rel = phitausq.rel)
   else {
     .temp.list$phitausq.rel <<- phitausq.rel
-    if(.temp.list$minimisation.function == "optim") 
-      proflik <-  - (optim(.temp.list$lambda, proflik.aux21.1, method="L-BFGS-B", lower =
-                          -2, upper = 2, ...)$value)
-    else
-      proflik <-  - (nlmP(proflik.aux21.1, .temp.list$lambda, lower =
-                          -2, upper = 2, ...)$minimum)
-    
+    proflik <-  - (optim(.temp.list$lambda, proflik.aux21.1, method="L-BFGS-B", lower =
+                         -2, upper = 2, ...)$value)
     .temp.list$phitausq.rel <<- NULL
   }
   return(proflik)
 }
+
+
 "proflik.aux3" <-
-function(phi.lambda, ...)
+  function(phi.lambda, ...)
 {
-  ## This function computer the negative of the likelihood function for the correlation function scale parameter \phi (and the transformation parameter \lambda) only for models with fixed nugget effect (i.e., when it is not a parameter to be estimated) 
+  ## This function computer the negative of the likelihood function for the correlation function scale parameter \phi (and maybe the transformation parameter \lambda) only for models with fixed nugget effect (i.e., when it is not a parameter to be estimated) 
   ## This function is used when computing the profile likelihood for \sigma^2
   ## This is an auxiliary function called by proflik.aux2
   ##  phi <- pmax(phi, .temp.list$lower.phi)
-  if(length(phi.lambda) == 2) lambda <- phi.lambda[2] else lambda <- 1
+  if(length(phi.lambda) == 2)
+    lambda <- phi.lambda[2]
+  else lambda <- 1
   sigmasq <- .temp.list$sigmasq
   phi <- phi.lambda[1]
   n <- .temp.list$n
   main <- proflik.main(tausq=0, sigmasq=1, phi=phi, lambda = lambda)
   if(.temp.list$method == "ML") {
-    neglik <- (n/2) * log(2 * pi) + main$log.det.to.half +
+    neglik <- (n/2) * log(2 * pi) +
+      main$log.det.to.half +
       (n/2) * log(sigmasq) + (0.5/sigmasq) * main$ssresmat - 
         main$log.jacobian
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
-    log.det.to.half + ((n - beta.size)/2) * log(sigmasq) +
-      (0.5/sigmasq) * main$ssresmat - 0.5 * sum(log(eigentrem$
-                                               values)) - main$log.jacobian
+    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+      main$log.det.to.half +
+        ((n - beta.size)/2) * log(sigmasq) +
+          (0.5/sigmasq) * main$ssresmat -
+            0.5 * sum(log(eigentrem$values)) -
+              main$log.jacobian
   }
   return(as.vector(round(neglik, dig=8)))
 }
@@ -1235,12 +1161,8 @@ function(phi.lambda, ...)
   philambda <- as.vector(philambda)
   .temp.list$phi <<- philambda[1]
   .temp.list$lambda <- philambda[2]
-  if(.temp.list$minimisation.function == "optim") 
-    tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", lower = 
-                          0, upper=100, ...)$value
-  else
-    tausq.rel.res <- nlmP(proflik.aux8, .temp.list$tausq.rel.est, lower = 
-                          0, upper=100, ...)$minimum
+  tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", lower = 
+                         0, upper=100, ...)$value
   .temp.list$phi <<- NULL
   return( - tausq.rel.res)
 }
@@ -1267,14 +1189,9 @@ function(phi.lambda, ...)
       .temp.list$z <<- log(.temp.list$z)
     else .temp.list$z <<- ((.temp.list$z^lambda) - 1)/lambda
   }
-  if(.temp.list$minimisation.function == "optim") 
-    sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est), proflik.aux12, method="L-BFGS-B",
-                           lower = c(.temp.list$lower.sigmasq, .temp.list$
-                             lower.phi), upper=c(+Inf, .temp.list$upper.phi), ...)$value
-  else
-    sigmasqphi.res <- nlmP(proflik.aux12, c(.temp.list$sigmasq.est, .temp.list$phi.est),
-                           lower = c(.temp.list$lower.sigmasq, .temp.list$
-                             lower.phi), upper=c(+Inf, .temp.list$upper.phi), ...)$minimum
+  sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est), proflik.aux12, method="L-BFGS-B",
+                          lower = c(.temp.list$lower.sigmasq, .temp.list$
+                            lower.phi), upper=c(+Inf, .temp.list$upper.phi), ...)$value
   .temp.list$log.jacobian <<- NULL
   .temp.list$z <<- .temp.list$data
   .temp.list$nugget <<- NULL
@@ -1303,12 +1220,8 @@ function(phi.lambda, ...)
       .temp.list$z <<- log(.temp.list$z)
     else .temp.list$z <<- ((.temp.list$z^lambda) - 1)/lambda
   }
-  if(.temp.list$minimisation.function == "optim") 
-    phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = .temp.list$
+  phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = .temp.list$
                     lower.phi, upper=.temp.list$upper.phi, ...)$value
-  else
-    phi.res <- nlmP(proflik.aux6, .temp.list$phi.est, lower = .temp.list$
-                    lower.phi, upper=.temp.list$upper.phi, ...)$minimum
   .temp.list$log.jacobian <<- NULL
   .temp.list$nugget.rel <<- NULL
   .temp.list$z <<- .temp.list$data
@@ -1353,12 +1266,8 @@ function(phi.lambda, ...)
   ## This is an auxiliary function called by proflik.
   .temp.list$nugget.rel <<- as.vector(tausq.rel)
   if(.temp.list$fix.lambda == TRUE) {
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = 
-                       .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
-    else
-      phi.res <- nlmP(proflik.aux6, .temp.list$phi.est, lower = 
-                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$minimum
+    phi.res <- optim(.temp.list$phi.est, proflik.aux6, method="L-BFGS-B", lower = 
+                     .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
   }
   else {
     if(.temp.list$minimisation.function == "optim") 
@@ -1410,19 +1319,12 @@ function(phi.lambda, ...)
   .temp.list$phi <<- as.vector(phi)
   if(.temp.list$fix.lambda == TRUE) {
     .temp.list$lambda <<- 1
-    if(.temp.list$minimisation.function == "optim") 
-      tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", 
-                             lower = 0, upper=100, ...)$value
-    else
-      tausq.rel.res <- nlmP(proflik.aux8,.temp.list$tausq.rel.est, 
-                            lower = 0, upper=100, ...)$minimum
+    tausq.rel.res <- optim(.temp.list$tausq.rel.est, proflik.aux8, method="L-BFGS-B", 
+                           lower = 0, upper=100, ...)$value
     .temp.list$lambda <<- NULL
   }
   else {
-    if(.temp.list$minimisation.function == "optim") 
-      tausq.rel.res <- optim(c(.temp.list$tausq.rel.est, .temp.list$lambda), proflik.aux8, method="L-BFGS-B", lower = c(0, -2), upper = c(100, 2), ...)$value
-    else
-      tausq.rel.res <- nlmP(proflik.aux8, c(.temp.list$tausq.rel.est, .temp.list$lambda), lower = c(0, -2), upper = c(100, 2), ...)$minimum
+    tausq.rel.res <- optim(c(.temp.list$tausq.rel.est, .temp.list$lambda), proflik.aux8, method="L-BFGS-B", lower = c(0, -2), upper = c(100, 2), ...)$value
   }
   .temp.list$phi <<- NULL
   return( - tausq.rel.res)
@@ -1463,17 +1365,10 @@ function(phi.lambda, ...)
                                         proflik.aux10))
     ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
                                          ])
-    if(.temp.list$minimisation.function == "optim") 
-      phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
-                               lower = c(.temp.list$
-                                 lower.phi, 0),
-                               upper=c(.temp.list$upper.phi, 100), ...)$value
-    else
-      phitausq.rel.res <- nlmP(proflik.aux10, ini,
-                               lower = c(.temp.list$
-                                 lower.phi, 0),
-                               upper=c(.temp.list$upper.phi, 100), ...)$minimum
-    
+    phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
+                              lower = c(.temp.list$
+                                lower.phi, 0),
+                              upper=c(.temp.list$upper.phi, 100), ...)$value
   }
   else {
     ini.lik <- apply(.temp.list$ini.grid, 1, proflik.aux10)
@@ -1481,10 +1376,10 @@ function(phi.lambda, ...)
     if(ini[2] == 0) ini[2] <- 0.01
     if(.temp.list$minimisation.function == "optim") 
       phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B", 
-                               lower = c(.temp.list$lower.phi,
-                                 0,-2),
-                               upper = c(.temp.list$upper.phi,
-                                 100, 2), ...)$value
+                                lower = c(.temp.list$lower.phi,
+                                  0,-2),
+                                upper = c(.temp.list$upper.phi,
+                                  100, 2), ...)$value
     else
       phitausq.rel.res <- nlmP(proflik.aux10,ini, 
                                lower = c(.temp.list$lower.phi,
@@ -1503,14 +1398,21 @@ function(phi.lambda, ...)
            conf.int = c(0.90000000000000002,0.94999999999999996),
            yaxis.lims = c("conf.int", "as.computed"),
            by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
-           par.mar.persp = c(0, 0, 0, 0),
+           par.mar.persp = c(0, 0, 0, 0), ask = FALSE, 
            ...)
-                                        #
 {
-                                        #  par.mfrow.ori <- par()$mfrow
-                                        #  par.mfcol.ori <- par()$mfcol
-  par.ori <- par(no.readonly = TRUE)
-  on.exit(par(par.ori))
+  ##
+  ## Saving original par() parameters
+  ##
+#  if (is.R()) 
+#    par.ori <- par(no.readonly = TRUE)
+#  else par.ori <- par()
+#  on.exit(par(par.ori))
+  ##
+  parask <- par()$ask
+  par(ask = ask)
+  on.exit(par(ask = parask))  
+  ##
   pages <- match.arg(pages)
   if(all(is.character(yaxis.lims)))
     yaxis.lims <- match.arg(yaxis.lims)
@@ -1564,8 +1466,9 @@ function(phi.lambda, ...)
       if(log.scale == TRUE) {
         if(use.splines){
           nxpoints <- 5*length(obj.proflik[[i]][[1]])
-          plot(spline(x = log(obj.proflik[[i]][[1]]), 
-                      y = obj.proflik[[i]][[2]],
+          nodups <- which(duplicated(obj.proflik[[i]][[1]]) == FALSE)
+          plot(spline(x = log(obj.proflik[[i]][[1]][nodups]), 
+                      y = obj.proflik[[i]][[2]][nodups],
                       n = nxpoints,
                       method="natural"), type = "l",
                xlab = paste("log-",
@@ -1586,8 +1489,9 @@ function(phi.lambda, ...)
       else {
         if(use.splines){
           nxpoints <- 5*length(obj.proflik[[i]][[1]])
-          plot(spline(x = obj.proflik[[i]][[1]],
-                      y = obj.proflik[[i]][[2]],
+          nodups <- which(duplicated(obj.proflik[[i]][[1]]) == FALSE)
+          plot(spline(x = obj.proflik[[i]][[1]][nodups],
+                      y = obj.proflik[[i]][[2]][nodups],
                       n = nxpoints,
                       method="natural"),
                type = "l",
@@ -1595,9 +1499,9 @@ function(phi.lambda, ...)
                ylab = ylabm, ylim = lik.lims)
         }
         else{
-          plot(spline(x = obj.proflik[[i]][[1]],
-                      y = obj.proflik[[i]][[2]],
-                      method="natural"), type = "l", xlab = 
+          plot(obj.proflik[[i]][[1]],
+               obj.proflik[[i]][[2]],
+               type = "l", xlab = 
                plot.proflik.aux1(names(obj.proflik[[i]])[1]),
                ylab = ylabm, ylim = lik.lims)
         }
@@ -1703,7 +1607,7 @@ function(phi.lambda, ...)
   z <- .temp.list$z
   n <- .temp.list$n
   if(lambda == 1) {
-    log.jacobian <- 0
+    log.jacobian <- .temp.list$log.jacobian
   }
   else {
     if(any(z <= 0))

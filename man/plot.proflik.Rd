@@ -18,7 +18,7 @@ plot.proflik(obj.proflik, pages = c("user", "one", "two"),
      type.bi = c("contour", "persp"), conf.int = c(0.9, 0.95),
      yaxis.lims = c("conf.int", "as.computed"),
      by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
-     par.mar.persp = c(0, 0, 0, 0), ...)
+     par.mar.persp = c(0, 0, 0, 0), ask = FALSE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -53,6 +53,8 @@ plot.proflik(obj.proflik, pages = c("user", "one", "two"),
   \item{use.splines}{logical. If \code{TRUE} (the default) the function
     \code{\link{spline}} is used to interpolate between the points
     computed by \code{proflik}.  }
+  \item{ask}{logical. Defines whether or not the user is prompted before
+    each plot is produced.  }
   \item{\dots}{additional arguments to be passed to the functions
     \code{\link{plot}}, \code{\link{contour}} and/or \code{\link{persp}}.  }
 }

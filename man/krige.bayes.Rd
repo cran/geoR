@@ -37,9 +37,9 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
                                    "fixed", "squared.reciprocal",
                                    "reciprocal"),
                    exponential.prior.par = 1, range = NULL,
-                   range.discrete = NULL,
-                   nugget.prior = c("fixed", "uniform"),
-                   nugget = 0, nugget.discrete = NULL),
+                   range.rel.discrete = NULL,
+                   nugget.rel.prior = c("fixed", "uniform"),
+                   nugget.fixed = 0, nugget.discrete = NULL),
      output = output.control(n.posterior = 1000,
                    n.predictive = NULL, moments = TRUE,
                    simulations.predictive = TRUE,
@@ -114,9 +114,9 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
       \item{trend.d}{specifies the trend (covariates) values at the data
 	locations. Possible values are:
 	\code{"cte"} - model with constant mean,
-	\code{"1st"} - trend is defined as a first degree polynomial on
+	\code{"1st"} - trend is defined as a first order polynomial on
 	the coordinates,
-	\code{"2nd"} - trend is defined as a second degree polynomial on the
+	\code{"2nd"} - trend is defined as a second order polynomial on the
 	coordinates,  a formula of the type \code{~X}, where \code{X}
 	is a matrix with covariates (external trend) at data locations. 
 	Defaults to \code{"cte"}.  }
@@ -152,7 +152,7 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
 	returned is the same scale as for the original data.
 	For \eqn{\lambda = 0}{lambda = 0} the log-transformation is performed.
 	If \eqn{\lambda < 0}{lambda < 0} the mean predictor doesn't make sense
-	(the resulting distribution has no expectation). }
+	(the resulting distribution has no expectation).  }
       
     }
 
@@ -162,57 +162,59 @@ krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
     \describe{
 
       \item{beta.prior}{prior distribution for the mean (vector)
-        parameter \eqn{\beta}{beta}. The options are "flat" (default), "normal" or "deg"
-        (degenerated - known mean).}
+        parameter \eqn{\beta}{beta}. The options are "flat" (default),
+	"normal" or "fixed" (known mean).  }
       
       \item{beta}{hyperparameter for the distribution of the mean (vector) parameter        \eqn{\beta}{beta}. Only used if \code{beta.prior = "normal"} or
-        \code{beta.prior = "deg"}. For the later \code{beta} defines the value of
-        the known mean.}
+        \code{beta.prior = "fixed"}. For the later \code{beta} defines the value of
+        the known mean.  }
       
       \item{beta.var}{(co)variance hyperparameters for the prior of the mean
         (vector) parameter \eqn{\beta}{beta}. Only used if \code{beta.prior =
-          "normal"}.}
+          "normal"}.  }
       
-      \item{sill.prior}{\code{TRUE} (default) or \code{FALSE}, specifying
-        whether or not the \emph{sill} parameter \eqn{\sigma^2}{sigma^2} is regarded as random during
-        analysis. If \code{TRUE}, the prior assigned is
-        \eqn{\frac{1}{\sigma^2}}{1/sigma^2}.}
+      \item{sill.prior}{specifies the prior for the parameter
+	\eqn{\sigma^2}{sigma^2}. If \code{"reciprocal"} (the default), the prior 
+        \eqn{\frac{1}{\sigma^2}}{1/sigma^2} is used. Otherwise the
+	parameter is regarded as fixed.  }
       
       \item{sill}{fixed value of the sill parameter \eqn{\sigma^2}{sigma^2}. Only used if
-        \code{sill.prior = FALSE}.}
+        \code{sill.prior = FALSE}.  }
       
       \item{range.prior}{prior distribution for the range parameter
         \eqn{\phi}{phi}. Options are: \code{\"uniform\"}, (\eqn{\propto
           1}),
         \code{\"exponential\"} ,(\eqn{\exp(-\nu * \phi)}{exp(- nu * phi)})
-        \code{\"fixed\"}, \code{\"squared.reciprocal\"},
         \code{\"reciprocal\"} (\eqn{\frac{1}{\phi}}{1/phi}),
         \code{\"squared.reciprocal\"} (\eqn{\frac{1}{\phi^2}}{1/phi^2}),               \code{\"fixed\"} (known/estimated value of  \eqn{\phi}{phi}).
         If the latter is defined the parameter \eqn{\phi}{phi} is
-        considered as known when performing prediction.}
+        fixed  when performing prediction.  }
       
       \item{exponential.prior.par}{parameter \eqn{\nu}{nu} for the exponential
-        prior for the parameter \eqn{\phi}{phi}. Only used if \code{prior.phi = "exponential"}.}
+        prior for the parameter \eqn{\phi}{phi}. Only used if
+	\code{prior.phi = "exponential"}.  }
       
       \item{range}{fixed value of the range parameter \eqn{\phi}{phi}. Only needed if
-        \code{range.prior = "fixed"}.}
+        \code{range.prior = "fixed"}.  }
       
       \item{range.discrete}{support points for the discretisation of the prior
-        for the range parameter \eqn{\phi}{phi}.}
+        for the range parameter \eqn{\phi}{phi}.  }
       
-      \item{nugget.prior}{specifies a prior distribution for the nugget
-        parameter \eqn{\tau^2}{tau^2}. If \code{prior.nugget = "fixed"} the nugget is
+      \item{nugget.rel.prior}{specifies a prior distribution for the
+	relative nugget
+        parameter \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}. If \code{nugget.rel.prior = "fixed"} the nugget is
         considered known (fixed) with value given by the argument
-        \code{nugget}.
-        If \code{prior.nugget = "uniform"} a discrete uniform prior is used
-        with support points given by the argument \code{nugget}.}
+        \code{nugget.fixed}.
+        If \code{nugget.rel.prior = "uniform"} a discrete uniform prior is used
+        with support points given by the argument
+	\code{nugget.rel.discrete}.  }
       
-      \item{nugget}{fixed value for the nugget parameter. Only used if
-        \code{prior.nugget = "uniform"}.}
+      \item{nugget.fixed}{fixed value for the nugget parameter. Only used if
+        \code{prior.nugget = "fixed"}.  }
       
-      \item{nugget.discrete}{support points for the discretisation of the prior
+      \item{nugget.rel.discrete}{support points for the discretisation of the prior
         for the relative nugget parameter
-        \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}.}
+        \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}.  }
       
     }
     
@@ -426,9 +428,9 @@ ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
 # Ploting theoretical amd empirical variograms
 plot(ex.data)
 # adding lines with fitted variograms
-lines(ex.bayes, max.dist=1.2)
-lines(ex.bayes, max.dist=1.2, summ="median", lty=2)
-lines(ex.bayes, max.dist=1.2, summ="mean", lwd=2, lty=2)
+lines(ex.bayes)
+lines(ex.bayes, summ="median", lty=2)
+lines(ex.bayes, summ="mean", lwd=2, lty=2)
 #
 # Ploting prediction some results
 op <- par(no.readonly = TRUE)
@@ -451,13 +453,13 @@ ex.data <- grf(50, cov.pars=c(10, .25))
 ex.grid <- as.matrix(expand.grid(seq(0,1,l=11), seq(0,1,l=11)))
 ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  prior.control(range.discrete=seq(0, 2, l=3),
-                 nugget.prior = "uniform",
-                 nugget.discrete=seq(0,.5, l=2)),
+                 nugget.rel.prior = "uniform",
+                 nugget.rel.discrete=seq(0,.5, l=2)),
                  output=output.control(n.post=100))
 plot(ex.data)
-lines(ex.bayes, max.dist=1.2)
-lines(ex.bayes, max.dist=1.2, summ="median", lty=2)
-lines(ex.bayes, max.dist=1.2, summ="mean", lwd=2, lty=2)
+lines(ex.bayes)
+lines(ex.bayes, summ="median", lty=2)
+lines(ex.bayes, summ="mean", lwd=2, lty=2)
 op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
 par(mar=c(3,3,1,1))

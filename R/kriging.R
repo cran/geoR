@@ -1044,6 +1044,57 @@
 }
 
 
-            
+"prepare.graph.kriging" <-
+  function (obj, locations, borders, values) 
+{
+  if(!is.null(borders)){
+    borders <- as.matrix(as.data.frame(borders))
+    if(is.R())
+      require(splancs)
+    inout.vec <- as.vector(inout(pts = locations, poly = borders))
+    if(sum(inout.vec) != length(values))
+      stop("image.kriging: length of the argument values is incompatible with number of elements inside the borders.")
+    temp <- rep(NA, nrow(locations))
+    temp[inout.vec == T] <- values
+    values <- temp
+    remove("temp")
+  }
+  locations <- locations[order(locations[, 2], locations[,1]), ]
+  x <- as.numeric(levels(as.factor(locations[, 1])))
+  nx <- length(x)
+  y <- as.numeric(levels(as.factor(locations[, 2])))
+  ny <- length(y)
+  coords.lims <- set.coords.lims(coords=locations)
+  return(list(x=x, y=y, values = matrix(values,ncol=ny), coords.lims=coords.lims))
+}
 
+"image.kriging" <-
+  function (obj, locations, borders, 
+            values = obj$predict, coords.data, ...) 
+{
+  if(missing(borders)) borders <- NULL
+  if(missing(coords.data)) coords.data <- NULL
+  locations <- prepare.graph.kriging(obj=obj, locations=locations,
+                                     borders=borders, values=values) 
+  pty.prev <- par()$pty
+  par(pty = "s")
+  image(locations$x, locations$y, locations$values,
+        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2],...)
+  if(!is.null(coords.data))
+    points(coords.data)
+  if(!is.null(borders))
+    lines(borders, lwd=2)
+  par(pty.prev)
+  return(invisible())
+}
+
+"persp.kriging" <-
+  function(obj, locations, borders, values = obj$predict, ...)
+{
+  if(missing(borders)) borders <- NULL
+  locations <- prepare.graph.kriging(obj=obj, locations=locations,
+                                     borders=borders, values=values) 
+  persp(locations$x, locations$y, locations$values, ...)
+  return(invisible())
+}
 

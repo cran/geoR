@@ -13,7 +13,7 @@
 }
 
 \usage{
-lines.krige.bayes(obj, max.dist, length = 100,
+lines.krige.bayes(obj, max.dist,
              summary.posterior = c("mode", "median", "mean"), ...)
 }
 
@@ -22,7 +22,6 @@ lines.krige.bayes(obj, max.dist, length = 100,
   \item{obj}{an object of the class \code{krige.bayes}, typically output of the function
     \code{\link{krige.bayes}}.  }
   \item{max.dist}{maximum distance for the x-axis.  }
-  \item{length}{number of points to compute the variogram values.  }
   \item{summary.posterior}{specify which summary of the posterior
     distribution should be used as parameter estimation. Options are
     \code{"mean"}, \code{"median"} or

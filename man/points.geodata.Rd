@@ -15,7 +15,7 @@
 
 \usage{
 points.geodata(geodata, coords=geodata$coords, data=geodata$data,
-               data.col = 1,
+               data.col = 1, borders = NULL,
                pt.sizes=c("data.proportional","rank.proportional",
                     "quintiles", "quartiles", "deciles", "equal"),
                cex.min, cex.max, pch.seq, col.seq,
@@ -37,6 +37,9 @@ points.geodata(geodata, coords=geodata$coords, data=geodata$data,
   \item{data.col}{the number of the data column. Only used if
     \code{data} is a matrix with columns corresponding to different
     variables or simulations.  }
+  \item{borders}{adds the border of the area if an \eqn{n \times 2}{nx2}
+    matrix or data-frame with the coordinates of the borders of the
+    regions is provided.  }
   \item{pt.sizes}{defines the point sizes. See 
     \code{DETAILS} below for the available options.
     Defaults to \code{pt.sizes = "data.proportional"}.   }

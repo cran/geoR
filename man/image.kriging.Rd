@@ -2,6 +2,7 @@
 
 \alias{image.kriging}
 \alias{persp.kriging}
+\alias{prepare.graph.kriging}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Image or Perspective Plot with Kriging Results}
@@ -12,21 +13,26 @@
 }
 
 \usage{
-image.kriging(kriging.obj, locations = kriging.obj$locations,
-              values = kriging.obj$predict, coords.data, ...)
+image.kriging(obj, locations, borders, values = obj$predict,
+              coords.data, ...)
 
-persp.kriging(kriging.obj, locations=kriging.obj$locations,
-              values=kriging.obj$predict, ...)
+persp.kriging(obj, locations, borders, values = obj$predict, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{kriging.obj}{an object of the  class \code{kriging}, typically
+  \item{obj}{an object of the  class \code{kriging}, typically
     with the output of the functions \code{\link{krige.conv}} or \code{\link{ksline}}.  }
   \item{locations}{an \eqn{n \times 2}{n x 2} matrix with the
     coordinates of the prediction locations, which should define a
     regular grid
     in order to be plotted by \code{\link{image}} or \code{\link{persp}}.  }
+  \item{borders}{an \eqn{n \times 2}{n x 2} matrix with the
+    coordinates defining the borders of a region inside the grid defined
+    by \code{locations}. Elements in the
+    argument \code{values} are assigned to locations internal to the
+    borders and \code{NA}'s to the external ones.
+  }
   \item{values}{a vector with values to be plotted. Defaults to \code{obj$predict}.  }
   \item{coords.data}{optional. If an \eqn{n \times 2}{n x 2}
     matrix with the data coordinates is

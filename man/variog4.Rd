@@ -33,7 +33,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   a list with five components.
   The first four elements are estimated variograms for the directions
   provided and the last is the omnidirectional variogram. 
-  Each individual component has is an object of the class \code{variogram},
+  Each individual component is an object of the class \code{variogram},
   an output of the function \code{\link{variog}}.
 }
 
@@ -54,6 +54,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
 
 \examples{
 if(is.R()) data(s100)
-plot(variog4(s100, max.dist=1))
+var4 <- variog4(s100, max.dist=1)
+plot(var4)
 }
 \keyword{spatial}%-- one or more ...

@@ -9,7 +9,7 @@
   \code{\link{class}}  \code{"geodata"}.
   Objects of the class \code{"geodata"} are lists with two obligatory
   components, \code{coords} and \code{data}.  Optional components are
-  allowed and a typical example is a vector or matrix with with values
+  allowed and a typical example is a vector or matrix with  values
   of the covariate(s).
 }
 

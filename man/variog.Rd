@@ -2,6 +2,7 @@
 
 \alias{variog}
 \alias{rfm.bin}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Compute Empirical Variograms}
@@ -11,7 +12,8 @@
   estimator. Output can be returned as a \code{binned variogram}, a \code{
     variogram cloud} or a \code{smoothed variogram}. Data
   transformation (Box-Cox) is allowed. Trends fitted by ordinary least
-  squares can be "removed" for which case variogram for the residuals are computed.
+  squares can be removed. In this case variograms are computed using the
+  residuals.
 }
 
 \usage{
@@ -24,6 +26,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
        tolerance = pi/8, unit.angle = c("radians", "degrees"),
        messages.screen = TRUE, ...) 
 }
+
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
@@ -62,21 +65,22 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     \code{"smooth"} returns the kernel smoothed variogram.
     Defaults to \code{"bin"}.}
   \item{estimator.type}{\code{"classical"} computes the classical method of
-    moments estimator and \code{"modulus"} returns variogram
+    moments estimator.  \code{"modulus"} returns the variogram
     estimator suggested by Hawkins and Cressie (see Cressie, 1993, pg 75).
     Defaults to \code{"classical"}.  }
   \item{nugget.tolerance}{a numeric value. Points which are separated
-      by a distance less than this value
-      are considered co-located. Defaults to zero.  }
-  \item{max.dist}{a number defining a distance. Pairs of points
-    separated for distance greater than this value are ignored in the
-    variogram calculation. Defaults to the maximum distance
-    between to data locations.}
+    by a distance less than this value
+    are considered co-located. Defaults to zero.  }
+  \item{max.dist}{a numerical value defining the maximum distance for
+    the variogram. Pairs of locations
+    separated for distance larger than this value are ignored for the
+    variogram calculation. Defaults to the maximum distance among the pairs
+    of data locations.  }
   \item{pairs.min}{a integer number defining the minimum numbers of
-    pairs for the bins..
-    If \code{option = "bin"}
+    pairs for the bins.
+    For \code{option = "bin"},
     bins with number of pairs smaller than this
-    value are ignored. Defaults to {NULL}.  }
+    value are ignored. Defaults to \code{NULL}.  }
   \item{bin.cloud}{logical. If \code{TRUE} and
     \code{option = "bin"} the cloud values for each class are
     included in the output. Defaults to \code{FALSE}.  }
@@ -86,7 +90,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     \eqn{[0, 180]} degrees.  }
   \item{tolerance}{numerical value for the tolerance angle, when
     computing directional variograms. The value must be in the interval
-    \eqn{[0, 90]} degrees.  }
+    \eqn{[0, 90]} degrees.  Defaults to \eqn{\pi/8}{pi/8}.  }
   \item{unit.angle}{defines the unit for the specification of angles in
     the two previous arguments. Options are \code{"degrees"} and \code{"radians"}. }
   \item{messages.screen}{logical. Indicates whether

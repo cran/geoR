@@ -11,14 +11,13 @@
 }
 
 \usage{
-lines.variogram(obj, max.dist = max(obj$u), type = "o",
-                scaled = F, ...)
+lines.variogram(obj, max.dist, type = "o",  scaled = FALSE, ...)
 }
 
 \arguments{
   \item{obj}{an object of the class \code{"variogram"}, typically an
     output from the function \code{\link{variog}}.  }
-  \item{max.dist}{maximum distance for the x-axis. The default is
+  \item{max.dist}{maximum distance for the x-axis. By default takes
     the maximum distance for which the sample variogram was computed.  }
   \item{type}{type of line for the empirical variogram. The default is
     \code{"o"} (dots and lines). See documentation for

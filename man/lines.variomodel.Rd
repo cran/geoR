@@ -9,14 +9,12 @@
   This function adds a theoretical and/or fitted variogram to the
   current plot. The variogram model to be
   added is typically an output of a variogram estimation function.
-  Alternatively  a
-  model cab be specified by the user. 
+  Alternatively,  a list with the model components can be provided by the user. 
 }
 
 
 \usage{
-lines.variomodel(obj, max.dist = obj$max.dist,
-                 n.points = 100, scaled = FALSE,...)
+lines.variomodel(obj, max.dist, scaled = FALSE,...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -27,8 +25,8 @@ lines.variomodel(obj, max.dist = obj$max.dist,
   \item{max.dist}{maximum distance (x-axis) to compute and draw the line
     representing the  variogram model.
     The default is the distance given by \code{obj$max.dist}.  }
-  \item{n.points}{number of points between \code{0} and \code{max.dist} to
-    compute the values of the variogram model.  }
+%  \item{n.points}{number of points between \code{0} and \code{max.dist} to
+%    compute the values of the variogram model.  }
   \item{scaled}{logical. If \code{TRUE} the total sill in the plot is
     equals to \eqn{1}.  }
   \item{\dots}{arguments to be passed to the function
@@ -36,8 +34,8 @@ lines.variomodel(obj, max.dist = obj$max.dist,
 }
 
 \details{
-  Allows theoretical and/or fitted variogram(s) be added to a plot.
-  Together with \code{\link{plot.variogram}} can be
+  Adds variogram model(s)  to a plot.
+  In conjuction with \code{\link{plot.variogram}} can be
   used to compare sample variograms against fitted models returned by
   \code{\link{variofit}}  and/or \code{\link{likfit}}.
 }
@@ -64,17 +62,14 @@ lines.variomodel(obj, max.dist = obj$max.dist,
 }
 
 \examples{
-sim <- grf(100, cov.pars = c(1, .3))
-# generates simulated data
-vario <- variog(sim, max.dist = 1)
-# computes empirical variogram
+if(is.R()) data(s100)
+# compute and plot empirical variogram
+vario <- variog(s100, max.dist = 1)
 plot(vario)
-# plots the empirical variogram
-vario.wls <- variofit(vario, ini = c(1, .3), fix.nugget = TRUE)
 # estimate parameters
-lines(vario.wls)
+vario.wls <- variofit(vario, ini = c(1, .3), fix.nugget = TRUE)
 # adds fitted model to the plot  
-
+lines(vario.wls)
 }
 
 \keyword{spatial}

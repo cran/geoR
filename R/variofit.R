@@ -27,7 +27,7 @@
     if(weights == "equal") minimisation.function <- "nls"
     else minimisation.function <- "optim"
   }
-  if(minimisation.function == "nls" & weights == "equal"){
+  if(minimisation.function == "nls" & weights != "equal"){
     warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changed for \"optim\".\n")
     minimisation.function <- "optim"
   }
@@ -230,6 +230,10 @@
       if(fix.nugget == FALSE)
         nugget <- result$par[3]        
   }
+  ##
+  ## Estimating implicity beta
+  ##
+  
   ##
   ## Preparing output
   ##
@@ -449,3 +453,10 @@
   cat("\n")
   invisible(obj)
 }
+
+##"beta.variofit" <-
+##  function(geodata, coords = geodata$coords, data=geodata$data,
+##           obj.variofit)
+##  {
+##
+##  }

@@ -14,7 +14,7 @@
 \usage{
 plot.xvalid(obj, valid.obj, coords = valid.obj$coords,
             error.plots = TRUE, std.error.plots = TRUE,
-            ask = TRUE)
+            borders = NULL, ask = TRUE)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -35,6 +35,9 @@ plot.xvalid(obj, valid.obj, coords = valid.obj$coords,
   \item{error.plots}{logical. Defines whether the plots for the
     standardised errors will
     be produced.  }
+  \item{borders}{optional. Takes a two column matrix or data-frame with
+    coordinates of the borders. If provided the borders are included in
+    the errors maps.  }
   \item{ask}{logical. Defines whether or not the user is prompted before
     each plot is produced.}
 }

@@ -7,7 +7,7 @@
 \title{Envelops for Empirical Variograms Based on Model Parameters}
 
 \description{
-  Computes envelops for empirical variograms by simulating
+  Computes envelopes for a empirical variogram by simulating
   data for given model parameters.
 }
 
@@ -23,7 +23,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
   \item{geodata}{a list containing element \code{coords}
     as described next. Typically an object of the class
     \code{"geodata"} - a \bold{geoR} data-set.
-    If not provided the arguments
+    If not provided the argument
     \code{coords} must be provided instead.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix, each row containing
     Euclidean 
@@ -35,7 +35,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
     values. The input is typically an object of the class
     \code{variomodel} which is an output of \code{\link{likfit}},
     \code{\link{variofit}}.
-    This required components of list are:
+    The required components of the list are:
     \itemize{
       \item \code{beta}, the mean parameter. Defaults to zero.
       \item \code{cov.model}, the covariance model. Defaults to
@@ -58,7 +58,7 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
 }
 
 \details{
-  The envelops are computed assuming a (transformed) Gaussian random
+  The envelopes are computed assuming a (transformed) Gaussian random
   field model.
   Simulated values are generated at the data locations, given the model parameters.
   The empirical variogram is computed for each simulation

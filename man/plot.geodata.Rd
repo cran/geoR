@@ -39,7 +39,7 @@ plot.geodata(geodata, coords=geodata$coords, data = geodata$data,
     on the coordinates), or a formula of the type \code{~X} where \code{X}
     is a matrix with the covariates (external trend).
     If provided the trend is "removed" using the function
-    \code{\link{lm}} and the residuals are plotted.  }
+    \code{\link[base]{lm}} and the residuals are plotted.  }
   \item{lambda}{value of the Box-Cox transformation parameter. Two particular cases
     are \eqn{\lambda = 1}{lambda = 1} which corresponds to no
     transformation and  \eqn{\lambda = 0}{lambda = 0} corresponding to
