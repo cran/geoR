@@ -2,6 +2,7 @@
 \alias{ca20}
 
 \docType{data}
+\encoding{latin1}
 
 \title{Calcium content in soil samples}
 \usage{data(ca20)}

@@ -2,6 +2,7 @@
 \alias{parana}
 \alias{maijun}
 \docType{data}
+\encoding{latin1}
 \title{Rainfall Data from Parana State, Brasil}
 \usage{data(parana)}
 

@@ -1,3 +1,28 @@
+      		==============================
+ 		CHANGES IN geoR VERSION 1.5-5
+		==============================
+
+NEW FEATURES
+
+        o new argument "mean" in grf() 
+
+        o changes in .First.lib() such it no longer depends
+          on 'utils' function packageDescription()
+          (following post by Brian Ripley and Adrian Baddeley on R-help)
+
+        o changes in krige.conv() and krige.bayes() to 
+          recognise objects of the class "trend.spatial"
+          passed to the arguments trend.l and trend.d
+
+
+BUGS
+
+        o DESCRIPTION file in 1.5-4 have date 2004 when it 
+          should have been 2005
+ 
+        o fixes in some docs to allow latin1 encondings
+
+
 
       		==============================
  		CHANGES IN geoR VERSION 1.5-4

@@ -1,6 +1,7 @@
 \name{camg}
 \alias{camg}
 \docType{data}
+\encoding{latin1}
 \title{Calcium and magnesium content in soil samples}
 \description{
   This data set contains the calcium content measured in soil samples

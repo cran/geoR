@@ -331,7 +331,8 @@
             pt.divide = c("data.proportional",
               "rank.proportional", "quintiles",
               "quartiles", "deciles", "equal"),
-            lambda=1, trend="cte", weights.divide=NULL,
+            lambda=1, trend="cte", abs.residuals=FALSE,
+            weights.divide=NULL,
             cex.min, cex.max, cex.var,
             pch.seq, col.seq, add.to.plot = FALSE,
             x.leg, y.leg, dig.leg = 2, 
@@ -369,6 +370,7 @@
     stop("coords and trend have incompatible sizes")
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
+    if(abs.residuals) abs.res <- abs(data)
     names(data) <- NULL
   }
   ##
@@ -379,7 +381,12 @@
   ##
   ## proportional to data or to external variable
   ##
-  if(missing(cex.var)) cex.var <- data
+  if(missing(cex.var)){
+    if(trend != "cte" && abs.residuals)
+      cex.var <- abs.res
+    else
+      cex.var <- data
+  }
   if(length(cex.var) != npts)
     stop("length of cex.var must be the same as the number of data locations")
   ind <- order(cex.var)
@@ -439,8 +446,10 @@
     }
     else
       data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
-    if(!missing(col.seq) && all(col.seq == "gray")) col.seq <- gray(seq(1,0, l=n.quant))
-    if (missing(pch.seq)) pch.seq <- rep(21, n.quant)
+    if(!missing(col.seq) && all(col.seq == "gray"))
+      col.seq <- gray(seq(1,0, l=n.quant))
+    if (missing(pch.seq))
+      pch.seq <- rep(21, n.quant)
     if(missing(cex.var))
       size <- seq(cex.min, cex.max, l = n.quant)[as.numeric(graph.list$data.group)]
     else size <- size[ind.order]
@@ -471,8 +480,6 @@
   else {
     n <- length(data)
     if (missing(pch.seq)) pch.seq <- 21
-    if (missing(col.seq)) col.seq <- 0
-    else if(all(col.seq == "gray")) col.seq <- gray(seq(1,0.1, l=n))
     ##    coords.order <- coords[ind, ]
     data.order <- data[ind]
     if (pt.divide == "rank.proportional") {
@@ -492,8 +499,11 @@
     if (pt.divide == "equal") size <- cex.max
     ##      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
     ##      else col.seq <- round(seq(1,length(col.seq),length=n))
+    if (missing(col.seq)) col.seq <- 0
+    if(all(col.seq == "gray")) col.seq <- gray(seq(1,0.1, l=n))
     if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
-    if (length(col.seq) != n) col.seq <- round(seq(1,length(col.seq),length=n))
+    if (length(col.seq) != n) col.seq <-
+      round(seq(1,length(col.seq),length=n))
     col.seq <- col.seq[ind.order]
     graph.list$cex <- size
     if(all(is.numeric(pch.seq)))

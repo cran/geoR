@@ -291,7 +291,10 @@
   dimnames(coords) <- list(NULL, NULL)
   if(nrow(coords) != length(data))
     stop("krige.bayes: number of data is different of number of data locations (coordinates)")
-  trend.data <- unclass(trend.spatial(trend=model$trend.d, geodata = geodata))
+  if(class(model$trend.d) == "trend.spatial")
+    trend.data <- unclass(model$trend.d)
+  else
+    trend.data <- unclass(trend.spatial(trend=model$trend.d, geodata = geodata))
   if(nrow(trend.data) != nrow(coords))
     stop("trend specification not compatible with the length of the data") 
   beta.size <- ncol(trend.data)
@@ -352,8 +355,10 @@
     }
     ##
     dimnames(locations) <- list(NULL, NULL)
-    assign("trend.loc", unclass(trend.spatial(trend=model$trend.l, geodata = list(coords = locations))),
-           envir=pred.env)
+    if(class(model$trend.l) == "trend.spatial")
+      assign("trend.loc", unclass(model$trend.l), envir=pred.env)
+    else
+      assign("trend.loc", unclass(trend.spatial(trend=model$trend.l, geodata = list(coords = locations))), envir=pred.env)
     ni <- nrow(get("trend.loc", envir=pred.env))
     if(nrow(locations) != ni)
       stop("trend.l is not compatible with number of prediction locations")

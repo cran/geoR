@@ -17,8 +17,9 @@
 points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                pt.divide=c("data.proportional","rank.proportional",
                            "quintiles", "quartiles", "deciles", "equal"),
-               lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
-               cex.max, cex.var, pch.seq, col.seq, add.to.plot = FALSE,
+               lambda = 1, trend = "cte", abs.residuals = FALSE,
+               weights.divide = NULL, cex.min, cex.max, cex.var,
+               pch.seq, col.seq, add.to.plot = FALSE,
                x.leg, y.leg, dig.leg = 2, 
                round.quantiles = FALSE, graph.pars = FALSE,
                permute = FALSE, \dots)
@@ -51,6 +52,10 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     is a matrix with the covariates (external trend).
     If provided the trend is "removed" using the function
     \code{\link[base]{lm}} and the residuals are plotted.  }
+  \item{abs.residuals}{logical. If \code{TRUE} and teh value passed to
+    the
+    argument \code{trend} is different from \code{"cte"} the point sizes
+    are proportional to absolute values of the residuals.  }
   \item{lambda}{value of the Box-Cox transformation parameter. Two particular cases
     are \eqn{\lambda = 1}{lambda = 1} which corresponds to no
     transformation and  \eqn{\lambda = 0}{lambda = 0} corresponding to

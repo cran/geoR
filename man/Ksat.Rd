@@ -1,6 +1,7 @@
 \name{Ksat}
 \alias{Ksat}
 \docType{data}
+\encoding{latin1}
 \title{Saturated Hydraulic Conductivity}
 \description{
   The data consists of 32 measurements of the saturated hydraulic

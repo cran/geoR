@@ -26,8 +26,8 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     nsim = 1, cov.model = "matern",
     cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
-    method, RF=TRUE, messages)
-geoR2RF(cov.model, cov.pars, nugget = 0, kappa)
+    mean = 0, method, RF=TRUE, messages)
+geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -75,6 +75,8 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa)
     and then the coordinates are back-transformed such that the resulting
     field is anisotropic. Coordinates transformation is performed 
     by the function \code{\link{coords.aniso}}.  }
+  \item{mean}{a numerical vector of size 1 or the sema dimention of the
+    data to be simulated. }
   \item{method}{simulation method with options for
     \code{"cholesky"}, \code{"svd"}, \code{"eigen"}, \code{"RF"}.
     Defaults to the \emph{Cholesky}

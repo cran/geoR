@@ -1,4 +1,4 @@
-"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa){
+"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa, mean = 0){
   cov.model <- match.arg(cov.model,
                          choices = c("exponential", "matern", "gaussian",
                            "spherical", "circular", "cubic", "wave",
@@ -20,7 +20,7 @@
                     gneiting = "gneiting",
                     gneiting.matern = "not compatible",
                     pure.nugget = "nugget")
-  RFpars <- c(0, cov.pars[1], nugget, cov.pars[2])
+  RFpars <- c(mean, cov.pars[1], nugget, cov.pars[2])
   if(any(cov.model == c("matern","powered.exponential","cauchy")))
     RFpars <- c(RFpars, kappa)
   if(RFmodel == "not compatible"){
@@ -37,7 +37,7 @@
            cov.model = "matern",
            cov.pars=stop("missing covariance parameters sigmasq and phi"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
-           method, RF=TRUE, messages)
+           mean = 0, method, RF=TRUE, messages)
 {
   ##
   ## reading and checking input
@@ -202,7 +202,7 @@
     if(method == "RF"){
       require(RandomFields)
       setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
-                       nugget = nugget, kappa = kappa)
+                       nugget = nugget, kappa = kappa, mean=mean)
       results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
                               model = setRF$model,
                               param = setRF$param, grid = FALSE)
@@ -219,6 +219,12 @@
                                       func.in=method)$sqrt.varcov,
                        matrix(rnorm((n*nsim)), nrow=n, ncol=nsim)))
   }
+  ##
+  ## adding the mean
+  ##
+  if(length(mean) != 1 & length(mean) != length(results$data))
+    stop("the mean must be a scalar or a vector of the same size as the data")
+  results$data <- results$data + mean
   ##
   ## transforming data (Box - Cox)
   ##
