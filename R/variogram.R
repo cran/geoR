@@ -13,6 +13,9 @@
     require(modreg)
   }
   call.fc <- match.call()
+  keep <- list(...)
+  if(is.null(keep$keep.NA)) keep.NA <- FALSE
+  else keep.NA <- keep$keep.NA
   ##
   ## Directional variogram
   ##
@@ -141,9 +144,16 @@
     result <- array(unlist(lapply(as.data.frame(data), bin.f)), 
                     dim = c(nbins, 3, n.datasets))
     indp <- (result[, 2, 1] >= pairs.min)
-    result <- list(u = uvec[indp], v = result[indp, 1, ], 
-                   n = result[indp, 2, 1], sd = result[indp, 3, ], bins.lim = bins.lim, 
-                   ind.bin = indp)
+    result[!indp,1,] <- NA
+    if(keep.NA)
+      result <- list(u = uvec, v = result[, 1, ], 
+                     n = result[, 2, 1], sd = result[, 3, ], 
+                     bins.lim = bins.lim, 
+                     ind.bin = indp)
+    else
+      result <- list(u = uvec[indp], v = result[indp, 1, ], 
+                     n = result[indp, 2, 1], sd = result[indp, 3, ],
+                     bins.lim = bins.lim, ind.bin = indp)
   }
   else {
     if (is.matrix(data)) {
@@ -190,9 +200,6 @@
       if (!is.null(max.dist)) 
         umax <- max(u[u < max.dist])
       else umax <- max(u)
-      keep <- list(...)
-      if(is.null(keep$keep.NA)) keep.NA <- FALSE
-      else keep.NA <- keep$keep.NA
       result <- rfm.bin(cloud = list(u = u, v = v),
                         estimator.type = estimator.type, 
                         uvec = uvec, nugget.tolerance = nugget.tolerance, 
@@ -263,9 +270,9 @@
   require(mva)
   u <- as.vector(dist(as.matrix(coords)))
   if(length(direction) != 4)
-    stop("argument direction must be a vector with 4 values. For different specifications use the functio variog()")
+    stop("argument direction must be a vector with 4 values. For different specifications use the function variog()")
   if(length(tolerance) != 1)
-    stop("only 1 values can be provided to the argument tolerance . For different specifications use the functio variog()")
+    stop("only one value can be provided to the argument tolerance. For different specifications use the function variog()")
   res <- list()
   if(unit.angle == "radians")
     dg <- direction * 180/pi
@@ -325,7 +332,7 @@
 "plot.variog4" <-
   function (obj, omnidirectional = FALSE, same.plot = TRUE, legend = TRUE,...)
 {
-  ymax <- max(c(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v), na.rm=T)
+  ymax <- max(c(obj[[1]]$v, obj[[2]]$v, obj[[3]]$v, obj[[4]]$v), na.rm=TRUE)
   n.o <- names(obj)[1:4]
   GP <- list(...)
   if(is.null(GP$xlab)) GP$xlab <- "distance"
@@ -345,7 +352,7 @@
       GP$pch <- NULL
     if (is.null(GP$type))
       GP$type <- "l"
-    matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd, col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab, ylim=c(0,max(yy)))
+    matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd, col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab, xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))
     if (legend) {
       if (omnidirectional) {
         legend(0, ymax,
@@ -455,7 +462,8 @@
     }
     for (i in 1:4) {
       plot.default(obj[[i]]$u, obj[[i]]$v,
-                   ylim = c(0, ymax), type = GP$type[i],
+                   xlim = c(0, max(obj[[i]]$u)), ylim = c(0, ymax),
+                   type = GP$type[i],
            col = GP$col[i], lwd = GP$lwd[i], lty = GP$lty[i],
            pch = GP$pch[i], xlab=GP$xlab, ylab=GP$ylab)
       if (omnidirectional) {
@@ -653,12 +661,12 @@
   if(is.null(Ldots$xlab)) Ldots$xlab <- "distance"
   if(is.null(Ldots$ylab)) Ldots$ylab <- "semi-variance"
   if(is.null(Ldots$ty)){
-    if (obj$output.type == "bin") Ldots$type <- "b"
+    if (obj$output.type == "bin") Ldots$type <- "p"
     if (obj$output.type == "smooth") Ldots$type <- "l"
     if (obj$output.type == "cloud") Ldots$type <- "p"
   }
- if (bin.cloud == TRUE &&  Ldots$type != "b") 
-    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
+# if (bin.cloud == TRUE &&  Ldots$type != "b") 
+#    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
   if (bin.cloud == TRUE && all(is.na(obj$bin.cloud))) 
     stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
   if (bin.cloud == TRUE && any(!is.na(obj$bin.cloud))) 
@@ -688,8 +696,12 @@
     }
     if(ncol(v) == 1){
       v <- as.vector(v)
-      plot(x= u, y= v, xlim = c(0, max.dist), ylim = Ldots$ylim, 
-           xlab = Ldots$xlab, ylab = Ldots$ylab, type = Ldots$type)
+      uv <- data.frame(distance=u, semivariance = v)
+      if(is.null(list(...)$ylim))
+        plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, 
+             ...)
+      else
+        plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim)
     }
     else
       matplot(x=u, y= v, xlim = c(0, max.dist), ylim = Ldots$ylim, 

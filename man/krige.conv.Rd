@@ -20,8 +20,8 @@
 \usage{
 krige.conv(geodata, coords = geodata$coords, data = geodata$data, 
            locations,
-           krige = krige.control(type.krige, beta = NULL,
-                     trend.d, trend.l, cov.model, cov.pars,
+           krige = krige.control(type.krige, trend.d, trend.l,
+                     obj.model, beta = NULL, cov.model, cov.pars,
                      kappa = 0.5, nugget = 0, micro.scale = 0,
                      dist.epsilon = 1e-10, aniso.pars = NULL, 
                      lambda = 1, signal = FALSE,
@@ -46,8 +46,8 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
     coordinates of the \eqn{N} prediction locations.  }
   \item{krige}{defines the model components and the type of
     kriging. See section DETAILS below.
-    \cr ATTENTION: the argument \code{cov.pars} is obligatory whilst
-    all the others have default options.  }
+%    \cr ATTENTION: the argument \code{cov.pars} is obligatory whilst
+%    all the others have default options.  }
   \item{messages.screen}{logical. Indicates
     whether or not status messages are printed on the screen (or other output device)
     while the function is running.}
@@ -55,8 +55,8 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
 
 
 \details{
-  According to the arguments provided,  one of the following different types of kriging: \emph{SK}, \emph{OK},
-  \emph{UK} or  \emph{KTE}
+  According to the arguments provided,  one of the following different
+  types of kriging: \emph{SK}, \emph{OK}, \emph{UK} or  \emph{KTE}
   is performed.
   Defaults correspond to ordinary kriging.
   
@@ -69,8 +69,6 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
       defined setting \code{type.krige = "OK"} and specifying the
       trend model using the arguments \code{trend.d} and
       \code{trend.l}.  } 
-    \item{beta}{numerical value of the mean (vector) parameter.
-      Only used if \code{type.krige="SK"}.}  
     \item{trend.d}{specifies the trend (covariate) values at the data
       locations. Possible values are:
       \code{"cte"}  (constant mean), 
@@ -84,6 +82,11 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
       locations. It must be of the same type as for \code{trend.d}.
       Only used if prediction locations are provided in the argument
       \code{locations}.  }
+    \item{obj.model}{a list with the model parameters. Typically an
+      output of \code{\link{likfit}} or
+      \code{\link{variofit}}.  }
+    \item{beta}{numerical value of the mean (vector) parameter.
+      Only used if \code{type.krige="SK"}.}  
     \item{cov.model}{string indicating the name of the model for the
       correlation function. Further details  can be found in the
       documentation of the function
@@ -170,9 +173,11 @@ krige.conv(geodata, coords = geodata$coords, data = geodata$data,
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
-\seealso{\code{\link{image.kriging}} for graphical output of the results,
+\seealso{\code{\link{image.kriging}} and \code{\link{persp.kriging}}
+  for graphical output of the results,
   \code{\link{krige.bayes}} for Bayesian prediction and \code{\link{ksline}}
-  for a different implementation of kriging allowing for moving neighborhood.
+  for a different implementation of kriging allowing for moving
+  neighborhood. For model fitting see \code{\link{likfit}} or \code{\link{variofit}}
 }
 
 
@@ -182,8 +187,8 @@ loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
 par(mfrow=c(1,2))
-image.kriging(kc, loc=loci, main="kriging estimates")
-image.kriging(kc, loc=loci, val=sqrt(kc$krige.var),
+image(kc, loc=loci, main="kriging estimates")
+image(kc, loc=loci, val=sqrt(kc$krige.var),
               main="kriging std. errors")
 
 }

@@ -30,3 +30,4 @@ the "likfit" functions.
 
 - incorporate conjugate proper prior (Sc.Inv Chi^2) for sill in krige.bayes
 
+- use methods logLik for likfit

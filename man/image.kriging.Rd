@@ -14,7 +14,8 @@
 
 \usage{
 image.kriging(obj, locations, borders, values = obj$predict,
-              coords.data, ...)
+              coords.data, x.leg, y.leg, cex.leg = 0.75,
+              vertical = FALSE, ...)
 
 persp.kriging(obj, locations, borders, values = obj$predict, ...)
 }
@@ -38,6 +39,11 @@ persp.kriging(obj, locations, borders, values = obj$predict, ...)
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
+  \item{x.leg}{limits for the legend in the \eqn{x} direction.  }
+  \item{y.leg}{limits for the legend in the \eqn{y} direction.  }
+  \item{cex.leg}{controls the size of the numerical values in the legend.  }
+  \item{vertical}{logical, defining whether the legend is drawn in
+    horizontal (default) or vertical position.  }
   \item{\dots}{further arguments to be passed to the functions
     \code{\link{image}} or \code{\link{persp}}.  } 
   

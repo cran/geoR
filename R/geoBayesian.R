@@ -1331,13 +1331,16 @@ function(x, cutoff)
             values.to.plot = c("moments.mean", "moments.variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probability", "simulation"),
-            number.col, coords.data, ...)
+            number.col, coords.data,
+            x.leg, y.leg, cex.leg = 0.75, vertical = FALSE, ...) 
 {
   if(all(is.character(values.to.plot)))
     values.to.plot <- match.arg(values.to.plot)
   if(missing(borders)) borders <- NULL
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
+  if(missing(x.leg)) x.leg <- NULL
+  if(missing(y.leg)) y.leg <- NULL
   locations <- prepare.graph.krige.bayes(obj=obj, locations=locations,
                                          borders=borders,
                                          values.to.plot=values.to.plot,
@@ -1349,7 +1352,11 @@ function(x, cutoff)
   if(!is.null(coords.data))
     points(coords.data)
   if(!is.null(borders))
-    lines(borders, lwd=2)
+    polygon(borders, lwd=2)
+  if(!is.null(x.leg) & !is.null(y.leg))
+    legend.krige(x.leg=x.leg, y.leg=y.leg,
+                 values=locations$values,
+                 vertical = vertical, cex=cex.leg)
   par(pty=pty.prev)
   return(invisible())
 }

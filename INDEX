@@ -12,6 +12,7 @@ krige.bayes              Bayesian Analysis for Gaussian Geostatistical
                          Models
 krige.conv               Spatial Prediction -- Conventional Kriging
 ksline                   Spatial Prediction -- Conventional Kriging
+legend.krige             Add a legend to a image with kriging results
 likfit                   Likelihood Based Parameter Estimation for
                          Gaussian Random Fields
 lines.grf                Lines with True Variogram for Simulated Data

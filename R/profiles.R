@@ -309,7 +309,7 @@
       .temp.temp.list <<- .temp.list
       .temp.temp.list$coords <<- coords
       n.uni <- n.uni + 1
-      cat("proflik: computing profile likelihood for the transformation parameter\n"
+      cat("proflik: computing profile likelihood for lambda\n"
             )
       if(n.cov.pars == 2) {
         if(tausq == 0) {
@@ -579,8 +579,8 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    proflik <-  - ((n - beta.size)/2) * log(2 * pi) - main$
-    log.det.to.half - ((n - beta.size)/2) * log(main$ssresmat/
+    proflik <-  - ((n - .temp.list$beta.size)/2) * log(2 * pi) - main$
+    log.det.to.half - ((n - .temp.list$beta.size)/2) * log(main$ssresmat/
                                                 n) - (n/2) + 0.5 * sum(log(eigentrem$values)) + 
                                                   main$log.jacobian
   }
@@ -605,8 +605,8 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
-    log.det.to.half + ((n - beta.size)/2) * log(sigmasq) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
+    log.det.to.half + ((n - .temp.list$beta.size)/2) * log(sigmasq) +
       (0.5/sigmasq) * main$ssresmat - 0.5 * sum(log(eigentrem$
                                                values)) - main$log.jacobian
   }
@@ -648,8 +648,8 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
-    log.det.to.half + ((n - beta.size)/2) * log(main$ssresmat/n) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
+    log.det.to.half + ((n - .temp.list$beta.size)/2) * log(main$ssresmat/n) +
       (n/2) - 0.5 * sum(log(eigentrem$values)) - 
         main$log.jacobian
   }
@@ -675,7 +675,7 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
         0.5 * (main$ssresmat) -
           0.5 * sum(log(eigentrem$values)) -
@@ -719,7 +719,7 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
                                                      eigentrem$values)) - main$log.jacobian
   }
@@ -732,19 +732,14 @@
   ## It requires the minimisation of the function wrt \phi and also \lambda (if the case) for each value of (\sigma^2, \tau^2) 
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasqtausq <<- as.vector(sigmasqtausq)
+  ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
+                                      proflik.aux16))
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
   if(.temp.list$fix.lambda == TRUE) {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux16))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                         ])
     phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
   }
   else {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux16))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                         ])
     phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", 
                      lower = c(.temp.list$lower.phi, -2),
                      upper = c(.temp.list$upper.phi, 2), ...)$value
@@ -769,7 +764,7 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
                                                      eigentrem$values)) -
                                                        main$log.jacobian
@@ -786,7 +781,7 @@
   if(.temp.list$fix.lambda == TRUE) {
     ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                         proflik.aux18))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),])
+    ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
     sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
                          lower = .temp.list$lower.sigmasq, ...)$value
   }
@@ -815,7 +810,7 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) + main$
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
                                                      eigentrem$values)) -
                                                        main$log.jacobian
@@ -851,19 +846,15 @@
   ## This is an auxiliary function called by likfit.proflik
   ##
   .temp.list$sigmasq <<- as.vector(sigmasq)
+  ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
+                                      proflik.aux3))
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
   if(.temp.list$fix.lambda == TRUE) {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux3))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                         ])
     phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B",
                      lower = .temp.list$lower.phi,
                      upper=.temp.list$upper.phi, ...)$value
   }
   else {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux3))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),])
     phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B",
                      lower = c(.temp.list$lower.phi, -2),
                      upper = c(.temp.list$upper.phi, 2), ...)$value
@@ -895,7 +886,7 @@
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
         (n/2) * log(sigmasq) +
           (0.5/sigmasq) * main$ssresmat -
@@ -924,7 +915,7 @@ function(phitausq.rel, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    proflik <-  - ((n - beta.size)/2) * log(2 * pi) -
+    proflik <-  - ((n - .temp.list$beta.size)/2) * log(2 * pi) -
       main$log.det.to.half -
         (n/2) * log(sigmasq.hat) -
           (n/2) +
@@ -952,7 +943,7 @@ function(phitausq.rel, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
         (n/2) * log(sigmasq.hat) +
           (n/2) -
@@ -977,7 +968,7 @@ function(phitausq.rel, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
         0.5 * main$ssresmat -
           0.5 * sum(log(eigentrem$values)) -
@@ -998,20 +989,23 @@ function(phitausq.rel, ...)
       data.l <- log(.temp.list$z)
     else data.l <- ((.temp.list$z^lambda) - 1)/lambda
     var.l <- var(data.l)
-    ini.l <- c(0.10000000000000001 * var.l, var.l, .temp.temp.list$ini)
+    ini.cov <- c(var.l, .temp.temp.list$ini)
   }
   else
-    ini.l <- .temp.temp.list$ini
+    ini.cov <- .temp.temp.list$ini
   if(dim(.temp.list$xmat)[2] == 1 & all(.temp.list$xmat == 1))
     trend.mat <- "cte"
   else
     trend.mat <- ~ (.temp.list$xmat[,-1])
-  lambda.res <- likfit(coords = .temp.temp.list$coords, data = .temp.list$z,
-                       ini = ini.l, trend = trend.mat, fix.nugget = 
-                       .temp.temp.list$fixtau,
-                       method = .temp.list$method, cov.model = 
-                       .temp.list$cov.model, kappa = .temp.list$kappa, fix.lambda = TRUE,
-                       lambda = lambda, messages.screen = FALSE)$loglik
+  lambda.res <- likfit(coords = .temp.temp.list$coords,
+                       data = .temp.list$z,
+                       ini = ini.cov, trend = trend.mat,
+                       fix.nugget = .temp.temp.list$fixtau,
+                       method = .temp.list$method,
+                       cov.model = .temp.list$cov.model,
+                       kappa = .temp.list$kappa, fix.lambda = TRUE,
+                       lambda = lambda,
+                       messages.screen = FALSE)$loglik
   .temp.list <<- .temp.temp.list
   return(lambda.res)
 }
@@ -1039,8 +1033,7 @@ function(phitausq.rel, ...)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux3))
-  ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                       ])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
   phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
                    lower.phi, upper = .temp.list$upper.phi, ...)$value
   .temp.list$log.jacobian <<- NULL
@@ -1074,8 +1067,7 @@ function(phitausq.rel, ...)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux10))
-  ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                       ])        
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
   phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
                             lower = c(.temp.list$lower.phi,
                               0), upper=c(.temp.list$upper.phi, 100), ...)$value
@@ -1142,9 +1134,9 @@ function(phitausq.rel, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
-        ((n - beta.size)/2) * log(sigmasq) +
+        ((n - .temp.list$beta.size)/2) * log(sigmasq) +
           (0.5/sigmasq) * main$ssresmat -
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
@@ -1249,7 +1241,7 @@ function(phitausq.rel, ...)
   if(.temp.list$method == "RML") {
     xx.eigen <- eigen(crossprod(.temp.list$xmat), symmetric = TRUE,
                       only.values = TRUE)
-    neglik <- (((n - beta.size)/2) * log(2 * pi) -
+    neglik <- (((n - .temp.list$beta.size)/2) * log(2 * pi) -
                0.5 * sum(log(xx.eigen$values)) +
                main$log.det.to.half +
                (0.5) * main$ssresmat +
@@ -1270,14 +1262,9 @@ function(phitausq.rel, ...)
                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
   }
   else {
-    if(.temp.list$minimisation.function == "optim") 
-      phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda), proflik.aux6, method="L-BFGS-B", 
+    phi.res <- optim(c(.temp.list$phi.est, .temp.list$lambda), proflik.aux6, method="L-BFGS-B", 
                        lower = c(.temp.list$lower.phi, -2),
                        upper = c(.temp.list$upper.phi, 2), ...)$value
-    else
-      phi.res <- nlmP(proflik.aux6, c(.temp.list$phi.est, .temp.list$lambda), 
-                      lower = c(.temp.list$lower.phi, -2),
-                      upper = c(.temp.list$upper.phi, 2), ...)$minimum
   }
   .temp.list$nugget.rel <<- NULL
   return( - phi.res)
@@ -1301,9 +1288,9 @@ function(phi.lambda, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- ((n - beta.size)/2) * log(2 * pi) +
+    neglik <- ((n - .temp.list$beta.size)/2) * log(2 * pi) +
       main$log.det.to.half +
-        ((n - beta.size)/2) * log(main$ssresmat/n) +
+        ((n - .temp.list$beta.size)/2) * log(main$ssresmat/n) +
           (n/2) -
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
@@ -1346,8 +1333,8 @@ function(phi.lambda, ...)
   }
   if(.temp.list$method == "RML") {
     eigentrem <- eigen(main$ixix, symmetric = TRUE, only.values = TRUE)
-    neglik <- (((n - beta.size)/2) * log(2 * pi) + main$
-               log.det.to.half + ((n - beta.size)/2) * log(main$ssresmat/
+    neglik <- (((n - .temp.list$beta.size)/2) * log(2 * pi) + main$
+               log.det.to.half + ((n - .temp.list$beta.size)/2) * log(main$ssresmat/
                                                            n) + (n/2) - 0.5 * sum(log(eigentrem$values))) - 
                                                              main$log.jacobian
   }
@@ -1360,32 +1347,22 @@ function(phi.lambda, ...)
   ## It requires the minimisation of the function wrt \phi and \tau^2 for each value of \sigma^2
   ## This is an auxiliary function called by likfit.proflik
   .temp.list$sigmasq <<- as.vector(sigmasq)
+  ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
+                                      proflik.aux10))
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
   if(.temp.list$fix.lambda == TRUE) {
-    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
-                                        proflik.aux10))
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),
-                                         ])
     phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
                               lower = c(.temp.list$
                                 lower.phi, 0),
                               upper=c(.temp.list$upper.phi, 100), ...)$value
   }
   else {
-    ini.lik <- apply(.temp.list$ini.grid, 1, proflik.aux10)
-    ini <- as.vector(.temp.list$ini.grid[ini.lik == min(ini.lik),])
     if(ini[2] == 0) ini[2] <- 0.01
-    if(.temp.list$minimisation.function == "optim") 
-      phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B", 
+    phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B", 
                                 lower = c(.temp.list$lower.phi,
                                   0,-2),
                                 upper = c(.temp.list$upper.phi,
                                   100, 2), ...)$value
-    else
-      phitausq.rel.res <- nlmP(proflik.aux10,ini, 
-                               lower = c(.temp.list$lower.phi,
-                                 0,-2),
-                               upper = c(.temp.list$upper.phi,
-                                 100, 2), ...)$minimum
   }
   .temp.list$sigmasq <<- NULL
   return( - phitausq.rel.res)

@@ -213,6 +213,28 @@
     cat("-------------------------------------------------------\n")
   }
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
+  ##
+  ## Constant term in the likelihood
+  ##
+  if(method == "ML"){
+    if(ip$f.tausq & (tausq > 0))
+      temp.list$loglik.cte <-  (n/2)*(-log(2*pi))
+    else
+      temp.list$loglik.cte <-  (n/2)*(-log(2*pi) + log(n) -1)
+  }
+  if(method == "RML"){
+    xx.eigen <- eigen(crossprod(temp.list$xmat), symmetric = TRUE, only.values = TRUE)
+    if(ip$f.tausq & (tausq > 0))
+      temp.list$loglik.cte <- - ((n-beta.size)/2)*(log(2*pi)) +
+        0.5 * sum(log(xx.eigen$values))
+    else
+      temp.list$loglik.cte <-  - ((n-beta.size)/2)*(log(2*pi)) +
+        ((n-beta.size)/2)*(log(n-beta.size)) - ((n-beta.size)/2) +
+          0.5 * sum(log(xx.eigen$values))
+  }
+  ##
+  ## Numarical minimization
+  ##
   if(is.R()){
     lik.minim <- optim(par = ini, fn = negloglik.GRF, method="L-BFGS-B",
                        lower=lower.optim, upper=upper.optim,
@@ -233,25 +255,9 @@
   ## Values of the maximised likelihood
   ##
   if(is.R())
-    value.min <- lik.minim$value
+    loglik.max <- - lik.minim$value
   else
-    value.min <- lik.minim$objective
-  if(method == "ML"){
-    if(ip$f.tausq & (tausq > 0))
-      loglik.max <-  (- value.min) + (n/2)*(-log(2*pi))
-    else
-      loglik.max <-  (- value.min) + (n/2)*(-log(2*pi) + log(n) -1)
-  }
-  if(method == "RML"){
-    xx.eigen <- eigen(crossprod(temp.list$xmat), symmetric = TRUE, only.values = TRUE)
-    if(ip$f.tausq & (tausq > 0))
-      loglik.max <- (- value.min) - ((n-beta.size)/2)*(log(2*pi)) +
-        0.5 * sum(log(xx.eigen$values))
-    else
-      loglik.max <- (- value.min) - ((n-beta.size)/2)*(log(2*pi)) +
-        ((n-beta.size)/2)*(log(n-beta.size)) - ((n-beta.size)/2) +
-          0.5 * sum(log(xx.eigen$values))
-  }
+    loglik.max <- - lik.minim$objective
   ##
   ## Assigning values for estimated parameters
   ##
@@ -998,9 +1004,10 @@
   ##  if(negloglik > 1e64) negloglik <- 1e64
   if(negloglik > (.Machine$double.xmax/10000))
     negloglik <- (.Machine$double.xmax/10000)
+  negloglik <- negloglik - temp.list$loglik.cte
   if(temp.list$print.pars)
-    cat(paste("negloglik.value =", negloglik, "\n"))
-  return(negloglik)
+    cat(paste("value of the log-likelihood =", -negloglik, "\n"))
+  return(negloglik) 
 }
 
 "boxcox.ns" <- function(lambda, bc.list)

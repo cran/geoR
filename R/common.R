@@ -231,6 +231,8 @@
     if (is.null(my.l$max.dist)) 
       stop("argument max.dist needed for this object")
   }
+  else
+    my.l$max.dist <- max.dist
   if (obj$cov.model == "matern" | obj$cov.model == "powered.exponential" | 
       obj$cov.model == "cauchy" | obj$cov.model == "gneiting-matern") 
     my.l$kappa <- obj$kappa
@@ -364,8 +366,14 @@ function(obj, sim.number = 1, ...)
 "polygrid" <- 
   function(xgrid, ygrid, poly, vec.inout = F)
 {
-  if(is.R())
-  	require(splancs)
+  if(is.R()){
+    if(require(splancs) == F){
+      cat("ERROR: cannot run the function\n")
+      cat("package \"splancs\" should be installed/loaded")
+      return(invisible())
+    }
+  }
+  else library(splancs)
   if(exists("inout")){
     xygrid <- expand.grid(x = xgrid, y = ygrid)
     ind <- as.vector(inout(pts=xygrid, poly=poly))
@@ -824,8 +832,9 @@ function(obj, sim.number = 1, ...)
 }
 
 "plot.geodata" <-
-  function (geodata, coords = geodata$coords, data = geodata$data, 
-            trend = "cte", lambda = 1, col.data = 1,
+  function (geodata, coords = geodata$coords, data = geodata$data,
+            borders = NULL, 
+            trend = "cte", lambda = 1, col.data = 1, 
             weights.divide = NULL, window.new = FALSE, ...) 
 {
   if (is.R()) 
@@ -840,23 +849,42 @@ function(obj, sim.number = 1, ...)
       X11()
     else trellis.device()
   }
-  if (lambda != 1) {
-    if (lambda == 0) 
-      data <- log(data)
-    else data <- ((data^lambda) - 1)/lambda
-  }
   if (!is.null(weights.divide)) {
     if (length(weights.divide) != length(data)) 
       stop("length of weights.divide must be equals to the length of data")
     data <- data/weights.divide
   }
+  ##
+  ## data transformation (Box-Cox)
+  ##
+  if (lambda != 1) {
+    if (lambda == 0) 
+      data <- log(data)
+    else data <- ((data^lambda) - 1)/lambda
+  }
+  ##
+  ## trend removal
+  ##
+  xmat <- trend.spatial(trend = trend, coords = coords)
+  if (trend != "cte") {
+    data <- lm(data ~ xmat + 0)$residuals
+    names(data) <- NULL
+  }
   par(mfrow = c(2, 2))
   par(mar = c(4, 4, 0, 0.5))
   data.quantile <- quantile(data)
-  coords.lims <- set.coords.lims(coords=coords)
+  if(is.null(borders))
+    coords.lims <- set.coords.lims(coords=coords)
+  else{
+    if(ncol(borders) != 2)
+      stop("argument borders must have 2 columns with XY coordinates of the borders of the area")
+    coords.lims <- set.coords.lims(coords=rbind(coords, borders))
+  }
   par(pty = "s")
   plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
        xlim = coords.lims[, 1], ylim = coords.lims[, 2])
+  if(!is.null(borders))
+    polygon(borders)
   if (is.R()) {
     data.breaks <- unique(quantile(data))
     n.breaks <- length(data.breaks)

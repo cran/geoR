@@ -537,6 +537,7 @@ function(pars)
             pt.sizes = c("data.proportional",
               "rank.proportional", "quintiles",
               "quartiles", "deciles", "equal"),
+            lambda=1, trend="cte", weights.divide=NULL,
             cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
@@ -545,23 +546,41 @@ function(pars)
        data <- (as.data.frame(data))[,data.col]
   if(nrow(coords) != length(data))
     stop("coords and data have incompatible sizes")
+    if (!is.null(weights.divide)) {
+    if (length(weights.divide) != length(data)) 
+      stop("length of weights.divide must be equals to the length of data")
+    data <- data/weights.divide
+  }
+  ##
+  ## data transformation (Box-Cox)
+  ##
+  if (lambda != 1) {
+    if (lambda == 0) 
+      data <- log(data)
+    else data <- ((data^lambda) - 1)/lambda
+  }
+  ##
+  ## trend removal
+  ##
+  xmat <- trend.spatial(trend = trend, coords = coords)
+  if (trend != "cte") {
+    data <- lm(data ~ xmat + 0)$residuals
+    names(data) <- NULL
+  }
+  ##
   if (add.to.plot == FALSE) {
     if(is.null(borders))
-      coords.lims <- apply(coords, 2, range)
-    else
-      coords.lims <- apply(rbind(coords, borders), 2, range)
-    coords.diff <- diff(coords.lims)
-    if (coords.diff[1] != coords.diff[2]) {
-      coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-      ind.min <- which(coords.diff == min(coords.diff))
-      coords.lims[, ind.min] <- coords.lims[, ind.min] + 
-        c(-coords.diff.diff, coords.diff.diff)/2
+      coords.lims <- set.coords.lims(coords=coords)
+    else{
+      if(ncol(borders) != 2)
+        stop("argument borders must have 2 columns with the XY coordinates of the borders of the area")
+      coords.lims <- set.coords.lims(coords=rbind(coords, borders))
     }
     par(pty = "s")
     plot(apply(coords, 2, range), type = "n", xlim = coords.lims[, 
                                                 1], ylim = coords.lims[, 2], ...)
     if(!is.null(borders))
-      lines(borders)
+      polygon(borders)
   }
   if (missing(cex.min)) 
     cex.min <- 0.5
@@ -600,9 +619,9 @@ function(pars)
     graph.list$pch <- pch.seq
     graph.list$data.group <- cut(data, breaks=data.quantile, include.l=T)
     if (add.to.plot) 
-      points(coords, pch = 21, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
+      points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
     else
-      points(coords, pch = 21, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)])
+      points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)])
   }
   else {
     if (missing(pch.seq)) 

@@ -17,8 +17,8 @@
 
 \usage{
 plot.geodata(geodata, coords=geodata$coords, data = geodata$data,
-     trend="cte", lambda = 1, col.data = 1, weights.divide = FALSE,
-     window.new = FALSE, ...)
+     borders = NULL, trend="cte", lambda = 1, col.data = 1,
+     weights.divide = FALSE, window.new = FALSE, ...)
 }
 
 %- maybe also `usage' for other objects do cumented here.
@@ -33,6 +33,9 @@ plot.geodata(geodata, coords=geodata$coords, data = geodata$data,
     element \code{coords} of the argument \code{geodata}.  }
   \item{data}{a vector with data values. By default it takes the
     element \code{data} of the argument \code{geodata}.  }
+  \item{borders}{If an \eqn{n \times 2}{nx2} matrix or data-frame with
+    the borders of the area is provided, the borders are included in the
+    first plot.  }
   \item{trend}{specifies the mean part of the model. The options are:
     \code{"cte"} (constant mean - default option), \code{"1st"} (a first degree polynomial
     on the coordinates), \code{"2nd"} (a second degree polynomial
@@ -44,7 +47,7 @@ plot.geodata(geodata, coords=geodata$coords, data = geodata$data,
     are \eqn{\lambda = 1}{lambda = 1} which corresponds to no
     transformation and  \eqn{\lambda = 0}{lambda = 0} corresponding to
     the log-transformation.  }
-  \item{col.data}{indicates the number of the column of the data
+  \item{col.data}{indicates the column number for the data
     to be plotted. Only valid if more than one data-set is available
     i.e., if the argument \code{data} is a matrix.  }
   \item{weights.divide}{if a vector of weights with the same length as

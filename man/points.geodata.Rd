@@ -18,6 +18,7 @@ points.geodata(geodata, coords=geodata$coords, data=geodata$data,
                data.col = 1, borders = NULL,
                pt.sizes=c("data.proportional","rank.proportional",
                     "quintiles", "quartiles", "deciles", "equal"),
+               lambda = 1, trend = "cte", weights.divide = NULL,
                cex.min, cex.max, pch.seq, col.seq,
                add.to.plot = FALSE,
                round.quantiles = FALSE, graph.pars = FALSE, ...)
@@ -37,12 +38,27 @@ points.geodata(geodata, coords=geodata$coords, data=geodata$data,
   \item{data.col}{the number of the data column. Only used if
     \code{data} is a matrix with columns corresponding to different
     variables or simulations.  }
-  \item{borders}{adds the border of the area if an \eqn{n \times 2}{nx2}
+  \item{borders}{If an \eqn{n \times 2}{nx2}
     matrix or data-frame with the coordinates of the borders of the
-    regions is provided.  }
+    regions is provided, the borders are added to the plot.  }
   \item{pt.sizes}{defines the point sizes. See 
     \code{DETAILS} below for the available options.
     Defaults to \code{pt.sizes = "data.proportional"}.   }
+  \item{trend}{specifies the mean part of the model. The options are:
+    \code{"cte"} (constant mean - default option), \code{"1st"} (a first degree polynomial
+    on the coordinates), \code{"2nd"} (a second degree polynomial
+    on the coordinates), or a formula of the type \code{~X} where \code{X}
+    is a matrix with the covariates (external trend).
+    If provided the trend is "removed" using the function
+    \code{\link[base]{lm}} and the residuals are plotted.  }
+  \item{lambda}{value of the Box-Cox transformation parameter. Two particular cases
+    are \eqn{\lambda = 1}{lambda = 1} which corresponds to no
+    transformation and  \eqn{\lambda = 0}{lambda = 0} corresponding to
+    the log-transformation.  }
+  \item{weights.divide}{if a vector of weights with the same length as
+    the data is provided each  data is
+    divided by the corresponding element in this vector.
+    Defaults to \code{NULL}.  }
   \item{cex.min}{minimum value for the graphical parameter
     \code{cex}. This value defines the size of the point corresponding the minimum
     of the data. Defaults to 0.5.  }

@@ -18,7 +18,9 @@ image.krige.bayes(obj, locations, borders,
            values.to.plot=c("moments.mean", "moments.variance",
                       "mean.simulations", "variance.simulations",
                       "quantiles", "probability", "simulation"),
-           number.col, coords.data, ...)
+           number.col, coords.data, x.leg, y.leg, cex.leg = 0.75,
+           vertical = FALSE, ...)
+
 
 
 persp.krige.bayes(obj, locations, borders,
@@ -50,6 +52,11 @@ persp.krige.bayes(obj, locations, borders,
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
+  \item{x.leg}{limits for the legend in the \eqn{x} direction.  }
+  \item{y.leg}{limits for the legend in the \eqn{y} direction.  }
+  \item{cex.leg}{controls the size of the numerical values in the legend.  }
+  \item{vertical}{logical, defining whether the legend is drawn in
+    horizontal (default) or vertical position.  }
   \item{\dots}{extra arguments to be passed to the plotting function
     \code{\link{image}} or \code{\link{persp}}.  }
   

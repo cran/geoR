@@ -18,7 +18,7 @@
                            "gneiting.matern", "pure.nugget"))
   if(lambda != 1) {
     if(messages.screen)
-      cat("ksline: Data transformation (Box-Cox) performed.\n")
+      cat("ksline: performing data transformation (Box-Cox).\n")
     if(lambda == 0)
       data <- log(data)
     else data <- ((data^lambda) - 1)/lambda
@@ -233,7 +233,7 @@
       }
       NULL
     }
-    message <- "Kriging performed in global neighbourhood"
+    message <- "Kriging performed using global neighbourhood"
     if (messages.screen) 
       cat(paste(message,"\n"))
     results <- list(predict = est, krige.var = kvar, dif = dif, summary = means, 
@@ -530,11 +530,15 @@
 }
 
 "krige.conv" <-
-  function (geodata, coords=geodata$coords, data=geodata$data, locations,
+  function (geodata, coords=geodata$coords, data=geodata$data,
+            locations,
             krige = krige.control(
-              type.krige, beta = NULL, trend.d, trend.l,
+              type.krige, trend.d, trend.l,
+              obj.model,
+              beta=NULL,
               cov.model, cov.pars, kappa = 0.5, 
-              nugget = 0, micro.scale = 0,
+              nugget = 0,
+              micro.scale = 0,
               dist.epsilon = 1e-10,
               aniso.pars = NULL, lambda = 1,
               signal = FALSE,
@@ -548,7 +552,6 @@
   cov.model <- krige$cov.model
   kappa <- krige$kappa
   lambda <- krige$lambda
-  ##
   beta <- krige$beta
   cov.pars <- krige$cov.pars
   nugget <- krige$nugget
@@ -562,11 +565,9 @@
   ##
   if(micro.scale > nugget)
     stop("krige.conv: krige$micro.scale must be in the interval [0, nugget]")
-  if (krige$type.krige != "ok" & krige$type.krige != "OK" & krige$type.krige != "o.k." & krige$type.krige != "O.K." & krige$type.krige != "sk" & krige$type.krige != "SK" & krige$type.krige != "s.k." & krige$type.krige != "S.K.")
-    stop("krige.conv: wrong option in the argument type.krige. It should be \"OK\" or \"SK\"(if ordinary or simple kriging is to be performed)")
-  if (krige$type.krige == "ok" | krige$type.krige == "OK" | krige$type.krige == "o.k." | krige$type.krige == "O.K.") 
+  if (krige$type.krige == "ok") 
     beta.prior <- "flat"
-  if (krige$type.krige == "sk" | krige$type.krige == "SK" | krige$type.krige == "s.k." | krige$type.krige == "S.K."){
+  if (krige$type.krige == "sk"){
     if(is.null(beta) | !is.numeric(beta))
       stop("krige.conv: argument beta must be provided in order to perform simple kriging")
     beta.prior <- "deg"
@@ -574,17 +575,17 @@
   ##
   if(is.vector(coords)){
     coords <- cbind(coords, 0)
-    warning("krige.conv: vector of coordinates, one spatial dimension assumed")
+    warning("krige.conv: coordinates provided as a vector, assuming one spatial dimension")
   }
   coords <- as.matrix(coords)
   if (is.vector(locations)) {
     if (length(locations) == 2) {
       locations <- t(as.matrix(locations))
       if (messages.screen) 
-        warning("krige.conv: assuming that there is 1 prediction point")
+        warning("krige.conv: assuming that there is only 1 prediction point")
     }
     else{
-      warning("krige.conv: vector of locations: one spatial dimension assumed")
+      warning("krige.conv: locations provided as a vector, assuming one spatial dimension")
       locations <- as.matrix(cbind(locations, 0))
     }
   }
@@ -616,6 +617,9 @@
   }
   trend.d <- trend.spatial(trend=krige$trend.d, coords=coords)
   beta.size <- ncol(trend.d)
+  if(beta.prior == "deg")
+    if(beta.size != length(beta))
+      stop("size of mean vector is imcompatible with trend specified") 
   trend.l <- trend.spatial(trend=krige$trend.l, coords=locations)
   ##
   ## Anisotropy correction (should be placed AFTER trend.d/trend.l
@@ -982,7 +986,7 @@
     }
     if(lambda > 0 | (lambda == 0 & beta.prior == "flat")) {
       if(messages.screen)
-        cat("krige.conv: back-transformation done by sampling from the resulting (normal) predictive distribution (inspect results carefully, run the function more than once and check for stability of the results\n")
+        cat("krige.conv: back-transforming by sampling from the resulting (normal) predictive distribution.\n (inspect results carefully, run the function more than once and check stability of the results\n")
       ap.warn <- options()$warn
       options(warn = -1)
       temp.data <- matrix(rnorm(ni * n.samples.backtransform,
@@ -1017,22 +1021,44 @@
 }
 
 "krige.control" <-
-  function (type.krige = "ok", beta = NULL,  
+  function (type.krige = "ok",
             trend.d = "cte", trend.l = "cte",
+            obj.model = NULL, beta = NULL,
             cov.model = "matern",
-            cov.pars = stop("covariance parameters (sigmasq and phi) should be provided"), kappa = 0.5,
+            cov.pars,
+            kappa = 0.5,
             nugget = 0, micro.scale = 0, dist.epsilon = 1e-10, 
             aniso.pars = NULL, lambda = 1, 
             signal = FALSE,
             n.samples.backtransform = 500, n.sim = 0)
 {
+  if(!is.null(obj.model)){
+    cov.model <- obj.model$cov.model
+    kappa <- obj.model$kappa
+    lambda <- obj.model$lambda
+    beta <- obj.model$beta
+    cov.pars <- obj.model$cov.pars
+    nugget <- obj.model$nugget
+  }
+  else
+    if(missing(cov.pars))
+      stop("covariance parameters (sigmasq and phi) should be provided")
+  if (type.krige != "ok" & type.krige != "OK" & type.krige != "o.k." & type.krige != "O.K." & type.krige != "sk" & type.krige != "SK" & type.krige != "s.k." & type.krige != "S.K.")
+    stop("krige.conv: wrong option in the argument type.krige. It should be \"sk\" or \"ok\"(if ordinary or simple kriging is to be performed)")
+  if(type.krige=="OK" | type.krige=="O.K." |type.krige=="o.k")
+    type.krige <- "ok"
+  if(type.krige=="SK" | type.krige=="S.K." |type.krige=="s.k")
+    type.krige <- "sk"
   cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
+                         choices = c("matern", "exponential",
+                           "gaussian",
+                           "spherical", "circular", "cubic",
+                           "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  return(list(type.krige = type.krige, beta = beta,
+  return(list(type.krige = type.krige,
               trend.d = trend.d, trend.l = trend.l, 
+              beta = beta,
               cov.model = cov.model, 
               cov.pars = cov.pars, kappa = kappa,
               nugget = nugget,
@@ -1042,7 +1068,6 @@
               n.samples.backtransform = n.samples.backtransform,
               n.sim = n.sim))
 }
-
 
 "prepare.graph.kriging" <-
   function (obj, locations, borders, values) 
@@ -1070,20 +1095,32 @@
 
 "image.kriging" <-
   function (obj, locations, borders, 
-            values = obj$predict, coords.data, ...) 
+            values = obj$predict, coords.data,
+            x.leg, y.leg, cex.leg = 0.8, vertical = FALSE, ...) 
 {
   if(missing(borders)) borders <- NULL
   if(missing(coords.data)) coords.data <- NULL
+  if(missing(x.leg)) x.leg <- NULL
+  if(missing(y.leg)) y.leg <- NULL
   locations <- prepare.graph.kriging(obj=obj, locations=locations,
-                                     borders=borders, values=values) 
+                                     borders=borders,
+                                     values=values) 
   pty.prev <- par()$pty
   par(pty = "s")
   image(locations$x, locations$y, locations$values,
-        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2],...)
+        xlim= locations$coords.lims[,1],
+        ylim=locations$coords.lims[,2],...)
   if(!is.null(coords.data))
-    points(coords.data)
+    points(coords.data, pch=20)
   if(!is.null(borders))
-    lines(borders, lwd=2)
+    polygon(borders, lwd=2)
+  dots.l <- list(...)
+  if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
+  if(!is.null(x.leg) & !is.null(y.leg))
+    legend.krige(x.leg=x.leg, y.leg=y.leg,
+                 values=locations$values[!is.na(locations$values)],
+                 vertical = vertical, cex=cex.leg,
+                 col=dots.l$col)
   par(pty.prev)
   return(invisible())
 }
@@ -1095,6 +1132,65 @@
   locations <- prepare.graph.kriging(obj=obj, locations=locations,
                                      borders=borders, values=values) 
   persp(locations$x, locations$y, locations$values, ...)
+  return(invisible())
+}
+
+"legend.krige" <-
+  function(x.leg, y.leg, values, scale.vals, vertical = FALSE, ...)
+{
+  if(length(x.leg) != 2 | length(y.leg) != 2)
+    stop("x.leg and y.leg require a vector with 2 elements")
+  v.r <- range(values)
+  lags.x <- function(xs, nl){
+    xs.r <- 0.5 * diff(xs/(nl-1))
+    return(seq(xs[1]+xs.r, xs[2]-xs.r, l=nl))
+  }        
+  leg.l <- list(...)
+  if(is.null(leg.l$breaks)){
+    if(is.null(leg.l$col))
+      leg.l$col <- heat.colors(12)
+    nc <- length(leg.l$col)
+    if(vertical)
+      image(x.leg, lags.x(xs=y.leg, nl=nc),
+            matrix(seq(v.r[1], v.r[2], l=nc), nrow=1),
+            add=T, col=leg.l$col)    
+    else
+      image(lags.x(xs=x.leg, nl=nc), y.leg,
+            matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
+            add=T, col=leg.l$col)    
+  }
+  else{
+    nc <- length(breaks) - 1
+    if(is.null(leg.l$col))
+      leg.l$col <- heat.colors(nc)
+    if(vertical)
+      image(x.leg, lags.x(xs=y.leg, nl=nc),
+          matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
+          add=T, col=leg.l$col, breaks=leg.l$breaks)
+    else
+      image(lags.x(xs=x.leg, nl=nc), y.leg,
+            matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
+            add=T, col=leg.l$col, breaks=leg.l$breaks)
+  }
+  leg.poly <- rbind(c(x.leg[1], y.leg[1]), c(x.leg[2], y.leg[1]),
+                    c(x.leg[2], y.leg[2]), c(x.leg[1], y.leg[2]),
+                    c(x.leg[1], y.leg[1]))
+  polygon(leg.poly)
+  if(is.null(leg.l$cex))
+    leg.l$cex <- par()$cex
+  if(missing(scale.vals))
+    scale.vals <- pretty(values, n=5, min.n=4)
+  scale.vals <- scale.vals[scale.vals > v.r[1] & scale.vals < v.r[2]]
+  if(vertical){
+    y.r <- range(lags.x(xs=y.leg,nl=nc))
+    y.text <- y.r[1] + ((scale.vals - v.r[1]) * diff(y.r))/diff(v.r)
+    text((max(x.leg)+(diff(x.leg)/2)), y.text, lab=scale.vals, col=1, cex=leg.l$cex)
+  }
+  else{
+    x.r <- range(lags.x(xs=x.leg,nl=nc))
+    x.text <- x.r[1] + ((scale.vals - v.r[1]) * diff(x.r))/diff(v.r)
+    text(x.text, (max(y.leg)+(diff(y.leg)/2)), lab=scale.vals, col=1, cex=leg.l$cex)
+  }
   return(invisible())
 }
 

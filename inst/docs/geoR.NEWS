@@ -1,12 +1,47 @@
 
 		=============================
-		CHANGES IN geoR VERSION 1.0-7
+		CHANGES IN geoR VERSION 1.0-8
 		=============================
 
 
 NEW FEATURES
 
-    o  data SIC added to the package
+    o  new function legend.krige() to add legend to
+       image plots
+
+    o  arguments in image.kriging() and image.krige.bayes()
+       to include legend in the plot
+
+    o  argument "obj.model" included in krige.conv()
+
+    o  argument "borders" included in plot.geodata()
+
+    o  argument "lambda", "trend" and "weights.divide"
+       included in points.geodata()
+
+
+BUG FIXES
+
+    o  fix in variog which was causing problems in NA handling for variog4()
+
+    o  a few bug fixes in proflik()
+
+    o  argument pch in points.geodata()
+
+    o  constant part of the likelihood included in the trace of 
+       likfit() when print.pars = TRUE
+
+    o  argument "trend" in plot.geodata() now working properly
+
+
+
+
+		=============================
+		CHANGES IN geoR VERSION 1.0-7
+		=============================
+
+
+NEW FEATURES
 
     o  new argument "borders" for image.kriging(), persp.kriging(),
        image.krige.bayes(), persp.krige.bayes().

@@ -1,10 +1,8 @@
 \name{parana}
 
 \alias{maijun}
-\alias{loci.paper}
-\alias{borders}
 
-\non_function{mainjun, loci.paper, borders}
+\non_function{mainjun}
 
 \title{Rainfall Data from Parana State, Brasil}
 
@@ -21,15 +19,17 @@
 \usage{data(parana)}
 
 \format{
-  Three objects are provided:
+  The object \code{maijun} of the class \code{geodata}, which is a list
+  containing the following components:
   
-  \describe{
-    \item{\code{maijun}}{a list with coordinates of the recording stations and
-      the May-June average data.  }
+  \describe{    
+    \item{\code{coords}}{a list with the coordinates of the recording
+      stations.  }
+    \item{\code{data}}{a vector with the average recorded rainfall for the May-June period.  }
     \item{\code{borders}}{a matrix with the coordinates defining the borders of
-    \eqn{\mbox{Paran\'{a}}}{Parana} state.  }
+      \eqn{\mbox{Paran\'{a}}}{Parana} state.  }
     \item{\code{loci.paper}}{a matrix with the coordinates of the four
-    prediction locations discussed in the paper. }
+      prediction locations discussed in the paper. }
   }
 }
 
