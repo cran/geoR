@@ -1,5 +1,36 @@
 
 		==============================
+		CHANGES IN geoR VERSION 1.3-11
+		==============================
+
+NEW FEATURES
+
+    o argument breaks included in variog(), variog4() to an alternative 
+      specification on bin limits (similar to breaks for the function hist()) 
+
+    o more options in prepare.graph.krige.bayes to allow outputs from geoRglm 
+
+    o scatterplot3d reintroduced in plot.geodata as optional (not default).
+      Documentation updated.
+
+
+BUGS
+
+    o fix in variog4 to avind message on multiple matching condition
+
+    o minor changes in print.likGRF and print.summary.likGRF to better
+      formating of results in the output device. Changes in documentation
+
+    o fix in names in plot.proflik and proflik
+
+    o bug fix in locations.inside when argument borders is a list
+
+    o bug fix in persp.krige.bayes
+
+    o bug fix in polygrid after changes introduced in version 1.3.11
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.3-10
 		==============================
 

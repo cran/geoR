@@ -366,7 +366,7 @@ ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
 plot(ex.bayes, type="h", tausq.rel = FALSE, col=c("red", "blue"))
 #
 # Plot histograms with samples from the posterior
-par(mfrow=c(2,1))
+par(mfrow=c(3,1))
 hist(ex.bayes)
 par(mfrow=c(1,1))
 

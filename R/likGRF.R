@@ -135,7 +135,7 @@
     rownames(ini.temp) <- "initial.value"
     if(messages.screen){
       cat(" selected values:\n")
-      print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
+      print(rbind(format(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
       cat(paste("likelihood value:", max(grid.lik), "\n"))
     }
     dimnames(ini.temp) <- NULL
@@ -1176,17 +1176,17 @@
 }
 
 "print.likGRF" <-
-  function(x, digits = "default", ...)
+  function (x, digits = max(3, getOption("digits") - 3), ...)
 {
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
   est.pars <- as.vector(x$parameters.summary[x$parameters.summary[,1] == "estimated",2])
   names.est.pars <- dimnames(x$parameters.summary[x$parameters.summary[,1] == "estimated",])[[1]]
   names(est.pars) <- names.est.pars
   cat("likfit: estimated model parameters:\n")
-  print(round(est.pars, digits=digits))
+  print.default(format(est.pars, digits = digits), ...)
+  ##  print(round(est.pars, digits=digits))
   cat("\nlikfit: maximised log-likelihood = ")
-  cat(round(x$loglik, digits=digits))
+  cat(format(x$loglik, digits = digits))
+  ##  cat(round(x$loglik, digits=digits))
   cat("\n")
   return(invisible())
 }  
@@ -1207,23 +1207,19 @@
   summ.lik$spatial.component.extra <- object$parameters.summary[c("kappa", "psiA", "psiR"),]
   summ.lik$nugget.component <- object$parameters.summary[c("tausq"),, drop=FALSE]
   summ.lik$transformation  <- object$parameters.summary[c("lambda"),, drop=FALSE]
-  summ.lik$likelihood <- c(log.L = object$loglik, n.params = as.integer(object$npars),
+  summ.lik$likelihood <- list(log.L = object$loglik, n.params = as.integer(object$npars),
                                AIC = object$AIC, BIC = object$BIC)
   summ.lik$estimated.pars <- dimnames(object$parameters.summary[object$parameters.summary[,1] == "estimated",])[[1]]
-  likelihood.info <- c(log.L = object$loglik, n.params = as.integer(object$npars),
-                       AIC = object$AIC, BIC = object$BIC)
   summ.lik$call <- object$call
   class(summ.lik) <- "summary.likGRF"
   return(summ.lik)
 }
 
 "print.summary.likGRF" <-
-  function(x, digits = "default", ...)
+  function (x, digits = max(3, getOption("digits") - 3), ...)
 {
   if(length(class(x)) == 0 || all(class(x) != "summary.likGRF"))
     stop("object is not of the class \"summary.likGRF\"")
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
   cat("Summary of the parameter estimation\n")
   cat("-----------------------------------\n")
   cat(paste("Estimation method:", x$method.lik, "\n"))
@@ -1234,22 +1230,23 @@
   ##
   cat("Parameters of the mean component (trend):")
   cat("\n")
-  print(round(x$mean.component, digits=digits))
+  print.default(round(x$mean.component, digits = digits), ...)
+  ##  print(round(x$mean.component, digits=digits))
   cat("\n")
   ##
   cat("Parameters of the spatial component:")
   cat("\n")
   cat(paste("   correlation function:", x$cov.model))
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(x$spatial.component[1,2], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(x$spatial.component[2,2], dig=digits)))
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", format(x$spatial.component[1,2], dig=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", format(x$spatial.component[2,2], dig=digits)))
   if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
      x$cov.model == "cauchy" | x$cov.model == "gneiting.matern"){
     kappa <- x$spatial.component.extra["kappa",2]
     if(x$spatial.component.extra["kappa",1] == "estimated")
-      cat(paste("\n      (estimated) extra parameter kappa =", round(kappa, digits=digits)))
+      cat(paste("\n      (estimated) extra parameter kappa =", format(kappa, digits=digits)))
     else{
       cat(paste("\n      (fixed) extra parameter kappa = ", kappa))
-      if(x$cov.model == "matern" & (round(kappa, digits=digits)  == 0.5))
+      if(x$cov.model == "matern" & (format(kappa, digits=digits)  == 0.5))
       cat(" (exponential)")
     }
   }
@@ -1260,21 +1257,21 @@
   cat("   anisotropy parameters:")
   if(aniso["psiA",1] == "estimated")
     cat(paste("\n      (estimated) anisotropy angle =",
-              round(psiApsiR[1], digits=digits),
-              " (",round((psiApsiR[1]*360)/(2*pi), dig=1), "degrees )"))
+              format(psiApsiR[1], digits=digits),
+              " (",format((psiApsiR[1]*360)/(2*pi), dig=1), "degrees )"))
   else
     cat(paste("\n      (fixed) anisotropy angle =", psiApsiR[1],
               " (",(psiApsiR[1]*360)/(2*pi), "degrees )"))
   if(aniso["psiR",1] == "estimated")
     cat(paste("\n      (estimated) anisotropy ratio =",
-              round(psiApsiR[2], digits=digits)))
+              format(psiApsiR[2], digits=digits)))
   else
     cat(paste("\n      (fixed) anisotropy ratio =", psiApsiR[2]))
   cat("\n")
   cat("\n")  
   cat("Parameter of the error component:")
   if(x$nugget.component[,1] == "estimated")
-    cat(paste("\n      (estimated) nugget = ", round(x$nugget.component[,2], dig=digits)))
+    cat(paste("\n      (estimated) nugget = ", format(x$nugget.component[,2], dig=digits)))
   else
     cat(paste("\n      (fixed) nugget =", x$nugget.component[,2]))
   cat("\n")
@@ -1283,7 +1280,7 @@
   cat("\n")
   lambda <- x$transformation[,2]
   if(x$transformation[,1] == "estimated")
-    cat(paste("      (estimated) Box-Cox parameter =", round(lambda, dig=digits)))
+    cat(paste("      (estimated) Box-Cox parameter =", format(lambda, dig=digits)))
   else{
     cat(paste("      (fixed) Box-Cox parameter =", lambda))
     if(abs(lambda - 1) <  0.0001) cat(" (no transformation)")
@@ -1293,7 +1290,7 @@
   cat("\n")
   cat("Maximised Likelihood:")
   cat("\n")
-  print(round(x$likelihood, digits=digits))
+  print(format(x$likelihood, digits=digits), ...)
   cat("\n")
   cat("Call:")
   cat("\n")

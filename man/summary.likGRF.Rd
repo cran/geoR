@@ -9,26 +9,26 @@
 \title{Summarizes Parameter Estimation Results for Gaussian Random Fields}
 
 \description{
-  Summarizes results returned by the function \code{\link{likfit}}.
-
+  Summarizes results returned by the function \code{\link{likfit}}.\cr
   Functions are \emph{methods} for \code{\link[base]{summary}} and
-  \code{\link[base]{print}} for class \code{likGRF} and \code{summary.likGRF}.
+  \code{\link[base]{print}} for the classes \code{likGRF} and \code{summary.likGRF}.
 }
 
 \usage{
 \method{summary}{likGRF}(object, \dots)
+\method{print}{likGRF}(x, digits = max(3, getOption("digits") - 3), \dots)
+\method{print}{summary.likGRF}(x, digits = max(3, getOption("digits") - 3), \dots)
 }
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{object}{an object of \code{\link[base]{class}} \emph{likGRF}, typically
     a result of a call to \code{\link{likfit}}.  }
-  \item{\dots}{extra arguments for \code{\link[base]{print}}. A commonly used
-    argument is \code{digits} which
-    specifies the number of digits for the numerical output.
-    The default is given by \code{options()$digits}.  }
-  \item{digits}{integer defining number of decimal digits to be used
-    when printing. }
+  \item{x}{an object of \code{\link[base]{class}} \emph{likGRF} or
+    \code{\link[geoR]{class}} \emph{summary.likGRF}, typically
+    resulting from a call to \code{\link{likfit}}.  }
+  \item{digits}{the number of significant digits to use when printing. }
+  \item{\dots}{extra arguments for \code{\link[base]{print}}.  }
 }
 
 \details{
@@ -45,7 +45,7 @@
   \code{summary.likGRF} returns a list with main results of a call to
   \code{\link{likfit}}.\cr
   \code{print.summary.likGRF} prints these results on the screen (or other
-  output device) in a "nice" way.
+  output device) in a "nice" format.
 }
 
 \references{

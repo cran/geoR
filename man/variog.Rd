@@ -2,6 +2,7 @@
 
 \alias{variog}
 \alias{rfm.bin}
+\alias{define.bins}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -9,16 +10,17 @@
 
 \description{
   Computes sample (empirical) variograms with options for  the \emph{classical} or \emph{robust}
-  estimator. Output can be returned as a \code{binned variogram}, a \code{
+  estimators. Output can be returned as a \code{binned variogram}, a \code{
     variogram cloud} or a \code{smoothed variogram}. Data
-  transformation (Box-Cox) is allowed. Trends fitted by ordinary least
-  squares can be removed. In this case variograms are computed using the
+  transformation (Box-Cox) is allowed.
+  ``Trends'' can be specified and are fitted by ordinary least
+  squares in which case the variograms are computed using the
   residuals.
 }
 
 \usage{
 variog(geodata, coords=geodata$coords, data=geodata$data, 
-       uvec = "default", trend = "cte", lambda = 1, 
+       uvec = "default", breaks, trend = "cte", lambda = 1, 
        option = c("bin", "cloud", "smooth"), 
        estimator.type = c("classical", "modulus"), 
        nugget.tolerance = 0, max.dist, pairs.min = 2, 
@@ -41,9 +43,13 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{data}{a vector or matrix with data values.
     If a matrix is provided, each column is regarded as one variable or realization.
     Defaults to \code{geodata$data}, if provided.}
-  \item{uvec}{a vector with values defining the variogram binning. Only
+  \item{uvec}{a vector with values used to define the variogram binning. Only
     used when \code{option = "bin"}.
-    See \code{DETAILS} below for more details on how to speficy the bins.
+    See \code{DETAILS} below for more details on how to specify the bins.
+  }
+  \item{breaks}{a vector with values to define the variogram binning. Only
+    used when \code{option = "bin"}.
+    See \code{DETAILS} below for more details on how to specify the bins.
   }
   \item{trend}{specifies the mean part of the model.
     See documentation of \code{\link{trend.spatial}} for further details.
@@ -100,8 +106,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   purposes, to estimate covariance parameters and/or to compare theoretical
   and fitted models against sample variograms.
 
-  \bold{Estimators}
-
+  \bold{Estimators}\cr
   The two estimators currently implemented are:
   \itemize{
     \item \emph{classical} (method of moments) estimator:
@@ -117,46 +122,50 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
 
   \bold{Defining the bins}
 
-  \emph{The default}\cr
-  If the argument \code{uvec} is not provided, the default option is
-  assumed and the bins are defined as follows:\cr
+  \emph{The defaults}\cr
+  If an vector is passed to the argument \code{breaks} its elements are
+  taken as the limits of the bins and the argument \code{uvec} is ignored.
+
+  If arguments \code{breaks} and \code{uvec} are not provided, the
+  binning is defined as follows:\cr
   \enumerate{
-    \item read the argument \code{max.dist}. If not provided is it set
-    to the maximum distance between a pair of points.
-    \item the center of the bins are in initially given \code{u = seq(0,
+    \item read the argument \code{max.dist}. If not provided it is set
+    to the maximum distance between the pairs of points.
+    \item the center of the bins are initially defined by the sequence \code{u = seq(0,
       max.dist, l = 13)}.
     \item the interval spanned by each bin is given by the mid-points
     between the centers of the bins.
     \item The center of the first bin is set to \code{u[1] = u[2]/4}.
   }
 
-  \emph{variations on the default}\cr
-  The default definition of the bins can be different in some cases.
+  \emph{Variations on the default}\cr
+  The default definition of the bins is different for some particular
+  cases.
   \enumerate{
-    \item if there are data points at coincident locations
-    the bins follows the default above but one more bin is added for
-    collocated points (distance zero).
+    \item if there are  coincident data locations
+    the bins follows the default above but
+    one more bin is added at the origin (distance zero) for
+    the collocated points.
     
     \item if the argument \code{nugget.tolerance} is provided the
     separation distance between all pairs
-    in the interval \eqn{[0, nugget.tolerance]} are considered to zero.
-    The first element is now set to zero \code{u[1] = 0}.
+    in the interval \eqn{[0, nugget.tolerance]} are set to zero.
+    The first bin distance is set to zero (\code{u[1] = 0}).
     The remaining bins follows the default.
 
-    \item if a single number is provided in the argument \code{uvec} the
-    default sequence size 13 is replaces by this number: \code{u = seq(0,
-      max.dist, l = uvec)}
+    \item if a scalar is provided to the argument \code{uvec} the
+    default number of bins is defined by this number.
+%    \code{u = seq(0, max.dist, l = uvec)}
 
-    \item if a vector is provided in the argument \code{uvec},
-    its elements are taken central points of the bins, this vectors
-    replaces the default sequence
-    }
-
-    %    The values of \code{uvec} defines the mid-points of the bins.\cr
-    %    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
-    %    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
-    %    \eqn{uvec[1]} is replaced by the midpoint of this interval.
-    
+    \item if a vector is provided to the argument \code{uvec},
+    its elements are taken as central points of the bins.
+  }
+  
+  %    The values of \code{uvec} defines the mid-points of the bins.\cr
+  %    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
+  %    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
+  %    \eqn{uvec[1]} is replaced by the midpoint of this interval.
+  
 }
 
 \value{
@@ -211,7 +220,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
 
 \examples{
 # Loading data:
-if(is.R()) data(s100)
+data(s100)
 #
 # computing variograms:
 #

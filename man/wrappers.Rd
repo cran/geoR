@@ -2,6 +2,7 @@
 
 \alias{wrappers}
 \alias{distdiag}
+\alias{diffpairs}
 \alias{loccoords}
 \alias{diagquadraticformXAX}
 \alias{bilinearformXAY}
@@ -20,6 +21,7 @@
 
 \usage{
 distdiag(coords)
+diffpairs(coords, data)
 loccoords(coords, locations)
 diagquadraticformXAX(X, lowerA, diagA) 
 bilinearformXAY(X, lowerA, diagA, Y) 
@@ -31,6 +33,7 @@ corr.diaglowertri(coords, cov.model, phi, kappa)
 \arguments{
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix with the data
     coordinates.  }
+  \item{data}{an vector with the data values.  }
   \item{locations}{an \eqn{N \times 2}{N x 2} matrix with the
     coordinates of the prediction locations. }
   \item{lowerA}{a vector with the diagonal terms of the symmetric matrix 

@@ -1,6 +1,17 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
+- include a subregion argument in points.geodata (and maybe ohters)
+  taking a polygon 
+
+- plot.likfit with variogram of the model components
+
+- priors not equaly spaced in krige.bayes
+
+- include all the book's data-sets
+
+- create and update.proflik to facilitate the usage of proflik
+
 - reimplementation of nested covariance models in krige.conv
 
 - power and gneiting.matern models in likfit
@@ -12,6 +23,8 @@ Things to be done and/or checked in the package geoR
 
 - automatic re-scaling of covariates with different orders of
   magnitude 
+
+- automatic re-scaling of coordinate values
 
 - Create summary functions for:
 	proflik (?)

@@ -326,6 +326,32 @@ void distdiag(Real *xloc, Real *yloc, Integer *nl, Real *res)
   
 }
 
+void diffpairs(Real *xloc, Real *yloc, Real *data, Integer *nl, Real *res1, Real *res2) 
+     /* This function computes the distances and differences 
+        between data at different locations 
+	
+        xloc, yloc     : xy coordinates of the locations
+	data           : data values
+	nl,            : number of locations
+	res           : stores the distances and differences to be returned, 
+     */   
+     
+{ 
+  Integer register i,j, ind;
+  Real register dx,dy;
+  
+  ind = 0;
+  for (j=0; j<*nl-1; j++) {  
+    for (i=j+1; i<*nl; i++) {
+      dx = (xloc[j] - xloc[i]) ;
+      dy = (yloc[j] - yloc[i]) ;
+      res1[ind] = pythag(dx, dy) ;
+      res2[ind] = (data[j] - data[i]) ;
+      ind++ ;
+    }
+  }
+}
+
 void binit(Integer *n, Real *xc, Real *yc, Real *sim, 
 	   Integer *nbins, Real *lims, Integer *modulus, 
 	   Real *maxdist, Integer *cbin, Real *vbin,

@@ -7,7 +7,7 @@
 }
 \usage{
 variog4(geodata, coords = geodata$coords, data = geodata$data,
-        uvec = "default", trend = "cte", lambda = 1,
+        uvec = "default", breaks, trend = "cte", lambda = 1,
         option = c("bin", "cloud", "smooth"),
         estimator.type = c("classical", "modulus"),
         nugget.tolerance = 0, max.dist, pairs.min = 2,
@@ -28,7 +28,9 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   \item{data}{a vector or matrix with data values.
     If a matrix is provided, each column is regarded as one variable or realization.
     Defaults to \code{geodata$data}, if provided.}
-  \item{uvec}{a vector with values defining the variogram binning. For
+  \item{uvec}{a vector with values to define the variogram binning. For
+    further details see documentation for \code{\link{variog}}.  } 
+  \item{breaks}{a vector with values to define the variogram binning. For
     further details see documentation for \code{\link{variog}}.  } 
   \item{trend}{specifies the mean part of the model.
     The options are:
@@ -111,7 +113,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   \code{\link{plot.variog4}} for plotting results}
 
 \examples{
-if(is.R()) data(s100)
+data(s100)
 var4 <- variog4(s100, max.dist=1)
 plot(var4)
 }

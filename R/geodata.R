@@ -269,7 +269,7 @@
     else{
       if(ncol(borders) != 2)
         stop("argument borders must be an object with 2 columns with the XY coordinates of the borders of the area")
-      coords.lims <- set.coords.lims(coords=rbind(coords, borders))
+      coords.lims <- set.coords.lims(coords=rbind(as.matrix(coords), as.matrix(borders)))
     }
     par(pty = "s")
     toplot <- apply(coords, 2, range)
@@ -279,10 +279,8 @@
     if(!is.null(borders))
       polygon(borders)
   }
-  if (missing(cex.min)) 
-    cex.min <- 0.5
-  if (missing(cex.max)) 
-    cex.max <- 1.5
+  if (missing(cex.min)) cex.min <- 0.5
+  if (missing(cex.max)) cex.max <- 1.5
   graph.list <- list()
   if(is.numeric(pt.divide)|pt.divide == "quintiles"|pt.divide == "quartiles"|pt.divide == "deciles") {
     if (pt.divide == "quintiles") {
@@ -353,8 +351,7 @@
       graph.list$cex <- c(cex.min, cex.max)
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
-      if (length(col.seq) == 1) 
-        col.seq <- rep(col.seq, n)
+      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
       for (i in 1:n) {
         if (add.to.plot) 
           points(coords.order[i, , drop = FALSE], cex = size[i], 
@@ -378,7 +375,7 @@
 
 plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL, 
     trend = "cte", lambda = 1, col.data = 1, weights.divide = NULL, 
-    window.new = FALSE, ...) 
+    scatter3d = FALSE, ...) 
 {
   if(missing(x)) x <- list(coords=coords, data = data)
   if (is.R()) par.ori <- par(no.readonly = TRUE)
@@ -390,11 +387,6 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
   attach(x)
   eval(borders)
   detach(x)
-  if (window.new) {
-    if (is.R()) 
-      X11()
-    else trellis.device()
-  }
   if (!is.null(weights.divide)) {
     if (length(weights.divide) != length(data)) 
       stop("length of weights.divide must be equals to the length of data")
@@ -420,8 +412,7 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
   else {
     if (ncol(borders) != 2) 
       stop("argument \"borders\" must be a 2 columns object with coordinates of the borders of the study area")
-    coords.lims <- set.coords.lims(coords = rbind(coords, 
-                                     borders))
+    coords.lims <- set.coords.lims(coords = rbind(as.matrix(coords), as.matrix(borders)))
   }
   par(pty = "s")
   plot(coords, xlab = "X Coord", ylab = "Y Coord ", type = "n", 
@@ -452,16 +443,16 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
   par(pty = "m")
   if (is.R()) par(mar = c(4, 4, 1, 1))
   else par(mar = c(0, 1, 0, 0.5))
-  ##    if (is.R()) {
-  ##        if (require(scatterplot3d) == FALSE) {
-  ##            hist(data)
-  ##            cat("plot.geodata: a 3d plot would be drawn instead of the histogram if the package \"scatterplot3d\" was available\n")
-  ##        }
-  ##        else scatterplot3d(x = coords[, 1], y = coords[, 2], 
-  ##            z = data, box = FALSE, type = "h", pch = 16, xlab = "Coord X", 
-  ##            ylab = "Coord Y", ...)
-  ##    }
+  if (scatter3d) {
+    if (!require(scatterplot3d)) {
+      cat("plot.geodata: the argument scatter3d=TRUE requires the package \"scatterplot3d\" \n              will plot an histogram instead")
+      hist(data)
+    }
+    else scatterplot3d(x = coords[, 1], y = coords[, 2], 
+                       z = data, box = FALSE, type = "h", pch = 16, xlab = "Coord X", 
+                       ylab = "Coord Y", ...)
+  }
   ##  else xyzplot(coords = coords, data = data, ...)
-  hist(data, main="")
+  else hist(data, main="", ...)
   return(invisible())
 }

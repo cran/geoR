@@ -135,7 +135,7 @@
   function(locations, borders)
 {
   if(is.list(borders))
-    borders <- matrix(unlist(borders[1:2], ncol=2))
+    borders <- matrix(unlist(borders[1:2]), ncol=2)
   borders <- as.matrix(borders)
   if(ncol(borders) != 2)
     stop("borders must be a matrix or data-frame with two columns")
@@ -164,13 +164,13 @@
   if(is.matrix(xgrid) || is.data.frame(xgrid)){
     if(ncol(xgrid) != 2) stop("xgrid must be a vector or a 2 column matrix or data-frame")
     xygrid <- xgrid
-    if(!missing(xgrid)) stop("xgrid has 2 column, ygrid was ignored")
+    if(!missing(ygrid)) warning("xgrid has 2 column, ygrid was ignored")
   }
   else
     if(is.list(xgrid)){
       if(length(xgrid) != 2) stop("if xgrid is a list it must have 2 elements")
       xygrid <- expand.grid(x = xgrid[[1]], y = xgrid[[2]])
-      if(!missing(xgrid)) stop("xgrid is a list, ygrid was ignored")
+      if(!missing(ygrid)) warning("xgrid is a list, ygrid was ignored")
     }
   if(nrow(borders) < 3) stop("borders must have at least 3 points")
   if(exists("inout")){

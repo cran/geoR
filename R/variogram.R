@@ -1,6 +1,7 @@
 "variog" <-
   function (geodata, coords = geodata$coords, data = geodata$data, 
-            uvec = "default", trend = "cte", lambda = 1,
+            uvec = "default", breaks = "default",
+            trend = "cte", lambda = 1,
             option = c("bin", "cloud", "smooth"),
             estimator.type = c("classical", "modulus"), 
             nugget.tolerance, max.dist, pairs.min = 2,
@@ -20,10 +21,8 @@
   ##
   unit.angle <- match.arg(unit.angle)
   if(is.numeric(direction)){
-    if(length(direction) > 1)
-      stop("only one direction is allowed")
-    if(length(tolerance) > 1)
-      stop("only one tolerance value is allowed")
+    if(length(direction) > 1) stop("only one direction is allowed")
+    if(length(tolerance) > 1) stop("only one tolerance value is allowed")
     if(unit.angle == "degrees"){
       ang.deg <- direction
       ang.rad <- (ang.deg * pi)/180
@@ -51,8 +50,7 @@
       }
     }
   }
-  else
-    if(messages.screen) cat("variog: computing omnidirectional variogram\n")
+  else if(messages.screen) cat("variog: computing omnidirectional variogram\n")
   ##   
   ##
   coords <- as.matrix(coords)
@@ -129,24 +127,10 @@
   if (option == "bin" && bin.cloud == FALSE && direction == "omnidirectional") {
     if (missing(max.dist)) umax <- max(u)  
     else umax <- max(u[u < max.dist])
-    if (all(uvec == "default")) 
-      uvec <- seq(0, umax, l = 13)
-    if (is.numeric(uvec) & length(uvec) == 1) 
-      uvec <- seq(0, umax, l = uvec)
-    ubin <- c(0, uvec)
-    nvec <- length(ubin)
-    d <- 0.5 * diff(ubin[2:nvec])
-    bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 2] + ubin[nvec]))
-    ##    if (uvec[1] == 0 & nugget.tolerance <= 1e-12) 
-    ##      uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-    ##    if (nugget.tolerance > 1e-12) {
-    bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim > 
-                                                nugget.tolerance])
-    uvec <- c(0, (bins.lim[-(1:2)] - 0.5 * diff(bins.lim)[-1]))
-    ##    }
+    dbins <- define.bins(max.dist = umax, uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
+    uvec <- dbins$uvec ; bins.lim <- dbins$bins.lim
     nbins <- length(bins.lim) - 1
-    if (missing(max.dist)) 
-      max.dist <- max(bins.lim)
+    if (missing(max.dist)) max.dist <- max(bins.lim)
     if(bins.lim[1] < 1e-16) bins.lim[1] <- -1
     bin.f <- function(data) {
       cbin <- vbin <- sdbin <- rep(0, nbins)
@@ -213,21 +197,25 @@
     if (option == "cloud") result <- list(u = u, v = v)
      if (option == "bin") {
       if (missing(max.dist)) umax <- max(u)
-      else umax <- max(u[u < max.dist]) 
-      result <- rfm.bin(cloud = list(u = u, v = v),
+      else umax <- max(u[u < max.dist])
+      if(bin.cloud == 'diff') dd <- diffpairs(coords,data)$diff
+      else dd <- 0
+      result <- rfm.bin(cloud = list(u = u, v = v, d = dd),
                         estimator.type = estimator.type, 
-                        uvec = uvec, nugget.tolerance = nugget.tolerance, 
+                        uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance, 
                         bin.cloud = bin.cloud, max.dist = umax, keep.NA = keep.NA)
       if(keep.NA){
         if (pairs.min > 0) {
           indp <- (result$n < pairs.min)
+          if(!nt.ind){
+            for(i in 1:5) result[[i]] <- result[[i]][-1]
+            indp <- indp[-1]
+          }
           if (is.matrix(result$v)) {
-            result$v[indp, ] <- NA
-            result$sd[indp, ] <- NA
+            result$v[indp, ] <- result$sd[indp, ] <- NA
           }
           else {
-            result$v[indp] <- NA
-            result$sd[indp] <- NA
+            result$v[indp] <- result$sd[indp] <- NA
           }
         }
         result$ind.bin <- indp
@@ -235,6 +223,10 @@
       else{
         if (pairs.min > 0) {
           indp <- (result$n >= pairs.min)
+          if(!nt.ind){
+            for(i in 1:5) result[[i]] <- result[[i]][-1]
+            indp <- indp[-1]
+          }
           if (is.matrix(result$v)) {
             result$v <- result$v[indp, ]
             result$sd <- result$sd[indp, ]
@@ -251,13 +243,15 @@
     }
     if (option == "smooth") {
       if (is.R()) require(modreg)
-      if (is.matrix(v)) 
-        stop("smooth not yet available for several variables")
+      if (is.matrix(v)) stop("smooth not yet available for more than one data-set")
       temp <- ksmooth(u, v, ...)
       result <- list(u = temp[[1]], v = temp[[2]])
     }
-    if(missing(max.dist))
-      max.dist <- max(u)
+    if(missing(max.dist)) max.dist <- max(u)
+  }
+  if(nt.ind){
+    if(!exists(".variog4.nomessage",w=1)) cat("variog: co-locatted data found, adding one bin at the origin\n")
+    if(all(result$u[1:2] < 1e-11)) result$u[2] <- sum(result$bins.lim[2:3])/2
   }
   result <- c(result, list(var.mark = data.var, beta.ols = beta.ols,
                            output.type = option, max.dist = max.dist, 
@@ -276,7 +270,7 @@
 
 "variog4" <-
   function (geodata, coords = geodata$coords, data = geodata$data, 
-            uvec = "default", trend = "cte", lambda = 1,
+            uvec = "default", breaks = "default", trend = "cte", lambda = 1,
             option = c("bin", "cloud", "smooth"),
             estimator.type = c("classical", "modulus"), 
             nugget.tolerance, max.dist, pairs.min = 2,
@@ -288,32 +282,20 @@
   if(missing(nugget.tolerance)) nugget.tolerance <- 1e-12
   u <- as.vector(dist(as.matrix(coords)))
   if(length(direction) != 4)
-    stop("argument direction must be a vector with 4 values. For different specifications use the function variog()")
+    stop("argument direction must be a vector with 4 values. For different specification use the function variog()")
   if(length(tolerance) != 1)
-    stop("only one value can be provided to the argument tolerance. For different specifications use the function variog()")
+    stop("only one value can be provided to the argument tolerance. For different specification use the function variog()")
   res <- list()
-  if(unit.angle == "radians")
-    dg <- direction * 180/pi
+  unit.angle <- match.arg(unit.angle)
+  if(unit.angle == "radians") dg <- direction * 180/pi
   else dg <- direction
-  if (missing(max.dist)) 
-    umax <- max(u)  
+  if (missing(max.dist)) umax <- max(u)  
   else umax <- max(u[u < max.dist])
-  if (all(uvec == "default")) 
-    uvec <- seq(0, umax, l = 13)
-  if (is.numeric(uvec) & length(uvec) == 1) 
-    uvec <- seq(0, umax, l = uvec)
-  ubin <- c(0, uvec)
-  nvec <- length(ubin)
-  d <- 0.5 * diff(ubin[2:nvec])
-  bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 2] + ubin[nvec]))
-  bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim > 
-                                              nugget.tolerance])
-  uvec <- c(0, (bins.lim[-(1:2)] - 0.5 * diff(bins.lim)[-1]))
-  u <- NULL
+  .variog4.nomessage <<- TRUE
   for(angle in direction){
     res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-
       variog(geodata=geodata,
-             uvec=uvec, trend = trend,
+             uvec=uvec, breaks = breaks, trend = trend,
              lambda = lambda, option = option,
              estimator.type = estimator.type,
              nugget.tolerance = nugget.tolerance,
@@ -324,9 +306,11 @@
              tolerance = tolerance,
              unit.angle = unit.angle,
              messages.screen = TRUE, keep.NA = TRUE)
+    NULL
   }
+  if (exists(".variog4.nomessage", w=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
   res$omnidirectional <- variog(geodata=geodata,
-                                uvec=uvec, trend = trend,
+                                uvec=uvec, breaks = breaks, trend = trend,
                                 lambda = lambda, option = option,
                                 estimator.type = estimator.type,
                                 nugget.tolerance = nugget.tolerance,
@@ -354,18 +338,12 @@
   if (same.plot) {
     xx <- x[[5]]$u
     yy <- cbind(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v)
-    if (omnidirectional)
-      yy <- cbind(x[[5]]$v, yy)
-    if (is.null(GP$lty))
-      GP$lty <- 1:5
-    if (is.null(GP$lwd))
-      GP$lwd <- 1
-    if (is.null(GP$col))
-      GP$col <- 1:5
-    if (is.null(GP$pch))
-      GP$pch <- NULL
-    if (is.null(GP$type))
-      GP$type <- "l"
+    if (omnidirectional) yy <- cbind(x[[5]]$v, yy)
+    if (is.null(GP$lty)) GP$lty <- 1:5
+    if (is.null(GP$lwd)) GP$lwd <- 1
+    if (is.null(GP$col)) GP$col <- 1:5
+    if (is.null(GP$pch)) GP$pch <- NULL
+    if (is.null(GP$type)) GP$type <- "l"
     matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd, col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab, xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))
     if (legend) {
       if (omnidirectional) {
@@ -427,13 +405,11 @@
     }
     if (is.null(GP$col)) {
       GP$col <- rep(1, 4)
-      if (omnidirectional)
-        GP$col <- c(GP$col, 1)
+      if (omnidirectional) GP$col <- c(GP$col, 1)
     }
     else {
       if (length(GP$col) == 1)
-        if (omnidirectional)
-          GP$col <- rep(GP$col, 5)
+        if (omnidirectional) GP$col <- rep(GP$col, 5)
         else GP$col <- rep(GP$col, 4)
       if (length(GP$col) == 2)
         if (omnidirectional)
@@ -499,58 +475,31 @@
 
 
 "rfm.bin" <-
-  function (cloud, l = 15, uvec = "default", nugget.tolerance, 
+  function (cloud, l = 13, uvec = "default", breaks = "default", nugget.tolerance, 
             estimator.type = c("classical", "modulus"), bin.cloud = FALSE,
             max.dist, keep.NA = FALSE)
 {
-  if (all(uvec == "default")) 
-    uvec <- seq(0, max(cloud$u), l = l)
   estimator.type <- match.arg(estimator.type)
-  ##  if(nugget.tolerance > 0) {
-  ##    dnug <- mean(cloud$u[cloud$u <= nugget.tolerance])
-  ##    cloud$u[cloud$u <= nugget.tolerance] <- 0
-  ##    uvec <- uvec[uvec > nugget.tolerance]
-  ##  }
-  ##  u <- c(0, uvec)
-  ##  n <- length(u)
-  if(all(uvec == "default"))
-    uvec <- seq(0, max.dist, l = 15)
-  ubin <- c(0, uvec)
-  nvec <- length(ubin)
-  d <- 0.5 * diff(ubin[2:nvec])
-  bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 2] + ubin[
-                                                                 nvec]))
-  if(uvec[1] == 0 & nugget.tolerance <= 1e-12)
-    uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-  if(nugget.tolerance > 1e-12) {
-    bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >
-                                                nugget.tolerance])
-    uvec <- c(0, (bins.lim[ - (1:2)] - 0.5 * diff(bins.lim)[
-                                                            -1]))
-  }
+  dbins <- define.bins(max.dist = max(cloud$u), uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
+  uvec <- dbins$uvec ; bins.lim <- dbins$bins.lim
   nbins <- nc <- length(bins.lim) - 1
-  if(is.null(max.dist))
-    max.dist <- max(bins.lim)
+  if(is.null(max.dist)) max.dist <- max(bins.lim)
   min.dist <- min(cloud$u)
-  ##	d <- 0.5 * (u[3:n] - u[2:(n - 1)])
-  ##	low <- c(0, (u[2:(n - 1)] + d))
-  ##	high <- c((u[3:n] - d), (d[n - 2] + u[n]))
-  ##	nc <- n - 1
   if (!is.matrix(cloud$v)) {
     vbin <- rep(0, nc)
     nbin <- rep(0, nc)
     sdbin <- rep(0, nc)
-    if (bin.cloud == TRUE) 
-      bins.clouds <- list()
+    if (bin.cloud == TRUE | bin.cloud == 'diff') bins.clouds <- list()
     for (i in 1:nc) {
-       ind <- (cloud$u > bins.lim[i]) & (cloud$u <= bins.lim[i+1])
+      ind <- (cloud$u > bins.lim[i]) & (cloud$u <= bins.lim[i+1])
       vbin[i] <- mean(cloud$v[ind])
-      if (bin.cloud == TRUE) bins.clouds[[i]] <- cloud$v[ind]
-       nbin[i] <- sum(ind)
+      nbin[i] <- sum(ind)
       if (estimator.type == "modulus") 
         vbin[i] <- ((vbin[i])^4)/(0.914 + (0.988/nbin[i]))
-       if (nbin[i] > 0) sdbin[i] <- sqrt(var(cloud$v[ind]))
+      if (nbin[i] > 0) sdbin[i] <- sqrt(var(cloud$v[ind]))
       else sdbin[i] <- NA
+      if (bin.cloud == TRUE) bins.clouds[[i]] <- cloud$v[ind]
+      if (bin.cloud == 'diff') bins.clouds[[i]] <- cloud$d[ind]
       NULL
     }
     if (uvec[1] == 0) 
@@ -559,9 +508,10 @@
       ind <- (cloud$u == 0)
       n.zero <- sum(ind)
       v.zero <- mean(cloud$v[ind])
-      if (bin.cloud == TRUE) {
+      if (bin.cloud == TRUE | bin.cloud == 'diff') {
         bins.clouds[2:(length(bins.clouds) + 1)] <- bins.clouds[1:nc]
-        bins.clouds[[1]] <- cloud$v[ind]
+        if(bin.cloud == 'diff') bins.clouds[[1]] <- cloud$d[ind]
+        else bins.clouds[[1]] <- cloud$v[ind]
       }
       if (estimator.type == "modulus") 
         v.zero <- ((v.zero)^4)/(0.914 + (0.988/n.zero))
@@ -585,11 +535,11 @@
       n <- nbin
       sd <- sdbin
     }
-    if (bin.cloud == TRUE) 
+    if (bin.cloud == TRUE | bin.cloud == 'diff') 
       bins.clouds <- bins.clouds[!is.na(vbin)]
   }
   else {
-    if (bin.cloud == TRUE) 
+    if (bin.cloud == TRUE | bin.cloud == 'diff') 
       stop("option bins.cloud=TRUE allowed only for 1 variable")
     nvcols <- ncol(cloud$v)
     vbin <- matrix(0, nrow = nc, ncol = nvcols)
@@ -655,8 +605,8 @@
   if (nugget.tolerance > 1e-12) {
     u[1] <- 0
   }
-  result <- list(u = u, v = v, n = n, sd = sd, output.type = "bin", bins.lim = bins.lim)
-  if (!is.matrix(cloud$v) && bin.cloud == TRUE) 
+  result <- list(u = u, v = v, n = n, sd = sd, bins.lim = bins.lim, output.type = "bin")
+  if (!is.matrix(cloud$v) && (bin.cloud == TRUE | bin.cloud == 'diff'))
     result$bin.cloud <- bins.clouds
   ##  if (!is.null(class(cloud))) 
   if (length(class(cloud)) > 0) 
@@ -1146,3 +1096,32 @@
   return(invisible())
 }
 
+define.bins <-
+  function(max.dist, uvec = "default", breaks = "default", nugget.tolerance)
+{
+  if(all(breaks ==  "default")){
+    if (all(uvec == "default")){
+      bins.lim <- seq(0, max.dist, l = 13)
+      uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(breaks)])
+    }
+    else{
+      if (all(is.numeric(uvec))){
+        if(length(uvec) == 1)  uvec <- seq(0, max.dist, l = uvec)
+        uvec <- c(0, uvec)
+        nvec <- length(uvec)
+        d <- 0.5 * diff(uvec[2:nvec])
+        bins.lim <- c(0, (uvec[2:(nvec - 1)] + d), (d[nvec - 2] + uvec[nvec]))
+        bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
+      }
+      else stop("argument uvec can only take a numeric vector")
+    }
+  }
+  else{
+    if(any(!is.numeric(breaks))) stop("argument breaks can only take a numeric vector")
+    else{
+      bins.lim <- breaks
+      uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(bins.lim)])
+    }
+  }
+  return(list(uvec = uvec, bins.lim = bins.lim))
+}

@@ -255,7 +255,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{max.dist}{maximum distance between 2 data points. This
     information relevant for other functions which use outputs from
     \code{likfit}.  }
-  \item{trend.matrix}{the trend (covariates) matrix \eqn{X}.  }
+  \item{trend}{the trend (covariates) matrix \eqn{X}.  }
   \item{log.jacobian}{numerical value of the logarithm of the Jacobian of
     the transformation.  }
   \item{nospatial}{estimates for the model without the spatial

@@ -7,18 +7,18 @@
 \title{Exploratory Geostatistical Plots}
 
 \description{
-  This function produces a \eqn{2 \times 2}{2 x 2} graphics display
+  This function produces a \eqn{2 \times 2}{2 x 2} display
   with the following plots: 
-  the first indicates spatial locations,
-  the second is a  3-D plot with spatial locations and associated data values
-  (or a histogram of the data), and the last two shows data against the \emph{X} and
-  \emph{Y} coordinates.   
+  the first indicates the spatial locations,
+  the next two shows data against the \emph{X} and
+  \emph{Y} coordinates and the last is an histogram of the data values or optionally,
+  a 3-D plot with spatial locations and associated data values.
 }
 
 \usage{
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders = NULL, trend="cte", lambda = 1, col.data = 1,
-             weights.divide = FALSE, window.new = FALSE, \dots)
+             weights.divide = FALSE, scatter3d = FALSE, \dots)
 }
 
 %- maybe also `usage' for other objects do cumented here.
@@ -54,18 +54,21 @@
     the data is provided each  data is
     divided by the corresponding element in this vector.
     Defaults to \code{NULL}.  }
-  \item{window.new}{logical. If \code{TRUE} a new graphic device is openned,
-    otherwise the current one is used. Defaults to \code{FALSE}.  }
+  \item{scatter3d}{logical. If \code{TRUE} the last plot is
+    produced by
+    \code{\link[scatterplot3d]{scatterplot3d}} showing
+    a 3d plot with data locations and corresponding values.  }
   \item{\dots}{further arguments to be passed to the function
+    \code{\link{hist}} or
     \code{\link[scatterplot3d]{scatterplot3d}}.  }
 }
 
-\details{
-  By default, this function requires the package
-  \code{scatterplot3d} in order to produce a 3-D plot with data
-  locations and coordinates. If this package is not available an
-  histogram of the data replaces the 3-D plot.
-}
+%\details{
+%  By default, this function requires the package
+%  \code{scatterplot3d} in order to produce a 3-D plot with data
+%  locations and coordinates. If this package is not available an
+%  histogram of the data replaces the 3-D plot.
+%}
 
 \value{
   A plot is produced on the graphics device. No values are returned. 
@@ -86,8 +89,19 @@
 \seealso{\code{\link{points.geodata}}, \code{\link[scatterplot3d]{scatterplot3d}}. }
 
 \examples{
-if(is.R()) data(s100)
+require(geoR)
+data(s100)
 plot(s100)
+plot(s100, scatter3d=TRUE)
+
+data(ca20)                        
+plot(ca20, bor=borders)          # original data
+plot(ca20, trend=~altitude+area) # residuals from an external trend
+plot(ca20, trend='1st')          # residuals from a polynomial trend
+
+data(SIC)
+plot(sic.100, bor=sic.borders)           # original data
+plot(sic.100, bor=sic.borders, lambda=0) # logarithm of the data
 }
 
 \keyword{spatial}

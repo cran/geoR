@@ -1080,6 +1080,14 @@
              values <- obj$predictive$variance.simulations
              cat("mapping the variances of simulations from the predictive distribution\n")
            },
+           median = {
+             values <- obj$predictive$median
+             cat("mapping the medians of the predictive distribution\n")
+           },
+           uncertainty = {
+             values <- obj$predictive$uncertainty
+             cat("mapping the uncertainty of the predictive distribution\n")
+           },
            quantiles =
            {
              if(!is.vector(obj$predictive$quantiles))
@@ -1208,8 +1216,15 @@
   on.exit(detach(x))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
-  if(ncol(locations) != 2)
-  values.to.plot <- match.arg(values.to.plot)
+  if(ncol(locations) != 2) stop("locations must be a matrix or data-frame with two columns")
+  if(!is.numeric(values.to.plot)){
+    values.to.plot <- match.arg(values.to.plot,
+                                choices = c("mean", "variance",
+                                  "mean.simulations",
+                                  "variance.simulations",
+                                  "quantiles", "probabilities",
+                                  "simulation"))
+  }
   if(missing(borders)) borders <- NULL
   if(missing(number.col)) number.col <- NULL
   locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
@@ -1391,14 +1406,16 @@
     ##      warning("degenerated prior at phi = 0. Excluding value phi.discrete[1] = 0")
     ##      phi.discrete <- phi.discrete[phi.discrete > 1e-12]
     ##    }
+#    if(is.null(phi.discrete))
+#      stop("prior.control: argument phi.discrete with support points for phi must be provided\n")
+#    else{
     if(!is.null(phi.discrete)){
       discrete.diff <- diff(phi.discrete)
       if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
         stop("prior.control: the current implementation requires equally spaced values in the argument `phi.discrete`\n")
-    }
+    } 
   }
-  if(any(phi.discrete < 0))
-    stop("prior.control: negative values not allowed for parameter phi")
+  if(any(phi.discrete < 0)) stop("prior.control: negative values not allowed for parameter phi")
   ##
   ## tausq
   ##
@@ -1438,6 +1455,7 @@
       if(is.null(tausq.rel.discrete)) nsets <- length(phi.discrete)
       else nsets <- length(phi.discrete) * length(tausq.rel.discrete)
     }
+    else nsets <- 0
     if(sigmasq.prior == "sc.inv.chisq"){
       if(length(sigmasq) == nsets) dep.prior <- TRUE
       else dep.prior <- FALSE

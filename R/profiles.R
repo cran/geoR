@@ -310,8 +310,8 @@
         result$nugget.rel <- list(nugget.rel = c(
                                     tausq.rel, nugget.rel.values)[v.ord],
                                   proflik.nugget = c(loglik, pl.tausq.rel
-                                    )[v.ord], est.nugget.rel = c(tausq.rel,
-                                                loglik))
+                                    )[v.ord],
+                                  est.nugget.rel = c(tausq.rel,loglik))
       }
     }
     ##  
@@ -470,7 +470,7 @@
       result$rangenugget.rel <- list(range = as.numeric(levels(as.factor(rangenugget.rel.values[,1]))),
                                    nugget.rel = as.numeric(levels(as.factor(rangenugget.rel.values[,2]))), 
                                    proflik.rangenugget.rel = pl.phitausq.rel,
-                                   "est.rangenugget .rel" = c(phi, tausq.rel,
+                                   "est.rangenugget.rel" = c(phi, tausq.rel,
                                      loglik))
     }
   }
@@ -1637,7 +1637,7 @@ function(phi.lambda, ...)
          sill = expression(sigma^2),
          lambda = expression(lambda),
          nugget = expression(tau^2),
-         nugget.rel = expression(tau^2[rel]))
+         nugget.rel = expression(tau[rel]^2))
 }
 
 "proflik.main" <-

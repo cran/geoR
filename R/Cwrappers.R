@@ -94,6 +94,35 @@
     }
   }
 
+"diffpairs" <-
+  function(coords, data)
+  {
+    ## returns:
+    ##   - the lower triangle of the matrix with euclidean distances
+    ##     between pairs of points, 
+    ##   - the difference between data values at these locations
+    ##
+    coords <- as.matrix(coords)
+    data <- as.vector(data)
+    if(length(data) != nrow(coords)) stop('incompatible dimensions between data and coords')
+    dimc <- dim(coords)
+    if(dimc[2] == 1 & dimc[1] == 2) return(0)
+    else{
+      if(dimc[2] != 2)
+        stop("coords must have two columns")
+      nc <- dimc[1]
+      out <- as.double(rep(0, (nc * (nc-1))/2))
+      res <- .C("diffpairs",
+                as.double(coords[,1]),
+                as.double(coords[,2]),
+                as.double(data),
+                as.integer(nc),
+                dist = out, diff = out,
+                PACKAGE = "geoR")[c('dist','diff')]
+      return(res)
+    }
+  }
+
 "corr.diaglowertri" <-
   function(coords, cov.model, phi, kappa)
 {
