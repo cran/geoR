@@ -21,9 +21,9 @@
   \item{x}{an object of the class \code{krige.bayes}, with an output of
     the funtions \code{\link{krige.bayes}}. }
   \item{pars}{a vector with the names of one or more of the model parameters.
-    Defaults to \code{c("sigmasq", "phi", "tausq.rel")}. }
+    Defaults to all model parameters. Setting to -1 excludes the intercept.  }
   \item{density.est}{logical indication whether a line with the density 
-    estimation should be added to the plot.}
+    estimation should be added to the plot.  }
   \item{histogram}{logical indicating whether the histogram is included in the 
     plot.  }
   \item{\dots}{further arguments for the plotting functions and or for the 

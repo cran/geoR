@@ -57,7 +57,7 @@
   ##
   coords <- as.matrix(coords)
   data <- as.matrix(data)
-  if(nrow(coords) != nrow(data)) stop("coords and data have incompatible dimentions") 
+  if(nrow(coords) != nrow(data)) stop("coords and data have incompatible dimensions") 
   data.var <- apply(data, 2, var)
   n.data <- nrow(coords)
   n.datasets <- ncol(data)
@@ -127,8 +127,7 @@
   }
   ##
   if (option == "bin" && bin.cloud == FALSE && direction == "omnidirectional") {
-    if (missing(max.dist)) 
-      umax <- max(u)  
+    if (missing(max.dist)) umax <- max(u)  
     else umax <- max(u[u < max.dist])
     if (all(uvec == "default")) 
       uvec <- seq(0, umax, l = 13)
@@ -199,24 +198,21 @@
     if(direction != "omnidirectional"){
       ang.lower <- ang.rad - tol.rad
       ang.upper <- ang.rad + tol.rad
+     if(ang.lower >= 0 & ang.upper < pi)
+        ang.ind <- (!is.na(u.ang) & ((u.ang >= ang.lower) & (u.ang <= ang.upper)))
       if(ang.lower < 0)
-        ang.ind <- ((u.ang < ang.upper) | (u.ang > (pi + ang.lower)))
-      if(ang.lower >= 0 & ang.upper < pi)
-        ang.ind <- ((u.ang >= ang.lower) & (u.ang <= ang.upper))
+        ang.ind <- (!is.na(u.ang) & ((u.ang < ang.upper) | (u.ang > (pi + ang.lower))))
       if(ang.upper >= pi)
-        ang.ind <- ((u.ang > ang.lower) | (u.ang < (ang.upper - pi)))
+        ang.ind <- (!is.na(u.ang) & ((u.ang > ang.lower) | (u.ang < (ang.upper - pi))))
       ##ang.ind <- ((u.ang >= ang.rad - tol.rad)&(u.ang <= ang.rad + tol.rad))
       v <- v[ang.ind,,drop=FALSE]
       u <- u[ang.ind]
     }
     data <- drop(data)
     v <- drop(v)
-    if (option == "cloud") {
-      result <- list(u = u, v = v)
-    }
-    if (option == "bin") {
-      if (missing(max.dist)) 
-        umax <- max(u)
+    if (option == "cloud") result <- list(u = u, v = v)
+     if (option == "bin") {
+      if (missing(max.dist)) umax <- max(u)
       else umax <- max(u[u < max.dist]) 
       result <- rfm.bin(cloud = list(u = u, v = v),
                         estimator.type = estimator.type, 
@@ -288,6 +284,7 @@
             unit.angle = c("radians", "degrees"), messages.screen = TRUE, ...) 
 {
   require(mva)
+  if(missing(geodata)) geodata <- list(coords = coords, data = data)
   if(missing(nugget.tolerance)) nugget.tolerance <- 1e-12
   u <- as.vector(dist(as.matrix(coords)))
   if(length(direction) != 4)
@@ -315,7 +312,7 @@
   u <- NULL
   for(angle in direction){
     res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-
-      variog(coords=coords, data=data,
+      variog(geodata=geodata,
              uvec=uvec, trend = trend,
              lambda = lambda, option = option,
              estimator.type = estimator.type,
@@ -328,7 +325,7 @@
              unit.angle = unit.angle,
              messages.screen = TRUE, keep.NA = TRUE)
   }
-  res$omnidirectional <- variog(coords=coords, data=data,
+  res$omnidirectional <- variog(geodata=geodata,
                                 uvec=uvec, trend = trend,
                                 lambda = lambda, option = option,
                                 estimator.type = estimator.type,
@@ -343,8 +340,7 @@
                                 keep.NA = TRUE 
                                 )
   class(res) <- "variog4"
-  return(res)
-  
+  return(res) 
 }
 
 "plot.variog4" <-
@@ -547,15 +543,13 @@
     if (bin.cloud == TRUE) 
       bins.clouds <- list()
     for (i in 1:nc) {
-      ind <- (cloud$u > bins.lim[i]) & (cloud$u <= bins.lim[i+1])
+       ind <- (cloud$u > bins.lim[i]) & (cloud$u <= bins.lim[i+1])
       vbin[i] <- mean(cloud$v[ind])
-      if (bin.cloud == TRUE) 
-        bins.clouds[[i]] <- cloud$v[ind]
-      nbin[i] <- sum(ind)
+      if (bin.cloud == TRUE) bins.clouds[[i]] <- cloud$v[ind]
+       nbin[i] <- sum(ind)
       if (estimator.type == "modulus") 
         vbin[i] <- ((vbin[i])^4)/(0.914 + (0.988/nbin[i]))
-      if (nbin[i] > 0) 
-        sdbin[i] <- sqrt(var(cloud$v[ind]))
+       if (nbin[i] > 0) sdbin[i] <- sqrt(var(cloud$v[ind]))
       else sdbin[i] <- NA
       NULL
     }

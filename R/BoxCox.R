@@ -1,3 +1,18 @@
+##
+## Box-Cox transformation in the package geoR
+## ------------------------------------------
+##
+
+"boxcox.geodata" <- function(object, trend = "cte", ...)
+{
+  require(MASS)
+  xmat <- unclass(trend.spatial(trend = trend, geodata = object))
+  if (nrow(xmat) != length(object$data)) 
+    stop("coords and trend have incompatible sizes")
+  require(MASS)
+  boxcox(object$data ~ xmat + 0, ...)
+}
+
 "boxcox.fit" <-
   function(data, xmat, lambda, lambda2 = NULL, add.to.data = 0,...)
 {
@@ -356,6 +371,4 @@
   }
   return(res) 
 }
-
-  
 

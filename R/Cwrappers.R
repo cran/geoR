@@ -1,5 +1,6 @@
 ##
-## "wrappers" for pieces of C code used in geoR/geoS
+## "wrappers" for pieces of C code in geoR package
+## -----------------------------------------------
 ##
 "bilinearformXAY" <-
   function(X, lowerA, diagA, Y)

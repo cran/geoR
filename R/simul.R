@@ -359,7 +359,7 @@
       legend.krige(x.leg=x.leg, y.leg=y.leg,
                    values=locations$values[!is.na(locations$values)],
                    vertical = vertical, cex=cex.leg,
-                   col=ldots$col)
+                   col=ldots$col, ...)
     }
   }
   par(pty = pty.prev)

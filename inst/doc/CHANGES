@@ -1,4 +1,48 @@
 
+		==============================
+		CHANGES IN geoR VERSION 1.3-10
+		==============================
+
+NEW FEATURES
+
+     o more flexible input options for polygrid with now accepts also lists
+       data-frames and matrix in argument xgrid
+
+     o argument poly in polygrid replaces by borders for compatibility with other functions
+
+     o improvements in options and displays in hist.krige.bayes()
+
+     o date of the version is now also shown on the message issued when the package is loaded 	
+
+     o argument borders in plot.geodata and points.geodata can now match an
+       element in the x argument
+
+     o argument col.seq in points.geodata now accepts option "gray" to automatically
+       produce gray scale
+
+     o internal changes to improve code robustness
+	
+     o method boxcox.geodata()
+
+
+BUGS
+
+     o bug fix in plot for parameter phi in plot.krige.bayes()
+
+     o bug fix in variofit when using fix.kappa = F
+
+     o bug fix in likfit() when searching for multiple initial values in the anisotropy
+       parameters in the case when phi = 0 provides the best value
+ 
+     o bug fix/improvement in legend.krige() to allow for zlim
+ 	affecting image.krige(), image.grf() and image.krige.bayes()	
+
+     o in as.geodata() when covariates and repeated locations present
+
+     o in variog4() when trend or repeated locations present
+
+
+
 		=============================
 		CHANGES IN geoR VERSION 1.3-9
 		=============================

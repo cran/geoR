@@ -148,7 +148,7 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
 }
 
 \value{
-  An object of the \code{\link{class}} \code{"variomodel"} which is list with the following components:
+  An object of the \code{\link{class}} \code{"variomodel"} and \code{"variofit"} which is list with the following components:
   \item{nugget}{value of the nugget parameter. An estimated value if
     \code{fix.nugget = FALSE} or a fixed value if \code{fix.nugget = TRUE}.  }
   \item{cov.pars}{a two elements vector with estimated values of the covariance
@@ -159,17 +159,18 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   \item{max.dist}{maximum distance considered in the variogram fitting.
   }
   \item{minimisation.function}{minimization function used.  }
-  \item{message}{status messages returned by the function.  }
-  \item{wieghts}{a string indicating the
-    weights used for the variogram fitting.  }
+  \item{weights}{a string indicating the
+    type of weights used for the variogram fitting.  }
+  \item{method}{a string indicating the
+    type of variogram fitting method (OLS or WLS).  }
   \item{fix.kappa}{logical indicating whether the parameter \eqn{\kappa}{kappa} was
     fixed.  }
   \item{fix.nugget}{logical indicating whether the nugget parameter was
     fixed.  }
   \item{lambda}{transformation parameters inherith from the object
     provided in the argument \code{vario}.  }
+  \item{message}{status messages returned by the function.  }  
   \item{call}{the function call.  }
-  
 }
 
 \references{

@@ -3,7 +3,8 @@ InvChisquare            The (Scaled) Inverse Chi-Squared Distribution
 SIC                     Spatial Interpolation Comparison data
 as.geodata              Converts an Object to the Class "geodata"
 boxcox.fit              Parameter Estimation for the Box-Cox
-                        transformation
+                        Transformation
+boxcox.geodata          Box-Cox transformation for geodata objects
 ca20                    Calcium content in soil samples
 coords.aniso            Geometric Anisotropy Correction
 cov.spatial             Computes Value of the Covariance Function

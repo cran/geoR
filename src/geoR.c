@@ -6,7 +6,7 @@
 #include <Rmath.h>
 #include <S.h>
 
-#define Integer long
+#define Integer int
 #define Real double
 
 Real geoRmatern(Real uphi, Real kappa)

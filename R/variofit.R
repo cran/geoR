@@ -20,7 +20,7 @@
             messages.screen = TRUE, ...) 
 {
   call.fc <- match.call()
-  if(class(vario) != "variogram")
+  if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
     warning("object vario should preferably  be of the class \"variogram\"")
   weights <- match.arg(weights)
   if(missing(minimisation.function)){
@@ -42,9 +42,9 @@
                            "spherical", "circular", "cubic", "wave",
                            "linear", "power", "powered.exponential", "cauchy",
                            "gneiting", "gneiting.matern", "pure.nugget"))
-  if(cov.model == "matern" | cov.model == "powered.exponential" | 
-     cov.model == "cauchy" | cov.model == "gneiting.matern")
-    fix.kappa <- TRUE
+#  if(cov.model == "matern" | cov.model == "powered.exponential" | 
+#     cov.model == "cauchy" | cov.model == "gneiting.matern")
+#    fix.kappa <- TRUE
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once\n")
   if (!is.null(simul.number)) 
@@ -257,14 +257,17 @@
         result <- optim(ini, loss.vario, method = "L-BFGS-B",
                         hessian = TRUE, lower = lower,
                         g.l = .global.list, ...)
-        ##op.sem <- options()$show.error.messages
-        ##options(show.error.messages = FALSE)
-        require(methods)
-        hess <- trySilent(solve(as.matrix(result$hessian)))
-        ##options(show.error.messages = op.sem)
-        if(!inherits(hess, "try-error"))
-          hess <- sqrt(diag(hess))
-        else print("WARNING: hessian could not be computed")
+#        require(methods)
+#        if(exists("trySilent"))
+#          hess <- trySilent(solve(as.matrix(result$hessian)))
+#        else{
+#          op.sem <- options()$show.error.messages
+#          options(show.error.messages = FALSE)
+#          hess <- try(solve(as.matrix(result$hessian)))
+#          options(show.error.messages = op.sem)
+#        }
+#        if(!inherits(hess, "try-error")) hess <- sqrt(diag(hess))
+#        else print("WARNING: unable to compute the hessian")
       }
       value <- result$value
       message <- paste(minimisation.function, "convergence code:", result$convergence)
@@ -300,15 +303,15 @@
                      trend = vario$trend, beta.ols = vario$beta.ols,
                      max.dist = max.dist, 
                      minimisation.function = minimisation.function)
-  if(exists("hess")) estimation$hessian <- hess
+#  if(exists("hess")) estimation$hessian <- hess
   estimation$weights <- weights
   if(weights == "equal") estimation$method <- "OLS"
   else estimation$method <- "WLS"
   estimation$fix.nugget <- fix.nugget
   estimation$fix.kappa <- fix.kappa
   estimation$lambda <- vario$lambda
-  estimation$call <- call.fc
   estimation$message <- message
+  estimation$call <- call.fc
   class(estimation) <- c("variomodel", "variofit")
   return(estimation)
 }
@@ -470,7 +473,7 @@
 "print.summary.variomodel" <-
   function(x, digits = "default", ...)
 {
-  if(class(x) != "summary.variomodel")
+  if(length(class(x)) == 0 || all(class(x) != "summary.variomodel"))
     stop("object is not of the class \"summary.variomodel\"")
   if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits

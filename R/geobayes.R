@@ -39,6 +39,7 @@
   if(missing(model))
     model <- model.control()
   else{
+##    if(is.null(class(model)) || class(model) != "model.geoR"){
     if(length(class(model)) == 0 || class(model) != "model.geoR"){
       if(!is.list(model))
         stop("krige.bayes: the argument model only takes a list or an output of the function model.control")
@@ -77,6 +78,7 @@
   if(missing(prior))
     prior <- prior.control()
   else{
+##    if(is.null(class(prior)) || class(prior) != "prior.geoR"){
     if(length(class(prior)) == 0 || class(prior) != "prior.geoR"){
       if(!is.list(prior))
         stop("krige.bayes: the argument prior only takes a list or an output of the function prior.control")
@@ -193,6 +195,7 @@
   if(missing(output))
     output <- output.control()
   else{
+##    if(is.null(class(output)) || class(output) != "output.geoR"){
     if(length(class(output)) == 0 || class(output) != "output.geoR"){
       if(!is.list(output))
         stop("krige.bayes: the argument output only takes a list or an output of the function output.control")
@@ -322,6 +325,8 @@
         stop("krige.bayes: model$trend.d and model$trend.l must have similar specification\n")
     }
     else{
+##      if((!is.null(class(model$trend.d)) && class(model$trend.d) == "trend.spatial") &
+##         (!is.null(class(model$trend.l)) && class(model$trend.l) == "trend.spatial")){
       if((length(class(model$trend.d)) > 0 && class(model$trend.d) == "trend.spatial") &
          (length(class(model$trend.l)) > 0 && class(model$trend.l) == "trend.spatial")){
         if(ncol(model$trend.d) != ncol(model$trend.l))
@@ -1144,6 +1149,8 @@
             x.leg, y.leg, cex.leg = 0.75, vertical = FALSE, ...) 
 {
   if(missing(x)) x <- NULL
+  attach(x)
+  on.exit(detach(x))
   if(missing(locations))
     locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -1183,7 +1190,8 @@
   if(!is.null(x.leg) & !is.null(y.leg)){
     legend.krige(x.leg=x.leg, y.leg=y.leg,
                  values=locations$values,
-                 vertical = vertical, cex=cex.leg, col=dots.l$col)
+                 vertical = vertical, cex=cex.leg,
+                 col=dots.l$col, ...)
   }
   par(pty=pty.prev)
   return(invisible())
@@ -1196,6 +1204,8 @@
               "quantiles", "probabilities", "simulation"), number.col, ...) 
 {
   if(missing(x)) x <- NULL
+  attach(x)
+  on.exit(detach(x))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
@@ -1238,6 +1248,8 @@
 
 "post2prior" <- function(obj)
 {
+  if(length(class(obj)) == 0)
+    stop("post.prior: argument must be an object of the class `krige.bayes` or `posterior.krige.bayes`")
   if(any(class(obj) == "krige.bayes")) obj <- obj$posterior
   if(all(class(obj) != "posterior.krige.bayes"))
     stop("post.prior: argument must be an object of the class `krige.bayes` or `posterior.krige.bayes`")
@@ -1440,10 +1452,22 @@
         if((length(beta))^2 != length(beta.var.std))
           stop("prior.control: beta and beta.var.std have incompatible dimensions")
         require(methods)
-        if(inherits(trySilent(solve.geoR(beta.var.std)), "try-error"))
-          stop("prior.control: singular matrix in beta.var.std")
-        if(inherits(trySilent(chol(beta.var.std)), "try-error"))
-          stop("prior.control: no Cholesky decomposition for beta.var.std")
+        if(exists("trySilent")){
+          if(inherits(trySilent(solve.geoR(beta.var.std)), "try-error"))
+            stop("prior.control: singular matrix in beta.var.std")
+          if(inherits(trySilent(chol(beta.var.std)), "try-error"))
+            stop("prior.control: no Cholesky decomposition for beta.var.std")
+        }
+        else{
+          error.now <- options()$show.error.messages
+          if (is.null(error.now) | error.now) 
+            on.exit(options(show.error.messages = TRUE))
+          options(show.error.messages = FALSE)
+          if(inherits(try(solve.geoR(beta.var.std)), "try-error"))
+            stop("prior.control: singular matrix in beta.var.std")
+          if(inherits(try(chol(beta.var.std)), "try-error"))
+            stop("prior.control: no Cholesky decomposition for beta.var.std")
+        }
         if(any(beta.var.std != t(beta.var.std)))
           stop("prior.control: non symmetric matrix in beta.var.std")
       }
@@ -1830,12 +1854,12 @@
 {
   call.fn <- match.call()
   ##
-  if(class(kb.obj) == "krige.bayes")
-    post <- kb.obj$posterior
-  if(class(kb.obj) == "posterior.krige.bayes")
-    post <- kb.obj
-  if((class(kb.obj) != "krige.bayes") &
-     (class(kb.obj) != "posterior.krige.bayes"))
+  if(length(class(kb.obj)) == 0)
+    stop("kb.obj must be an object with an output of krige.bayes")
+  if(any(class(kb.obj) == "krige.bayes")) post <- kb.obj$posterior
+  if(any(class(kb.obj) == "posterior.krige.bayes")) post <- kb.obj
+  if(all(class(kb.obj) != "krige.bayes") &
+     all(class(kb.obj) != "posterior.krige.bayes"))
     stop("kb.obj must be an object with an output of krige.bayes")
   ##
   ## preparing data frame to store the output 
@@ -1976,7 +2000,7 @@
   function(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
            type = c("bars", "h", "l", "b", "o", "p"), thin, ...)
 {
-  if(all(class(x) != "krige.bayes"))
+  if(length(class(krige.bayes)) > 0 && all(class(x) != "krige.bayes"))
     stop("object x must be of the class `krige.bayes`")
   if(missing(thin)) thin <- c(1,1)
   if(length(thin) == 1) thin <- rep(thin, 2)
@@ -2008,17 +2032,18 @@
       ind <- seq(1, nphi, by = thin[1])
       phi.vals <- phi.vals[ind]
       phi.table <- phi.table[,ind]
-      if(is.null(ldots$ylim)) ldots$ylim <- c(0, 1.1*max(phi.table))
+      if(is.null(ldots$ylim)) phi.ylim <- c(0, 1.1*max(phi.table))
+      else phi.ylim <- ldots$ylim
       if(type == "bars")
         barplot(phi.table, legend.text=c("prior", "posterior"),
-                col=col, ylim = ldots$yl, 
+                beside=TRUE, col=col, ylim = phi.ylim, 
                 xlab = expression(phi), ylab = "density")
       else{
         if(type=="h")
           phi.vals <- cbind(phi.vals - phi.off, 
                             phi.vals + phi.off)
         matplot(phi.vals, t(phi.table), type = type,
-                lwd = lwd, lty = lty, ylim = ldots$yl, 
+                lwd = lwd, lty = lty, ylim = phi.ylim, 
                 col = col, xlab = expression(phi),
                 ylab = "density", add = add)
       }
@@ -2038,18 +2063,19 @@
       ind <- seq(1, ntausq.rel, by = thin[2])
       tausq.rel.vals <- tausq.rel.vals[ind]
       tausq.rel.table <- tausq.rel.table[,ind]
-      if(is.null(ldots$ylim)) ldots$ylim <- c(0,1.1*max(tausq.rel.table))
+      if(is.null(ldots$ylim)) tau.ylim <- c(0, 1.1*max(tausq.rel.table))
+      else tau.ylim <- ldots$ylim
       if(type == "bars")
         barplot(tausq.rel.table, legend.text=c("prior", "posterior"),
-                beside=TRUE, col=col, ylim = ldots$yl, 
+                beside=TRUE, col=col, ylim = tau.ylim, 
                 xlab = expression(tau[rel]^2), ylab = "density")
       else{
         if(type=="h")
           tausq.rel.vals <- cbind(tausq.rel.vals - tausq.rel.off,
                                   tausq.rel.vals + tausq.rel.off)
-        matplot(t(tausq.rel.table), type = type, lwd = lwd, lty = lty,
-                col = col, ylim = ldots$yl, 
-                xlab = expression(tausq.rel), ylab = "density", add = add)
+        matplot(tausq.rel.vals, t(tausq.rel.table), type = type, lwd = lwd, lty = lty,
+                col = col, ylim = tau.ylim, 
+                xlab = expression(tau[rel]^2), ylab = "density", add = add)
       }
     }
   }
@@ -2087,14 +2113,20 @@
            histogram = TRUE, ...)
 {
   Ldots <- list(...)
-  if(missing(pars)){
-    pars <- c("sigmasq", "phi")
-    if(x$prior$tausq.rel$status == "random")
-      pars <- c(pars, "tausq")
+  if(missing(pars) | (!missing(pars) && pars == -1)){
+    ppars <- names(x$posterior$sample)
+    np <- length(ppars) 
+    if(x$prior$tausq.rel$status != "random") ppars <- ppars[-np]
+    if(x$prior$phi$status != "random") ppars <- ppars[-(np-1)]
+    if(x$prior$sigmasq$status != "random") ppars <- ppars[-(np-2)]
+    if((!missing(pars) && pars == -1)) ppars <- ppars[-1]
+    pars <- ppars
   }
   res <- list(histogram = list(), density.estimation = list())
   for(ipar in pars){
-    if(ipar == "beta") xl <- expression(beta)
+    if(substr(ipar, 1,4) == "beta")
+      if(nchar(ipar) == 4) xl <- expression(beta)
+      else xl <- substitute(beta[N], list(N=as.numeric(strsplit(ipar, "beta")[[1]][2])))
     if(ipar == "sigmasq") xl <- expression(sigma^2)
     if(ipar == "phi") xl <- expression(phi)
     if(ipar == "tausq.rel") xl <- expression(tau[rel]^2)

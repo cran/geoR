@@ -327,6 +327,9 @@ post2prior(obj)
 
   Further information about \bold{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.  
+
+  For a extended list of examples of the usage
+  see \url{http://www.est.ufpr.br/geoR/geoRdoc/examples.krige.bayes.R}.
 }
 
 \author{
@@ -398,6 +401,11 @@ image(ex.bayes, val= "simulation", number.col=2,
 #
 par(op)
 }
+##
+## For a extended list of exemples of the usage of krige.bayes()
+## see http://www.est.ufpr.br/geoR/geoRdoc/examples.krige.bayes.R
+##
+
 }
 \keyword{spatial}
 \keyword{models}

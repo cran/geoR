@@ -12,14 +12,15 @@
 }
 
 \usage{
-polygrid(xgrid, ygrid, poly, vec.inout = FALSE)
+polygrid(xgrid, ygrid, borders, vec.inout = FALSE)
 }
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
   \item{xgrid}{grid values in the \emph{x}-direction.  }
   \item{ygrid}{grid values in the \emph{y}-direction.  }
-  \item{poly}{a matrix with the polygon coordinates.  }
+  \item{borders}{a matrix with polygon coordinates defining the
+    borders of the region.  }
   \item{vec.inout}{logical. If \code{TRUE} a logical vector is included
     in the output indicating whether each point of the grid is inside
     the polygon.  Defaults to \code{FALSE}.  }

@@ -1,3 +1,53 @@
+##
+## Correlations and covariances for the package geoR
+## -------------------------------------------------
+##
+## Includes functions to compute cor. and cov,
+## vectors and matrices and related operations
+## 
+
+"matern" <-
+  function (u, phi, kappa) 
+{
+  if(is.vector(u)) names(u) <- NULL
+  if(is.matrix(u)) dimnames(u) <- list(NULL, NULL)
+  uphi <- u/phi
+  uphi <- ifelse(u > 0,
+                 (((2^(-(kappa-1)))/gamma(kappa)) *
+                  (uphi^kappa) *
+                  besselK(x=uphi, nu=kappa)), 1)    
+  uphi[u > 600*phi] <- 0 
+  return(uphi)
+}
+
+"cor.number" <- 
+  function(cov.model= c("exponential", "matern", "gaussian",
+             "spherical", "circular", "linear", "cubic", "wave", "power",
+             "powered.exponential", "cauchy", "gneiting",
+             "gneiting.matern", "pure.nugget"))
+{
+###	WARNING: codes below MUST be the same as in the C code
+###              "cor_diag"
+  cov.model <- match.arg(cov.model)
+  cornumber <- switch(cov.model,
+                      pure.nugget = as.integer(1),
+                      exponential = as.integer(2),
+                      spherical = as.integer(3),
+                      gaussian = as.integer(4),
+                      wave = as.integer(5),
+                      cubic = as.integer(6),
+                      power = as.integer(7),
+                      powered.exponential = as.integer(8),
+                      cauchy = as.integer(9),
+                      gneiting = as.integer(10),
+                      circular = as.integer(11),
+                      matern = as.integer(12),
+                      gneiting.matern = as.integer(13),
+                      stop("wrong or no specification of cov.model")
+                      )
+  return(cornumber)
+}
+
 "cov.spatial" <-
   function(obj, cov.model = c("matern", "exponential", "gaussian",
                   "spherical", "circular", "cubic", "wave",
@@ -101,276 +151,8 @@
   return(covs)
 }
 
-"cor.number" <- 
-  function(cov.model= c("exponential", "matern", "gaussian",
-             "spherical", "circular", "linear", "cubic", "wave", "power",
-             "powered.exponential", "cauchy", "gneiting",
-             "gneiting.matern", "pure.nugget"))
-{
-###	WARNING: codes above must be the same as in the C code
-###              "cor_diag"
-  
-  cov.model <- match.arg(cov.model)
-  cornumber <- switch(cov.model,
-                      pure.nugget = as.integer(1),
-                      exponential = as.integer(2),
-                      spherical = as.integer(3),
-                      gaussian = as.integer(4),
-                      wave = as.integer(5),
-                      cubic = as.integer(6),
-                      power = as.integer(7),
-                      powered.exponential = as.integer(8),
-                      cauchy = as.integer(9),
-                      gneiting = as.integer(10),
-                      circular = as.integer(11),
-                      matern = as.integer(12),
-                      gneiting.matern = as.integer(13),
-                      stop("wrong or no specification of cov.model")
-                      )
-  return(cornumber)
-}
-
-"read.geodata" <-
-  function(file, header = FALSE, coords.col= 1:2, data.col = 3,
-           data.names = NULL, covar.col = NULL, covar.names = "header",
-           realisations = NULL,
-           na.action = c("ifany", "ifdata", "ifcovar"),
-           rep.data.action, rep.covar.action, ...)
-{
-  call.fc <- match.call()
-  ##
-  obj <- read.table(file = file, header = header, ...)
-  if(covar.names == "header"){
-    if(!is.null(covar.col)){
-      col.names <- names(obj)
-      covar.names <- col.names[covar.col]
-    }
-    else covar.names <- NULL
-  }
-  ##
-  if(missing(rep.data.action)) rep.data.action <- "none"
-  if(!is.function(rep.data.action))
-    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
-  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
-  if(!is.function(rep.covar.action))
-    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
-  ##
-  res <- as.geodata(obj = obj, coords.col = coords.col, data.col = data.col,
-                    covar.col = covar.col, covar.names = covar.names,
-                    realisations = realisations, rep.data.action = rep.data.action,
-                    rep.covar.action = rep.covar.action)
-  res$call <- call.fc
-  return(res)
-}
-
-"as.geodata" <-
-  function(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names", realisations = NULL,
-           na.action = c("ifany", "ifdata", "ifcovar", "none"),
-           rep.data.action, rep.covar.action)
-{
-  if(!is.matrix(obj) & !is.data.frame(obj))
-    stop("object must be a matrix or data.frame")
-  if(!is.null(data.names) & length(data.col) < 2)
-    stop("data.names allowed only if there is more than 1 column of data")
-  res <- list()
-  ##
-  ## testing for NA's setting the coordinates of the data locations
-  ##
-  if(any(is.na(obj[,coords.col]))){
-    warning("NA's not allowed in the coordinates")
-    obj <- obj[complete.cases(obj),,drop = FALSE]
-    warning("eliminating rows with NA's")
-  }
-  res$coords <- as.matrix(obj[,coords.col])
-  ##
-  ## setting the data
-  ##
-  res$data <- as.matrix(obj[,data.col])
-  if(length(data.col) == 1) res$data <- as.vector(res$data)
-  else if(!is.null(data.names)) colnames(res$data) <- data.names
-  ##
-  ## setting the covariates, if the case 
-  ##
-  if(!is.null(covar.col)){
-    res[[3]] <- as.data.frame(obj[,covar.col])
-    if(covar.names == "obj.names"){
-      if(is.matrix(obj))      
-        col.names <- dimnames(obj)[2]
-      if(is.data.frame(obj))      
-        col.names <- names(obj)
-    }
-    names(res)[3] <- "covariate"
-    if(covar.names == "obj.names")
-      if(is.null(col.names)) names(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
-      else  names(res[[3]]) <- col.names[covar.col]
-    else
-      names(res[[3]]) <- covar.names
-  }
-  ##
-  ## Dealing with NA's
-  ##
-  na.action <- match.arg(na.action)
-  if(na.action != "none"){
-    if(na.action == "ifany")
-      na.data <- na.covar <- TRUE
-    if(na.action == "ifdata")
-      {na.data <- TRUE; na.covar <- FALSE}
-    if(na.action == "ifcovar")
-      {na.data <- FALSE; na.covar <- TRUE}
-    not.na <- function(x) !any(is.na(x))
-    if(na.data){
-      ind <- apply(as.matrix(res$data), 1, not.na)
-      if(!all(ind)){
-        res$coords <- res$coords[ind,]
-        res$data <- drop(as.matrix(res$data)[ind,])
-        if(!is.null(covar.col))
-          res[[3]] <- drop(as.matrix(res[[3]][ind,]))
-        cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the data\n")) 
-      }
-    }
-    if(!is.null(covar.col) && na.covar){
-      ind <- apply(as.matrix(res[[3]]), 1, not.na)
-      if(!all(ind)){
-        res$coords <- res$coords[ind,]
-        res$data <- drop(as.matrix(res$data)[ind,])
-        if(!is.null(covar.col))
-          res[[3]] <- drop(res[[3]][ind,])
-        cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the covariate(s)\n")) 
-      }
-    }
-  }
-  ##
-  ## Checking whether there are data from different realisations
-  ##
-  if(is.null(realisations)) realisations <- as.factor(rep(1, nrow(res$coords)))
-  else{
-    if(is.numeric(realisations) && length(realisations) == 1)
-      realisations <- as.factor(obj[,realisations])
-    res$realisations <- realisations
-  }
-  if(length(realisations) != nrow(res$coords))
-    stop("realisations and coords have incompatible dimensions")
-  ##
-  ## Checking whether there are data at coincident locations
-  ## and dealing with this acoording to the value of the argument
-  ## rep.data.action 
-  ##
-  if(missing(rep.data.action)) rep.data.action <- "none"
-  if(!is.function(rep.data.action))
-    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
-  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
-  if(!is.function(rep.covar.action))
-    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
-  require(mva)
-  if(is.function(rep.data.action) || rep.data.action == "first"){
-    rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
-    rep.dup <- duplicated(rep.lev)
-    if(sum(rep.dup) > 0)
-      cat(paste("as.geodata:", sum(rep.dup), "redundant locations found"))
-    res$coords <- res$coords[!rep.dup,]
-    measure.var.f <- function(x) return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
-    res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
-    rep.action.f <- function(x, rep.action){ 
-      if(!is.function(rep.action) && rep.action == "first")
-        return(x[!rep.dup])
-      else
-        return((as.vector(by(x, rep.lev, rep.action))[codes(factor(rep.lev))])[!rep.dup])
-    }
-    res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
-    if(!is.null(covar.col))
-      res[[3]] <- drop(apply(res[[3]], 2, rep.action.f, rep.action=rep.covar.action))
-    if(!is.null(res$realisations))
-      res$realisations <- res$realisations[!rep.dup]
-  }
-  else{
-    check.coincide <- function(x){sum(dist(x) < 1e-12) > 0}
-    any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
-    any.coincide <- as.vector(unlist(any.coincide))
-    if(sum(any.coincide) > 0)
-      cat("WARNING: there are data at coincident locations, some of the geoR's functions will not work.\n")
-  }
-  ##
-  class(res) <- "geodata"
-  return(res)
-}
-
-"coords.aniso" <- 
-  function(coords, aniso.pars, reverse=FALSE)
-{
-  coords <- as.matrix(coords)
-  n <- nrow(coords)
-  if(length(aniso.pars) != 2)
-    stop("argument aniso.pars must be a vector with 2 elementsm the anisotropy angle and anisotropy ratio, respectively")
-  psiA <- aniso.pars[1]
-  psiR <- aniso.pars[2]
-  if(psiR < 1){
-    psiR <- round(psiR, dig=8)
-    if(psiR < 1)
-      stop("anisotropy ratio must be greater than 1")
-  }
-  rm <- matrix(c(cos(psiA), -sin(psiA),
-                 sin(psiA), cos(psiA)),
-               ncol = 2)
-  tm <- diag(c(1, 1/psiR))
-  if(reverse)
-    coords.mod <- coords %*% solve(rm %*% tm)
-  else
-    coords.mod <- coords %*% rm %*% tm
-  return(coords.mod)
-}
-
-#"dist0.krige" <-
-#function (x0, coords) 
-#{
-#  if (length(x0) != 2) 
-#    stop(paste("length of x0 is", length(x0), "(it must be 2)"))
-#  coords[, 1] <- coords[, 1] - x0[1]
-#  coords[, 2] <- coords[, 2] - x0[2]
-#  return(sqrt(coords[, 1]^2 + coords[, 2]^2))
-#}
-
-
-"polygrid" <- 
-  function(xgrid, ygrid, poly, vec.inout = FALSE)
-{
-  if(is.R()){
-    if(require(splancs) == FALSE){
-      cat("ERROR: cannot run the function\n")
-      cat("package \"splancs\" should be installed/loaded")
-      return(invisible())
-    }
-  }
-  else library(splancs)
-  if(exists("inout")){
-    xygrid <- expand.grid(x = xgrid, y = ygrid)
-    ind <- as.vector(inout(pts=xygrid, poly=poly))
-    xypoly <- xygrid[ind == TRUE,  ]
-    if(vec.inout == FALSE)
-      return(xypoly)
-    else return(list(xypoly = xypoly, vec.inout = ind))
-  }
-  else{
-    cat("ERROR: cannot run the function\n")
-    cat("package \"splancs\" should be installed/loaded")
-    return(invisible())
-  }
-}
-
-#"variog.env" <-
-#  function (x.variog, coords, model.pars, nsim = 99, messages.screen = TRUE)  
-#{
-#  cat("This function has been made obsolete\n")
-#  cat("There are now two functions for variogram envelops:\n")
-#  cat(" - variog.env.model:\n")
-#  cat("       the same as the previous variog.env, based on the model")
-#  cat(" - variog.env.mc:\n")
-#  cat("       the new one based on permutations of the data")
-#  return(invisible())
-#}
-
 "varcov.spatial" <-
-  function (coords = NULL, dists.lowertri = NULL, cov.model = "matern",
+  function(coords = NULL, dists.lowertri = NULL, cov.model = "matern",
             kappa = 0.5, nugget = 0, cov.pars = stop("no cov.pars argument"), 
             inv = FALSE, det = FALSE,
             func.inv = c("cholesky", "eigen", "svd", "solve"),
@@ -384,6 +166,12 @@
 ##  options(show.error.message = FALSE)
 ##  on.exit(options(show.error.message = op.sem))
   require(methods)
+  if(!exists("trySilent")){
+    error.now <- options()$show.error.messages
+    if (is.null(error.now) | error.now) 
+      on.exit(options(show.error.messages = TRUE))
+    options(show.error.messages = FALSE)
+  }
   ##
   func.inv <- match.arg(func.inv)
   cov.model <- match.arg(cov.model,
@@ -447,7 +235,10 @@
   }
   if (inv | det | only.decomposition | sqrt.inv | only.inv.lower.diag) {
     if (func.inv == "cholesky") {
-      varcov.sqrt <- trySilent(chol(varcov))
+      if(exists("trySilent"))
+        varcov.sqrt <- trySilent(chol(varcov))
+      else
+        varcov.sqrt <- try(chol(varcov))
       if (inherits(varcov.sqrt, "try-error")) {
         if (try.another.decomposition){
           cat("trying another decomposition (svd)\n")
@@ -483,7 +274,10 @@
     }
     if (func.inv == "svd") {
       varcov.svd <- svd(varcov, nv = 0)
-      cov.logdeth <- trySilent(sum(log(sqrt(varcov.svd$d))))
+      if(exists("trySilent"))
+        cov.logdeth <- trySilent(sum(log(sqrt(varcov.svd$d))))
+      else
+        cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))))
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition){
           cat("trying another decomposition (eigen)\n")
@@ -513,7 +307,10 @@
     if (func.inv == "solve") {
       if (det) 
         stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
-      invcov <- trySilent(solve(varcov))
+      if(exists("trySilent"))
+        invcov <- trySilent(solve(varcov))
+      else
+        invcov <- try(solve(varcov))
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"
@@ -526,12 +323,24 @@
       else remove("varcov", frame = sys.nframe())
     }
     if (func.inv == "eigen") {
-      varcov.eig <- trySilent(eigen(varcov, symmetric = TRUE))
-      cov.logdeth <- trySilent(sum(log(sqrt(varcov.eig$val))))
-      if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
-        diag(varcov) <- 1.0001 * diag(varcov)
+      if(exists("trySilent")){
         varcov.eig <- trySilent(eigen(varcov, symmetric = TRUE))
         cov.logdeth <- trySilent(sum(log(sqrt(varcov.eig$val))))
+      }
+      else{
+        varcov.eig <- try(eigen(varcov, symmetric = TRUE))
+        cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
+      }
+      if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
+        diag(varcov) <- 1.0001 * diag(varcov)
+        if(exists("trySilent")){
+          varcov.eig <- trySilent(eigen(varcov, symmetric = TRUE))
+          cov.logdeth <- trySilent(sum(log(sqrt(varcov.eig$val))))
+        }
+        else{
+          varcov.eig <- try(eigen(varcov, symmetric = TRUE))
+          cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
+        }
         if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
           return(list(crash.parms = c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa)))
         }
@@ -585,20 +394,4 @@
   return(result)
 }
 
-"set.coords.lims" <-
-  function(coords, xlim, ylim)
-{
-  coords.lims <- apply(coords, 2, range)
-  if(!missing(xlim) && is.numeric(xlim)) coords.lims[,1] <- xlim[order(xlim)]
-  if(!missing(ylim) && is.numeric(ylim)) coords.lims[,2] <- ylim[order(ylim)]
-  coords.diff <- diff(coords.lims)
-  if (coords.diff[1] != coords.diff[2]) {
-    coords.diff.diff <- abs(diff(as.vector(coords.diff)))
-    ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[, ind.min] <-
-      coords.lims[, ind.min] +
-        c(-coords.diff.diff, coords.diff.diff)/2
-  }
-  return(coords.lims)
-}
 

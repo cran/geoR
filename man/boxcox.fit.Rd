@@ -8,7 +8,7 @@
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
-\title{Parameter Estimation for the Box-Cox transformation}
+\title{Parameter Estimation for the Box-Cox Transformation}
 
 \description{Parameter estimation and plotting of the results for the
   Box-Cox transformed normal distribution.
@@ -116,4 +116,8 @@ if(require(MASS)){
   boxcox.fit(data = trees[,3], xmat = trees[,1:2])
   }
 }
-\keyword{distribution}
+
+\keyword{regression}
+\keyword{models}
+\keyword{hplot}
+
