@@ -1,0 +1,12 @@
+Dados do livro:
+ Analise estatistica de dados geologicos
+ Autor Prof. Paulo Milton Barbosa Landim
+
+ Dados da Tabela 1, pagina 12
+
+ 1. EW : east-west coordinate
+ 2. NS : north-south coordinate
+ 3. A  : dados da variavel A
+ 4. B  : dados da variavel B
+
+

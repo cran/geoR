@@ -1,0 +1,10 @@
+This data set contains measurements of calcium content 
+in a 0-20 cm soil layer
+
+The columns corresponds to 
+ 1. leste   	: x-coordinate      
+ 2. norte   	: y-coordinate
+ 3. altitude	: altitude 
+ 4. area    	: code of area classification (1-3) 
+ 5. ca20	: calcuim content in a 0-20cm soil layer
+

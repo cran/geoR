@@ -1,0 +1,12 @@
+Dados de condutividade (saturada) hidráulica do solo.
+
+Dois aquivos:
+  1. Cruciani.dat contem
+        Amostra : id da amostra
+        X   	: coordenada x
+	Y	: coordenada y	
+	ksat	: condutividade saturada
+
+  2. Cruciani.borders
+        coordenadas das bordas da regiao em estudo
+

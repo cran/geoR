@@ -297,7 +297,7 @@
 "plot.1d" <-
   function(x, xlim, ylim, x1vals, ...)
 {
-  cat("data in 1-D\n")
+  #cat("data in 1-D\n")
   if(length(x1vals) == 1) col.ind <- 2
   else col.ind <- 1
   order.it <- order(x$coords[,col.ind])
@@ -468,4 +468,14 @@
   function(x, ...)
 {
   print.default(x, ...)
+}
+
+"lines.grf" <- function(x, ...){
+  if(attr(x, "sp.dim") != "1d")
+    stop("can only be used for simulations in  1-D")
+  if(is.matrix(x$data))
+    matplot(x$coords[,1], x$data, add=T, ...)
+  else
+    lines(x$coords[,1], x$data, ...)
+  return(invisible())
 }

@@ -669,6 +669,7 @@
       ##
       if(!is.null(borders.arg)) polygon(borders, lwd=2)
     }
+    if(!is.null(coords.data)) points(coords.data, pch=20)
   }
   par(pty = pty.prev)
   return(invisible())

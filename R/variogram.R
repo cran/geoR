@@ -9,6 +9,7 @@
        unit.angle = c("radians","degrees"), 
        messages, ...) 
 {
+  if(missing(geodata)) geodata <- list(coords=coords, data = data)
   if(! "package:stats" %in% search()) require(mva)
   if(! "package:stats" %in% search()) require(modreg)
   call.fc <- match.call()
@@ -77,7 +78,7 @@
   ##
   ## trend removal
   ##
-  xmat <- unclass(trend.spatial(trend = trend, geodata = list(coords=coords, data=data)))
+  xmat <- unclass(trend.spatial(trend = trend, geodata = geodata))
   if (nrow(xmat) != n.data) 
     stop("coords and trend have incompatible sizes")
   if (trend != "cte") {
@@ -729,6 +730,8 @@
   function (x, cov.model, cov.pars, nugget, kappa,
             max.dist, scaled = FALSE, ...)
 {
+  if(missing(x)) x <- seq(0, max.dist, l=100)
+  if(is.numeric(x) && missing(max.dist)) max.dist <- max(x, na.rm=TRUE)
   ## reading model/other components
   if(missing(cov.model)){
     if(missing(x) || is.null(x$cov.model)) 

@@ -4,6 +4,7 @@
 \alias{grf.aux2}
 \alias{grf.aux1}
 \alias{grfclass}
+\alias{lines.grf}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 

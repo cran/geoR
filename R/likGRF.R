@@ -680,7 +680,8 @@
     }
     lik.results$nospatial <- list(beta.ns = beta.ns, variance.ns = nugget.ns,
                                   loglik.ns = loglik.ns, npars.ns = npars.ns,
-                                  lambda.ns = lambda.ns)
+                                  lambda.ns = lambda.ns, AIC.ns = -2 * (loglik.ns - npars.ns),
+                                  BIC.ns = -2 * (loglik.ns - 0.5 * log(n) * npars.ns))
   }
   ##
   ## Assigning names to the components of the mean vector beta
@@ -1225,6 +1226,7 @@
   summ.lik$transformation  <- object$parameters.summary[c("lambda"),, drop=FALSE]
   summ.lik$likelihood <- list(log.L = object$loglik, n.params = as.integer(object$npars),
                                AIC = object$AIC, BIC = object$BIC)
+  summ.lik$ns.likelihood <- list(log.L = object$nospatial$loglik.ns, n.params = object$nospatial$npars.ns, AIC=object$nospatial$AIC.ns, BIC=object$nospatial$BIC.ns)
   summ.lik$estimated.pars <- dimnames(object$parameters.summary[object$parameters.summary[,1] == "estimated",])[[1]]
   summ.lik$call <- object$call
   class(summ.lik) <- "summary.likGRF"
@@ -1307,6 +1309,10 @@
   cat("Maximised Likelihood:")
   cat("\n")
   print(format(x$likelihood, digits=digits), ...)
+  cat("\n")
+  cat("non spatial model:")
+  cat("\n")
+  print(format(x$ns.likelihood, digits=digits), ...)
   cat("\n")
   cat("Call:")
   cat("\n")

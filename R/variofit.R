@@ -431,6 +431,8 @@
     loss <- sum(g.l$n * (g.l$v - gamma)^2)
   if (g.l$weights == "cressie") 
     loss <- sum((g.l$n/(gamma^2)) * (g.l$v - gamma)^2)
+  if(loss > (.Machine$double.xmax^0.5) | loss == Inf | loss == -Inf)
+    loss <- .Machine$double.xmax^0.5
   return(loss + penalty)
 }
 

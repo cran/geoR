@@ -38,7 +38,7 @@ rinvchisq(n, df, scale = 1/df)
   for \eqn{x > 0}.
   The mean and variance are \eqn{\frac{1}{(n-2)}}{1/(n-2)} and
   \eqn{\frac{2}{(n-4)(n-2)^2}}{2/((n-4)(n-2)^2)}.
-
+  
   The non-central chi-squared distribution with \code{df}\eqn{= n}
   degrees of freedom and non-centrality parameter \code{scale}
   \eqn{= S^2} has density
@@ -46,8 +46,7 @@ rinvchisq(n, df, scale = 1/df)
     f(x) = \frac{{n/2}^{n/2}}{\Gamma (n/2)} S^n {(1/x)}^{n/2+1}
     {e}^{-(n S^2)/(2x)}}{%
     f(x) = ((n/2)^(n/2))/(\Gamma (n/2)) S^n (1/x)^((n/2)+1) e^(-(n
-    S^2)/(2x))}
-  }
+    S^2)/(2x))},
   for \eqn{x \ge 0}.
   The first is a particular case of the latter for \eqn{\lambda = n/2}. 
 }

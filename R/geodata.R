@@ -193,6 +193,7 @@
 {
   x <- object
   res <- list()
+  res$n <- nrow(object$coords)
   res$coords.summary <- apply(x$coords, 2, range)
   rownames(res$coords.summary) <- c("min", "max")
   if(is.null(colnames(object$coords))) colnames(res$coords.summary) <- c("Coord.X", "Coord.Y")
@@ -213,6 +214,7 @@
 
 "print.summary.geodata" <- function(x, ...)
 {
+  cat(paste("Number of data points:",x$n,"\n"))
   cat("Coordinates summary\n")
   print(x$coords.summary)
   if(!is.null(x$borders.summary)){
@@ -399,9 +401,11 @@
 
 plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL, 
     trend = "cte", lambda = 1, col.data = 1, weights.divide = NULL, 
-    lowess = FALSE, scatter3d = FALSE, ...) 
+    lowess = FALSE, scatter3d = FALSE, qt.col, ...) 
 {
   if(missing(x)) x <- list(coords=coords, data = data)
+  if(missing(qt.col)) qt.col <- c("blue", "green", "yellow2", "red")
+  if(length(qt.col) == 1) qt.col <- rep(qt.col, 4)
   if (is.R()) par.ori <- par(no.readonly = TRUE)
   else par.ori <- par()
   on.exit(par(par.ori))
@@ -448,8 +452,7 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
     n.breaks <- length(data.breaks)
     data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, 
                     labels = FALSE)
-    points(coords, pch = (1:4)[data.cut], col = c("blue", 
-                                            "green", "yellow2", "red")[data.cut])
+    points(coords, pch = (1:4)[data.cut], col = qt.col[data.cut])
   }
   else {
     points(coords[(data <= data.quantile[2]), ], pch = 1, 

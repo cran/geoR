@@ -1,5 +1,3 @@
-Ksat                    Saturated Hydraulic Conductivity
-SIC                     Spatial Interpolation Comparison data
 as.geodata              Converts an Object to the Class "geodata"
 boxcox.fit              Parameter Estimation for the Box-Cox
                         Transformation
@@ -7,8 +5,8 @@ boxcox.geodata          Box-Cox transformation for geodata objects
 ca20                    Calcium content in soil samples
 camg                    Calcium and magnesium content in soil samples
 cite.geoR               Citing Package geoR in Publications
-coords.aniso            Geometric Anisotropy Correction
 coords2coords           Operations on Coordinates
+coords.aniso            Geometric Anisotropy Correction
 cov.spatial             Computes Value of the Covariance Function
 dinvchisq               The (Scaled) Inverse Chi-Squared Distribution
 dup.coords              Locates duplicated coordinates
@@ -26,6 +24,8 @@ isaaks                  Data from Isaaks and Srisvastava's book
 krige.bayes             Bayesian Analysis for Gaussian Geostatistical
                         Models
 krige.conv              Spatial Prediction -- Conventional Kriging
+krweights               Computes kriging weights
+Ksat                    Saturated Hydraulic Conductivity
 ksline                  Spatial Prediction -- Conventional Kriging
 legend.krige            Add a legend to a image with kriging results
 likfit                  Likelihood Based Parameter Estimation for
@@ -73,6 +73,8 @@ s256i                   Simulated Data-Set which Illustrate the Usage
 sample.posterior        Samples from the posterior distribution
 sample.prior            Samples from the prior
 set.coords.lims         Sets Limits to Scale Plots
+SIC                     Spatial Interpolation Comparison data
+soil                    Soil chemistry properties data set
 statistics.predictive   Summary statistics from predictive
                         distributions
 subarea                 Selects a Subarea from a Geodata Object
@@ -84,11 +86,12 @@ trend.spatial           Builds the Trend Matrix
 varcov.spatial          Computes Covariance Matrix and Related Results
 variofit                Variogram Based Parameter Estimation
 variog                  Compute Empirical Variograms
+variog4                 Computes Directional Variograms
 variog.mc.env           Envelops for Empirical Variograms Based on
                         Permutation
 variog.model.env        Envelops for Empirical Variograms Based on
                         Model Parameters
-variog4                 Computes Directional Variograms
+wo                      Kriging example data from Webster and Oliver
 wolfcamp                Wolfcamp Aquifer Data
 wrappers                Wrappers for the C functions used in geoR
 xvalid                  Cross-validation using kriging

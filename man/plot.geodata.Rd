@@ -18,7 +18,8 @@
 \usage{
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders = NULL, trend="cte", lambda = 1, col.data = 1,
-             weights.divide = NULL, lowess = FALSE, scatter3d = FALSE, \dots)
+             weights.divide = NULL, lowess = FALSE, scatter3d = FALSE,
+             qt.col, \dots)
 }
 
 %- maybe also `usage' for other objects do cumented here.
@@ -61,6 +62,8 @@
     produced by
     \code{\link[scatterplot3d]{scatterplot3d}} showing
     a 3d plot with data locations and corresponding values.  }
+  \item{qt.col}{colors for the quartiles in the first plot. If missing
+    defaults to blue, green, yellow and red.}
   \item{\dots}{further arguments to be passed to the function
     \code{\link{hist}} or
     \code{\link[scatterplot3d]{scatterplot3d}}.  }
@@ -96,6 +99,7 @@ require(geoR)
 data(s100)
 plot(s100)
 plot(s100, scatter3d=TRUE)
+plot(s100, qt.col=1)
 
 data(ca20)                        
 plot(ca20, bor=borders)          # original data

@@ -57,7 +57,6 @@ length = 100, lwd = 2, \dots)
 \examples{
 sim <- grf(100, cov.pars=c(1, .25)) # simulates data
 plot(variog(sim, max.dist=1))       # plot empirical variogram
-lines(sim, max.dist=1)              # plot true variogram
 }
 
 \keyword{spatial}

@@ -938,6 +938,7 @@
         nloc <- ni
         ind.not.coincide <- TRUE
       }
+      par.set <- get("parset", envir=counter.env)
       if(prior$beta.prior == "normal" && npr > 1)
         info.id <- par.set
       else info.id <- 1
@@ -969,6 +970,7 @@
           rep(get("data.coincide", envir=pred.env), Nsims)
       remove("v0", "b", "tmean")
       assign("counter", (iter + 1), envir=counter.env)
+      assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
       ##
       ## Back transforming (To be include in C code???)
       ##
@@ -986,6 +988,7 @@
         cat(paste("             Number of parameter sets: ", ind.length,"\n"))
     }
     assign("counter", 1, envir=counter.env)
+    assign("parset", 1, envir=counter.env)
      kb$predictive$simulations <- 
       matrix(unlist(apply(phi.unique, 1, krige.bayes.aux20)),
              ncol = n.predictive)

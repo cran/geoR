@@ -1,7 +1,51 @@
 
 		==============================
+		CHANGES IN geoR VERSION 1.4-8
+		==============================
+
+NEW FEATURES
+
+        o summary.likGRF() returns infos on the non-spatial model
+        
+        o summary.geodata() returns the number of data points
+
+        o new data-set "soil.txt"
+
+        o variog() search for trend components in the object
+          (as already done in, e.g. plot.geodata) 
+
+        o new function kweights() to compute sk/ok kriging
+          prediction weights
+  
+        o new data-set "wo" from Webster and Oliver (2001)
+
+        o new argument in plot.geodata(), allowing 
+          control in the first plot of the display
+          output
+
+        o changes in the opening message which algo
+          checks for geoR.messages
+ 
+
+BUGS
+
+        o bug in par.set in krige.bayes()
+
+        o change in loss.vario() to prevent variofit()
+          to crach with Inf value in loss function 
+
+        o coord.data now working in contour.kriging()
+
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.4-7
 		==============================
+
+NEW FEATURES
+
+        o vignette temporarily removed from the package distribution
+
 
 BUGS
 
