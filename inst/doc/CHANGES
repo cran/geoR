@@ -1,5 +1,45 @@
 
 		==============================
+		CHANGES IN geoR VERSION 1.3-16
+		==============================
+
+NEW FEATURES
+
+    o 
+    
+BUGS
+
+    o bug fix in output uvec and bins definition in the function variog()
+      (more specifically, define.bins())
+
+
+		==============================
+		CHANGES IN geoR VERSION 1.3-15
+		==============================
+
+NEW FEATURES
+
+    o 
+    
+BUGS
+
+    o bug fix in plot.variog4 for R-1.8.0 checks
+
+
+		==============================
+		CHANGES IN geoR VERSION 1.3-14
+		==============================
+
+NEW FEATURES
+
+    o not listed here (lost list)
+    
+BUGS
+
+    o not listed here (lost list)
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.3-13
 		==============================
 

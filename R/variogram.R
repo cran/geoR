@@ -481,7 +481,6 @@
   return(invisible())
 }
 
-
 "rfm.bin" <-
   function (cloud, l = 13, uvec = "default", breaks = "default", nugget.tolerance, 
             estimator.type = c("classical", "modulus"), bin.cloud = FALSE,
@@ -1108,28 +1107,28 @@ define.bins <-
   function(max.dist, uvec = "default", breaks = "default", nugget.tolerance)
 {
   if(all(breaks ==  "default")){
-    if (all(uvec == "default")){
-      bins.lim <- seq(0, max.dist, l = 13)
-      uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(breaks)])
-    }
-    else{
-      if (all(is.numeric(uvec))){
-        if(length(uvec) == 1)  uvec <- seq(0, max.dist, l = uvec)
+    if (all(uvec == "default")) uvec <- 13
+    if (all(is.numeric(uvec))){
+      if(length(uvec) == 1){
+        bins.lim <- seq(0, max.dist, l = uvec+1)
+        bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
+        uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(bins.lim)])
+      }
+      else{
         uvec <- c(0, uvec)
         nvec <- length(uvec)
         d <- 0.5 * diff(uvec[2:nvec])
         bins.lim <- c(0, (uvec[2:(nvec - 1)] + d), (d[nvec - 2] + uvec[nvec]))
         bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
       }
-      else stop("argument uvec can only take a numeric vector")
     }
+    else stop("argument uvec can only take a numeric vector")
   }
   else{
     if(any(!is.numeric(breaks))) stop("argument breaks can only take a numeric vector")
-    else{
-      bins.lim <- breaks
-      uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(bins.lim)])
-    }
+    else bins.lim <- breaks
+    bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
+    uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(bins.lim)])
   }
   return(list(uvec = uvec, bins.lim = bins.lim))
 }
