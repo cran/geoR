@@ -282,7 +282,7 @@ void tgangle(Real *xloc, Real *yloc, Integer *nl, Real *res)
     for (i=j+1; i<*nl; i++) {
       dx = (xloc[i] - xloc[j]) ;
       dy = (yloc[i] - yloc[j]) ;
-      res[ind] = dx/dy ;
+      res[ind] = dy/dx ;
       ind++ ;
     }
   }

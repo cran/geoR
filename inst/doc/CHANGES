@@ -1,7 +1,7 @@
 
 
 		=============================
-		CHANGES IN geoR VERSION 1.2-4
+		CHANGES IN geoR VERSION 1.2-5
 		=============================
 
 NEW FEATURES
@@ -10,6 +10,8 @@ NEW FEATURES
 
 
 BUG FIXES
+
+     o bug fix in calculation of directional variograms in variog()
 
      o bug fix in krige.bayes documentation
 

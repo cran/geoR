@@ -19,7 +19,7 @@
   if(is.null(keep$keep.NA)) keep.NA <- FALSE
   else keep.NA <- keep$keep.NA
   ##
-  ## Directional variogram
+  ## Directional variogram - setting angles
   ##
   unit.angle <- match.arg(unit.angle)
   if(is.numeric(direction)){
@@ -40,7 +40,7 @@
       tol.deg <- (tol.rad * 180)/pi
     }
     if(ang.rad > pi | ang.rad < 0)
-      stop("direction must be an angle in the interval [0,pi] radians")
+      stop("direction must be an angle in the interval [0,pi[ radians")
     if(tol.rad > pi/2 | tol.rad < 0)
       stop("tolerance must be an angle in the interval [0,pi/2] radians")
     if(tol.deg >= 90){
@@ -66,8 +66,7 @@
   data.var <- apply(data, 2, var)
   n.data <- nrow(coords)
   n.datasets <- ncol(data)
-  if (ncol(data) == 1) 
-    data <- as.vector(data)
+  data <- drop(data)
   ##
   ## variogram estimator
   ##
@@ -77,8 +76,8 @@
   estimator.type <- match.arg(estimator.type)
   if (estimator.type == "modulus") 
     estimator.type <- "robust"
-  if (lambda != 1) {
-    if (lambda == 0) 
+  if (abs(lambda - 1) > 0.0001) {
+    if (abs(lambda) < 0.0001) 
       data <- log(data)
     else data <- ((data^lambda) - 1)/lambda
   }
@@ -177,43 +176,35 @@
                      bins.lim = bins.lim, ind.bin = indp)
   }
   else {
-    if (is.matrix(data)) {
-      v <- matrix(0, nrow = length(u), ncol = ncol(data))
-      for (i in 1:ncol(data)) {
-        v[, i] <- as.vector(dist(data[, i]))
-        if (estimator.type == "robust") 
-          v[, i] <- v[, i]^(0.5)
-        else v[, i] <- (v[, i]^2)/2
-      }
-      if (!is.null(max.dist)) {
-        v <- v[u <= max.dist, ]
-        if(direction != "omnidirectional")
-          u.ang <- u.ang[u <= max.dist]
-        u <- u[u <= max.dist]
-      }
-      if(direction != "omnidirectional"){
-        ang.ind <- ((u.ang >= ang.rad - tol.rad) & (u.ang <= ang.rad + tol.rad))
-        v <- v[ang.ind,]
-        u <- u[ang.ind]
-      }
-    }
-    else {
-      v <- as.vector(dist(data))
+    data <- as.matrix(data)
+    v <- matrix(0, nrow = length(u), ncol = n.datasets)
+    for (i in 1:n.datasets) {
+      v[, i] <- as.vector(dist(data[, i]))
       if (estimator.type == "robust") 
-        v <- v^(0.5)
-      else v <- (v^2)/2
-      if (is.numeric(max.dist)) {
-        v <- v[u <= max.dist]
-        if(direction != "omnidirectional")
-          u.ang <- u.ang[u <= max.dist]
-        u <- u[u <= max.dist]
-      }
-      if(direction != "omnidirectional"){
-        ang.ind <- ((u.ang >= ang.rad - tol.rad) & (u.ang <= ang.rad + tol.rad))
-        v <- v[ang.ind]
-        u <- u[ang.ind]
-      }
+        v[, i] <- v[, i,drop=FALSE]^(0.5)
+      else v[, i] <- (v[, i,drop=FALSE]^2)/2
     }
+    if (!is.null(max.dist)) {
+      v <- v[u <= max.dist,,drop=FALSE]
+      if(direction != "omnidirectional")
+        u.ang <- u.ang[u <= max.dist]
+      u <- u[u <= max.dist]
+    }
+    if(direction != "omnidirectional"){
+      ang.lower <- ang.rad - tol.rad
+      ang.upper <- ang.rad + tol.rad
+      if(ang.lower < 0)
+        ang.ind <- ((u.ang < ang.upper) | (u.ang > (pi + ang.lower)))
+      if(ang.lower >= 0 & ang.upper < pi)
+        ang.ind <- ((u.ang >= ang.lower) & (u.ang <= ang.upper))
+      if(ang.upper >= pi)
+        ang.ind <- ((u.ang > ang.lower) | (u.ang < (ang.upper - pi)))
+      ##ang.ind <- ((u.ang >= ang.rad - tol.rad)&(u.ang <= ang.rad + tol.rad))
+      v <- v[ang.ind,,drop=FALSE]
+      u <- u[ang.ind]
+    }
+    data <- drop(data)
+    v <- drop(v)
     if (option == "cloud") {
       result <- list(u = u, v = v)
     }
