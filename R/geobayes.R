@@ -1065,7 +1065,7 @@
 }
 
 "prepare.graph.krige.bayes" <-
-  function (obj, locations, borders, 
+  function (obj, locations, borders, borders.obj=NULL,
             values.to.plot, number.col, xlim, ylim, messages) 
 {
   if(missing(messages))
@@ -1132,32 +1132,47 @@
   }
   else values <- values.to.plot
   remove("values.to.plot")
-  if(nrow(locations) != length(values)){
-    if(!is.null(borders)){
-      borders <- as.matrix(as.data.frame(borders))
+  locations <- locations[order(locations[, 2], locations[,1]), ]
+  xx <- as.numeric(levels(as.factor(locations[, 1])))
+  nx <- length(xx)
+  yy <- as.numeric(levels(as.factor(locations[, 2])))
+  ny <- length(yy)
+  values.loc <- rep(NA, nrow(locations))
+  if(length(values.loc) == length(values)) values.loc <- values
+  if(!is.null(borders.obj)){
+    borders.obj <- as.matrix(as.data.frame(borders.obj))
+    if(require(splancs))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj))
+    else
+      stop("argument borders requires the package splancs - please install it")
+    values.loc[inout.vec] <- values
+    rm("inout.vec")
+  }
+  if (!is.null(borders)){
+    borders <- as.matrix(as.data.frame(borders))
+    dimnames(borders) <- list(NULL, NULL)
+    if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders))
       else
-        stop("you must install the package splancs to perform this operation")
-      if(sum(inout.vec) != length(values))
-        stop("length of the argument values is incompatible with number of elements inside the borders.")
-      temp <- rep(NA, nrow(locations))
-      temp[inout.vec] <- values
-      values <- temp
-      remove("temp")
+        stop("argument borders requires the package splancs - please install it")
+      if(length(values.loc[inout.vec]) == length(values))
+        values.loc[inout.vec] <- values
+      values.loc[!inout.vec] <- NA
+      rm("inout.vec")
     }
   }
-  locations <- locations[order(locations[, 2], locations[,1]), ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
-  ny <- length(y)
-  if(missing(xlim)) xlim <- NULL
-  if(missing(ylim)) ylim <- NULL
+  ##
+  if (missing(xlim) || is.null(xlim))
+    if(is.null(borders)) xlim <- NULL
+    else xlim <- range(borders[,1]) 
+  if (missing(ylim) || is.null(ylim))
+    if(is.null(borders)) ylim <- NULL
+    else ylim <- range(borders[,2])
   coords.lims <- set.coords.lims(coords=locations, xlim=xlim, ylim=ylim)
   coords.lims[,1] <- coords.lims[,1] + c(-.025, .025) * diff(coords.lims[,1])
   coords.lims[,2] <- coords.lims[,2] + c(-.025, .025) * diff(coords.lims[,2])
-  return(list(x=x, y=y, values = matrix(values,ncol=ny), coords.lims=coords.lims))
+  return(list(x=xx, y=yy, values = matrix(values.loc,ncol=ny), coords.lims=coords.lims))
 }
 
 "image.krige.bayes" <-
@@ -1168,6 +1183,13 @@
             number.col, coords.data, xlim, ylim,
             x.leg, y.leg, messages, ...) 
 {
+  pty.prev <- par()$pty
+  ldots <- match.call(expand.dots = FALSE)$...
+  ldots[[match(names(ldots), "offset.leg")]] <- NULL
+  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
+    ldots$xlab <- "X Coord"
+  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
+    ldots$ylab <- "Y Coord"
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
@@ -1183,8 +1205,12 @@
                   "mean.simulations", "variance.simulations",
                   "quantiles", "probabilities", "simulation"))
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders <- eval(attr(x, "borders"))
-    else borders <- NULL
+    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    else borders.arg <- borders <- NULL
+  }
+  else{
+    borders.arg <- borders
+    if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
@@ -1199,18 +1225,24 @@
     plot.1d(values, xlim=xlim, ylim = ylim,
             x1vals = unique(round(locations[,1], dig=12)), ...)
   else{
-    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+    locations <- prepare.graph.krige.bayes(obj=x,
+                                           locations=locations,
                                            borders=borders,
+                                           borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
                                            xlim = xlim, ylim = ylim, messages=messages)
-    pty.prev <- par()$pty
     par(pty = "s")
-    image(locations$x, locations$y, locations$values,
-          xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
+    do.call("image", c(list(x=locations$x, y=locations$y,
+                          z=locations$values,
+                          xlim = locations$coords.lims[,1],
+                          ylim = locations$coords.lims[,2]),
+                     ldots))
+#    image(locations$x, locations$y, locations$values,
+#          xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
     if(!is.null(coords.data))
       points(coords.data)
-    if(!is.null(borders)) polygon(borders, lwd=2)
+    if(!is.null(borders.arg)) polygon(borders, lwd=2)
     dots.l <- list(...)
     if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
     if(!is.null(x.leg) & !is.null(y.leg)){
@@ -1218,6 +1250,92 @@
                    values=locations$values,
                    vertical = vertical, cex=cex.leg,
                    col=dots.l$col, ...)
+    }
+  }
+  par(pty=pty.prev)
+  return(invisible())
+}
+
+"contour.krige.bayes" <-
+  function (x, locations, borders, 
+            values.to.plot = c("mean", "variance",
+              "mean.simulations", "variance.simulations",
+              "quantiles", "probabilities", "simulation"),
+            number.col, coords.data, xlim, ylim,
+            x.leg, y.leg, messages, ...) 
+{
+  pty.prev <- par()$pty
+  ldots <- match.call(expand.dots = FALSE)$...
+  ldots[[match(names(ldots), "offset.leg")]] <- NULL
+  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
+    ldots$xlab <- "X Coord"
+  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
+    ldots$ylab <- "Y Coord"
+  if(missing(x)) x <- NULL
+  attach(x)
+  on.exit(detach(x))
+  if(missing(locations))
+    locations <-  eval(attr(x, "prediction.locations"))
+  if(is.null(locations)) stop("prediction locations must be provided")
+  if(ncol(locations) != 2)
+    stop("locations must be a matrix or data-frame with two columns")
+  if(!is.numeric(values.to.plot))
+    values.to.plot <-
+      match.arg(values.to.plot,
+                choices = c("mean", "variance",
+                  "mean.simulations", "variance.simulations",
+                  "quantiles", "probabilities", "simulation"))
+  if(missing(borders)){
+    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    else borders.arg <- borders <- NULL
+  }
+  else{
+    borders.arg <- borders
+    if(is.null(borders)) borders <- eval(attr(x, "borders"))
+  }
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
+  if(missing(number.col)) number.col <- NULL
+  if(missing(coords.data)) coords.data <- NULL
+  ##
+  ## Plotting 1D or 2D
+  ##
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
+    plot.1d(values, xlim=xlim, ylim = ylim,
+            x1vals = unique(round(locations[,1], dig=12)), ...)
+  else{
+    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+                                           borders=borders,
+                                           borders.obj = eval(attr(x, "borders")),
+                                           values.to.plot=values.to.plot,
+                                           number.col = number.col,
+                                           xlim = xlim, ylim = ylim, messages=messages)
+    par(pty = "s")
+    if(filled){
+      temp.contour <- function(){
+        axis(1)
+        axis(2)
+        if(!is.null(coords.data)) points(coords.data, pch=20)
+        if(!is.null(borders)) polygon(borders, lwd=2)
+      }
+      do.call("filled.contour", c(list(x=locations$x,
+                                       y=locations$y,
+                                       z=locations$values,
+                                       xlim = locations$coords.lims[,1],
+                                       ylim = locations$coords.lims[,2],
+                                       plot.axes={temp.contour()}),
+                                  ldots))
+    }
+    else{
+      do.call("contour", c(list(x=locations$x, y=locations$y,
+                                z=locations$values,
+                                xlim = locations$coords.lims[,1],
+                                ylim = locations$coords.lims[,2]),
+                           ldots))
+      ##
+      ## adding borders
+      ##
+      if(!is.null(borders.arg)) polygon(borders, lwd=2)
     }
   }
   par(pty=pty.prev)
@@ -1255,6 +1373,7 @@
   else{
     locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
+                                           borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col, messages=messages)
     persp(locations$x, locations$y, locations$values, ...)

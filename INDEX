@@ -1,13 +1,16 @@
+boxcox                  The Box-Cox Transformed Normal Distribution
+InvChisquare            The (Scaled) Inverse Chi-Squared Distribution
+SIC                     Spatial Interpolation Comparison data
 as.geodata              Converts an Object to the Class "geodata"
 boxcox.fit              Parameter Estimation for the Box-Cox
                         Transformation
 boxcox.geodata          Box-Cox transformation for geodata objects
-boxcox                  The Box-Cox Transformed Normal Distribution
 ca20                    Calcium content in soil samples
 cite.geoR               Citing Package geoR in Publications
-coords2coords           Operations on Coordinates
 coords.aniso            Geometric Anisotropy Correction
+coords2coords           Operations on Coordinates
 cov.spatial             Computes Value of the Covariance Function
+dup.coords              Locates duplicated coordinates
 elevation               Surface Elevations
 gambia                  Gambia Malaria Data
 geoR-defunct            Defunct Functions in the Package geoR
@@ -18,7 +21,6 @@ image.grf               Image or Perspective Plot of Simulated
                         Gaussian Random Field
 image.krige.bayes       Plots Results of the Predictive Distribution
 image.kriging           Image or Perspective Plot with Kriging Results
-InvChisquare            The (Scaled) Inverse Chi-Squared Distribution
 isaaks                  Data from Isaaks and Srisvastava's book
 krige.bayes             Bayesian Analysis for Gaussian Geostatistical
                         Models
@@ -30,14 +32,14 @@ likfit                  Likelihood Based Parameter Estimation for
 lines.variomodel.krige.bayes
                         Adds a Bayesian Estimate of the Variogram to a
                         Plot
+lines.variogram         Line with a Empirical Variogram
 lines.variogram.envelope
                         Adds Envelopes Lines to a Variogram Plot
-lines.variogram         Line with a Empirical Variogram
+lines.variomodel        Adds a Line with a Variogram Model to a
+                        Variogram Plot
 lines.variomodel.grf    Lines with True Variogram for Simulated Data
 lines.variomodel.likGRF
                         Adds a Variogram Line to a Variogram Plot
-lines.variomodel        Adds a Line with a Variogram Model to a
-                        Variogram Plot
 lines.variomodel.variofit
                         Adds a Line with a Fitted Variogram Model to a
                         Variogram Plot
@@ -68,7 +70,6 @@ s256i                   Simulated Data-Set which Illustrate the Usage
 sample.posterior        Samples from the posterior distribution
 sample.prior            Samples from the prior
 set.coords.lims         Sets Limits to Scale Plots
-SIC                     Spatial Interpolation Comparison data
 statistics.predictive   Summary statistics from predictive
                         distributions
 summary.geodata         Summaries for geodata object
@@ -78,12 +79,12 @@ summary.variomodel      Summarize Results of Variogram Estimation
 trend.spatial           Builds the Trend Matrix
 varcov.spatial          Computes Covariance Matrix and Related Results
 variofit                Variogram Based Parameter Estimation
-variog4                 Computes Directional Variograms
+variog                  Compute Empirical Variograms
 variog.mc.env           Envelops for Empirical Variograms Based on
                         Permutation
 variog.model.env        Envelops for Empirical Variograms Based on
                         Model Parameters
-variog                  Compute Empirical Variograms
+variog4                 Computes Directional Variograms
 wolfcamp                Wolfcamp Aquifer Data
 wrappers                Wrappers for the C functions used in geoR
 xvalid                  Cross-validation using kriging

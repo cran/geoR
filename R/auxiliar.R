@@ -86,7 +86,7 @@
 "set.coords.lims" <-
   function(coords, xlim, ylim)
 {
-  coords.lims <- apply(coords, 2, range)
+  coords.lims <- apply(coords, 2, range, na.rm=TRUE)
   if(!missing(xlim) && is.numeric(xlim)) coords.lims[,1] <- xlim[order(xlim)]
   if(!missing(ylim) && is.numeric(ylim)) coords.lims[,2] <- ylim[order(ylim)]
   coords.diff <- diff(coords.lims)

@@ -332,7 +332,12 @@
     ##
     ## Plotting simulations in 2-D
     ##
-    ldots <- list(...)
+    ldots <- match.call(expand.dots = FALSE)$...
+    ldots[[match(names(ldots), "offset.leg")]] <- NULL
+    if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
+      ldots$xlab <- "X Coord"
+    if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
+      ldots$ylab <- "Y Coord"
     ##
     ## Checking for retangular grid
     ##
@@ -348,12 +353,15 @@
     locations <- prepare.graph.kriging(locations=x$coords,
                                        values=x$data[, sim.number],
                                        borders =  NULL,
+                                       borders.obj = eval(attr(x, "borders")),
                                        xlim = xlim, ylim = ylim) 
     ##
     par(pty = "s")
-    image(x=locations$x, y=locations$y, z=locations$values,
-          xlim = locations$coords.lims[,1],
-          ylim = locations$coords.lims[,2], ...)
+    do.call("image", c(list(x=locations$x, y=locations$y,
+                            z=locations$values,
+                            xlim = locations$coords.lims[,1],
+                            ylim = locations$coords.lims[,2]),
+                       ldots))
     ##
     ## Adding the legend (if the case)
     ##

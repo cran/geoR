@@ -60,8 +60,10 @@
   }   
 }
 
-%\details{
-%}
+\details{
+  \code{plot1d} and \code{prepare.graph.kriging} are auxiliary functions
+  called by the others.
+}
 
 \value{
   An image or perspective plot is produced o the current graphics
@@ -93,23 +95,40 @@ data(s100)
 loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
-
-image(kc, loc=loci)
-contour(kc, loc=loci)
-persp(kc, loc=loci, theta=20, phi=20)
+image(kc)
+contour(kc)
+persp(kc, theta=20, phi=20)
+#
+# now dealing with borders
+#
+bor <- matrix(c(.4,.1,.3,.9,.9,.7,.9,.7,.3,.2,.5,.8),
+              ncol=2)
+# plotting just inside borders
+image(kc, borders=bor)
+contour(kc, borders=bor)
+# kriging just inside borders
+kc1 <- krige.conv(s100, loc=loci,
+                 krige=krige.control(cov.pars=c(1, .25)),
+                 borders=bor)
+image(kc1, loc=loci)
+contour(kc1, loc=loci)
+# avoiding the borders to be drawn
+image(kc1, loc=loci, borders=NULL)
+contour(kc1, loc=loci, borders=NULL)
 
 op <- par(no.readonly = TRUE)
 par(mfrow=c(1,2), mar=c(3,3,0,0), mgp=c(1.5, .8,0))
-image(kc, loc=loci)
-image(kc, loc=loci, val=sqrt(kc$krige.var))
+image(kc)
+image(kc, val=sqrt(kc$krige.var))
 
 # notice different ways to add the legends and pass arguments:
-image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
-image(kc, loc=loci, val=kc$krige.var, ylim=c(-0.2, 1))
+image(kc, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
+image(kc, val=kc$krige.var, ylim=c(-0.2, 1))
 legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=sqrt(kc$krige.var))
 
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), cex=1.5)
-image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), off=0.5)
+image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
+image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), offset.leg=0.5)
 
 image(kc, loc=loci, xlim=c(0, 1.2))
 legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1),kc$pred, vert=TRUE)

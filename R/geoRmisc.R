@@ -66,3 +66,31 @@
   if(add.to.plot) rect(res[1,1], res[1,2], res[3,1], res[3,2], ...)
   return(res)  
 }
+
+# make it generic with a method for geoR
+"dup.coords" <-
+  function(x)
+{
+  UseMethod("dup.coords")
+}
+
+"dup.coords.default" <-
+  function(x)
+{
+  ap1 <- unclass(factor(paste("x",x[,1],"y",x[,2], sep="")))
+  ap2 <- table(ap1)
+  ap2 <- ap2[ap2 > 1]
+  takecoords <- function(n){
+    if(!is.null(rownames(x))) rownames(x[ap1 == n,])
+    else (1:nrow(x))[ap1 == n]
+    }
+  res <- sapply(as.numeric(names(ap2)), takecoords)
+  if(length(res) == 0) res <- NULL
+  return(res)
+}
+
+"dup.coords.geodata" <-
+  function(x)
+{
+  return(dup.coords.default(x$coords))
+}

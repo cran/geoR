@@ -50,5 +50,10 @@
   Modelling, Vol. 6, No. 2, 129-146.
 }
 
+\examples{
+data(parana)
+summary(parana)
+plot(parana, bor=borders)
+}
 \keyword{datasets}
 

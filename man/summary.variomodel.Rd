@@ -51,7 +51,7 @@
   variogram based estimation. For likelihood based parameter estimation see  \code{\link{likfit}}. }
 
 \examples{
-if(is.R()) data(s100)
+data(s100)
 s100.vario <- variog(s100, max.dist=1)
 wls <- variofit(s100.vario, ini=c(.5, .5), fix.nugget = TRUE)
 wls

@@ -184,6 +184,7 @@ image(kc, val=sqrt(kc$krige.var), main="kriging std. errors")
 # (obtaining conditional simulations),
 # and to compute quantile and probability estimators
 s.out <- output.control(n.predictive = 1000, quant=0.9, thres=2)
+set.seed(123)
 kc <- krige.conv(s100, loc = loci,
          krige = krige.control(cov.pars = c(1,.25)),
          output = s.out)

@@ -48,5 +48,11 @@ data(s121)
   \url{http://www.est.ufpr.br/geoR}.
 }
 
+\examples{
+data(s100)
+plot(s100)
+data(s121)
+plot(s121, type="l")
+}
 \keyword{datasets}
 

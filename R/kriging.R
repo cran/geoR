@@ -525,11 +525,16 @@
 }
 
 "image.kriging" <-
-  function (x, locations, borders, values = x$predict, coords.data,
-            xlim, ylim, x.leg, y.leg, ...) 
+  function (x, locations, borders, values = x$predict,
+            coords.data, xlim, ylim, x.leg, y.leg, ...) 
 {
   pty.prev <- par()$pty
-  ldots <- list(...)
+  ldots <- match.call(expand.dots = FALSE)$...
+  ldots[[match(names(ldots), "offset.leg")]] <- NULL
+  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
+    ldots$xlab <- "X Coord"
+  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
+    ldots$ylab <- "Y Coord"
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
@@ -538,8 +543,13 @@
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders <- eval(attr(x, "borders"))
-    else borders <- NULL
+    if(!is.null(attr(x, "borders")))
+      borders.arg <- borders <- eval(attr(x, "borders"))
+    else borders.arg <- borders <- NULL
+  }
+  else{
+    borders.arg <- borders
+    if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
   if(missing(coords.data)) coords.data <- NULL
   if(missing(xlim)) xlim <- NULL
@@ -554,12 +564,19 @@
             x1vals = unique(round(locations[,1], dig=12)), ...)
   else{
     locations <- prepare.graph.kriging(locations=locations,
-                                       borders=borders, values=values,
+                                       borders=borders,
+                                       borders.obj = eval(attr(x, "borders")),
+                                       values=values,
                                        xlim = xlim, ylim = ylim) 
     par(pty = "s")
-    image(x=locations$x, y=locations$y, z=locations$values,
-          xlim = locations$coords.lims[,1],
-          ylim = locations$coords.lims[,2], ...)
+    do.call("image", c(list(x=locations$x, y=locations$y,
+                          z=locations$values,
+                          xlim = locations$coords.lims[,1],
+                          ylim = locations$coords.lims[,2]),
+                     ldots))
+#    image(x=locations$x, y=locations$y, z=locations$values,
+#          xlim = locations$coords.lims[,1],
+#          ylim = locations$coords.lims[,2], ...)
     ##
     ## adding points at data locations
     ##
@@ -567,12 +584,12 @@
     ##
     ## adding borders
     ##
-    if(!is.null(borders)) polygon(borders, lwd=2)
+    if(!is.null(borders.arg)) polygon(borders, lwd=2)
     ##
     ## adding the legend
     ##
     if(!is.null(x.leg) & !is.null(y.leg)){
-      if(is.null(ldots$col)) ldots$col <- heat.colors(12)
+##      if(is.null(ldots$col)) ldots$col <- heat.colors(12)
       legend.krige(x.leg=x.leg, y.leg=y.leg,
                    values=locations$values[!is.na(locations$values)], ...)
     }
@@ -586,7 +603,12 @@
             xlim, ylim, filled=FALSE, ...) 
 {
   pty.prev <- par()$pty
-  ldots <- list(...)
+  ldots <- match.call(expand.dots = FALSE)$...
+  ldots[[match(names(ldots), "offset.leg")]] <- NULL
+  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
+    ldots$xlab <- "X Coord"
+  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
+    ldots$ylab <- "Y Coord"
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
@@ -595,8 +617,12 @@
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders <- eval(attr(x, "borders"))
-    else borders <- NULL
+    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    else borders.arg <- borders <- NULL
+  }
+  else{
+    borders.arg <- borders
+    if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
   if(missing(coords.data)) coords.data <- NULL
   if(missing(xlim)) xlim <- NULL
@@ -609,7 +635,9 @@
             x1vals = unique(round(locations[,1], dig=12)), ...)
   else{
     locations <- prepare.graph.kriging(locations=locations,
-                                       borders=borders, values=values,
+                                       borders=borders,
+                                       borders.obj = eval(attr(x, "borders")),
+                                       values=values,
                                        xlim = xlim, ylim = ylim) 
     par(pty = "s")
     if(filled){
@@ -619,19 +647,27 @@
         if(!is.null(coords.data)) points(coords.data, pch=20)
         if(!is.null(borders)) polygon(borders, lwd=2)
       }
-      filled.contour(x=locations$x, y=locations$y, z=locations$values,
-                     xlim = locations$coords.lims[,1],
-                     ylim = locations$coords.lims[,2],
-                     plot.axes={temp.contour()},...)
+      do.call("filled.contour", c(list(x=locations$x,
+                                       y=locations$y,
+                                       z=locations$values,
+                                       xlim = locations$coords.lims[,1],
+                                       ylim = locations$coords.lims[,2],
+                                       plot.axes={temp.contour()}),
+                                  ldots))
     }
     else{
-      contour(x=locations$x, y=locations$y, z=locations$values,
-              xlim = locations$coords.lims[,1],
-              ylim = locations$coords.lims[,2], ...)
+      do.call("contour", c(list(x=locations$x, y=locations$y,
+                                z=locations$values,
+                                xlim = locations$coords.lims[,1],
+                                ylim = locations$coords.lims[,2]),
+                           ldots))
+      ##     contour(x=locations$x, y=locations$y, z=locations$values,
+      ##             xlim = locations$coords.lims[,1],
+      ##             ylim = locations$coords.lims[,2], ...)
       ##
       ## adding borders
       ##
-      if(!is.null(borders)) polygon(borders, lwd=2)
+      if(!is.null(borders.arg)) polygon(borders, lwd=2)
     }
   }
   par(pty = pty.prev)
@@ -657,54 +693,74 @@
             x1vals = unique(round(locations[,1], dig=12)), ...)
   else{
     locations <- prepare.graph.kriging(locations=locations,
-                                       borders=borders, values=values) 
+                                       borders=borders,
+                                       borders.obj = eval(attr(x, "borders")),
+                                       values=values)
     persp(locations$x, locations$y, locations$values, ...)
   }
   return(invisible())
 }
 
 "prepare.graph.kriging" <-
-  function (locations, borders, values, xlim, ylim) 
+  function (locations, borders, borders.obj=NULL, values, xlim, ylim) 
 {
   locations <- locations[order(locations[, 2], locations[, 1]), ]
-  x <- as.numeric(levels(as.factor(round(locations[, 1], dig = 8))))
-  nx <- length(x)
-  y <- as.numeric(levels(as.factor(round(locations[, 2], dig = 8))))
-  ny <- length(y)
+  xx <- as.numeric(levels(as.factor(round(locations[, 1], dig = 8))))
+  nx <- length(xx)
+  yy <- as.numeric(levels(as.factor(round(locations[, 2], dig = 8))))
+  ny <- length(yy)
   ##
-#  if(is.null(borders) && (nx*ny) > length(values))
-#    borders <- locations[chull(locations),]
+  ##  if(is.null(borders) && (nx*ny) > length(values))
+  ##    borders <- locations[chull(locations),]
   ##
-  if (!is.null(borders)) {
-    borders <- as.matrix(as.data.frame(borders))
+  values.loc <- rep(NA, nrow(locations))
+  if(length(values.loc) == length(values)) values.loc <- values
+  if(!is.null(borders.obj)){
+    borders.obj <- as.matrix(as.data.frame(borders.obj))
+    dimnames(borders.obj) <- list(NULL, NULL)
     if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj))
     else
       stop("argument borders requires the package splancs - please install it")
-    if (sum(inout.vec) != length(values)) 
-      stop("image.kriging: length of the argument values is incompatible with number of elements inside the borders.")
-    temp <- rep(NA, nrow(locations))
-#    temp[inout.vec] <- values[inout.vec]
-    temp[inout.vec] <- values
-    values <- temp
-#    values[!inout.vec] <- NA
-    remove("temp")
+    values.loc[inout.vec] <- values
+    rm("inout.vec")
+  }
+  if (!is.null(borders)){
+    borders <- as.matrix(as.data.frame(borders))
+    dimnames(borders) <- list(NULL, NULL)
+    if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
+      if(require(splancs))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders))
+      else
+        stop("argument borders requires the package splancs - please install it")
+      if(length(values.loc[inout.vec]) == length(values))
+        values.loc[inout.vec] <- values
+      values.loc[!inout.vec] <- NA
+      rm("inout.vec")
+    }
   }
   ##
-  if (missing(xlim))  xlim <- NULL
-  if (missing(ylim))  ylim <- NULL
-  coords.lims <- set.coords.lims(coords = locations, xlim = xlim, 
+  if (missing(xlim) || is.null(xlim))
+    if(is.null(borders)) xlim <- NULL
+    else xlim <- range(borders[,1]) 
+  if (missing(ylim) || is.null(ylim))
+    if(is.null(borders)) ylim <- NULL
+    else ylim <- range(borders[,2])
+  coords.lims <- set.coords.lims(coords = locations,
+                                 xlim = xlim, 
                                  ylim = ylim)
   coords.lims[, 1] <- coords.lims[, 1] + c(-0.025, 0.025) * 
     diff(coords.lims[, 1])
   coords.lims[, 2] <- coords.lims[, 2] + c(-0.025, 0.025) * 
     diff(coords.lims[, 2])
-  return(list(x = x, y = y, values = matrix(values, ncol = ny), 
+  return(list(x = xx, y = yy,
+              values = matrix(values.loc, ncol = ny), 
               coords.lims = coords.lims))
 }
 
 "legend.krige" <-
-  function(x.leg, y.leg, values, scale.vals, vertical = FALSE, offset.leg = 1, ...)
+  function(x.leg, y.leg, values, scale.vals, vertical = FALSE,
+           offset.leg = 1, ...)
 {
   values <- values[!is.na(values)]
   if(length(x.leg) != 2 | length(y.leg) != 2)

@@ -34,6 +34,8 @@
 data(isaaks)
 isaaks
 summary(isaaks)
-points(isaaks$x0, pch="+", cex=2, col=2)
+plot(isaaks$coords, asp=1, type="n")
+text(isaaks$coords, as.character(isaaks$data))
+points(isaaks$x0, pch="?", cex=2, col=2)
 }
 \keyword{datasets}

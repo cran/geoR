@@ -46,6 +46,7 @@
 
 \examples{
 data(wolfcamp)
+summary(wolfcamp)
 plot(wolfcamp)
 }
 

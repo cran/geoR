@@ -1,6 +1,7 @@
 \name{image.krige.bayes}
 
 \alias{image.krige.bayes}
+\alias{contour.krige.bayes}
 \alias{persp.krige.bayes}
 \alias{prepare.graph.krige.bayes}
 
@@ -20,7 +21,12 @@
                             "quantiles", "probabilities", "simulation"),
                   number.col, coords.data, xlim, ylim, x.leg, y.leg,
                   messages, \dots)
-
+\method{contour}{krige.bayes}(x, locations, borders, 
+                  values.to.plot = c("mean", "variance",
+                       "mean.simulations", "variance.simulations",
+                       "quantiles", "probabilities", "simulation"),
+                  number.col, coords.data, xlim, ylim,
+                  x.leg, y.leg, messages, ...)
 \method{persp}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",

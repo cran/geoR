@@ -56,9 +56,7 @@ legend.krige(x.leg, y.leg, values, scale.vals,
 \seealso{\code{\link{image.kriging}}, \code{\link{image.krige.bayes}}.  }
 
 \examples{
-#
-# See examples in the documentation ofr image.kriging
-#
+# See examples in the documentation for image.kriging
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS
 \keyword{aplot}% __ONLY ONE__ keyword per line

@@ -35,5 +35,9 @@ data(s256i)
   \url{http://www.est.ufpr.br/geoR}.
 }
 
+\examples{
+data(s256i)
+points(s256i, pt.div="quintiles", cex.min=1, cex.max=1)
+}
 \keyword{datasets}
 

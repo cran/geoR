@@ -293,25 +293,29 @@
   if (missing(cex.min)) cex.min <- 0.5
   if (missing(cex.max)) cex.max <- 1.5
   graph.list <- list()
-  if(is.numeric(pt.divide)|pt.divide == "quintiles"|pt.divide == "quartiles"|pt.divide == "deciles") {
-    if (pt.divide == "quintiles") {
+  if(is.numeric(pt.divide) || all(pt.divide == "quintiles") | all(pt.divide == "quartiles") | all(pt.divide == "deciles")) {
+    if (all(pt.divide == "quintiles")) {
       n.quant <- 5
       if (missing(col.seq)) 
         col.seq <- c("blue", "green", "yellow", "orange3", "red2")
     }
-    if (pt.divide == "quartiles") {
+    if (all(pt.divide == "quartiles")) {
       n.quant <- 4
       if (missing(col.seq)) 
         col.seq <- c("blue", "green", "yellow", "red") 
     }
-    if (pt.divide == "deciles") {
+    if (all(pt.divide == "deciles")) {
       n.quant <- 10
       if (missing(col.seq)) 
         col.seq <- rainbow(13)[10:1]
     }
     if(is.numeric(pt.divide)){
-      data.quantile <- pt.divide
-      n.quant <- length(pt.divide) - 1
+      if(length(pt.divide <= length(data))){
+        data.quantile <- pt.divide
+        n.quant <- length(pt.divide) - 1
+      }
+      else
+        stop("length of pt.divide cannot be greater than length of the data")
     }
     else
       data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
@@ -356,6 +360,7 @@
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
       if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
+      else col.seq <- round(seq(1,length(col.seq),length=n))
       for (i in 1:n) {
         if (add.to.plot) 
           points(coords.order[i, , drop = FALSE], cex = size[i], 
@@ -372,6 +377,7 @@
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
       if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
+      else col.seq <- round(seq(1,length(col.seq),length=n))
       for (i in 1:n) {
         if (add.to.plot) 
           points(coords.order[i, , drop = FALSE], cex = size[i], 
