@@ -3,6 +3,7 @@
 \alias{krige.bayes}
 \alias{model.control}
 \alias{prior.control}
+\alias{post2prior}
 
 \title{Bayesian Analysis for Gaussian Geostatistical Models}
 
@@ -33,6 +34,8 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
               phi = NULL, phi.discrete = NULL,
               tausq.rel.prior = c("fixed", "uniform"),
               tausq.rel = 0, tausq.rel.discrete = NULL)
+
+post2prior(obj)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -63,20 +66,13 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
     \code{\link{output.control}}.  }
   
   \item{trend.d}{specifies the trend (covariates) values at the data
-    locations. Possible values are:
-    \code{"cte"} - model with constant mean,
-    \code{"1st"} - trend is defined as a first order polynomial on
-    the coordinates,
-    \code{"2nd"} - trend is defined as a second order polynomial on the
-    coordinates,  a formula of the type \code{~X}, where \code{X}
-    is a matrix with covariates (external trend) at data locations. 
-    Defaults to \code{"cte"}.  }
-  
+    locations. See documentation
+    of \code{\link{trend.spatial}} for further details.
+    Defaults to \code{"cte"}.  }  
   \item{trend.l}{specifies the trend (covariates) at the prediction
     locations. Must be of the same type as defined for \code{trend.d}.
     Only used if prediction locations are provided in the argument
     \code{locations}.  }
-  
   \item{cov.model}{string indicating the name of the model for the correlation function. Further details in the
     documentation for \code{\link{cov.spatial}}. }
   
@@ -104,8 +100,6 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
     For \eqn{\lambda = 0}{lambda = 0} the log-transformation is performed.
     If \eqn{\lambda < 0}{lambda < 0} the mean predictor doesn't make sense
     (the resulting distribution has no expectation).  }
-
-
   
   \item{beta.prior}{prior distribution for the mean (vector)
     parameter \eqn{\beta}{beta}. The options are "flat" (default),
@@ -134,20 +128,21 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
     prior for the parameter \eqn{\sigma^2}{sigma^2}. Only used if
     \code{sigmasq.prior = "sc.inv.chisq"}.  }
   \item{phi.prior}{prior distribution for the range parameter
-    \eqn{\phi}{phi}. Options are:
-    \code{\"uniform\"}, (\eqn{p(\phi) \propto 1}{p(phi) propto 1}),
-    \code{\"exponential\"} ,(\eqn{p(\phi) = \frac{1}{\nu} \exp(- \frac{1}{\nu} *
-      \phi)}{(-1/nu) exp(- (1/nu) * phi)})
-    \code{\"reciprocal\"} (\eqn{p(\phi) \propto
-      \frac{1}{\phi}}{p(\phi) propto 1/phi}),
-    \code{\"squared.reciprocal\"} (\eqn{p(\phi) \propto \frac{1}{\phi^2}}{p(\phi) propto 1/phi^2}),
-    \code{\"fixed\"} (known/estimated value of  \eqn{\phi}{phi}).
-    If the latter is defined the parameter \eqn{\phi}{phi} is
-    fixed  when performing prediction.
-    For the exponential prior the argument \code{phi} provides the
-    the hyperparameter \eqn{\nu}{nu} and corresponds to the
-    expected value for this distribution.  }
-  
+    \eqn{\phi}{phi}.
+    Options are: \code{"uniform"}, \code{"exponential"},
+    \code{"reciprocal"} , \code{"squared.reciprocal"} and
+    \code{"fixed"}.
+    Alternativelly, a user defined discrete distribution can be
+    specified. In this case the argument takes the a vector of
+    probabilities of a discrete distribution and the support points
+    should be provided in the argument \code{phi.discrete}. \cr     
+    If the \code{"fixed"} the argument \eqn{\phi}{phi}
+    should be provided and it is regarded as fixed when performing predictions.\cr
+    For the exponential prior the argument \code{phi} provides
+    the value for
+    the hyperparameter \eqn{\nu}{nu} which also corresponds to the
+    expected value for this distribution.
+  }
   
   \item{phi}{fixed value of the range parameter \eqn{\phi}{phi}. Only needed if
     \code{phi.prior = "fixed"}.  }
@@ -163,20 +158,28 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
     \code{tausq.rel}.
     If \code{tausq.rel.prior = "uniform"} a discrete uniform prior is used
     with support points given by the argument
-    \code{tausq.rel.discrete}.  }
+    \code{tausq.rel.discrete}.
+    Alternativelly, a user defined discrete distribution can be
+    specified. In this case the argument takes the a vector of
+    probabilities of a discrete distribution and the support points
+    should be provided in the argument \code{tausq.rel.discrete}.      
+  }
   
   \item{tausq.rel}{fixed value for the relative nugget parameter.
     Only used if
     \code{tausq.rel.prior = "fixed"}.  }
   
   \item{tausq.rel.discrete}{support points of the discrete prior
-    for the relative nugget parameter
-    \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}.  }
-  
-  
-  
-}
+    for the relative nugget parameter \eqn{\frac{\tau^2}{\sigma^2}}{tau^2/sigma^2}.  }
 
+  \item{obj}{an object of the class \code{krige.bayes} or
+    \code{posterior.krige.bayes} with the output of a call to
+    \code{krige.bayes}. The function \code{post2prior} takes the
+    posterior distribution computed by one call to \code{krige.bayes}
+    and prepares it to be used a a prior in a subsequent call. Notice
+    that in this case the function \code{post2prior} is used instead
+    of \code{prior.control}.  }
+}
 
 \details{
   \code{krige.bayes} is a generic function for Bayesian geostatistical 
@@ -186,13 +189,32 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
   It can be set to run conventional kriging methods which
   use known parameters or \emph{plug-in} estimates. However, the
   functions \code{krige.conv} and \code{ksline} are preferable for
-  prediction with fixed parameters.
+  prediction with fixed parameters.\cr
+
+  \bold{PRIOR SPECIFICATION}
   
-  The basis for the Bayesian algorithm is to discretize the prior
+  The basis of the Bayesian algorithm is tht discretisation of the prior
   distribution for the parameters \eqn{\phi}{phi} and \eqn{\tau^2_{rel}
     =\frac{\tau^2}{\sigma^2}}{tau_rel = tau/sigma}.
-  The Tech. Report referenced below provides details on the results used 
-  in the current implementation.\cr
+  The Tech. Report (see \code{References} below)
+  provides details on the results used in the current implementation.\cr
+  The expressions of the implemented priors for the parameter \eqn{\phi}{phi}
+  are:
+  \describe{
+    \item{"uniform": }{\eqn{p(\phi) \propto 1}{p(phi) propto 1}. }
+    \item{"exponential": }{\eqn{p(\phi) = \frac{1}{\nu}
+	\exp(-\frac{1}{\nu} * \phi)}{(-1/nu) exp(- (1/nu) * phi)}.  }
+    \item{"reciprocal": } {\eqn{p(\phi) \propto \frac{1}{\phi}}{p(\phi)
+	propto 1/phi}.  }
+    \item{"squared.reciprocal": }{\eqn{p(\phi) \propto
+	\frac{1}{\phi^2}}{p(\phi) propto 1/phi^2}.  }
+    \item{"fixed": }{fixed known or estimated value of \eqn{\phi}{phi}.  }
+  }
+
+  We remember that apart from those a \emph{user defined} prior can be specifyed  by
+  entering a vector of probabilities for a discrete distribution 
+  with suport points given by the argument \code{phi.discrete}.\cr
+
   
   \bold{CONTROL FUNCTIONS}
   
@@ -232,7 +254,7 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
       distribution of these parameters.  }
     \item{sample}{a data.frame with a sample from the posterior
       distribution.
-      Each column correspondes to one of the basic model parameters.  }
+      Each column corresponds to one of the basic model parameters.  }
     \cr
     \cr
   }
@@ -287,9 +309,8 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
   Available at: \cr
   \url{http://www.maths.lancs.ac.uk/~ribeiro/publications.html}
   
-  Further information about \bold{geoR} can be found at:
-  \cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  Further information about \bold{geoR} can be found at:\cr
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
   
 }
 
@@ -312,30 +333,30 @@ prior.control(beta.prior = c("flat", "normal", "fixed"),
 # generating a simulated data-set
 ex.data <- grf(50, cov.pars=c(10, .25))
 #
-# defining the prediction grid:
+# defining the grid of prediction locations:
 ex.grid <- as.matrix(expand.grid(seq(0,1,l=21), seq(0,1,l=21)))
 #
-# computing Bayesian posterior and predictive distributions
-# (this can take some time to run)
+# computing posterior and predictive distributions
+# (warning: this can take some time to run)
 ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  prior.control(phi.discrete=seq(0, 2, l=21)))
 #
 # Prior and posterior for the parameter phi
 plot(ex.bayes, type="h", tausq.rel = FALSE, col=c("red", "blue"))
 #
-# Plot histograms of samples from the posterior
+# Plot histograms with samples from the posterior
 par(mfrow=c(2,1))
 hist(ex.bayes)
 par(mfrow=c(1,1))
 #
-# Ploting theoretical and empirical variograms
+# Plotting empirical variograms and some Bayesian estimates
 plot(ex.data)
 # adding lines with fitted variograms
 lines(ex.bayes)
 lines(ex.bayes, summ="median", lty=2)
 lines(ex.bayes, summ="mean", lwd=2, lty=2)
 #
-# Ploting prediction some results
+# Plotting some prediction results
 op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
 par(mar=c(3,3,1,1))
@@ -346,8 +367,10 @@ image(ex.bayes, val= "simulation", number.col=1,
       main="a simulation from the \npredictive distribution")
 image(ex.bayes, val= "simulation", number.col=2,
       main="another simulation from \nthe predictive distribution")
+#
 par(op)
 }
+
 \testonly{
 ex.data <- grf(50, cov.pars=c(10, .25))
 ex.post <- krige.bayes(ex.data)
@@ -371,6 +394,39 @@ image(ex.bayes, val= "simulation", number.col=1,
       main="a simulation from the \npredictive distribution")
 image(ex.bayes, val= "simulation", number.col=2,
       main="another simulation from \nthe predictive distribution")
+PC <- prior.control(phi.prior = c(.1, .2, .3, .2, ,.1, .1), phi.disc=seq(0.1, 0.6, l=6), tausq.rel.prior=c(.1, .4, .3, .2), tausq.rel.discrete=c(0,.1,.2,.3))
+ex.user <- krige.bayes(ex.data, prior = PC)  
+
+# Simulating data at 2 different "times"
+ap1 <- grf(50, cov.pars=c(1, .3))
+ap2 <- grf(70, cov.pars=c(1, .3))
+## A initial "usual" analysis
+ap1.kb <- krige.bayes(ap1)
+## using the previous posterior as prior for next call
+ap2.kb <- krige.bayes(ap2, prior=post2prior(ap1.kb))
+##
+## Another example with "user defined" prior
+##
+PC <- prior.control(phi.prior=c(.2,.3,.2,.1,.1,.1), phi.discrete = seq(0,.5,l=6))
+ap3.kb <- krige.bayes(ap1, prior = PC)
+##
+ap4.kb <- krige.bayes(ap2, prior=post2prior(ap3.kb))
+##
+## Now include tausq
+##
+PC <- prior.control(tausq.rel.prior = "uni", tausq.rel.discrete = seq(0, .5, l=6))
+ap5.kb <- krige.bayes(ap1)
+## using the previous posterior as prior for next call
+ap6.kb <- krige.bayes(ap2, prior=post2prior(ap5.kb))
+##
+##
+##
+PC <- prior.control(phi.prior=c(.2,.3,.2,.1,.1,.1), phi.discrete = seq(0,.5,l=6), tausq.rel.prior=c(.3,.4,.3), tausq.rel.discrete = c(0, .1, .2)) 
+ap7.kb <- krige.bayes(ap1, prior = PC)
+#
+ap8.kb <- krige.bayes(ap2, prior=post2prior(ap7.kb))
+
+
 par(op)
 }
 

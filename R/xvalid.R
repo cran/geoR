@@ -5,11 +5,13 @@
             data.xvalid = NULL, messages.screen = TRUE, ...) 
 {
   call.fc <- match.call()
+  if(missing(geodata))
+    geodata <- list(coords = coords, data = data)
   n <- nrow(coords)
   data <- as.vector(data)
   if (length(data) != n) 
-    stop("coords and data have incompatible dimentions")
-  xmat <- trend.spatial(trend = model$trend, coords = coords)
+    stop("coords and data have incompatible sizes")
+  xmat <- trend.spatial(trend = model$trend, geodata = geodata)
   ##
   ## Locations to be used in the cross-validation
   ##
@@ -150,7 +152,7 @@
     res <- as.data.frame(t(apply(matrix(locations.xvalid), 1, cv.f)))
   }
   else{
-    xmat.val.loc <- trend.spatial(trend = model$trend, coords = locations.xvalid)
+    xmat.val.loc <- trend.spatial(trend = model$trend, geodata = list(coords=locations.xvalid))
     if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
       fix.pars <- (model$parameters.summary[c("tausq", "kappa", 
                                               "psiA", "psiR", "lambda"), 1] == "fixed")

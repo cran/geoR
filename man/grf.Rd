@@ -140,7 +140,7 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   ST--99--10, Dept Maths and Stats, Lancaster University.
   
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 

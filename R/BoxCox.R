@@ -81,7 +81,8 @@
   return(res)
 }
 
-"boxcox.negloglik" <- function(lambda.val, data, xmat, lik.method = "ML")
+"boxcox.negloglik" <-
+  function(lambda.val, data, xmat, lik.method = "ML")
 {
   if(length(lambda.val) == 2){
     data <- data + lambda.val[2]
@@ -97,9 +98,15 @@
   ss <- sum((drop(yt) - drop(xmat %*% beta))^2)
   if(lik.method == "ML")
     neglik <- (n/2) * log(ss) - ((lambda - 1) * sum(log(data)))
-  ##if(lik.method == "RML")
-  ##  neglik <- ((n-beta.size)/2) * log(ss.ns) - log.jacobian
-  ##
+  if(lik.method == "RML"){
+    xx <- crossprod(xmat)
+    if(length(as.vector(xx)) == 1)
+      choldet <- 0.5 * log(xx)
+    else
+      choldet <- sum(log(diag(chol(xx))))
+    neglik <- ((n-beta.size)/2) * log(ss) + choldet -
+      ((lambda - 1) * sum(log(data)))
+  }  
   if(!is.numeric(neglik)) neglik <- Inf
   return(drop(neglik))
 }

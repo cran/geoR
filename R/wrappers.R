@@ -1,7 +1,7 @@
 ##
 ## "wrappers" for pieces of C code used in geoR/geoS
 ##
-bilinearformXAY <-
+"bilinearformXAY" <-
   function(X, lowerA, diagA, Y)
   {
     nA <- length(diagA)
@@ -22,7 +22,7 @@ bilinearformXAY <-
     return(out)
   }
 
-diagquadraticformXAX <-
+"diagquadraticformXAX" <-
   function(X, lowerA, diagA)
   {
     nA <- length(diagA)
@@ -39,7 +39,7 @@ diagquadraticformXAX <-
     return(out)
   }
 
-loccoords <-
+"loccoords" <-
   function(coords, locations)
   {
     ## Computes a matrix for which each row has the distances between
@@ -65,7 +65,7 @@ loccoords <-
     return(out)
   }
 
-distdiag <-
+"distdiag" <-
   function(coords)
   {
     ## returns the lower triangle of the matrix with euclidean distances
@@ -149,7 +149,7 @@ distdiag <-
     if(ncol(tmean) > 1){
       if(ncol.tmean != mod$Nsims)
         stop("cond.sim: size of tmean does not matches with Nsims")
-      require(geoRglmm)
+      require(geoRglm)
       diff.mean <- as.integer(1)
     }      
     else

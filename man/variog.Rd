@@ -42,18 +42,12 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     If a matrix is provided, each column is regarded as one variable or realization.
     Defaults to \code{geodata$data}, if provided.}
   \item{uvec}{a vector with values defining the variogram binning. Only
-    used when
-    \code{option = "bin"}. The values of \code{uvec} defines the mid-points of the bins.\cr
-    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
-    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
-    \eqn{uvec[1]} is replaced by the midpoint of this interval.}
+    used when \code{option = "bin"}.
+    See \code{DETAILS} below for more details on how to speficy the bins.
+  }
   \item{trend}{specifies the mean part of the model.
-    The options are:
-    \code{"cte"} (constant mean),
-    \code{"1st"} (a first degree polynomial
-    on the coordinates), \code{"2nd"} (a second degree polynomial
-    on the coordinates), or a formula of the type \code{~X} where \code{X}
-    is a matrix with the covariates (external trend). Defaults to \code{"cte"}.  }
+    See documentation of \code{\link{trend.spatial}} for further details.
+    Defaults to \code{"cte"}.  }
   \item{lambda}{values of the Box-Cox transformation parameter.
     Defaults to \eqn{1} (no
     transformation). If another value is provided the variogram is
@@ -105,15 +99,63 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   purposes, to estimate covariance parameters and/or to compare theoretical
   and fitted models against sample variograms.
 
+  \bold{Estimators}
+
   The two estimators currently implemented are:
   \itemize{
-    \item \emph{classical} estimator:
+    \item \emph{classical} (method of moments) estimator:
     \deqn{\gamma(h) = \frac{1}{N_h} \sum_{i=1}^{N_h}[Y(x_{(i+h)}) -
       Y(x_i)]^2}{gamma(h) = (1/N_h) sum (Y(x_i+h) - Y(x_i))^2}
+
     \item Hawkins and Cressie's \emph{modulus} estimator
     \deqn{\gamma(h) = [\frac{1}{N_h} \sum_{i=1}^{N_h}|Y(x_{i+h}) -
-      Y(x_i)|^{\frac{1}{2}}]^4}{gamma(h) = ((1/N_h) sum |Y(x_(i+h)) - Y(x_i)|^(1/2))^4}
-}
+      Y(x_i)|^{\frac{1}{2}}]^4}{gamma(h) = ((1/N_h) sum |Y(x_(i+h)) -
+      Y(x_i)|^(1/2))^4}
+  }
+
+
+  \bold{Defining the bins}
+
+  \emph{The default}\cr
+  If the argument \code{uvec} is not provided, the default option is
+  assumed and the bins are defined as follows:\cr
+  \enumerate{
+    \item read the argument \code{max.dist}. If not provided is it set
+    to the maximum distance between a pair of points.
+    \item the center of the bins are in initially given \code{u = seq(0,
+      max.dist, l = 13)}.
+    \item the interval spanned by each bin is given by the mid-points
+    between the centers of the bins.
+    \item The center of the first bin is set to \code{u[1] = u[2]/4}.
+  }
+
+  \emph{variations on the default}\cr
+  The default definition of the bins can be different in some cases.
+  \enumerate{
+    \item if there are data points at coincident locations
+    the bins follows the default above but one more bin is added for
+    collocated points (distance zero).
+    
+    \item if the argument \code{nugget.tolerance} is provided the
+    separation distance between all pairs
+    in the interval \eqn{[0, nugget.tolerance]} are considered to zero.
+    The first element is now set to zero \code{u[1] = 0}.
+    The remaining bins follows the default.
+
+    \item if a single number is provided in the argument \code{uvec} the
+    default sequence size 13 is replaces by this number: \code{u = seq(0,
+      max.dist, l = uvec)}
+
+    \item if a vector is provided in the argument \code{uvec},
+    its elements are taken central points of the bins, this vectors
+    replaces the default sequence
+    }
+
+    %    The values of \code{uvec} defines the mid-points of the bins.\cr
+    %    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
+    %    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
+    %    \eqn{uvec[1]} is replaced by the midpoint of this interval.
+    
 }
 
 \value{
@@ -124,13 +166,27 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     in \code{u}.  }
   \item{n }{number of pairs in each bin, if
     \code{option = "bin"}.  }
+  \item{sd }{standard deviation of the values in each bin.  }
+  \item{bins.lim }{limits defining the interval spanned by each bin.  }
+  \item{ind.bin }{a logical vector indicating whether the number of
+    pairs in each bin is greater or equal to the value in the argument
+    \code{pairs.min}.  }
   \item{var.mark }{variance of the data.  }
   \item{output.type }{echoes the \code{option} argument.  }
   \item{estimator.type }{echoes the type of estimator used.  }
+  \item{n.data }{number of data.  }
+  \item{lambda}{value of the transformation parameter.  }
+  \item{trend}{trend specification.  }
+  \item{nugget.tolerance}{value of the nugget tolerance argument.  }
   \item{direction }{direction for which the variogram was computed.  }
   \item{tolerance }{tolerance angle for directional variogram.  }
   \item{uvec }{lags provided in the function call.  }
   \item{call }{the function call.  }
+
+ [5] "bins.lim"         "ind.bin"          "var.mark"         "output.type"
+ [9] "estimator.type"   "n.data"           "lambda"           "trend"
+[13] "nugget.tolerance" "direction"        "tolerance"        "uvec"
+[17] "call"
   
 }
 
@@ -138,7 +194,7 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
   
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr

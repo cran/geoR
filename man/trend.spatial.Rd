@@ -11,24 +11,66 @@
 }
 
 \usage{
-trend.spatial(trend, coords = NULL)
+trend.spatial(trend, geodata)
 }
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{trend}{specifies the mean part of the model. The options are:
-    \code{"cte"} (constant mean - default option),
-    \code{"1st"} (a first degree polynomial
-    on the coordinates), \code{"2nd"} (a second degree polynomial
-    on the coordinates), or a formula of the type \code{~X} where \code{X}
-    is a matrix with the covariates (external trend). }
-  \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing in each row Euclidean
-    coordinates. Needs to be provided only if \code{trend = "1st"} or
-    \code{trend = "2nd"}.  }
+  \item{trend}{specifies the mean part of the model.
+    See \code{DETAILS} below.  }
+  \item{geodata}{an object of the class \code{geodata} as described in
+    \code{\link{as.geodata}}. }
 }
 
-%\details{
-%}
+\details{
+  The implicty model assumes that there is an underlying process
+  with mean \eqn{\mu(x)}{mu(x)}, where \eqn{x = (x_1, x_2)}{x = (x1, x2)} denotes the coordinates
+  of a spatial location.
+  The argument \code{trend} defines the form of the mean with the
+  following options:
+
+  \itemize{
+    \item{\code{"cte"}}{the mean is assumed to be constant over the region,
+      in which case \eqn{\mu(x)= \mu}{mu(x) = mu}. This is the default
+      option.  }
+    \item{\code{"1st"}}{the mean is assumed to be a first degree polynomial
+      on the coordinates:
+      \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2}{%
+	mu(x) = beta0 + beta1*x1 + beta2*x2. }}
+    \item{\code{"2nd"}}{the mean is assumed to be a second degree polynomial
+      on the coordinates:
+      \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_1 (x_1)^2 +
+	\beta_2 (x_2)^2 + \beta_1 x_1 * \beta_2 x_2}{%
+	\mu(x)= beta0 + beta1*x1 + beta2*x2 + beta1*(x1)^2 +
+	beta2*(x2)^2 + beta1*x1 * beta2*x2.}}
+    \item{\code{~ model}}{a model specification. See
+      \code{\link{formula}} for further details on how to specify
+      a model using formulas. Notice that the model term before
+      \code{~} is not necessary. Tipically used to include covariates
+      (external trend) in the model.}
+  }
+  
+  The following specifications are equivalent:
+  \itemize{
+    \item \code{trend = "1st"} and \code{trend = ~ x1 + x2}
+    \item \code{trend = "2nd"} and \code{trend = ~ x1 + x2 + x1^2 +
+      x2^2 + x1*x2}
+  }
+
+  \bold{Search path for covariates}\cr
+  Typically, functions in the package \code{geoR} which calls
+  \code{trend.spatial} will have the arguments \code{goedata},
+  \code{coords} and \code{data}. 
+
+  When the trend is specifed as \code{trend = ~ model}
+  the terms included in the model will be searched for in the following
+  loactions (in this order):
+  \enumerate{
+    \item as elements of the list \code{geodata}
+    \item as columns in the data-frame \code{geodata$covariates}
+    \item as columns in the data-frame \code{geodata$data}
+  }
+}
 
 \value{
   An \eqn{n \times p}{n x p} trend matrix where \eqn{n}
@@ -38,7 +80,7 @@ trend.spatial(trend, coords = NULL)
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{

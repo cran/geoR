@@ -11,7 +11,8 @@
 }
 
 \usage{
-\method{lines}{variogram}(x, max.dist, type = "o",  scaled = FALSE, ...)
+\method{lines}{variogram}(x, max.dist, type = "o",  scaled = FALSE,
+         pts.range.cex, ...)
 }
 
 \arguments{
@@ -25,6 +26,10 @@
   \item{scaled}{logical. If \code{TRUE} the variogram values are divided by the
     sample variance. This allows comparison between variograms of
     different variables.  }
+  \item{pts.range.cex}{optional. A two elements vector with maximum and
+    minimum values for the caracter expansion factor \code{cex}. If
+    provided the point sizes in binned variogram are proportional to the
+    number of pairs of points used to compute each bin.  } 
   \item{\dots}{other arguments to be passed to the function
     \code{\link{lines}}.  }
 }
@@ -43,7 +48,7 @@
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr

@@ -10,6 +10,8 @@
   ##
   ## setting output object and environments
   ##
+  if(missing(geodata))
+    geodata <- list(coords = coords, data = data)
   if(is.R()) require(mva)
   call.fc <- match.call()
   seed <- .Random.seed
@@ -48,11 +50,24 @@
   beta <- prior$beta
   if(prior$beta.prior == "fixed") beta.fixed <- beta
   if(prior$beta.prior == "normal"){
-    beta.var.std <- prior$beta.var.std
-    inv.beta.var.std <- solve(beta.var.std)
-    betares <- list(iv = solve(beta.var.std),
-                    ivm = drop(solve(beta.var.std, beta)),
-                    mivm = drop(crossprod(beta, solve(beta.var.std, beta))))
+    npr <- length(prior$sigmasq)
+    nphipr <- nrow(as.matrix(prior$sigmasq))
+    ntaupr <- ncol(as.matrix(prior$sigmasq))
+    nbeta <- attr(prior$beta.var.std, "Size")
+    betares <- list()
+    for(j in 1:ntaupr){
+      for(i in 1:nphipr){
+        beta <- array(prior$beta, dim=c(nphipr, ntaupr, nbeta))[i,j,]
+        beta.var.std <- array(prior$beta.var.std,
+                              dim=c(nphipr, ntaupr, nbeta))[i,j,]
+        beta.var.std <- matrix(beta.var.std, nbeta, nbeta)
+        ind.pos <- (j-1)*nphipr + i
+        betares[[ind.pos]] <-
+          list(iv = solve(beta.var.std),
+               ivm = drop(solve(beta.var.std, beta)),
+               mivm = drop(crossprod(beta, solve(beta.var.std, beta))))
+      }
+    }
   }
   if(prior$sigmasq.prior != "fixed")
     S2.prior <- prior$sigmasq
@@ -132,7 +147,7 @@
   dimnames(coords) <- list(NULL, NULL)
   if(nrow(coords) != length(data))
     stop("krige.bayes: number of data is different of number of data locations (coordinates)")
-  trend.data <- trend.spatial(trend=model$trend.d, coords=coords)
+  trend.data <- trend.spatial(trend=model$trend.d, geodata = geodata)
   beta.size <- ncol(trend.data)
   if(beta.size > 1)
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
@@ -187,7 +202,8 @@
     }
     ##
     dimnames(locations) <- list(NULL, NULL)
-    assign("trend.loc", trend.spatial(trend=model$trend.l, coords=locations), envir=pred.env)
+    assign("trend.loc", trend.spatial(trend=model$trend.l, geodata = list(coords = locations)),
+           envir=pred.env)
     ni <- nrow(get("trend.loc", envir=pred.env))
     if(nrow(locations) != ni)
       stop("krige.bayes: number of points to be estimated is different of the number of trend locations")
@@ -211,7 +227,7 @@
       dists.env <- new.env()
       assign("data.dist", as.vector(dist(coords)), envir=dists.env)
     }
-  }
+  }  
   ##
   ## Distances between data and prediction locations
   ## Must be here AFTER anisotropy be checked
@@ -242,17 +258,34 @@
   ##
   ## Preparing prior information on beta and sigmasq
   ##
-  beta.info <-
-    switch(prior$beta.prior,
-           fixed = list(mivm = 0, ivm = 0, iv = Inf, beta.fixed = beta.fixed, p = 0),
-           flat = list(mivm = 0, ivm = 0, iv = 0, p = beta.size),
-           normal = list(mivm = betares$mivm, ivm = betares$ivm, iv = betares$iv, p= 0))
-  sigmasq.info <-
-    switch(prior$sigmasq.prior,
-           fixed = list(df.prior = Inf, n0S0 = 0, sigmasq.fixed = sigmasq.fixed),
-           reciprocal = list(df.prior = 0, n0S0 = 0),
-           uniform = list(df.prior = -2, n0S0 = 0),
-           sc.inv.chisq = list(df.prior = df.prior, n0S0 = df.prior*S2.prior))
+  if(is.null(prior$sigmasq)) npr <- 1
+  else npr <- length(prior$sigmasq)
+  beta.info <- list()
+  sigmasq.info <- list()
+  for(i in 1:npr){
+    beta.info[[i]] <-
+      switch(prior$beta.prior,
+             fixed = list(mivm = 0, ivm = 0, iv = Inf, beta.fixed = beta.fixed, p = 0),
+             flat = list(mivm = 0, ivm = 0, iv = 0, p = beta.size),
+             normal = list(mivm = betares[[i]]$mivm, ivm = betares[[i]]$ivm,
+               iv = betares[[i]]$iv, p = 0))
+    sigmasq.info[[i]] <-
+      switch(prior$sigmasq.prior,
+             fixed = list(df.prior = Inf, n0S0 = 0,
+               sigmasq.fixed = sigmasq.fixed),
+             reciprocal = list(df.prior = 0, n0S0 = 0),
+             uniform = list(df.prior = -2, n0S0 = 0),
+             sc.inv.chisq = list(df.prior = df.prior, n0S0 = df.prior*S2.prior[i]))
+  }
+  beta.info$p <- switch(prior$beta.prior,
+                        fixed = 0,
+                        flat = beta.size,
+                        normal = 0)
+  sigmasq.info$df.prior <- switch(prior$sigmasq.prior,
+                                  fixed = Inf,
+                                  reciprocal = 0,
+                                  uniform = -2, 
+                                  sc.inv.chisq = df.prior)
   ##
   ## ====================== PART 2 =============================
   ##                 FIXED PHI AND TAUSQ.REL
@@ -264,8 +297,8 @@
     ## Computing parameters of the posterior for $\(\beta, \sigma^2)$ 
     ## and moments of the predictive (if applies)
     ##
-    bsp <- beta.sigmasq.post(n = n, beta.info = beta.info,
-                             sigmasq.info = sigmasq.info, 
+    bsp <- beta.sigmasq.post(n = n, beta.info = beta.info[[1]],
+                             sigmasq.info = sigmasq.info[[1]], 
                              env.dists = dists.env,
                              model = list(cov.model = model$cov.model, kappa = model$kappa),
                              xmat = trend.data, y = data,
@@ -341,7 +374,7 @@
       phi.discrete <- seq(0, 2 * data.dist.max, l=51)[-1]
       if(messages.screen)
         cat("krige.bayes: argument \"phi.discrete\" not provided, using default values\n")
-    }
+    } 
     if(!is.numeric(phi.discrete))
       stop("non-numerical value provided in phi.discrete")
     if(length(phi.discrete) == 1)
@@ -351,6 +384,21 @@
     phi.names <- paste("phi", phi.discrete, sep="")
     tausq.rel.names <- paste("tausqrel", tausq.rel.discrete, sep="")
     phidist$phitausq <- as.matrix(expand.grid(phi.discrete, tausq.rel.discrete))
+    if(prior$phi.prior == "user" | prior$tausq.rel.prior == "user"){
+      if(prior$tausq.rel.prior == "fixed")
+        phidist$phitausq <-
+          cbind(phidist$phitausq, prior$priors.info$phi$probs, 1)
+      else{
+        if(is.null(prior$joint.phi.tausq))
+          phidist$phitausq <-
+            cbind(phidist$phitausq,
+                  as.matrix(expand.grid(prior$priors.info$phi$probs,
+                                        prior$priors.info$tausq.rel$probs)))
+        else
+          phidist$phitausq <-
+            cbind(phidist$phitausq, as.vector(prior$joint.phi.tausq.rel), 1)
+      }
+    }
     dimnames(phidist$phitausq) <- list(NULL, NULL)
     ##
     ##  Degrees of freedom for the posteriors
@@ -358,18 +406,24 @@
     df.model <- ifelse(sigmasq.info$df.prior == Inf, Inf,
                        (n + sigmasq.info$df.prior - beta.info$p))
     ##
-    ## Function to compute the posterior probabilities for each value of phi and tausq.rel
-    ##
+    ## Function to compute the posterior probabilities
+    ## for each parameter sets (phi, tausq.rel)
+    ## 
     phi.tausq.rel.post <- function(phinug){
+      par.set <- get("parset", envir=counter.env)
       if(messages.screen){
-        krige.bayes.counter(.temp.ap = get("parset", envir=counter.env),
+        krige.bayes.counter(.temp.ap = par.set,
                             n.points = ntocount)
         assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
       }
       phi <- phinug[1]
       tausq.rel <- phinug[2]
-      bsp <- beta.sigmasq.post(n = n, beta.info = beta.info,
-                               sigmasq.info = sigmasq.info, env.dists = dists.env,
+      if(prior$beta.prior == "normal" && npr > 1)
+        info.id <- par.set
+      else info.id <- 1
+      bsp <- beta.sigmasq.post(n = n, beta.info = beta.info[[info.id]],
+                               sigmasq.info = sigmasq.info[[info.id]],
+                               env.dists = dists.env,
                                model = list(cov.model = model$cov.model,
                                  kappa = model$kappa),
                                xmat = trend.data, y = data, phi = phi,
@@ -380,6 +434,10 @@
       logprobphitausq <-  (-0.5) * log(bsp$det.XiRX) - (bsp$log.det.to.half) -
         (bsp$df.post/2) * log(bsp$S2.post)
       ##
+      if(prior$phi.prior == "user"){
+        if(phinug[3] > 0) logprobphitausq <- logprobphitausq + log(phinug[3])
+        else logprobphitausq <- -Inf
+      }
       if(prior$phi.prior == "reciprocal"){
         if(phi > 0) logprobphitausq <- logprobphitausq - log(phi)
         else logprobphitausq <- -Inf
@@ -391,6 +449,11 @@
       if(prior$phi.prior == "exponential"){
         logprobphitausq <- logprobphitausq - log(exponential.par) - (phi/exponential.par)
        }
+      ##
+      if(prior$tausq.rel.prior == "user"){
+        if(phinug[4] > 0) logprobphitausq <- logprobphitausq + log(phinug[4])
+        else logprobphitausq <- -Inf
+      }
       ##
       bsp$probphitausq <- drop(exp(logprobphitausq))
       ##
@@ -429,7 +492,7 @@
     phidist$beta <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, beta.size))
     dimnames(phidist$beta) <- list(phi.names, tausq.rel.names, beta.names)
     phidist$varbeta <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, beta.size^2))
-    dimnames(phidist$varbeta) <- list(phi.names, tausq.rel.names, beta.names)
+    dimnames(phidist$varbeta) <- list(phi.names, tausq.rel.names, NULL)
     if(do.prediction && simulations.predictive){
       inv.lower <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, (n * (n - 1))/2))
       inv.diag <- array(NA, dim=c(n.phi.discrete, n.tausq.rel.discrete, n))
@@ -468,10 +531,14 @@
       kb$posterior$tausq.rel$distribution <- drop(apply(phidist$probphitausq, 2, sum))
       names(kb$posterior$tausq.rel$distribution) <- tausq.rel.discrete
     }
+    else{
+      kb$posterior$tausq.rel <-
+        list(status= "fixed", fixed.value = tausq.rel.fixed)
+    }
     if(prior$phi.prior != "fixed" | prior$tausq.rel.prior != "fixed"){
       kb$posterior$joint.phi.tausq.rel <- phidist$probphitausq
       dimnames(kb$posterior$joint.phi.tausq.rel) <-
-        list(phi.discrete, tausq.rel.discrete)
+        list(phi.names, tausq.rel.names)
     }
     ##
     ##  Sampling from the posterior distribution
@@ -545,28 +612,35 @@
       phi.mean <- phi.discrete %*% phi.marg
       phi.median <- median(phi.sam[, 1])
       phi.mode <- phi.discrete[which.min(abs(phi.marg - max(phi.marg)))]
-      if(length(phi.mode) > 1){
-        cat("krige.bayes: WARNING: multiple modes. Using the first one\n")
-        cat("krige.bayes: modes found are:\n")
-        print(phi.mode)
-        phi.mode <- phi.mode[1]
-      }
       tausq.rel.marg <- apply(phidist$probphitausq, 2, sum)
       tausq.rel.marg <- tausq.rel.marg/(sum(tausq.rel.marg))
       tausq.rel.mean <- tausq.rel.discrete %*% tausq.rel.marg
       tausq.rel.median <- median(phi.sam[, 2])
       tausq.rel.mode <- tausq.rel.discrete[which.min(abs(tausq.rel.marg - max(tausq.rel.marg)))]
       ##
-      ## Computing the conditional (on the mode of phi and/or tausq.rel)
-      ## modes for beta and sigmasq
+      ## Computing the conditional mode of beta and sigmasq;
+      ## conditional on the mode of (phi, tausq.rel)
       ##
-      modes <- beta.sigmasq.post(n = n, beta.info = beta.info,
-                                 sigmasq.info = sigmasq.info,
+      mode.ind <- which(phidist$probphitausq == max(phidist$probphitausq))
+      phi.tausq.rel.mode <- phidist$phitausq[mode.ind, 1:2, drop = FALSE]
+      if(nrow(phi.tausq.rel.mode) > 1){
+        cat("krige.bayes: WARNING: multiple modes for phi.tausq.rel. Using the first one to compute modes of beta and sigmasq.\n")
+        cat("krige.bayes: modes found are:\n")
+        print(phi.tausq.rel.mode)
+        phi.tausq.rel.mode <- phi.tausq.rel.mode[1,]
+      }
+      if(prior$beta.prior == "normal" && npr > 1)
+        info.id <- mode.ind
+      else info.id <- 1
+      modes <- beta.sigmasq.post(n = n, beta.info = beta.info[[info.id]],
+                                 sigmasq.info = sigmasq.info[[info.id]],
                                  env.dists = dists.env,
                                  model = list(cov.model = model$cov.model,
                                    kappa = model$kappa),
-                                 xmat = trend.data, y = data, phi = phi.mode,
-                                 tausq.rel = tausq.rel.mode, dets = FALSE,
+                                 xmat = trend.data, y = data,
+                                 phi = phi.tausq.rel.mode[1],
+                                 tausq.rel = phi.tausq.rel.mode[2],
+                                 dets = FALSE,
                                  do.prediction.moments = FALSE,
                                  do.prediction.simulations = FALSE,
                                  env.pred = pred.env, signal = signal)
@@ -718,7 +792,10 @@
         b <- b[,ind.not.coincide, drop=FALSE]
       }
       else ind.not.coincide <- TRUE
-      if(beta.info$iv == Inf)
+      if(prior$beta.prior == "normal" && npr > 1)
+        info.id <- par.set
+      else info.id <- 1
+      if(beta.info[[info.id]]$iv == Inf)
         vbetai <- matrix(0, ncol = beta.size, nrow = beta.size)
       else
         vbetai <- matrix(drop(phidist$varbeta[phi.ind, nug.ind,  ]),
@@ -1053,6 +1130,83 @@
   return(res)
 }
 
+"post2prior" <- function(obj)
+{
+  if(class(obj) == "krige.bayes")
+    obj <- obj$posterior
+  if(class(obj) != "posterior.krige.bayes")
+    stop("argument must be an object of the class \"krige.bayes\" or \"posterior.krige.bayes\"")
+  ##
+  ## beta
+  ##
+  if(!is.null(obj$beta$status) &&
+     obj$beta$status == "fixed"){
+    beta.prior <- "fixed"
+    beta <- obj$beta$fixed.value
+    beta.var.std <- NULL
+  }
+  else{
+    beta.prior <- obj$beta$conditional.distribution
+    beta <- obj$beta$pars$mean
+    beta.var.std <- obj$beta$pars$var
+  }
+  ##
+  ## sigmasq
+  ##
+  if(!is.null(obj$sigmasq$status) &&
+     obj$sigmasq$status == "fixed"){
+    sigamsq.prior <- "fixed"
+    sigmasq <- obj$sigmasq$fixed.value
+    df.sigmasq <- NULL
+  }
+  else{
+    sigmasq.prior <- obj$sigmasq$conditional.distribution
+    sigmasq <- obj$sigmasq$pars$S2
+    df.sigmasq <-  obj$sigmasq$pars$df
+  }
+  ##
+  ## phi
+  ##
+  if(!is.null(obj$phi$status) &&
+     obj$phi$status == "fixed"){
+    phi.prior <- "fixed"
+    phi <- obj$phi$fixed.value
+    phi.discrete <- NULL
+  }
+  else{
+    phi.prior <- obj$phi$phi.marginal[,"expected"]
+    phi <- NULL
+    phi.discrete <- obj$phi$phi.marginal[,"phi"]
+  }
+  ##
+  ## tausq.rel
+  ##
+  if(!is.null(obj$tausq.rel$status) &&
+     obj$tausq.rel$status == "fixed"){
+    tausq.rel.prior <- "fixed"
+    tausq.rel <- obj$tausq.rel$fixed.value
+    tausq.rel.discrete <- NULL 
+  }
+  else{
+    tausq.rel.prior <- obj$tausq.rel$tausq.rel.marginal[,"expected"]
+    tausq.rel <- 0
+    tausq.rel.discrete <- obj$tausq.rel$tausq.rel.marginal[,"tausq.rel"]
+  }
+  ##
+  res <- prior.control(beta.prior = beta.prior, beta = beta,
+                       beta.var.std = beta.var.std,
+                       sigmasq.prior = sigmasq.prior, 
+                       sigmasq = sigmasq,  df.sigmasq = df.sigmasq,
+                       phi.prior = phi.prior, 
+                       phi = phi, phi.discrete = phi.discrete, 
+                       tausq.rel.prior = tausq.rel.prior,
+                       tausq.rel = tausq.rel,
+                       tausq.rel.discrete = tausq.rel.discrete)
+  res$joint.phi.tausq.rel <- obj$joint.phi.tausq.rel
+  res$dependent <- TRUE
+  return(res)
+}
+
 "prior.control" <-
   function(beta.prior = c("flat", "normal", "fixed"),
            beta = NULL, beta.var.std = NULL,
@@ -1064,24 +1218,23 @@
            tausq.rel = 0,
            tausq.rel.discrete = NULL)
 {
+  ##
+  ## 1. Checking parameters of the prior
+  ##
+  ##
+  ## beta
+  ##
   beta.prior <- match.arg(beta.prior)
-  sigmasq.prior <- match.arg(sigmasq.prior)
-  phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
-  tausq.rel.prior <- match.arg(tausq.rel.prior)
-  ##
-  ## Checking parameters of the prior
-  ##
   if(beta.prior == "fixed" & is.null(beta))
     stop("argument beta must be provided with fixed prior for this parameter")
   if(beta.prior == "normal"){
     if(is.null(beta) | is.null(beta.var.std))
       stop("arguments \"beta\" and \"beta.var.std\" must be provided with normal prior for the parameter beta")
-    if((length(beta))^2 != length(beta.var.std))
-      stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
-    if(inherits(try(solve(beta.var.std)), "try-error"))
-      stop("krige.bayes: singular matrix in beta.var.std")
   }
   ##
+  ## sigmasq
+  ##
+  sigmasq.prior <- match.arg(sigmasq.prior)
   if(sigmasq.prior == "fixed" & is.null(sigmasq))
     stop("argument \"sigmasq\" must be provided with fixed prior for the parameter sigmasq")
   if(sigmasq.prior == "sc.inv.chisq")
@@ -1091,6 +1244,22 @@
     if(sigmasq < 0)
       stop("negative values not allowed for \"sigmasq\"")
   ##
+  ## phi
+  ##
+  if(!is.null(phi) && length(phi) > 1)
+    stop("length of phi must be one. Use phi.prior and phi.discrete to specify the prior for phi or enter a single fixed value for phi")
+  if(is.numeric(phi.prior)){
+    phi.prior.probs <- phi.prior
+    phi.prior <- "user"
+    if(is.null(phi.discrete))
+      stop("argument phi.discrete with support points for phi must be provided\n")
+    if(length(phi.prior.probs) != length(phi.discrete))
+      stop("user provided phi.prior and phi.discrete have incompatible dimensions\n")
+    if(round(sum(phi.prior.probs), dig=6) != 1)
+      stop("prior probabilities provided for phi do not sum up to 1")
+  }
+  else
+    phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
   if(phi.prior == "fixed"){
     if(is.null(phi)){
       stop("argument \"phi\" must be provided with fixed prior for this parameter")
@@ -1114,7 +1283,22 @@
   if(any(phi.discrete < 0))
     stop("negative values not allowed for parameter phi")
   ##
-  if(!is.null(tausq.rel.discrete)) tausq.rel.prior <- "uniform"
+  ## tausq
+  ##
+  if(length(tausq.rel) > 1)
+    stop("length of tausq.re must be one. Use tausq.rel.prior and tausq.rel.discrete to specify the prior for tausq.rel or enter a single fixed value for tausq.rel")
+  if(is.numeric(tausq.rel.prior)){
+    tausq.rel.prior.probs <- tausq.rel.prior
+    tausq.rel.prior <- "user"
+    if(is.null(tausq.rel.discrete))
+      stop("argument tausq.rel.discrete with support points for tausq.rel must be provided\n")
+    if(length(tausq.rel.prior.probs) != length(tausq.rel.discrete))
+      stop("user provided tausq.rel.prior and tausq.rel.discrete have incompatible dimensions\n")
+    if(round(sum(tausq.rel.prior.probs), dig=6) != 1)
+      stop("prior probabilities for tausq.rel provided do not add up to 1")
+  }
+  else
+    tausq.rel.prior <- match.arg(tausq.rel.prior)
   if(tausq.rel.prior == "fixed"){
     if(is.null(tausq.rel))
       stop("argument \"tausq.rel\" must be provided with fixed prior for the parameter tausq.rel")
@@ -1129,6 +1313,32 @@
   }
   if(any(tausq.rel.discrete) < 0)
     stop("negative values not allowed for parameter tausq.rel")
+  ##
+  ## Further checks on dimensions
+  ##
+  if(phi.prior != "fixed"){
+    if(is.numeric(phi.discrete)){
+      if(is.null(tausq.rel.discrete)) nsets <- length(phi.discrete)
+      else nsets <- length(phi.discrete) * length(tausq.rel.discrete)
+    }
+    if(sigmasq.prior == "sc.inv.chisq"){
+      if(length(sigmasq) == nsets) dep.prior <- TRUE
+      else dep.prior <- FALSE
+    }
+    else dep.prior <- FALSE
+    if(beta.prior == "normal"){
+      if(dep.prior){
+        if(((length(beta)/nsets)^2) != (length(beta.var.std)/nsets))
+          stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
+      }
+      else{
+        if((length(beta))^2 != length(beta.var.std))
+          stop("krige.bayes: beta and beta.var.std have incompatible dimensions")
+        if(inherits(try(solve(beta.var.std)), "try-error"))
+          stop("krige.bayes: singular matrix in beta.var.std")
+      }
+    }
+  }
   ##
   ip <- list(beta=list(), sigmasq=list(), phi=list(), tausq.rel=list())
   ##
@@ -1181,7 +1391,8 @@
                uniform = rep(1, length(pd)),
                exponential = dexp(pd, rate=1/phi),
                squared.reciprocal = ifelse((pd > 0), 1/(pd^2),0),
-               reciprocal = ifelse((pd > 0), 1/pd, 0))
+               reciprocal = ifelse((pd > 0), 1/pd, 0),
+               user = phi.prior.probs)
       names(ip$phi$probs) <- phi.discrete
     }
     if(phi.prior == "exponential")
@@ -1197,7 +1408,10 @@
   else{
     ip$tausq.rel$status <- "random"
     ip$tausq.rel$dist <- tausq.rel.prior
-    ip$tausq.rel$probs <- rep(1/length(tausq.rel.discrete), length(tausq.rel.discrete))
+    if(tausq.rel.prior == "user")
+      ip$tausq.rel$probs <- tausq.rel.prior.probs
+    else      
+      ip$tausq.rel$probs <- rep(1/length(tausq.rel.discrete), length(tausq.rel.discrete))
     names(ip$tausq.rel$probs) <- tausq.rel.discrete
   }
   res <- list(beta.prior = beta.prior, beta = beta,
@@ -1347,7 +1561,8 @@
     df.post <- n + sigmasq.info$df.prior - beta.info$p
     ##
     if(beta.info$iv == Inf){
-      S2.post <- sigmasq.info$n0S0 + yiRy - 2*crossprod(beta.post, xiRy.x[,1]) +
+      S2.post <- sigmasq.info$n0S0 + yiRy -
+        2*crossprod(beta.post, xiRy.x[,1]) +
         crossprod(beta.post, (xiRy.x[,-1] %*% beta.post))
     }
     else
@@ -1533,8 +1748,8 @@
     ## sampling phi and tausq.rel
     ##
     n.points <- length(post$joint.phi.tausq.rel)
-    phi.discrete <- as.numeric(rownames(post$joint.phi.tausq.rel))
-    tausq.rel.discrete <- as.numeric(rownames(post$joint.phi.tausq.rel))
+    phi.discrete <- post$phi$phi.marginal[,"phi"]
+    tausq.rel.discrete <- post$tausq.rel$tausq.rel.marginal[,"tausq.rel"]
     phi.tau.grid <- expand.grid(phi.discrete, tausq.rel.discrete)
     ind <- sample((1:n.points), n, replace = TRUE,
                   prob = as.vector(post$joint.phi.tausq.rel))

@@ -8,6 +8,8 @@
             automatic.refit = FALSE, range.limits,
             messages.screen = TRUE, ...) 
 {
+  if(missing(geodata))
+    geodata <- list(coords = coords, data = data)
   call.fc <- match.call()
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
@@ -66,7 +68,7 @@
     method <- "ML"
   if(method == "ML" & cov.model == "power")
     stop("\n\"power\" model can only be used with method=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
-  xmat <- trend.spatial(trend=trend, coords=coords)
+  xmat <- trend.spatial(trend=trend, geodata=geodata)
   fit.ols <- lm(z ~ xmat + 0)
   trend.ols <- list(coefficients = fit.ols$coefficients)
   var.z <- sum((fit.ols$residual)^2)/(n-length(fit.ols$coefficients))

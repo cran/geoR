@@ -3,6 +3,8 @@
             locations, borders = NULL, krige = krige.control(),
             output = output.control())
 {
+  if(missing(geodata))
+    geodata <- list(coords = coords, data = data)
   call.fc <- match.call()
   base.env <- sys.frame(sys.nframe())
   ##
@@ -92,12 +94,12 @@
       cat("\n")
     }
   }
-  trend.d <- trend.spatial(trend=krige$trend.d, coords=coords)
+  trend.d <- trend.spatial(trend=krige$trend.d, geodata = geodata)
   beta.size <- ncol(trend.d)
   if(beta.prior == "deg")
     if(beta.size != length(beta))
-      stop("size of mean vector is imcompatible with trend specified") 
-  trend.l <- trend.spatial(trend=krige$trend.l, coords=locations)
+      stop("size of mean vector is incompatible with trend specified") 
+  trend.l <- trend.spatial(trend=krige$trend.l, geodata = list(coords = locations))
   ##
   ## Anisotropy correction (should be placed AFTER trend.d/trend.l
   ##
@@ -350,9 +352,9 @@
 {
   if(type.krige != "ok" & type.krige != "OK" & type.krige != "o.k." & type.krige != "O.K." & type.krige != "sk" & type.krige != "SK" & type.krige != "s.k." & type.krige != "S.K.")
     stop("krige.conv: wrong option in the argument type.krige. It should be \"sk\" or \"ok\"(if ordinary or simple kriging is to be performed)")
-  if(type.krige=="OK" | type.krige=="O.K." |type.krige=="o.k")
+  if(type.krige=="OK" | type.krige=="O.K." |type.krige=="o.k.")
     type.krige <- "ok"
-  if(type.krige=="SK" | type.krige=="S.K." |type.krige=="s.k")
+  if(type.krige=="SK" | type.krige=="S.K." |type.krige=="s.k.")
     type.krige <- "sk"
   ##
   if(!is.null(obj.model)){

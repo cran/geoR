@@ -64,7 +64,7 @@ variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr

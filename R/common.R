@@ -122,7 +122,8 @@
 
 "read.geodata" <-
   function(file, header = FALSE, coords.col= 1:2, data.col = 3,
-           data.names = NULL, covar.col = NULL, covar.names = "header", ...)
+           data.names = NULL, covar.col = NULL, covar.names = "header",
+           realisations = NULL, ...)
 {
   call.fc <- match.call()
   obj <- read.table(file = file, header = header, ...)
@@ -141,7 +142,7 @@
 
 "as.geodata" <-
   function(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names")
+           covar.col = NULL, covar.names = "obj.names", realisations = NULL)
 {
   if(!is.matrix(obj) & !is.data.frame(obj))
     stop("object must be a matrix or data.frame")
@@ -177,8 +178,20 @@
     res[[3]] <- as.matrix(res[[3]])
   }
   require(mva)
-  if(min(dist(res$coords)) < 1e-12)
-    cat("WARNING: there are data at coincident locations, several geoR functions will not work\n") 
+  if(is.null(realisations)){
+    if(sum(dist(res$coords) < 1e-12) > 0)
+      cat("WARNING: there are data at coincident locations, some geoR functions will not work\n")
+  }
+  else{
+    res$realisations <- as.factor(realisations)
+    if(length(res$realisations) != nrow(res$coords))
+      stop("realisations and coords have incompatible dimentions")
+    check.coincide <- function(x){sum(dist(x) < 1e-12) > 0}
+    any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
+    any.coincide <- as.vector(unlist(any.coincide))
+    if(sum(any.coincide) > 0)
+      cat("WARNING: there are data at coincident locations within the same realisations, some geoR functions will not work\n")      
+  }
   class(res) <- "geodata"
   return(res)
 }
@@ -206,32 +219,6 @@
   else
     coords.mod <- coords %*% rm %*% tm
   return(coords.mod)
-}
-
-
-"trend.spatial" <-
-  function(trend, coords=NULL)
-{
-  if(inherits(trend, "formula")){
-    trend.mat <- model.matrix(trend)
-  }
-  else{
-    if(trend == "cte")
-      trend.mat <- as.matrix(rep(1, nrow(coords)))
-    else
-      if(trend == "1st")
-        trend.mat <- cbind(1, coords)
-      else
-        if(trend == "2nd")
-          trend.mat <- cbind(1, coords, coords[, 1]^2, coords[
-                                                              , 2]^2, coords[, 1] * coords[, 2])
-	else
-          stop("external trend must be provided for data locations to be estimated using the argments `trend.d` and `trend.l`. Both (trend.d and trend.l) must be the same `cte`, `1st`, `2nd` or given by a formula of the type ~X where X is a matrix or vector of covariates."
-               )
-  }
-  trend.mat <- as.matrix(trend.mat)
-  dimnames(trend.mat) <- list(NULL, NULL)
-  return(trend.mat)
 }
 
 #"dist0.krige" <-
@@ -508,7 +495,7 @@
     par.ori <- par(no.readonly = TRUE)
   else par.ori <- par()
   on.exit(par(par.ori))
-  coords <- as.matrix(x$coords)
+  coords <- as.matrix(coords)
   data <- as.matrix(data)
   data <- data[, col.data]
   if (window.new) {
@@ -532,7 +519,7 @@
   ##
   ## trend removal
   ##
-  xmat <- trend.spatial(trend = trend, coords = coords)
+  xmat <- trend.spatial(trend = trend, geodata = x)
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL

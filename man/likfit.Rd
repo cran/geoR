@@ -19,7 +19,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        trend = "cte", ini.cov.pars, fix.nugget = FALSE, nugget = 0,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
-       cov.model = "matern", method.lik = "ML", components = FALSE,
+       cov.model = "matern", realisations = NULL,
+       method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = likfit.limits(),
        print.pars = FALSE, messages.screen = TRUE, ...)
 }
@@ -39,13 +40,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   }
   \item{data}{a vector with \emph{n} data values. By default it takes the
     component \code{data} of the argument \code{geodata}, if provided.  }
-  \item{trend}{specifies the mean part of the model.
-    The options are:
-    \code{"cte"} (constant mean),
-    \code{"1st"} (a first degree polynomial
-    on the coordinates), \code{"2nd"} (a second degree polynomial
-    on the coordinates), or a formula of the type \code{~X} where \code{X}
-    is a matrix with the covariates (external trend). Defaults to \code{"cte"}.  }
+  \item{trend}{specifies the mean part of the model. See documentation
+    of \code{\link{trend.spatial}} for further details.
+    Defaults to \code{"cte"}.  }
   \item{ini.cov.pars}{initial values for the covariance parameters:
     \eqn{\sigma^2}{sigma^2} (partial sill) and \eqn{\phi}{phi} (range
     parameter).  Typically a vector with two components. However a
@@ -115,7 +112,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{cov.model}{a string specifying the model for the correlation
     function. For further details see 
     documentation for \code{\link{cov.spatial}}.
-      Defaults are equivalent to the \emph{exponential} model.  }
+    Defaults are equivalent to the \emph{exponential} model.  }
+  \item{realisations}{optional. A vector indicating replication number
+    for each data. For more details see \code{\link{as.geodata}}. }
   \item{method.lik}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
@@ -244,7 +243,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{
@@ -284,6 +283,15 @@ ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiR = F)
 ml <- likfit(s100, ini=c(0.5, 0.5), nug=0.2, fix.psiA = F, fix.psiR = F)
 ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=TRUE, kappa=2)
 ml <- likfit(s100, ini=c(0.5, 0.5), cov.model="matern", fix.kappa=F)
+
+## Multiple realizations
+ap1 <- grf(40, cov.pars=c(1, .3))
+ap2 <- grf(30, cov.pars=c(1, .3))
+ap3 <- grf(50, cov.pars=c(1, .3))
+ap <- list(coords = rbind(ap1$coords, ap2$coords, ap3$coords), data =
+c(ap1$data, ap2$data, ap3$data))
+ap$realisations <- c(rep(1,40), rep(2,30), rep(3,50))
+ap.fit <- likfit(ap, ini=c(.5, .5), reali=ap$real)
 
 }
 

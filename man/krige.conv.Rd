@@ -57,13 +57,9 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
     trend model using the arguments \code{trend.d} and
     \code{trend.l}.  } 
   \item{trend.d}{specifies the trend (covariate) values at the data
-    locations. Possible values are:
-    \code{"cte"}  (constant mean), 
-    \code{"1st"}  (first order polynomial on the coordinates),
-    \code{"2nd"} - (second order polynomial on the
-    coordinates). Alternatively 
-    a formula of the type \code{~X} can be provided, where \code{X} is
-    a matrix with covariates (external trend) at data locations.
+    locations.
+    See documentation of \code{\link{trend.spatial}} for
+    further details.
     Defaults to \code{"cte"}.   }
   \item{trend.l}{specifies the trend (covariate) values at prediction
     locations. It must be of the same type as for \code{trend.d}.
@@ -143,7 +139,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 %\note{}

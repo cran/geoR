@@ -72,13 +72,14 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
     \frac{Y^\lambda - 1}{\lambda} \mbox{ ,  otherwise}
     \end{array} \right.}{Y' = log(Y) if lambda = 0 , Y' = ((Y ^ lambda) - 1)/lambda otherwise }. 
   
-  An additional shifting parameter \eqn{lambda_2}{lambda2} can be
+  An additional shifting parameter \eqn{\lambda_2}{lambda2} can be
   included in which case the transformation is given by: 
   
-  \deqn{Y\prime = \left\{ \begin{array}{ll}
+  \deqn{Y\prime = \left\{
+    \begin{array}{ll}
     log(Y + \lambda_2)
     \mbox{ , $\lambda = 0$ } \cr
-    \frac{(Y + lambda_2)^\lambda - 1}{\lambda} \mbox{ ,  otherwise}
+    \frac{(Y + \lambda_2)^\lambda - 1}{\lambda} \mbox{ ,  otherwise}
     \end{array} \right.}{Y' = log(Y + lambda2) if lambda = 0 ,
     Y' = (((Y + lambda2) ^ lambda) - 1)/lambda otherwise }.
 

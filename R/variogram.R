@@ -13,6 +13,8 @@
     require(modreg)
   }
   call.fc <- match.call()
+  if(missing(geodata))
+    geodata <- list(coords = coords, data = data)
   keep <- list(...)
   if(is.null(keep$keep.NA)) keep.NA <- FALSE
   else keep.NA <- keep$keep.NA
@@ -83,7 +85,7 @@
   ##
   ## trend removal
   ##
-  xmat <- trend.spatial(trend = trend, coords = coords)
+  xmat <- trend.spatial(trend = trend, geodata = geodata)
   if (trend != "cte") {
     if (is.vector(data)) {
       data <- lm(data ~ xmat + 0)$residuals
@@ -674,7 +676,7 @@
 "plot.variogram" <-
   function (x, max.dist, vario.col = "all", scaled = FALSE,  
             var.lines = FALSE,  envelope.obj = NULL,
-            bin.cloud = FALSE,  ...) 
+            pts.range.cex, bin.cloud = FALSE,  ...) 
 {
   if(missing(max.dist)) max.dist <- max(x$u)
   Ldots <- list(...)
@@ -701,6 +703,17 @@
             ylab = paste("variogram values / ", 
               x$estimator.type, "estimator"))
   else {
+    if(!missing(pts.range.cex)){
+      cex.min <- min(pts.range.cex)
+      cex.max <- max(pts.range.cex)
+      if(cex.min != cex.max){
+        pts.prop <- TRUE
+        sqn <- sqrt(x$n[x$u <= max.dist])
+        pts.cex <- cex.min + ((sqn - min(sqn)) * (cex.max - cex.min) / (max(sqn) - min(sqn)))
+      }
+      else pts.prop <- FALSE
+    }
+    else pts.prop <- FALSE 
     u <- x$u[x$u <= max.dist]
     v <- x$v
     if(is.vector(v) | length(v) == length(x$u))
@@ -723,11 +736,18 @@
     if(ncol(v) == 1){
       v <- as.vector(v)
       uv <- data.frame(distance=u, semivariance = v)
-      if(is.null(list(...)$ylim))
-        plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, 
-             ...)
-      else
-        plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim)
+      if(is.null(list(...)$ylim)){
+        if(pts.prop)
+          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, cex = pts.cex, ...)
+        else
+          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, ...)
+      }
+      else{
+        if(pts.prop)
+          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, cex = pts.cex)
+        else
+          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim)
+      }
     }
     else
       matplot(x=u, y= v, xlim = c(0, max.dist), ylim = Ldots$ylim, 
@@ -768,8 +788,8 @@
   my.l$cov.model <- x$cov.model
   if (scaled){
     if(is.vector(x$cov.model))
-      my.l$cov.pars[1] <-  my.l$cov.pars[1]/sill.total
-    else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/sill.total
+      my.l$cov.pars[1] <-  my.l$cov.pars[1]/my.l$sill.total
+    else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/my.l$sill.total
     my.l$sill.total <- 1
   }
   gamma.f <- function(x, my.l)
@@ -782,20 +802,42 @@
   return(invisible())
 }
 
-
 "lines.variogram" <-
-function (x, max.dist, type = "o", scaled = FALSE, ...) 
+  function (x, max.dist, type = "o", scaled = FALSE, pts.range.cex, ...) 
 {
   if(missing(max.dist)) max.dist <- max(x$u)
+  if(!missing(pts.range.cex)){
+    cex.min <- min(pts.range.cex)
+    cex.max <- max(pts.range.cex)
+    if(cex.min != cex.max){
+      pts.prop <- TRUE
+      sqn <- sqrt(x$n[x$u <= max.dist])
+      pts.cex <- cex.min + ((sqn - min(sqn)) * (cex.max - cex.min) / (max(sqn) - min(sqn)))
+    }
+    else pts.prop <- FALSE
+  }
+  else pts.prop <- FALSE 
   if (scaled) 
     x$v <- x$v/x$var.mark
-  if (!is.matrix(x$v)) 
-    lines(x$u[x$u <= max.dist], x$v[x$u <= max.dist], 
-          type = type, ...)
-  else {
-    for (j in 1:ncol(x$v)) lines(x$u[x$u <= max.dist], 
-                                   x$v[x$u <= max.dist, j], type = type, ...)
+  if (!is.matrix(x$v)){
+    if(pts.prop)
+      lines(x$u[x$u <= max.dist], x$v[x$u <= max.dist], 
+            type = type, cex = pts.cex, ...)
+    else
+      lines(x$u[x$u <= max.dist], x$v[x$u <= max.dist], 
+            type = type, ...)
   }
+  else {
+    for (j in 1:ncol(x$v)){
+      if(pts.prop)
+        lines(x$u[x$u <= max.dist], 
+              x$v[x$u <= max.dist, j], type = type, cex = pts.cex, ...)
+      else
+        lines(x$u[x$u <= max.dist], 
+              x$v[x$u <= max.dist, j], type = type, ...)
+    }
+  }
+  return(invisible())
 }
 
 "variog.model.env" <-
@@ -836,7 +878,7 @@ function (x, max.dist, type = "o", scaled = FALSE, ...)
                 messages.screen = FALSE, lambda = obj.variog$lambda)
   if(messages.screen)
     cat("variog.env: adding the mean or trend\n")
-  x.mat <- trend.spatial(trend=obj.variog$trend, coords=coords)
+  x.mat <- trend.spatial(trend=obj.variog$trend, geodata = geodata)
   simula$data <- as.vector(x.mat %*% beta) + simula$data
   ##
   ## computing empirical variograms for the simulations

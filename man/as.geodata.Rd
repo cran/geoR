@@ -15,7 +15,7 @@
 
 \usage{
 as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names")
+           covar.col = NULL, covar.names = "obj.names", realisations = NULL)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -36,6 +36,8 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
     of the column number(s) corresponding to the covariate(s).  }
   \item{covar.names}{a string or vector of strings with the name(s) of
     the covariates. By default, the names in the original object are used.  }
+  \item{realisations}{optional. A vector indicating the replication
+    number. See \code{DETAILS} below.  }
 }
 
 \details{
@@ -44,26 +46,45 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   Storing data in this format facilitates the usage of the functions in \bold{geoR}.
   However, conversion of objects to this class is not obligatory
   to carry out the analysis.
-  
+
+  \bold{Realisations}\cr
+  Tipically geostatistical data correspond to a unique realization of
+  the spatial process.
+  However, sometimes "realisations" are possible.
+  For instance, if data are collected in the same area at different
+  points in time, and the independence between times is assumed,
+  each time is considered a "replicate".
+
+  The data format is similar to the usual \code{geodata} format in
+  \code{geoR}.
+  Suppose there are realisations (times) \eqn{1, \ldots, J}{1, ..., J}
+  and for each realisations \eqn{n_1, ..., n_j} observations are available.
+  The coordinates for different realisations
+  should be combined in a single \eqn{n \times 2}{nx2} object,
+  where \eqn{n=n_1 + \ldots + n_J}{n=n_1 + ... + n_J}.
+  Similarly for the data vector and covariates (if any).
 }
 
 \value{
   An object of the \code{\link{class}} \code{"geodata"} which is a list
-  with two obligatory and one optional component:
+  with two obligatory components (coords and data)
+  and other optional components:
   \item{coords}{an \eqn{n \times 2}  matrix where \eqn{n} is the number
     of spatial locations.}
   \item{data}{a vector of length \eqn{n}, for the univariate case or,
-  an \eqn{n \times v} matrix or data-frame for the multivariate case,
-  where \eqn{v} is the number of variables.}
-  \item{covariate}{a vector of length \eqn{n} or
+    an \eqn{n \times v} matrix or data-frame for the multivariate case,
+    where \eqn{v} is the number of variables.}
+  \item{covariates}{a vector of length \eqn{n} or
     an \eqn{n \times p} matrix with covariate(s) values,
-    where \eqn{p} is the number of covariates.}
-
+    where \eqn{p} is the number of covariates. Only returned if
+    covariates are provided.  }
+  \item{realisations}{a vector on size \eqn{n} with the replication
+    number. Only returned if argument realisations is provided.  } 
 }
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{

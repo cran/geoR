@@ -13,7 +13,7 @@
 \usage{
 read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
              data.names = NULL, covar.col = NULL,
-             covar.names = "header", ...)
+             covar.names = "header", realisations = NULL, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -32,7 +32,11 @@ read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
   \item{covar.col}{optional. A scalar or vector with the number
     of the column(s) with the values of the covariate(s).  }
   \item{covar.names}{a string or vector of strings with the name(s) of
-    the covariates. By default the names in the original object are used.  }
+    the covariates. By default the names in the original object are
+    used.  }
+  \item{realisations}{optional. A vector indicating the replication
+    number. For more details see documentation for
+    \code{\link{as.geodata}}.  }
   \item{\dots}{further arguments to be passed to the function \code{\link{read.table}}.  }
 }
 
@@ -50,7 +54,7 @@ to an object of the \code{\link{class}} \code{geodata}.
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 \author{

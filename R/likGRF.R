@@ -6,7 +6,7 @@
             fix.lambda = TRUE, lambda = 1, 
             fix.psiA = TRUE, psiA = 0, 
             fix.psiR = TRUE, psiR = 1, 
-            cov.model = "matern",
+            cov.model = "matern", realisations = NULL,
             method.lik = "ML",
             components = FALSE, nospatial = TRUE,
             limits = likfit.limits(), 
@@ -25,10 +25,14 @@
                            "spherical", "circular", "cubic", "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
+  if(fix.kappa & !is.null(kappa))
+    if(cov.model == "matern" & kappa == 0.5)
+      cov.model <- "exponential"
   temp.list$cov.model <- cov.model
-  ##
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
+  ##
+  ## Likelihood method
   ##
   if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
     method.lik <- "RML"
@@ -37,6 +41,9 @@
   if(method.lik == "ML" & cov.model == "power")
     stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method.lik <- method.lik
+  ##
+  ## Initial values for parameters
+  ##
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
     ini.cov.pars <- as.matrix(ini.cov.pars)
     if(nrow(ini.cov.pars) == 1)
@@ -50,15 +57,35 @@
     if((cov.model != "pure.nugget") & (length(ini.cov.pars) != 2))
       stop("\nini.cov.pars must be a vector with 2 components: \ninitial values for sigmasq and phi")
   }
-  if(fix.kappa & !is.null(kappa))
-    if(cov.model == "matern" & kappa == 0.5)
-      cov.model <- "exponential"
-  coords <- temp.list$coords <- as.matrix(coords)
-  n <- temp.list$n <- length(data)
-  if((2*n) != length(coords))
+  ##
+  ## Coodinates, data and covariates
+  ##
+  coords <- as.matrix(coords)
+  data <- as.vector(data)
+  n <- length(data)
+  if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
-  temp.list$xmat <- trend.spatial(trend=trend, coords=coords)
-  beta.size <- temp.list$beta.size <- dim(temp.list$xmat)[2]
+  if(missing(geodata))
+    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+  else
+    xmat <- trend.spatial(trend=trend, geodata=geodata)
+  if(nrow(xmat) != n)
+    stop("trend matrix has dimension imcompatible with the data")
+  beta.size <- temp.list$beta.size <- dim(xmat)[2]
+  ##
+  ## setting a factor for indicating different realisations
+  ##
+  if(is.null(realisations))
+    realisations <- as.factor(rep(1, n))
+  else{
+    if(length(realisations) != n)
+      stop("realisations must be a vector with the same length of the data")
+    realisations <- as.factor(realisations)
+  }
+  temp.list$realisations <- realisations
+  nrep <- temp.list$nrep <- length(levels(realisations))
+  ind.rep <- split(1:n, realisations)
+  vecdist <- function(x){as.vector(dist(x))}
   ##
   ## Checking for multiple initial values for preliminar search of   
   ## best initial value
@@ -66,15 +93,19 @@
   if(is.matrix(ini.cov.pars) | (length(nugget) > 1) | (length(kappa) > 1) | (length(lambda) > 1) | (length(psiR) > 1) | (length(psiA) > 1)){
     if(messages.screen)
       cat("likfit: searching for best initial value ...")
-    .likGRF.dists.vec <<- as.vector(dist(coords))
-    temp.list$z <- as.vector(data)
-    temp.list$trend <- trend
     ini.temp <- matrix(ini.cov.pars, ncol=2)
     grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
-    temp.f <- function(parms, temp.list){
-      return(loglik.GRF(coords=temp.list$coords, data=temp.list$z, cov.model=temp.list$cov.model, cov.pars=parms[1:2], nugget=parms["tausq"], kappa=parms["kappa"], lambda=parms["lambda"], psiR=parms["psiR"], psiA=parms["psiA"], trend= temp.list$trend, method.lik=temp.list$method.lik, compute.dists=F))
-    }
-    grid.lik <- apply(grid.ini, 1, temp.f, temp.list=temp.list)
+    .likGRF.dists.vec <- lapply(split(as.data.frame(coords), realisations), vecdist)
+    temp.f <- function(parms, coords, data, temp.list)
+      return(loglik.GRF(coords = coords, data = as.vector(data),
+                           cov.model=temp.list$cov.model, cov.pars=parms[1:2],
+                           nugget=parms["tausq"], kappa=parms["kappa"],
+                           lambda=parms["lambda"], psiR=parms["psiR"],
+                           psiA=parms["psiA"], trend= trend,
+                           method.lik=temp.list$method.lik, compute.dists=FALSE,
+                           realisations = realisations))
+    grid.lik <- apply(grid.ini, 1, temp.f, coords = coords,
+                      data = data, temp.list = temp.list)
     ini.temp <- grid.ini[which(grid.lik == max(grid.lik)),, drop=FALSE]
     if(is.R()) rownames(ini.temp) <- "initial.value"
     if(messages.screen){
@@ -90,7 +121,6 @@
     psiR <- ini.temp[6]
     psiA <- ini.temp[7]
     grid.ini <- NULL
-    temp.list$trend <- NULL
     if(is.R()) {remove(".likGRF.dists.vec", pos=1); gc(verbose=FALSE)}    
     else remove(".likGRF.dists.vec", where=1)    
   }
@@ -127,8 +157,10 @@
   if(fix.psiR & fix.psiA){
     if(psiR != 1 | psiA != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    if(is.R()) assign(".likGRF.dists.vec", as.vector(dist(coords)), pos=1)
-    else assign(".likGRF.dists.vec", as.vector(dist(coords)), where=1)
+    if(is.R())
+      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
+    else
+      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), where=1)
     range.dist <- range(.likGRF.dists.vec)
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
@@ -151,7 +183,7 @@
     upper.optim <- c(upper.optim, limits$tausq.rel["upper"])
   }
   if(fix.kappa){
-##    fixed.kappa <- c(fixed.pars, kappa)
+    ##    fixed.kappa <- c(fixed.pars, kappa)
     fixed.values$kappa <- kappa
   }
   else {
@@ -160,7 +192,7 @@
     upper.optim <- c(upper.optim, limits$kappa["upper"])
   }
   if(fix.lambda){
-##    fixed.pars <- c(fixed.pars, lambda)
+    ##    fixed.pars <- c(fixed.pars, lambda)
     fixed.values$lambda <- lambda
   }
   else {
@@ -169,7 +201,7 @@
     upper.optim <- c(upper.optim, limits$lambda["upper"])
   }
   if(fix.psiR){
-##    fixed.pars <- c(fixed.pars, psiR)
+    ##    fixed.pars <- c(fixed.pars, psiR)
     fixed.values$psiR <- psiR
   }
   else {
@@ -178,7 +210,7 @@
     upper.optim <- c(upper.optim, limits$psiR["upper"])
   }
   if(fix.psiA){
-##    fixed.pars <- c(fixed.pars, psiA)
+    ##    fixed.pars <- c(fixed.pars, psiA)
     fixed.values$psiA <- psiA
   }
   else {
@@ -192,13 +224,13 @@
     ini <- c(ini, ini.cov.pars[1])
     lower.optim <- c(lower.optim, limits$sigmasq["lower"])
     upper.optim <- c(upper.optim, limits$sigmasq["upper"])
-##    fixed.pars <- c(fixed.pars, ini.cov.pars[1])
-##    fixed.values$sigmasq <- 0
+    ##    fixed.pars <- c(fixed.pars, ini.cov.pars[1])
+    ##    fixed.values$sigmasq <- 0
   }
   names(ini) <- NULL
   ##
   ip <- list(f.tausq = fix.nugget, f.kappa = fix.kappa, f.lambda = fix.lambda,
-                  f.psiR = fix.psiR, f.psiA = fix.psiA)
+             f.psiR = fix.psiR, f.psiA = fix.psiA)
   ##  
   if(messages.screen == TRUE) {
     cat("-------------------------------------------------------\n")
@@ -211,25 +243,35 @@
     cat("likfit: WARNING: This step can be time demanding!\n")
     cat("-------------------------------------------------------\n")
   }
+  ##
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
+  temp.list$coords <- coords
+  temp.list$xmat <- split(as.data.frame(xmat), realisations)
+  temp.list$xmat <- lapply(temp.list$xmat, as.matrix)
+  temp.list$n <- as.vector(unlist(lapply(temp.list$xmat, nrow)))
   ##
   ## Constant term in the likelihood
   ##
-  if(method.lik == "ML"){
-    if(ip$f.tausq & (tausq > 0))
-      temp.list$loglik.cte <-  (n/2)*(-log(2*pi))
-    else
-      temp.list$loglik.cte <-  (n/2)*(-log(2*pi) + log(n) -1)
-  }
-  if(method.lik == "RML"){
-    xx.eigen <- eigen(crossprod(temp.list$xmat), symmetric = TRUE, only.values = TRUE)
-    if(ip$f.tausq & (tausq > 0))
-      temp.list$loglik.cte <- - ((n-beta.size)/2)*(log(2*pi)) +
-        0.5 * sum(log(xx.eigen$values))
-    else
-      temp.list$loglik.cte <-  - ((n-beta.size)/2)*(log(2*pi)) +
-        ((n-beta.size)/2)*(log(n-beta.size)) - ((n-beta.size)/2) +
+  temp.list$loglik.cte <- rep(0, nrep)
+  for(i in 1:nrep){
+    if(method.lik == "ML"){
+      if(ip$f.tausq & (tausq > 0))
+        temp.list$loglik.cte[i] <-  (temp.list$n[i]/2)*(-log(2*pi))
+      else
+        temp.list$loglik.cte[i] <-  (temp.list$n[i]/2)*(-log(2*pi) +
+                                                        log(temp.list$n[i]) -1)
+    }
+    if(method.lik == "RML"){
+      xx.eigen <- eigen(crossprod(temp.list$xmat[[i]]),
+                        symmetric = TRUE, only.values = TRUE)
+      if(ip$f.tausq & (tausq > 0))
+        temp.list$loglik.cte[i] <- - ((temp.list$n[i]-beta.size)/2)*(log(2*pi)) +
           0.5 * sum(log(xx.eigen$values))
+      else
+        temp.list$loglik.cte[i] <-  - ((temp.list$n[i]-beta.size)/2)*(log(2*pi)) +
+          ((temp.list$n[i]-beta.size)/2)*(log(temp.list$n[i]-beta.size)) -
+            ((temp.list$n[i]-beta.size)/2) + 0.5 * sum(log(xx.eigen$values))
+    }
   }
   ##
   ## Numerical minimization of the -loglikelihood
@@ -416,7 +458,6 @@
   if(!fix.lambda) {
     if(abs(lambda - 1) < 0.0001) {
       log.jacobian.max <- 0
-      temp.list$z <- data
     }
     else {
       if(any(data^(lambda - 1) <= 0))
@@ -428,6 +469,9 @@
   else{
     log.jacobian.max <- temp.list$log.jacobian
   }
+  data.rep <- split(temp.list$z, realisations)
+  coords.rep <- split(as.data.frame(coords), realisations)
+  coords.rep <- lapply(coords.rep, as.matrix)
   ##
   ## Transforming coords for estimated anisotropy (if the case)
   ##
@@ -436,52 +480,59 @@
     else remove(".likGRF.dists.vec", where=1)
   }
   else{
-    if(psiR != 1 | psiA != 0)
+    if(round(psiR, dig=6) != 1 | round(psiA, dig=6) != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    .likGRF.dists.vec <- as.vector(dist(coords))
-    range.dist <- range(.likGRF.dists.vec)
+    rangevecdist <- function(x){range(as.vector(dist(x)))}
+    range.dist <- lapply(split(as.data.frame(coords), realisations), rangevecdist)
+    range.dist <- range(as.vector(unlist(range.dist)))
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
-    if(is.R()) remove(".likGRF.dists.vec")
-    else remove(".likGRF.dists.vec", frame=sys.nframe())
   }      
   if(is.R()) gc(verbose=FALSE)
   ##
   ## Computing estimated beta and tausq/sigmasq (if the case)
   ##
-  if((phi < 1e-12))
-    siv <- diag(x=1/sqrt((1+tausq)), n)
-  else{
-    if(check.sigmasq){
-      if(sigmasq < 1e-12){
-        if(!fix.nugget)
-          siv <- diag(x=1/sqrt((1+tausq)), n)
+  xivx <- matrix(0, ncol=beta.size, nrow=beta.size)
+  xivy <- matrix(0, ncol=1, nrow=beta.size)
+  yivy <- 0
+  for(i in 1:nrep){
+    ni <- temp.list$n[i]
+    xmati <- temp.list$xmat[[i]]
+    if((phi < 1e-12))
+      siv <- diag(x=1/sqrt((1+tausq)), ni)
+    else{
+      if(check.sigmasq){
+        if(sigmasq < 1e-12){
+          if(!fix.nugget)
+            siv <- diag(x=1/sqrt((1+tausq)), ni)
+          else
+            siv <- diag(x=1/sqrt((tausq)), ni)          
+        }
         else
-          siv <- diag(x=1/sqrt((tausq)), n)          
+          siv <- varcov.spatial(coords = coords.rep[[i]], cov.model = cov.model,
+                                kappa = kappa,
+                                nugget = tausq, cov.pars = c(1, phi),
+                                inv=TRUE, sqrt.inv = TRUE,
+                                det = FALSE)$sqrt.inverse
       }
       else
-        siv <- varcov.spatial(coords = coords, cov.model = cov.model,
+        siv <- varcov.spatial(coords = coords.rep[[i]], cov.model = cov.model,
                               kappa = kappa,
                               nugget = tausq, cov.pars = c(1, phi),
                               inv=TRUE, sqrt.inv = TRUE,
                               det = FALSE)$sqrt.inverse
     }
-    else
-      siv <- varcov.spatial(coords = coords, cov.model = cov.model,
-                            kappa = kappa,
-                            nugget = tausq, cov.pars = c(1, phi),
-                            inv=TRUE, sqrt.inv = TRUE,
-                            det = FALSE)$sqrt.inverse
+    sivx <- crossprod(siv, temp.list$xmat[[i]])
+    xivx <- xivx + crossprod(sivx)
+    sivy <- crossprod(siv, data.rep[[i]])
+    xivy <- xivy + crossprod(sivx, sivy)
+    yivy <- yivy + crossprod(sivy)
   }
-  sivx <- crossprod(siv, temp.list$xmat)
-  xivx <- crossprod(sivx)
-  sivy <- crossprod(siv, temp.list$z)
-  xivy <- crossprod(sivx, sivy)
   betahat <- solve(xivx, xivy)
-  res <- as.vector(temp.list$z - temp.list$xmat %*% betahat)
+  res <- as.vector(temp.list$z - xmat %*% betahat)
   if(!fix.nugget | (nugget < 1e-12)){
-    res <- as.vector(temp.list$z - temp.list$xmat %*% betahat)
-    ssres <- as.vector(crossprod(crossprod(siv,res)))
+    ssres <- as.vector(yivy - 2*crossprod(betahat,xivy) +
+                       crossprod(betahat,xivx) %*% betahat)  
     if(method.lik == "ML")
       sigmasq <- ssres/n
     else
@@ -498,7 +549,7 @@
 #    tausq <- sigmasq + tausq
 #    sigmasq <- 0
 #  }
-  n.model.pars <- beta.size+7
+  n.model.pars <- beta.size + 7
   par.su <- data.frame(status=rep(-9,n.model.pars))
   ind.par.su <- c(rep(0, beta.size), ip$f.tausq, 0, 0, ip$f.kappa,
                   ip$f.psiR, ip$f.psiA,ip$f.lambda)
@@ -530,7 +581,7 @@
                       parameters.summary = par.su,
                       info.minimisation.function = lik.minim,
                       max.dist = max.dist,
-                      trend.matrix= temp.list$xmat,
+                      trend.matrix= xmat,
                       transform.info = list(fix.lambda = fix.lambda,
                         log.jacobian = log.jacobian.max))
   ##
@@ -538,15 +589,16 @@
   ##
   if(nospatial){
     if(fix.lambda){
-      beta.ns <- solve(crossprod(temp.list$xmat), crossprod(temp.list$xmat, temp.list$z))
-      ss.ns <- sum((as.vector(temp.list$z - temp.list$xmat %*% beta.ns))^2)
+      beta.ns <- solve(crossprod(xmat), crossprod(xmat, temp.list$z))
+      ss.ns <- sum((as.vector(temp.list$z - xmat %*% beta.ns))^2)
       if(method.lik == "ML"){
         nugget.ns <- ss.ns/n
         loglik.ns <- (n/2)*((-log(2*pi)) - log(nugget.ns) - 1) + temp.list$log.jacobian
       }
       if(method.lik == "RML"){
         nugget.ns <- ss.ns/(n-beta.size)
-        loglik.ns <- ((n-beta.size)/2)*((-log(2*pi)) - log(nugget.ns) -1) + temp.list$log.jacobian
+        loglik.ns <- ((n-beta.size)/2)*((-log(2*pi)) - log(nugget.ns) -1) +
+          temp.list$log.jacobian
       }
       npars.ns <- beta.size + 1 + fix.lambda
       lambda.ns <- lambda
@@ -554,17 +606,19 @@
     else{
       if(is.R())
         lik.lambda.ns <- optim(par=1, fn = boxcox.negloglik, method = "L-BFGS-B",
-                               lower = limits$lambda["lower"], upper = limits$lambda["upper"],
-                               data = data, xmat = temp.list$xmat, lik.method = method.lik)
+                               lower = limits$lambda["lower"],
+                               upper = limits$lambda["upper"],
+                               data = data, xmat = xmat, lik.method = method.lik)
       else
         lik.lambda.ns <- nlminb(par=1, fn = boxcox.negloglik,
-                                lower=limits$lambda["lower"], upper=limits$lambda["upper"],
-                                data = data, xmat = temp.list$xmat, lik.method = method.lik)
+                                lower=limits$lambda["lower"],
+                                upper=limits$lambda["upper"],
+                                data = data, xmat = xmat, lik.method = method.lik)
       lambda.ns <- lik.lambda.ns$par
       if(abs(lambda) < 0.0001) tdata.ns <- log(data)
       else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
-      beta.ns <- solve(crossprod(temp.list$xmat),crossprod(temp.list$xmat,tdata.ns))
-      ss.ns <- sum((as.vector(tdata.ns - temp.list$xmat %*% beta.ns))^2)
+      beta.ns <- solve(crossprod(xmat),crossprod(xmat,tdata.ns))
+      ss.ns <- sum((as.vector(tdata.ns - xmat %*% beta.ns))^2)
       if(is.R())
         value.min.ns <- lik.lambda.ns$value
       else
@@ -585,36 +639,13 @@
                                   lambda.ns = lambda.ns)
   }
   ##
-  ## Computing residuals and predicted values
-  ## (isolated components of the model)
-  ##
-  if(components) {
-    if(!fix.psiR & !fix.psiA)
-      if(psiR != 1 | psiA != 0)
-        coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    trend.comp <- temp.list$z - res
-    invcov <- varcov.spatial(coords = coords, cov.model = cov.model, 
-                             kappa = kappa, nugget = tausq,
-                             cov.pars = c(sigmasq, phi), inv=TRUE)$inverse 
-    covmat.signal <- varcov.spatial(coords = coords, cov.model = cov.model, 
-                                    kappa = kappa, nugget = 0,
-                                    cov.pars = c(sigmasq, phi))$varcov
-    spatial.comp <- as.vector(covmat.signal %*% invcov %*% res)
-    predict.comp <- trend.comp + spatial.comp
-    residual.comp <- as.vector(temp.list$z - predict.comp)
-    residual.std <- as.vector(invcov %*% residual.comp)
-    residual.trend.std <- as.vector(invcov %*% res)
-    s2.random <- (crossprod(res,invcov) %*% res)/(n - beta.size)
-    s2 <- (crossprod(residual.comp,invcov) %*% residual.comp)/(n - beta.size)
-  }
-  ##
   ## Assigning names to the components of the mean vector beta
   ##
   if(length(lik.results$beta.var) == 1)
     lik.results$beta.var <- as.vector(lik.results$beta.var)
   if(length(lik.results$beta) > 1){
     if(inherits(trend, "formula"))
-      beta.names <- c("intercept", paste("covar", 1:(ncol(temp.list$xmat)-1), sep = ""))
+      beta.names <- c("intercept", paste("covar", 1:(ncol(xmat)-1), sep = ""))
     else
       if(trend == "1st")
         beta.names <- c("intercept", "x", "y")
@@ -624,12 +655,36 @@
     names(lik.results$beta) <- beta.names
   }
   ##
-  ## including residuals in the output
+  ## Computing residuals and predicted values
+  ## (isolated components of the model)
   ##
   if(components) {
-    lik.results$model.components <- data.frame(trend = trend.comp, spatial = spatial.comp, residuals = residual.comp)
-    lik.results$s2 <- s2
-    lik.results$s2.random <- s2.random
+    if(!fix.psiR & !fix.psiA)
+      if(psiR != 1 | psiA != 0)
+        coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
+    coords.rep <- split(as.data.frame(coords), realisations)
+    res.rep <- split(res, realisations)
+    trend.comp <- temp.list$z - res
+    spatial.comp <- list()
+    for(i in 1:nrep){
+      invcov <- varcov.spatial(coords = coords[ind.rep[[i]],], cov.model = cov.model, 
+                               kappa = kappa, nugget = tausq,
+                               cov.pars = c(sigmasq, phi), inv=TRUE)$inverse 
+      covmat.signal <- varcov.spatial(coords = coords[ind.rep[[i]],],
+                                      cov.model = cov.model, 
+                                      kappa = kappa, nugget = 0,
+                                      cov.pars = c(sigmasq, phi))$varcov
+      spatial.comp[[i]] <- as.vector(covmat.signal %*% invcov %*% res[ind.rep[[i]]])
+    }
+    spatial.comp <- as.vector(unlist(spatial.comp))[as.vector(unlist(ind.rep))]
+    predict.comp <- trend.comp + spatial.comp
+    residual.comp <- as.vector(temp.list$z - predict.comp)
+#    residual.std <- as.vector(invcov %*% residual.comp)
+#    residual.trend.std <- as.vector(invcov %*% res)
+    lik.results$model.components <-
+      data.frame(trend = trend.comp, spatial = spatial.comp, residuals = residual.comp)
+#    lik.results$s2.random <- (crossprod(res,invcov) %*% res)/(n - beta.size)
+#    lik.results$s2 <- (crossprod(residual.comp,invcov) %*% residual.comp)/(n - beta.size)
   }
   ##
   lik.results$call <- call.fc
@@ -653,7 +708,6 @@
       cat("\nWARNING: estimated range is more than 10 times bigger than the biggest distance between two points. Consider re-examine the model:\n 1) excluding spatial dependence if estimated sill is too low and/or \n 2) taking trends (covariates) into account\n" ) 
     if(((lik.results$cov.pars[2] < (0.1 * min.dist)) & (lik.results$cov.pars[1] > 0)) & lik.results$cov.pars[2] > 0)
       cat("\nWARNING: estimated range is less than 1 tenth of the minimum distance between two points. Consider re-examine the model excluding spatial dependence\n" ) 
-
   }
   ##
   return(lik.results)
@@ -671,7 +725,6 @@
   ## sigmasq should be passed and fp$nugget is the value of the nugget
   ## otherwise the RELATIVE nugget should be passed
 {
-  n <- temp.list$n
   p <- temp.list$beta.size
   log.jacobian <- temp.list$log.jacobian
   ## Obligatory parameter:
@@ -912,7 +965,8 @@
   ##
   if(temp.list$print.pars){
     running.pars <- c(sigmasq, phi, tausq, kappa, psiA, psiR, lambda)
-    names(running.pars) <- c("sigmasq", "phi", "tausq", "kappa", "psiA", "psiR", "lambda")
+    names(running.pars) <-
+      c("sigmasq", "phi", "tausq", "kappa", "psiA", "psiR", "lambda")
     print(running.pars)
   }
   ##
@@ -925,8 +979,13 @@
   ##
   if(!ip$f.psiR | !ip$f.psiA){
     coords.c <- coords.aniso(temp.list$coords, aniso.pars=c(psiA, psiR))
-    if(is.R()) assign(".likGRF.dists.vec", as.vector(dist(coords.c)), pos=1)
-    else assign(".likGRF.dists.vec", as.vector(dist(coords.c)), where=1)
+    vecdist <- function(x){as.vector(dist(x))}
+    if(is.R())
+      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
+                                               temp.list$realisations), vecdist), pos=1)
+    else
+      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
+                                               temp.list$realisations), vecdist), where=1)
   }
   ##
   ## Box-Cox transformation
@@ -948,62 +1007,69 @@
     else data <- ((temp.list$z^lambda) - 1)/lambda
   }
   else data <- temp.list$z
+  data <- split(data, as.factor(temp.list$realisations))
   ##
   ## Computing likelihood
   ##
-  ## NOTE: Likelihood for Independent observations 
-  ##       arbitrary criteria used here:
-  ##       (phi < 1-e16) or (sigmasq < 1-e16)  ==> independence
-  ##
-  if((phi < 1e-16) | (sigmasq < 1e-16)){
-    if(ip$f.tausq)
-      iv <- list(sqrt.inverse = diag(x=1/sqrt((tausq+sigmasq)), n),
-                 log.det.to.half = (n/2) * log(tausq+sigmasq))
-    else
-      iv <- list(sqrt.inverse = diag(x=1/sqrt((1+tausq)), n),
-                 log.det.to.half = (n/2) * log(1+tausq))
-  }
-  else{
-    iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec,
-                         cov.model = temp.list$cov.model, kappa=kappa,
-                         nugget = tausq, cov.pars=c(sigmasq, phi),
-                         sqrt.inv = TRUE, det = TRUE)
-  }
-  if(!is.null(iv$crash.parms)) return(.Machine$double.xmax/10000)
-  sivx <- crossprod(iv$sqrt.inverse, temp.list$xmat)
-  xivx <- crossprod(sivx)
-  sivy <- crossprod(iv$sqrt.inverse, data)
-  xivy <- crossprod(sivx, sivy)  
-  betahat <- solve(xivx, xivy)
-  res <- data - temp.list$xmat %*% betahat
-  ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
-  if(temp.list$method.lik == "ML"){
-    if(ip$f.tausq & (tausq > 0))
-      negloglik <- iv$log.det.to.half +  0.5 * ssres - log.jacobian
-    else
-      negloglik <- (n/2) * log(ssres) +  iv$log.det.to.half - log.jacobian
-  }
-  if(temp.list$method.lik == "RML"){
-    if(length(as.vector(xivx)) == 1) {
-      choldet <- 0.5 * log(xivx)
+  sumnegloglik <- 0
+  for(i in 1:temp.list$nrep){
+    ## NOTE: Likelihood for Independent observations 
+    ##       arbitrary criteria used here:
+    ##       (phi < 1-e16) or (sigmasq < 1-e16)  ==> independence
+    ##
+    n <- temp.list$n[i]
+    xmat <- temp.list$xmat[[i]]
+    z <- data[[i]]
+    if((phi < 1e-16) | (sigmasq < 1e-16)){
+      if(ip$f.tausq)
+        iv <- list(sqrt.inverse = diag(x=1/sqrt((tausq+sigmasq)), n),
+                   log.det.to.half = (n/2) * log(tausq+sigmasq))
+      else
+        iv <- list(sqrt.inverse = diag(x=1/sqrt((1+tausq)), n),
+                   log.det.to.half = (n/2) * log(1+tausq))
     }
-    else {
-      chol.xivx <- chol(xivx)
-      choldet <- sum(log(diag(chol.xivx)))
+    else{
+      iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
+                           cov.model = temp.list$cov.model, kappa=kappa,
+                           nugget = tausq, cov.pars=c(sigmasq, phi),
+                           sqrt.inv = TRUE, det = TRUE)
     }
-    if(ip$f.tausq & (tausq > 0))
-      negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet - log.jacobian
-    else
-      negloglik <- ((n-p)/2) * log(ssres) +  iv$log.det.to.half +
-        choldet - log.jacobian
-  }  
-  ##  if(negloglik > 1e64) negloglik <- 1e64
-  if(negloglik > (.Machine$double.xmax/10000))
-    negloglik <- (.Machine$double.xmax/10000)
-  negloglik <- negloglik - temp.list$loglik.cte
+    if(!is.null(iv$crash.parms)) return(.Machine$double.xmax/100)
+    sivx <- crossprod(iv$sqrt.inverse, xmat)
+    xivx <- crossprod(sivx)
+    sivy <- crossprod(iv$sqrt.inverse, z)
+    xivy <- crossprod(sivx, sivy)  
+    betahat <- solve(xivx, xivy)
+    res <- z - xmat %*% betahat
+    ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
+    if(temp.list$method.lik == "ML"){
+      if(ip$f.tausq & (tausq > 0))
+        negloglik <- iv$log.det.to.half +  0.5 * ssres
+      else
+        negloglik <- (n/2) * log(ssres) +  iv$log.det.to.half
+    }
+    if(temp.list$method.lik == "RML"){
+      if(length(as.vector(xivx)) == 1) {
+        choldet <- 0.5 * log(xivx)
+      }
+      else {
+        chol.xivx <- chol(xivx)
+        choldet <- sum(log(diag(chol.xivx)))
+      }
+      if(ip$f.tausq & (tausq > 0))
+        negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet
+      else
+        negloglik <- ((n-p)/2) * log(ssres) +  iv$log.det.to.half + choldet
+    }  
+    negloglik <- negloglik - temp.list$loglik.cte[i]
+    sumnegloglik <- sumnegloglik + negloglik
+  }
+  sumnegloglik <- sumnegloglik - log.jacobian
+  if(sumnegloglik > (.Machine$double.xmax/100))
+    sumnegloglik <- (.Machine$double.xmax/100)
   if(temp.list$print.pars)
     cat(paste("value of the log-likelihood =", -negloglik, "\n"))
-  return(negloglik) 
+  return(sumnegloglik) 
 }
 
 "likfit.limits" <-
@@ -1184,35 +1250,57 @@
 }
 
 "loglik.GRF" <-
-  function(geodata, coords=geodata$coords, data=geodata$data, cov.model="exp", cov.pars, nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0, trend="cte", method.lik="ML", compute.dists = TRUE)
+  function(geodata, coords=geodata$coords, data=geodata$data,
+           cov.model="exp", cov.pars,
+           nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0,
+           trend="cte", method.lik="ML",
+           compute.dists = TRUE, realisations = NULL)
 {
   if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
     method.lik <- "RML"
   if(method.lik == "ML" | method.lik == "ml")
     method.lik <- "ML"
-  n <- nrow(coords)
-  xmat <- trend.spatial(trend=trend, coords=coords)
-  beta.size <- ncol(xmat)
-  z <- data
   sigmasq <- cov.pars[1]
   phi <- cov.pars[2]
+  if(is.null(realisations))
+    realisations <- as.factor(rep(1, length(data)))
+  else
+    realisations <- as.fator(realisations)
+  nrep <- length(levels(realisations))
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(-(.Machine$double.xmax/10000))
-  if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax/10000))
+  if(kappa < 1e-04) return(-(.Machine$double.xmax/100))
+  if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax/100))
+  ##
+  ## Trend matrix
+  ##
+  if(missing(geodata))
+    xmat <- trend.spatial(trend=trend, geodata = list(coords = coords, data = data))
+  else
+    xmat <- trend.spatial(trend=trend, geodata = geodata)
+  beta.size <- ncol(xmat)
+  xmat <- split(as.data.frame(xmat), realisations)
+  xmat <- lapply(xmat, as.matrix)
   ##
   ## Anisotropy
   ##
+  require(mva)
+  vecdist <- function(x){as.vector(dist(x))}
   if(psiR != 1 | psiA != 0){
     coords.c <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    .likGRF.dists.vec <-  as.vector(dist(coords.c))
+    vecdist <- function(x){as.vector(dist(x))}
+    .likGRF.dists.vec <- lapply(split(as.data.frame(coords.c),
+                                      as.factor(realisations)), vecdist)
   }
   else
-    if(compute.dists) .likGRF.dists.vec <-  as.vector(dist(coords))
+    if(compute.dists)
+      .likGRF.dists.vec <- lapply(split(as.data.frame(coords),
+                                        as.factor(realisations)), vecdist)
   ##
   ## Box-Cox transformation
   ##
+  z <- data
   if(abs(lambda - 1) < 0.0001)
     log.jacobian <- 0
   else {
@@ -1226,53 +1314,59 @@
       data <- log(z)
     else data <- ((z^lambda) - 1)/lambda
   }
+  data <- split(data, as.factor(realisations))
   ##
   ## Computing likelihood
   ##
-  ## NOTE: Likelihood for Independent observations 
-  ##       arbitrary criteria used here:
-  ##       (phi < 1-e16) or (sigmasq < 1-e16)  ==> independence
-  ##
-  if((phi < 1e-16) | (sigmasq < 1e-16)){
-    iv <- list(sqrt.inverse = diag(x=1/sqrt((nugget+sigmasq)), n),
-               log.det.to.half = (n/2) * log(nugget+sigmasq))
-  }
-  else{
-    iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec,
-                         cov.model = cov.model, kappa=kappa,
-                         nugget = nugget, cov.pars=c(sigmasq, phi),
-                         sqrt.inv = TRUE, det = TRUE)
-  }
-  if(!is.null(iv$crash.parms)){
-    cat("varcov.spatial: improper matrix for following the given parameters:")
-    print(iv$crash.parms)
-    stop()
-  }
-  sivx <- crossprod(iv$sqrt.inverse, xmat)
-  xivx <- crossprod(sivx)
-  sivy <- crossprod(iv$sqrt.inverse, data)
-  xivy <- crossprod(sivx, sivy)  
-  betahat <- solve(xivx, xivy)
-  res <- data - xmat %*% betahat
-  ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
-  if(method.lik == "ML"){
-    negloglik <- (n/2)*(log(2*pi)) + iv$log.det.to.half +  0.5 * ssres - log.jacobian
-  }
-  if(method.lik == "RML"){
-    if(length(as.vector(xivx)) == 1) {
-      choldet <- 0.5 * log(xivx)
+  sumnegloglik <- 0
+  for(i in 1:nrep){
+    ## NOTE: Likelihood for Independent observations 
+    ##       arbitrary criteria used here:
+    ##       (phi < 1-e16) or (sigmasq < 1-e16)  ==> independence
+    ##
+    n <- length(data[[1]])
+    if((phi < 1e-16) | (sigmasq < 1e-16)){
+      iv <- list(sqrt.inverse = diag(x=1/sqrt((nugget+sigmasq)), n),
+                 log.det.to.half = (n/2) * log(nugget+sigmasq))
     }
-    else {
-      chol.xivx <- chol(xivx)
-      choldet <- sum(log(diag(chol.xivx)))
+    else{
+      iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
+                           cov.model = cov.model, kappa=kappa,
+                           nugget = nugget, cov.pars=c(sigmasq, phi),
+                           sqrt.inv = TRUE, det = TRUE)
     }
-    negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet - log.jacobian
-    xx.eigen <- eigen(crossprod(xmat), symmetric = TRUE, only.values = TRUE)
-    negloglik <- negloglik + ((n-beta.size)/2)*(log(2*pi)) - 0.5 * sum(log(xx.eigen$values))
+    if(!is.null(iv$crash.parms)){
+      cat("varcov.spatial: improper matrix for following the given parameters:")
+      print(iv$crash.parms)
+      stop()
+    }
+    sivx <- crossprod(iv$sqrt.inverse, xmat[[i]])
+    xivx <- crossprod(sivx)
+    sivy <- crossprod(iv$sqrt.inverse, data[[i]])
+    xivy <- crossprod(sivx, sivy)  
+    betahat <- solve(xivx, xivy)
+    res <- data[[i]] - xmat[[i]] %*% betahat
+    ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
+    if(method.lik == "ML"){
+      negloglik <- (n/2)*(log(2*pi)) + iv$log.det.to.half +  0.5 * ssres
+    }
+    if(method.lik == "RML"){
+      if(length(as.vector(xivx)) == 1) {
+        choldet <- 0.5 * log(xivx)
+      }
+      else {
+        chol.xivx <- chol(xivx)
+        choldet <- sum(log(diag(chol.xivx)))
+      }
+      negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet
+      xx.eigen <- eigen(crossprod(xmat[[i]]), symmetric = TRUE, only.values = TRUE)
+      negloglik <- negloglik + ((n-beta.size)/2)*(log(2*pi)) - 0.5 * sum(log(xx.eigen$values))
+    }
+    sumnegloglik <- sumnegloglik + negloglik 
   }
-  if(negloglik > .Machine$double.xmax/10000) negloglik <- (.Machine$double.xmax/10000)
-  return(-negloglik)
+  sumnegloglik <- sumnegloglik - log.jacobian
+  if(sumnegloglik > .Machine$double.xmax/100)
+    sumnegloglik <- (.Machine$double.xmax/100)
+  return(as.vector(-sumnegloglik))
 }
-
-
 

@@ -13,7 +13,7 @@
 \usage{
 \method{plot}{variogram}(x, max.dist, vario.col = "all", scaled = FALSE,
                var.lines = FALSE, envelope.obj = NULL,
-               bin.cloud = FALSE,  ...)
+               pts.range.cex, bin.cloud = FALSE,  ...)
 }
 
 
@@ -35,6 +35,10 @@
   \item{envelope.obj}{adds a variogram envelope computed by
     the function \code{\link{variog.model.env}} or
     \code{\link{variog.mc.env}}.  }
+  \item{pts.range.cex}{optional. A two elements vector with maximum and
+    minimum values for the caracter expansion factor \code{cex}. If
+    provided the point sizes in binned variogram are proportional to the
+    number of pairs of points used to compute each bin.  } 
   \item{bin.cloud}{logical. If \code{TRUE}
     and the sample variogram
     was computed with the option \code{keep.cloud = TRUE}, box-plots
@@ -65,7 +69,7 @@
 
 \references{
   Further information about \bold{geoR} can be found at:\cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR}.
 }
 
 
@@ -90,10 +94,12 @@
 \examples{
 op <- par(no.readonly = TRUE)
 sim <- grf(100, cov.pars=c(1, .2)) # simulates data
-vario <- variog(sim, max.dist=1)  # computes sample variogram
-par(mfrow=c(1,2))
-plot(vario)                                        # the sample variogram
-plot(vario, scaled = TRUE)             # the scaled sample variogram
+vario <- variog(sim, max.dist=1)   # computes sample variogram
+par(mfrow=c(2,2))
+plot(vario)                     # the sample variogram
+plot(vario, scaled = TRUE)      # the scaled sample variogram
+plot(vario, max.dist = 1)       # limiting the maximum distance
+plot(vario, pts.range = c(1,3)) # points sizes proportional to number of pairs
 par(op)
 }
 

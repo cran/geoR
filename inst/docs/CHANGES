@@ -1,7 +1,45 @@
 
 
 		=============================
-		CHANGES IN geoR VERSION 1.1-4
+		CHANGES IN geoR VERSION 1.2-0
+		=============================
+
+NEW FEATURES
+
+     o krige.bayes() now allows for "user defined" (discrete) prior
+       distributions for the parameters phi and tausq.rel
+
+     o new function post2prior() which prepares the posterior
+       obtained in a run of krige.bayes to be used as a prior
+       in a subsequent run
+
+     o function likfit() now allows data assumed to be from
+       different and independent realisations.
+       It has now an extra argument "realisations" which
+       takes a vector of indicating the number of the realisation.
+
+     o functions read.geodata() and as.geodata() also includes
+       the argument realisations
+
+     o function trend.spatial changed to accept different ways to
+       read covariates in the model
+      
+     o plot.variogram has an extra argument which allows points
+       sizes to be proportional to the (square root) of the number
+       of pairs in each bin
+
+
+BUG FIXES
+
+    o  bug fix in picking tausq.res values in sample.posterior()
+
+    o  bug fix in lines.variomodel() for scaled variogram
+    
+    o  likfit() with estimated lambda and RML does not crashes anymore
+
+
+		=============================
+		CHANGES IN geoR VERSION 1.1-5
 		=============================
 
 NEW FEATURES
@@ -320,7 +358,7 @@ BUG FIXES
 
 	**************************************************
 	*						 *
-	*	 geoR 1.O-0 : RELEASE STATMENT	         *
+	*	 geoR 1.0-0 : RELEASE STATMENT	         *
 	*						 *
 	**************************************************
 

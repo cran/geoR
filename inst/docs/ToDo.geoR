@@ -1,31 +1,32 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
+- explain criterium for "bins" formation in variog.Rd
+
 - Create summary functions for:
-	proflik??
+	proflik (?)
 	krige.bayes
-	others ???
+	others ?
 
 - A nicer and shorter version for "proflik" 
 
 - Incorporate "kappa", "anR" and "anA" in proflik
 
-- Un-equally spaced grid for "phi" in krige.bayes
+- Un-equally spaced grid for "phi" in krige.bayes by implementing
+  a trapezoidal approximation to the posterior density function
 
 - analytical computation of probabilities and (maybe) quantiles
-  in krige.bayes and krige.conv
+  in krige.bayes and krige.conv (partially done)
 
 - Implement the robust variogram estimator as described in Genton, 1998
 
 - Implement "glsfit" for variogram
 
 - Check whether is possible to make a more extensive use of the QR 
-decomposition throughout the package, in particular in "varcov.spatial" and 
-the "likfit" functions.
+  decomposition throughout the package, in particular in "varcov.spatial" and 
+  the "likfit" functions.
 
 - generalized covariances
-
-- use function matplot for multiple plots in plot.variogram, plot.grf
 
 - Pocket plots including moving windows 
 

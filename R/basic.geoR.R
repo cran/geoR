@@ -1,3 +1,45 @@
+"trend.spatial" <-
+  function (trend, geodata) 
+{
+  if (inherits(trend, "formula")) {
+    trend.frame <- geodata[attr(terms(trend), "term.labels")]
+    if(any(names(trend.frame) == "NA")){
+      trend.mat <- data.frame()
+      class(trend.mat) <- "try-error"
+    }
+    else
+      trend.mat <- try(model.matrix(trend, data = trend.frame))
+    if (inherits(trend.mat, "try-error")) {
+      if (!is.null(geodata$covariates)) 
+        trend.mat <-
+          try(model.matrix(trend, 
+                           data = as.data.frame(geodata$covariates)))
+      if (inherits(trend.mat, "try-error")) 
+	if(is.data.frame(geodata$data) | is.list(geodata$data))
+          trend.mat <- try(model.matrix(trend,
+                                        data = as.data.frame(geodata$data)))
+      if (inherits(trend.mat, "try-error")) 
+        trend.mat <- try(model.matrix(trend))
+      if (inherits(trend.mat, "try-error")) 
+        stop("\ntrend elements not found")
+    }
+  }
+  else {
+    if (trend == "cte") 
+      trend.mat <- as.matrix(rep(1, nrow(geodata$coords)))
+    else if (trend == "1st") 
+      trend.mat <- cbind(1, geodata$coords)
+    else if (trend == "2nd") 
+      trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
+                         geodata$coords[, 2]^2,
+                         geodata$coords[,1] * geodata$coords[, 2])
+    else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are \"cte\", \"1st\", \"2nd\" or  a model formula")
+  }
+  trend.mat <- as.matrix(trend.mat)
+  dimnames(trend.mat) <- list(NULL, NULL)
+  return(trend.mat)
+}
+
 "locations.inside" <-
   function(locations, borders)
 {
@@ -349,6 +391,8 @@
             cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
+  if(missing(x))
+    x <- list(coords = coords, data = data)
   # This is for compatibility with previously used argument pt.sizes
   if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
   #
@@ -371,7 +415,7 @@
   ##
   ## trend removal
   ##
-  xmat <- trend.spatial(trend = trend, coords = coords)
+  xmat <- trend.spatial(trend = trend, geodata = x)
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL
