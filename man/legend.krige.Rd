@@ -12,7 +12,7 @@
 
 \usage{
 legend.krige(x.leg, y.leg, values, scale.vals,
-             vertical = FALSE, \dots)
+             vertical = FALSE, offset.leg = 1, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -24,6 +24,8 @@ legend.krige(x.leg, y.leg, values, scale.vals,
     the values.  }
   \item{vertical}{If \code{TRUE} the legend is drawn in the vertical
     direction. Defaults to \code{FALSE}.  }
+  \item{offset.leg}{numeric value controlling the distance between the
+    legend text and the legend box. }
   \item{\dots}{further arguments to be passed to the function
     \code{\link{text}}.  }
 }

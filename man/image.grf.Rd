@@ -12,8 +12,7 @@
 }
 
 \usage{
-\method{image}{grf}(x, sim.number = 1, xlim, ylim, x.leg, y.leg,
-            cex.leg = 0.75, vertical = FALSE, \dots)
+\method{image}{grf}(x, sim.number = 1, xlim, ylim, x.leg, y.leg, \dots)
 \dots)
 
 \method{persp}{grf}(x, sim.number = 1, \dots)
@@ -29,9 +28,9 @@
     Defaults to 1.  }
   \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
-  \item{cex.leg}{controls the size of the numerical values in the legend.  }
-  \item{vertical}{logical, defining whether the legend is drawn in
-    horizontal (default) or vertical position.  }
+%  \item{cex.leg}{controls the size of the numerical values in the legend.  }
+%  \item{vertical}{logical, defining whether the legend is drawn in
+%    horizontal (default) or vertical position.  }
   \item{\dots}{further arguments to be passed to the functions
     \code{\link{image}} or \code{\link{persp}}.  }
 }

@@ -45,10 +45,8 @@
   ##
   ## Likelihood method
   ##
-  if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
-    method.lik <- "RML"
-  if(method.lik == "ML" | method.lik == "ml")
-    method.lik <- "ML"
+  if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml")  method.lik <- "RML"
+  if(method.lik == "ML" | method.lik == "ml") method.lik <- "ML"
   if(method.lik == "ML" & cov.model == "power")
     stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method.lik <- method.lik
@@ -60,10 +58,8 @@
   n <- length(data)
   if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
-  if(missing(geodata))
-    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
-  else
-    xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
+  if(missing(geodata)) xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+  else xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
   xmat.contrasts  <- attr(xmat,"contrasts")
   xmat <- unclass(xmat)
   if(nrow(xmat) != n)
@@ -321,8 +317,7 @@
                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
   ##
-  if(messages.screen == TRUE) 
-    cat("likfit: end of numerical maximisation.\n")
+  if(messages.screen == TRUE) cat("likfit: end of numerical maximisation.\n")
   par.est <- lik.minim$par
   if(any(par.est < 0)) par.est <- round(par.est, dig=12)
   phi <- par.est[1]
@@ -612,6 +607,7 @@
                       npars = npars,
                       AIC = -2 * (loglik.max - npars),
                       BIC = -2 * (loglik.max - 0.5 * log(n) * npars),
+#                      residuals = res,
                       parameters.summary = par.su,
                       info.minimisation.function = lik.minim,
                       max.dist = max.dist,
@@ -705,14 +701,22 @@
     trend.comp <- temp.list$z - res
     spatial.comp <- list()
     for(i in 1:nrep){
-      invcov <- varcov.spatial(coords = coords[ind.rep[[i]],], cov.model = cov.model, 
-                               kappa = kappa, nugget = tausq,
-                               cov.pars = c(sigmasq, phi), inv=TRUE)$inverse 
-      covmat.signal <- varcov.spatial(coords = coords[ind.rep[[i]],],
-                                      cov.model = cov.model, 
-                                      kappa = kappa, nugget = 0,
-                                      cov.pars = c(sigmasq, phi))$varcov
-      spatial.comp[[i]] <- as.vector(covmat.signal %*% invcov %*% res[ind.rep[[i]]])
+#      invcov <- varcov.spatial(coords = coords[ind.rep[[i]],], cov.model = cov.model, 
+#                               kappa = kappa, nugget = tausq,
+#                               cov.pars = c(sigmasq, phi), inv=TRUE)$inverse 
+#      covmat.signal <- varcov.spatial(coords = coords[ind.rep[[i]],],
+#                                      cov.model = cov.model, 
+#                                      kappa = kappa, nugget = 0,
+#                                      cov.pars = c(sigmasq, phi))$varcov
+      spatial.comp[[i]] <- as.vector(varcov.spatial(coords = coords[ind.rep[[i]],],
+                                                    cov.model = cov.model, 
+                                                    kappa = kappa, nugget = 0,
+                                                    cov.pars = c(sigmasq, phi))$varcov %*%
+                                     varcov.spatial(coords = coords[ind.rep[[i]],],
+                                                    cov.model = cov.model, 
+                                                    kappa = kappa, nugget = tausq,
+                                                    cov.pars = c(sigmasq, phi), inv=TRUE)$inverse %*%
+                                     res[ind.rep[[i]]]) 
     }
     spatial.comp <- as.vector(unlist(spatial.comp))[as.vector(unlist(ind.rep))]
     predict.comp <- trend.comp + spatial.comp
@@ -730,11 +734,9 @@
   ##
   ## Assigning classes
   ##
-  if(is.R())
-    class(lik.results) <- c("likGRF", "variomodel")
+  if(is.R()) class(lik.results) <- c("likGRF", "variomodel")
   else{
-    if(version$major <= 4)
-      class(lik.results) <- c("likGRF", "variomodel")
+    if(version$major <= 4) class(lik.results) <- c("likGRF", "variomodel")
     else oldClass(lik.results) <- c("likGRF", "variomodel")
   }
   ##

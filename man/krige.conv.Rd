@@ -49,7 +49,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
     kriging. It can take an output to a call to \code{krige.control} or
     a list with elements as for the arguments in \code{krige.control}.
     Default values are assumed for arguments  or list elements not provided.
-    See section DETAILS below.  }
+    See the description of arguments in `krige.control' below.  }
   \item{output}{a list specifying output options.
     It can take an output to a call to \code{output.control} or
     a list with elements as for the arguments in \code{output.control}.

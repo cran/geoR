@@ -16,8 +16,7 @@
 
 \usage{
 \method{image}{kriging}(x, locations, borders, values = x$predict,
-              coords.data, xlim, ylim, x.leg, y.leg, cex.leg = 0.75,
-              vertical = FALSE, \dots)
+              coords.data, xlim, ylim, x.leg, y.leg, \dots)
 
 persp.kriging(x, locations, borders, values = obj$predict, \dots)
 }
@@ -45,13 +44,18 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
     plot.  }
   \item{xlim, ylim} {the range to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
-  \item{cex.leg}{controls the size of the numerical values in the legend.  }
-  \item{vertical}{logical, defining whether the legend is drawn in
-    horizontal (default) or vertical position.  }
+%  \item{cex.leg}{controls the size of the numerical values in the legend.  }
+%  \item{vertical}{logical, defining whether the legend is drawn in
+%    horizontal (default) or vertical position.  }
   \item{\dots}{further arguments to be passed to the functions
-    \code{\link{image}} or \code{\link{persp}}. For instance the
+    \code{\link{image}}, \code{\link{persp}} or
+    \code{\link{legend.krige}}.
+    For instance, the
     argument \code{zlim} can be used to set the the minimum and maximum
-    `z' values for which colors should be plotted. }   
+    `z' values for which colors should be plotted.
+    See documentation for those function for
+    possible arguments.
+  }   
 }
 
 %\details{
@@ -93,10 +97,18 @@ par(mfrow=c(1,2), mar=c(3,3,0,0), mgp=c(1.5, .8,0))
 image(kc, loc=loci)
 image(kc, loc=loci, val=kc$krige.var)
 
-# notice two different ways to add the legends:
+# notice different ways to add the legends and pass arguments:
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
 image(kc, loc=loci, val=kc$krige.var, ylim=c(-0.2, 1))
 legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=kc$krige.var)
+
+image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), cex=1.5)
+image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), off=0.5)
+
+image(kc, loc=loci, xlim=c(0, 1.2))
+legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1),kc$pred, vert=TRUE)
+image(kc, loc=loci, xlim=c(0, 1.2))
+legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1),kc$pred, vert=TRUE, off=1.5, cex=1.5)
 
 par(op)
 }

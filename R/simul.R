@@ -46,7 +46,7 @@
   ##
   ##
   ##
-  rseed <- .Random.seed
+  rseed <- - get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   results <- list()
   ##
   ## defining the locations for the simulated data
@@ -213,7 +213,7 @@
                               nugget = nugget, cov.pars = cov.pars,
                               kappa = kappa, lambda = lambda,
                               aniso.pars = aniso.pars, method = method,
-                              sim.dim = ifelse(sim1d, "1d", "2d"),
+#                              sim.dim = ifelse(sim1d, "1d", "2d"),
                               .Random.seed = rseed, messages = messa,
                               call = call.fc))
   if(is.character(grid) && grid == "reg"){
@@ -223,6 +223,7 @@
       attr(results, "yspacing") <- yspacing
     }
   }
+  attr(results, 'sp.dim') <- ifelse(sim1d, "1d", "2d")
   class(results) <- c("grf", "geodata", "variomodel")
   return(results)
 }
@@ -294,7 +295,7 @@
 "plot.1d" <-
   function(x, xlim, ylim, x1vals, ...)
 {
-  cat("simulation in 1-D\n")
+  cat("data in 1-D\n")
   if(length(x1vals) == 1) col.ind <- 2
   else col.ind <- 1
   order.it <- order(x$coords[,col.ind])
@@ -313,7 +314,7 @@
 
 "image.grf" <-
   function (x, sim.number = 1, xlim, ylim,
-            x.leg, y.leg, cex.leg = 0.8, vertical = FALSE, ...) 
+            x.leg, y.leg, ...) 
 {
   pty.prev <- par()$pty
   x1vals <- unique(round(x$coords[,1], dig=12))
@@ -323,7 +324,7 @@
   ##
   ## Plotting simulations in 1-D
   ##
-  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
+  if(attr(x, 'sp.dim') == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
     plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
   else{
     ##
@@ -404,7 +405,7 @@
   ldots <- list(...)
   if(is.null(ldots$xlim)) xlim <- NULL
   if(is.null(ldots$ylim)) ylim <- NULL
-  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
+  if(attr(x, 'sp.dim') == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
     plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
   else{
     xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))

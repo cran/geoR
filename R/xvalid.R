@@ -4,16 +4,19 @@
             output.reestimate = FALSE, locations.xvalid = "all",
             data.xvalid = NULL, messages.screen = TRUE, ...) 
 {
+  ##
+  ## Checking and organising input
+  ##
   call.fc <- match.call()
-  if(missing(geodata))
-    geodata <- list(coords = coords, data = data)
+  if(missing(geodata)) geodata <- list(coords = coords, data = data)
   n <- nrow(coords)
   data <- as.vector(data)
-  if (length(data) != n) 
-    stop("coords and data have incompatible sizes")
+  if (length(data) != n) stop("coords and data have incompatible sizes")
   xmat <- trend.spatial(trend = model$trend, geodata = geodata)
-  if (nrow(xmat) != n) 
-    stop("coords and trend have incompatible sizes")
+  if (nrow(xmat) != n) stop("coords and trend have incompatible sizes")
+  if(is.null(model$method)) reestimate <- FALSE
+  if(is.null(model$aniso.pars)) model$aniso.pars <- c(0,1)
+  if(is.null(model$kappa)) model$kappa <- 0.5
   ##
   ## Locations to be used in the cross-validation
   ##
@@ -125,16 +128,22 @@
         }
       }
       else CVmod <- model
-      if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
-        fix.pars <- (CVmod$parameters.summary[c("tausq", "kappa", 
-                                                "psiA", "psiR", "lambda"), 1] == "fixed")
-        val.pars <- CVmod$parameters.summary[c("tausq", "kappa", 
-                                               "psiA", "psiR", "lambda"), 2]
+      if(is.null(model$method)){
+        fix.pars <- rep(TRUE, 5)
+        val.pars <- c(CVmod$nugget, CVmod$kappa, CVmod$aniso.pars, CVmod$lambda)
       }
-      if(model$method == "OLS" | model$method == "WLS"){
-        fix.pars <- c(CVmod$fix.nugget, CVmod$fix.kappa,TRUE,TRUE,TRUE)
-        if(is.null(CVmod$kappa)) CVmod$kappa <- 0.5
-        val.pars <- c(CVmod$nugget, CVmod$kappa, 0, 1, CVmod$lambda)
+      else{
+        if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
+          fix.pars <- (CVmod$parameters.summary[c("tausq", "kappa", 
+                                                  "psiA", "psiR", "lambda"), 1] == "fixed")
+          val.pars <- CVmod$parameters.summary[c("tausq", "kappa", 
+                                                 "psiA", "psiR", "lambda"), 2]
+        }
+        if(model$method == "OLS" | model$method == "WLS"){
+          fix.pars <- c(CVmod$fix.nugget, CVmod$fix.kappa,TRUE,TRUE,TRUE)
+          if(is.null(CVmod$kappa)) CVmod$kappa <- 0.5
+          val.pars <- c(CVmod$nugget, CVmod$kappa, 0, 1, CVmod$lambda)
+        }
       }
       names(fix.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
       names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
@@ -155,6 +164,10 @@
   }
   else{
     xmat.val.loc <- trend.spatial(trend = model$trend, geodata = list(coords=locations.xvalid))
+    if(is.null(model$method)){
+      fix.pars <- rep(TRUE, 5)
+      val.pars <- c(mod$nugget, mod$kappa, mod$aniso.pars, mod$lambda)
+    }
     if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
       fix.pars <- (model$parameters.summary[c("tausq", "kappa", 
                                               "psiA", "psiR", "lambda"), 1] == "fixed")
@@ -163,7 +176,6 @@
     }
     if(model$method == "OLS" | model$method == "WLS"){
       fix.pars <- c(model$fix.nugget, model$fix.kappa,TRUE,TRUE,TRUE)
-      if(is.null(model$kappa)) model$kappa <- 0.5
       val.pars <- c(model$nugget, model$kappa, 0, 1, model$lambda)
     }
     names(fix.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")

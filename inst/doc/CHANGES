@@ -1,5 +1,39 @@
 
 		==============================
+		CHANGES IN geoR VERSION 1.3-13
+		==============================
+
+NEW FEATURES
+
+    o some changes in handling of .Random.seed objects to be compatible
+      with R-1.8.0
+
+    o changes in xvalid() to accept arbitrary model specification
+      from a list (and not only outputs from likfit() or variofit())
+
+    o changes in legend.krige() with new argument offset.leg
+      and better defaults for vertical legends.
+      Arguments 'cex.leg' and 'vertical' droped from image.kriging(),
+      image.krige.bayes(), and image.grf().
+      They can still be used but now using the '...' mechanism.
+
+    o new functionality in image.kriging(), image.krige.bayes()
+      persp.kriging(), persp.krige.bayes() to recognise and plot
+      prediction 1D results.
+      krige.conv() and krige.bayes() output objects have an attribute 	
+      to indicate whether the predictions are in 1D or 2D
+
+    o extra arguments in points.geodata() allowing for legend 
+    
+BUGS
+
+    o bug fix in prepare.graph.kriging()
+
+    o bug fix in legend.krige() when vertical=TRUE 
+
+
+
+		==============================
 		CHANGES IN geoR VERSION 1.3-12
 		==============================
 

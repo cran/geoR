@@ -13,7 +13,7 @@
     geodata <- list(coords = coords, data = data)
   if(is.R()) require(mva)
   call.fc <- match.call()
-  seed <- .Random.seed
+  seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)
   base.env <- sys.frame(sys.nframe())
   message.prediction <- character()
@@ -318,6 +318,12 @@
     }
     else locations <- as.matrix(locations)
     ##
+    ## Checking for 1D prediction 
+    ##
+    if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
+      krige1d <- TRUE
+    else krige1d <- FALSE
+    ##
     ## Checking trend specification
     ##
     if(inherits(model$trend.d, "formula") | inherits(model$trend.l, "formula")){
@@ -361,7 +367,8 @@
   ##   (warning: this must be placed here, AFTER trend matrices be defined)
   ##
   if(!is.null(model$aniso.pars)) {
-    if((abs(model$aniso.pars[1]) > 0.001) & (abs(model$aniso.pars[2] - 1) > 0.001)){
+#    if((abs(model$aniso.pars[1]) > 0.001) & (abs(model$aniso.pars[2] - 1) > 0.001)){
+    if(abs(model$aniso.pars[2] - 1) > 0.001){
       if(messages.screen)
         cat("krige.bayes: anisotropy parameters provided and assumed to be constants\n")
       coords <- coords.aniso(coords = coords, aniso.pars = model$aniso.pars)
@@ -1049,11 +1056,11 @@
   kb$max.dist <- data.dist.max
   kb$call <- call.fc
   attr(kb, "prediction.locations") <- call.fc$locations
+  if(do.prediction) attr(kb, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
   if(!is.null(call.fc$borders))
     attr(kb, "borders") <- call.fc$borders
-  class(kb) <- c("krige.bayes", "kriging", "variomodel")
-  if(messages.screen)
-    cat("krige.bayes: done!\n")
+  class(kb) <- c("krige.bayes", "variomodel")
+  if(messages.screen) cat("krige.bayes: done!\n")
   return(kb)
 }
 
@@ -1154,7 +1161,7 @@
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
             number.col, coords.data, xlim, ylim,
-            x.leg, y.leg, cex.leg = 0.75, vertical = FALSE, ...) 
+            x.leg, y.leg, ...) 
 {
   if(missing(x)) x <- NULL
   attach(x)
@@ -1180,26 +1187,33 @@
   if(missing(ylim)) ylim <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
-  locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
-                                         borders=borders,
-                                         values.to.plot=values.to.plot,
-                                         number.col = number.col,
-                                         xlim = xlim, ylim = ylim)
-  pty.prev <- par()$pty
-  par(pty = "s")
-  image(locations$x, locations$y, locations$values,
-        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
-  if(!is.null(coords.data))
-    points(coords.data)
-  if(!is.null(borders))
-    polygon(borders, lwd=2)
-  dots.l <- list(...)
-  if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
-  if(!is.null(x.leg) & !is.null(y.leg)){
-    legend.krige(x.leg=x.leg, y.leg=y.leg,
-                 values=locations$values,
-                 vertical = vertical, cex=cex.leg,
-                 col=dots.l$col, ...)
+  ##
+  ## Plotting 1D or 2D
+  ##
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
+    plot.1d(values, xlim=xlim, ylim = ylim,
+            x1vals = unique(round(locations[,1], dig=12)), ...)
+  else{
+    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+                                           borders=borders,
+                                           values.to.plot=values.to.plot,
+                                           number.col = number.col,
+                                           xlim = xlim, ylim = ylim)
+    pty.prev <- par()$pty
+    par(pty = "s")
+    image(locations$x, locations$y, locations$values,
+          xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
+    if(!is.null(coords.data))
+      points(coords.data)
+    if(!is.null(borders)) polygon(borders, lwd=2)
+    dots.l <- list(...)
+    if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
+    if(!is.null(x.leg) & !is.null(y.leg)){
+      legend.krige(x.leg=x.leg, y.leg=y.leg,
+                   values=locations$values,
+                   vertical = vertical, cex=cex.leg,
+                   col=dots.l$col, ...)
+    }
   }
   par(pty=pty.prev)
   return(invisible())
@@ -1227,11 +1241,19 @@
   }
   if(missing(borders)) borders <- NULL
   if(missing(number.col)) number.col <- NULL
-  locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
-                                         borders=borders,
-                                         values.to.plot=values.to.plot,
-                                         number.col = number.col)
-  persp(locations$x, locations$y, locations$values, ...)
+  ##
+  ## Plotting 1D or 2D
+  ##
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
+    plot.1d(values, xlim=xlim, ylim = ylim,
+            x1vals = unique(round(locations[,1], dig=12)), ...)
+  else{
+    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+                                           borders=borders,
+                                           values.to.plot=values.to.plot,
+                                           number.col = number.col)
+    persp(locations$x, locations$y, locations$values, ...)
+  }
   return(invisible())
 }
 

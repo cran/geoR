@@ -19,6 +19,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                            "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
                cex.max, pch.seq, col.seq, add.to.plot = FALSE,
+               x.leg, y.leg, dig.leg = 2, 
                round.quantiles = FALSE, graph.pars = FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
@@ -69,8 +70,10 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   \item{col.seq}{number(s) defining the colors in the graphical parameter
     \code{col}.  }
   \item{add.to.plot}{logical. If \code{TRUE} the points are added
-    to the current plot
-    otherwise a new plot is created. Defaults to \code{FALSE}.  }
+    to the current plot otherwise a display is open. Defaults to \code{FALSE}.  }
+  \item{x.leg, y.leg}{\code{x} and \code{y} location of the legend.  }
+  \item{dig.leg}{integer indicating the precision to be used in the
+    legend values. }
   \item{round.quantiles}{logical. Defines whether or not the values
     of the quantiles should be rounded. Defaults to \code{FALSE}.  }
   \item{graph.pars}{logical. If \code{TRUE} the graphics
@@ -150,19 +153,18 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   \code{\link{rainbow}}.  }
 
 \examples{
-if(is.R()) data(s100)
+data(s100)
 op <- par(no.readonly = TRUE)
-par(mfrow=c(2,2))
-par(mar=c(3,3,1,1))
-par(mgp = c(2,1,0))
+par(mfrow=c(2,2), mar=c(3,3,1,1), mgp = c(2,1,0))
 points(s100, xlab="Coord X", ylab="Coord Y")
 points(s100, xlab="Coord X", ylab="Coord Y", pt.divide="rank.prop")
 points(s100, xlab="Coord X", ylab="Coord Y", cex.max=1.7,
                col=gray(seq(1, 0.1, l=100)), pt.divide="equal")
-               # the function gray() works only for R
-points(s100, pt.divide="quintile", xlab="Coord X",
-               ylab="Coord Y")
+points(s100, pt.divide="quintile", xlab="Coord X", ylab="Coord Y")
 par(op)
+
+data(ca20)
+points(ca20, pt.div='quartile', x.leg=4900, y.leg=5850, bor=borders)
 }
 
 \keyword{spatial}

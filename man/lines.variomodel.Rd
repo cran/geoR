@@ -27,7 +27,7 @@ lines.variomodel(x, \dots)
   \item{x}{a list with the values for the following components: \code{cov.model}, \code{cov.pars},
     \code{nugget}, \code{kappa} (not aways compulsory, see argument
     kappa below), \code{max.dist}.
-    This argument is optional if the other arguments in thje function
+    This argument is optional if the other arguments in the function
     are provided, otherwise is compulsory.
   }
   \item{cov.model}{a string with the type of the variogram function. See

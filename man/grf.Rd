@@ -123,7 +123,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   \item{method}{a string with the name of the simulation method used.}
   \item{sim.dim}{a string "1d" or "2d" indicating the spatial dimension of the
     simulation.}
-  \item{.Random.seed}{the random seed at the time the function was
+  \item{.Random.seed}{the random seed by the time the function was
     called.  }
   \item{messages}{messages produced by the function describing the
     simulation.  }
@@ -177,9 +177,9 @@ image(sim3, xlab="X Coord", ylab="Y Coord")
 ## 1-D simulations using the same seed and different noise/signal ratios
 ##
 sim11 <- grf(100, ny=1, cov.pars=c(1, 0.25), nug=0)
-.Random.seed <- sim11$.Random.seed
+assign(".Random.seed",  sim11$.Random.seed, envir=.GlobalEnv)
 sim12 <- grf(100, ny=1, cov.pars=c(0.75, 0.25), nug=0.25)
-.Random.seed <- sim11$.Random.seed
+assign(".Random.seed",  sim11$.Random.seed, envir=.GlobalEnv)
 sim13 <- grf(100, ny=1, cov.pars=c(0.5, 0.25), nug=0.5)
 ##
 par.ori <- par(no.readonly = TRUE)

@@ -1,6 +1,8 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
+- chack for possible bug in xvalid for external trend
+
 - plot.variomodel (?) (currently done using curve or plot on cov.spatial)
 
 - nested models expanded to other functions 

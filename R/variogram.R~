@@ -339,17 +339,9 @@
     xx <- x[[5]]$u
     yy <- cbind(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v)
     if (omnidirectional) yy <- cbind(x[[5]]$v, yy)
-    ## OFC, changed : if (is.null(GP$lty)) GP$lty <- 1:5
-    if (is.null(GP$lty)){
-      if(omnidirectional) GP$lty <- 1:5
-      else GP$lty <- 1:4
-    }
+    if (is.null(GP$lty)) GP$lty <- 1:5
     if (is.null(GP$lwd)) GP$lwd <- 1
-    ## OFC, changed : if (is.null(GP$col)) GP$col <- 1:5
-    if (is.null(GP$col)){
-      if(omnidirectional) GP$col <- 1:5
-      else GP$col <- 1:4
-    }
+    if (is.null(GP$col)) GP$col <- 1:5
     if (is.null(GP$pch)) GP$pch <- NULL
     if (is.null(GP$type)) GP$type <- "l"
     matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd, col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab, xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))

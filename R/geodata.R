@@ -232,16 +232,15 @@
               "quartiles", "deciles", "equal"),
             lambda=1, trend="cte", weights.divide=NULL,
             cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
+            x.leg, y.leg, dig.leg = 2, 
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
   if(missing(x)) x <- list(coords = coords, data = data)
   # This is for compatibility with previously used argument pt.sizes
   if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
   #
-  if(!is.numeric(pt.divide))
-    pt.divide <- match.arg(pt.divide)
-  if(!is.vector(data))
-       data <- (as.data.frame(data))[,data.col]
+  if(!is.numeric(pt.divide)) pt.divide <- match.arg(pt.divide)
+  if(!is.vector(data)) data <- (as.data.frame(data))[,data.col]
   if(nrow(coords) != length(data))
     stop("coords and data have incompatible sizes")
     if (!is.null(weights.divide)) {
@@ -325,6 +324,15 @@
       points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
     else
       points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)])
+    ##
+    ## Adding legend
+    ##
+    if(!missing(x.leg) && !missing(y.leg)){
+      textleg <- character()
+      for (i in 1:(length(graph.list$quantiles)-1))
+        textleg <- c(textleg, substitute(a <= y < b, list(a=round(unname(graph.list$quantiles)[i], dig=dig.leg), b=round(unname(graph.list$quantiles[i+1]), dig=dig.leg))))
+      legend(x=x.leg, y=y.leg,textleg, pt.bg=graph.list$col, col=graph.list$col, pch=graph.list$pch)
+    }
   }
   else {
     n <- length(data)
@@ -366,14 +374,12 @@
     }
     if (pt.divide == "equal") {
       if (add.to.plot) 
-        points(coords, pch = pch.seq, bg = col.seq, cex = cex.max, 
-               ...)
-      else points(coords, pch = pch.seq, bg = col.seq, 
-                  cex = cex.max)
+        points(coords, pch = pch.seq, bg = col.seq, cex = cex.max, ...)
+      else points(coords, pch = pch.seq, bg = col.seq, cex = cex.max)
     }
+    if(!missing(x.leg) && !missing(y.leg)) warning(paste('arguments x.leg and y.leg are ignored when pt.divide = ',pt.divide,'\n'))
   }
-  if (graph.pars == TRUE) 
-    return(graph.list)
+  if (graph.pars == TRUE) return(graph.list)
   else return(invisible())
 }
 

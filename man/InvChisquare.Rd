@@ -57,11 +57,11 @@ rinvchisq(n, df, scale = 1/df)
   is the basis for this function.
 }
 \examples{
-.Random.seed <- 1:3; rinvchisq(5, df=2)
-.Random.seed <- 1:3; 1/rchisq(5, df=2)
+set.seed(1234); rinvchisq(5, df=2)
+set.seed(1234); 1/rchisq(5, df=2)
 
-.Random.seed <- 1:3; rinvchisq(5, df=2, scale=5)
-.Random.seed <- 1:3; 5*2/rchisq(5, df=2)
+set.seed(1234); rinvchisq(5, df=2, scale=5)
+set.seed(1234); 5*2/rchisq(5, df=2)
 
 ## inverse Chi-squared is a particular case
 x <- 1:10
