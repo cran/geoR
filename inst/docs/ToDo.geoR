@@ -1,0 +1,23 @@
+Things to be done and/or checked in the package geoR
+======================================================
+
+1) Implement directional variograms
+
+2) Create summary functions for:
+	proflik??
+	krige.bayes
+	others ???
+
+3) Initial search grid for  "wlsfit" and "olsfit"
+
+4) A nicer and shorter version for "proflik" 
+
+5) Incorporate "kappa", "anR" and "anA" in proflik
+
+6) Un-equally spaced grid for "phi" in krige.bayes
+
+7) Implement the robust variogram estimator as described in Genton, 1998
+
+8) Implement "glsfit"
+
+

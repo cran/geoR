@@ -1,0 +1,165 @@
+\name{variog}
+
+\alias{variog}
+\alias{rfm.bin}
+%- Also NEED an `\alias' for EACH other topic documented here.
+
+\title{Compute Empirical Variograms}
+
+\description{
+  Computes sample (empirical) variograms with options for  the \emph{classical} or \emph{robust}
+  estimator. Output can be returned as a \code{binned variogram}, a \code{
+    variogram cloud} or a \code{smoothed variogram}. Data
+  transformation (Box-Cox) is allowed. Trends fitted by ordinary least
+  squares can be "removed" for which case variogram for the residuals are computed.
+}
+
+\usage{
+variog(geodata, coords=geodata$coords, data=geodata$data, 
+       uvec = "default", trend = "cte", lambda = 1, 
+       option = c("bin", "cloud", "smooth"), 
+       estimator.type = c("classical", "modulus"), 
+       nugget.tolerance = 0, max.dist = NULL, pairs.min = 2, 
+       bin.cloud = FALSE, ...) 
+}
+%- maybe also `usage' for other objects documented here.
+
+\arguments{
+  \item{geodata}{a list containing element \code{coords}
+    as described next. Typically an object of the class
+    \code{"geodata"} - a \bold{geoR} data-set.
+    If not provided the arguments
+    \code{coords} must be provided instead.  }
+  \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
+    coordinates of the \eqn{n} data locations in each row.
+    Defaults to \code{geodata$coords}, if provided.}
+  \item{data}{a vector or matrix with data values.
+    If a matrix is provided, each column is regarded as one variable or realization.
+    Defaults to \code{geodata$data}, if provided.}
+  \item{uvec}{a vector with values defining the variogram binning. Only
+    used when
+    \code{option = "bin"}. The values of \code{uvec} defines the mid-points of the bins.\cr
+    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
+    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
+    \eqn{uvec[1]} is replaced by the midpoint of this interval.}
+  \item{trend}{specifies the mean part of the model.
+    The options are:
+    \code{"cte"} (constant mean),
+    \code{"1st"} (a first degree polynomial
+    on the coordinates), \code{"2nd"} (a second degree polynomial
+    on the coordinates), or a formula of the type \code{~X} where \code{X}
+    is a matrix with the covariates (external trend). Defaults to \code{"cte"}.  }
+  \item{lambda}{values of the Box-Cox transformation parameter.
+    Defaults to \eqn{1} (no
+    transformation). If another value is provided the variogram is
+    computed after transforming the 
+    data. A case of particular interest is \eqn{\lambda = 0}{lambda = 0}
+    which corresponds to log-transformation.  }
+  \item{option}{defines the output type: the options \code{"bin"} returns values of
+    binned variogram, \code{"cloud"} returns the variogram cloud and
+    \code{"smooth"} returns the kernel smoothed variogram.
+    Defaults to \code{"bin"}.}
+  \item{estimator.type}{\code{"classical"} computes the classical method of
+    moments estimator and \code{"modulus"} returns variogram
+    estimator suggested by Hawkins and Cressie (see Cressie, 1993, pg 75).
+    Defaults to \code{"classical"}.  }
+  \item{nugget.tolerance}{a numeric value. Points which are separated
+      by a distance less than this value
+      are considered co-located. Defaults to zero.  }
+  \item{max.dist}{a number defining a distance. Pairs of points
+    separated for distance greater than this value are ignored in the
+    variogram calculation. Defaults to the maximum distance
+    between to data locations.}
+  \item{pairs.min}{a integer number defining the minimum numbers of
+    pairs for the bins..
+    If \code{option = "bin"}
+    bins with number of pairs smaller than this
+    value are ignored. Defaults to {NULL}.  }
+  \item{bin.cloud}{logical. If \code{TRUE} and
+    \code{option = "bin"} the cloud values for each class are
+    included in the output. Defaults to \code{FALSE}.  }
+  \item{\dots}{arguments to be passed to the function \code{\link{ksmooth}}, if
+    \code{option = "smooth"}.  }
+}
+
+\details{
+  Variograms are widely used in geostatistical analysis for exploratory
+  purposes, to estimate covariance parameters and/or to compare theoretical
+  and fitted models against sample variograms.
+
+  The two estimators currently implemented are:
+  \itemize{
+    \item \emph{classical} estimator:
+    \deqn{\gamma(h) = \frac{1}{N_h} \sum_{i=1}^{N_h}[Y(x_{(i+h)}) -
+      Y(x_i)]^2}{gamma(h) = (1/N_h) sum (Y(x_i+h) - Y(x_i))^2}
+    \item Hawkins and Cressie's \emph{modulus} estimator
+    \deqn{\gamma(h) = [\frac{1}{N_h} \sum_{i=1}^{N_h}|Y(x_{i+h}) -
+      Y(x_i)|^{\frac{1}{2}}]^4}{gamma(h) = ((1/N_h) sum |Y(x_(i+h)) - Y(x_i)|^(1/2))^4}
+}
+}
+
+\value{
+  An object of the \code{\link{class}} \code{variogram} which is a
+  list with the following components:
+  \item{u }{a vector with distances.  }
+  \item{v }{a vector with estimated variogram values at distances given
+    in \code{u}.  }
+  \item{n }{number of pairs in each bin, if
+    \code{option = "bin"}.  }
+  \item{var.mark }{variance of the data.  }
+  \item{output.type }{echoes the \code{option} argument.  }
+  \item{estimator.type }{echoes the type of estimator used.  }
+  \item{n.data }{number of data points.  }
+  \item{call }{the function call.  }
+  
+}
+
+\references{
+  Cressie, N.A.C.(1993) \emph{Statistics for Spatial Data}, Wiley.
+  
+  Further information about \bold{geoR} can be found at:\cr
+  \url{http://www.maths.lancs.ac.uk/~ribeiro/geoR.html}.
+}
+
+\author{Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
+}
+
+\seealso{\code{\link{variog.model.env}} and \code{\link{variog.mc.env}} for
+  variogram envelopes,
+  \code{\link{olsfit}} and \code{\link{wlsfit}} for variogram based
+  parameter estimation and
+  \code{\link{plot.variogram}} for graphical output.
+}
+
+\examples{
+# Loading data:
+if(is.R()) data(s100)
+
+# computing variogram:
+#
+# binned variogram
+vario.b <- variog(s100, max.dist=1)
+# variogram cloud
+vario.c <- variog(s100, max.dist=1, op="cloud")
+#binned variogram and stores the cloud
+vario.bc <- variog(s100, max.dist=1, bin.cloud=T)
+# smoothed variogram
+vario.s <- variog(s100, max.dist=1, op="sm", band=0.2)
+
+
+# plotting the variograms:
+par(mfrow=c(2,2))
+plot(vario.b, main="binned variogram") 
+plot(vario.c, main="variogram cloud")
+plot(vario.bc, bin.cloud=T, main="clouds for binned variogram")  
+plot(vario.s, main="smoothed variogram") 
+
+}
+
+\keyword{spatial, smooth}
+
+
+
+
+
