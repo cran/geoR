@@ -1,21 +1,24 @@
 
 
 		=============================
-		CHANGES IN geoR VERSION 1.2-3
+		CHANGES IN geoR VERSION 1.2-4
 		=============================
 
 NEW FEATURES
    
-     o
+     o more details on the loss function in the documentation of variofit
 
 
 BUG FIXES
+
+     o bug fix in krige.bayes documentation
 
      o fix in the documentation of internal and defunct functions.
 
      o fix in test for NA's to conform with R-1.5.0
 
      o replacement of T/F by TRUE/FALSE
+
 
 
 

@@ -53,4 +53,4 @@ plot(wolfcamp)
 
 \keyword{datasets}
 \keywords{spatial}
- 
+

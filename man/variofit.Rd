@@ -99,21 +99,44 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   
   \bold{Weights}
   
-  Three different types of weights can be used within the loss function:
+  The different options for the argument \code{weights}
+  are used to define the loss function to be minimised.
+  The available options are as follows.
   
   \describe{
-    \item{\code{"npairs"}}{indicating that the weights are given by the
-      number of pairs in each bin.  }
+    \item{\code{"npairs"}}{indicates that the weights are given by the
+      number of pairs in each bin. The loss function is:
+      \deqn{LOSS(\theta) = \sum_k n_k [(\hat{\gamma}_k) -
+	\gamma_k(\theta)]^2}{LOSS(theta) = sum_k n_k (hat(gamma) -
+	gamma(theta))^2}
+    }
     
-    \item{\code{"cressie"}}{weights
-      as suggested by Cressie (1993, p.95).  } 
-
+    \item{\code{"cressie"}}{weights as suggested by Cressie (1985).
+      \deqn{LOSS(\theta) = \sum_k n_k [\frac{\hat{\gamma}_k -
+	  \gamma_k(\theta)}{\gamma_k(\theta)}]^2}{LOSS(theta) = \sum_k n_k [(hat(gamma_k) -
+	  gamma_k(theta))/{gamma_k(theta)}]^2}
+    }
+    
     \item{\code{"equal"}}{equal values for the weights. For this case
       the estimation corresponds to the ordinary least squares variogram
-      fitting.}
+      fitting.
+      \deqn{LOSS(\theta) = \sum_k [(\hat{\gamma_k}) -
+	\gamma_k(\theta)]^2}{LOSS(\theta) = \sum_k (\hat(\gamma) -
+	\gamma(\theta))^2}
+    }
+    
 
-    See also Barry, Crowder and Diggle (1997) for a discussion on the
-    methods to estimate variogram parameters.
+    Where \eqn{\theta}{theta} is the vector with the variogram parameters
+    and
+    for each \eqn{k^{th}}{kth}-bin
+    \eqn{n_k}{n_k} is the number of
+    pairs, \eqn{(\hat{\gamma}_k)}{hat(gamma_k)} is the
+    value of the empirical variogram and
+    \eqn{\gamma_k(\theta)}{gamma_k(theta)}
+    is the value of the theoretical variogram.
+    
+    See also Cressie (1993) and Barry, Crowder and Diggle (1997) for further discussions on 
+    methods to estimate the variogram parameters.
   }
 }
 
@@ -147,6 +170,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   estimation of the variogram. \emph{Tech. Report, Dept Maths & Stats,
     Lancaster University}.
   
+  Cressie, N.A.C (1985) \emph{Mathematical Geology}. \bold{17}, 563-586. 
+
   Cressie, N.A.C (1993) \emph{Statistics for Spatial Data}. New York: Wiley.
   
   Further information about \bold{geoR} can be found at:\cr

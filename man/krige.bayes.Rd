@@ -215,8 +215,7 @@ post2prior(obj)
     \item{"uniform": }{\eqn{p(\phi) \propto 1}{p(phi) propto 1}. }
     \item{"exponential": }{\eqn{p(\phi) = \frac{1}{\nu}
 	\exp(-\frac{1}{\nu} * \phi)}{(-1/nu) exp(- (1/nu) * phi)}.  }
-    \item{"reciprocal": } {\eqn{p(\phi) \propto \frac{1}{\phi}}{p(\phi)
-	propto 1/phi}.  }
+    \item{"reciprocal": }{\eqn{p(\phi) \propto \frac{1}{\phi}}{p(\phi) propto 1/phi}.  }
     \item{"squared.reciprocal": }{\eqn{p(\phi) \propto
 	\frac{1}{\phi^2}}{p(\phi) propto 1/phi^2}.  }
     \item{"fixed": }{fixed known or estimated value of \eqn{\phi}{phi}.  }
