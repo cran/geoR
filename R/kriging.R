@@ -171,7 +171,7 @@
   ## building the trend matrix
   ##
   if(messages.screen){
-    cat(switch(krige$trend.d,
+    cat(switch(as.character(krige$trend.d)[1],
                "cte" = "krige.conv: model with constant mean",
                "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
                "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",

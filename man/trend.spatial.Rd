@@ -50,6 +50,7 @@ trend.spatial(trend, geodata)
       (external trend) in the model.}
   }
   
+  Denote by \eqn{x_1} and \eqn{x_2} the spatial coordinates.
   The following specifications are equivalent:
   \itemize{
     \item \code{trend = "1st"} and \code{trend = ~ x1 + x2}

@@ -4,6 +4,7 @@
 \alias{grf.aux2}
 \alias{grf.aux1}
 \alias{grfclass}
+\alias{plot.1d}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -16,9 +17,8 @@
 
 
 \usage{
-grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)), 
-    xlims = c(0, 1), ylims = c(0, 1), nsim = 1,
-    cov.model = "matern",
+grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
+    nsim = 1, cov.model = "matern",
     cov.pars = stop("cov. parameters (sigmasq and phi) needed"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     method = c("cholesky", "svd", "eigen", "circular.embedding"),
@@ -122,6 +122,8 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
   \item{aniso.pars}{a vector with values of the anisotropy parameters, if
     provided in the function call.  }
   \item{method}{a string with the name of the simulation method used.}
+  \item{sim.dim}{a string "1d" or "2d" indicating the spatial dimension of the
+    simulation.}
   \item{.Random.seed}{the random seed at the time the function was
     called.  }
   \item{messages}{messages produced by the function describing the
@@ -161,21 +163,33 @@ grf(n, grid = "irreg", nx = round(sqrt(n)), ny = round(sqrt(n)),
 #
 sim1 <- grf(100, cov.pars = c(1, .25))
 # a display of simulated locations and values
-points.geodata(sim1)   
+points(sim1)   
 # empirical and theoretical variograms
 plot(sim1)
 #
 # a "smallish" simulation
 sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 
-image.grf(sim2)
+image(sim2)
 #
 # a "bigger" one
 sim3 <- grf(40401, grid = "reg", cov.pars = c(10, .2), met = "circ") 
 image.grf(sim3)
-\testonly{
-#sim1 <- grf(100, cov.pars=c(1, .3), nsim=5)
-#plot(sim1)
-}
+##
+## 1-D simulations using the same seed and different noise/signal ratios
+##
+sim11 <- grf(100, ny=1, cov.pars=c(1, 0.25), nug=0)
+.Random.seed <- sim11$.Random.seed
+sim12 <- grf(100, ny=1, cov.pars=c(0.75, 0.25), nug=0.25)
+.Random.seed <- sim11$.Random.seed
+sim13 <- grf(100, ny=1, cov.pars=c(0.5, 0.25), nug=0.5)
+##
+par.ori <- par(no.readonly = TRUE)
+par(mfrow=c(3,1), mar=c(3,3,.5,.5))
+yl <- range(c(sim11$data, sim12$data, sim13$data))
+image(sim11, type="l", ylim=yl)
+image(sim12, type="l", ylim=yl)
+image(sim13, type="l", ylim=yl)
+par(par.ori)
 }
 
 \keyword{spatial}

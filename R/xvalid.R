@@ -235,11 +235,23 @@
         stop("argument borders must be a two column matrix or a data frame with the coordinates of the borders")
       else borders <- as.matrix(borders)
   }
-  if(missing(coords)){
-    if(!is.null(attr(x,"geodata.xvalid")))
-      coords <- eval(attr(x,"geodata.xvalid"))$coords
-    if(!is.null(attr(x,"locations.xvalid")))
-      coords <- eval(attr(x,"locations.xvalid"))       
+  if(error | std.error){
+    if(missing(coords)){
+      if(!is.null(attr(x,"geodata.xvalid")))
+        coords <- eval(attr(x,"geodata.xvalid"))$coords
+      if(!is.null(attr(x,"locations.xvalid")))
+        coords <- eval(attr(x,"locations.xvalid"))       
+    }
+    else{
+      if(class(coords) == "geodata")
+        coords <- coords$coords
+    }
+    if(!is.matrix(coords) & !is.data.frame(coords))
+      stop("argument coords must be a two column matrix or a data frame with the data coordinates")
+    else
+      if(ncol(coords) > 2)
+        stop("argument coords must be a two column matrix or a data frame with the data coordinates")
+      else borders <- as.matrix(coords)
   }
   ##
   ## auxiliary computations for plots

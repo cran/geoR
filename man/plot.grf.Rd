@@ -10,7 +10,7 @@
 }
 
 \usage{
-\method{plot}{grf}(x, model.line = TRUE, plot.grid = FALSE, ylim = "default", ...)
+\method{plot}{grf}(x, model.line = TRUE, plot.locations = FALSE, ylim = "default", ...)
 }
 
 
@@ -19,7 +19,7 @@
     \code{\link{grf}}.  }
   \item{model.line}{logical. If \code{TRUE} the true variogram model is added to the
     plot with the sample variogram(s).  }
-  \item{plot.grid}{logical. If \code{TRUE} a plot with data locations is
+  \item{plot.locations}{logical. If \code{TRUE} a plot with data locations is
     also shown.  }
   \item{ylim}{limits for the y-axis. The default is the maximum value of
     the variogram among all of the simulations.  }
@@ -63,7 +63,7 @@ op <- par(no.readonly = TRUE)
 par(mfrow=c(2,1))
 sim1 <- grf(100, cov.pars=c(10, .25))
 # generates simulated data
-plot(sim1, plot.grid=TRUE)
+plot(sim1, plot.locations = TRUE)
 #
 # plots the locations and the sample true variogram model
 #

@@ -33,6 +33,8 @@
       trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
                          geodata$coords[, 2]^2,
                          geodata$coords[,1] * geodata$coords[, 2])
+    ## This would use orthogonal polynomials:
+    ##      trend.mat <- poly(as.matrix(geodata$coords), degree = 2)
     else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are \"cte\", \"1st\", \"2nd\" or  a model formula")
   }
   trend.mat <- as.matrix(trend.mat)

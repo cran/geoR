@@ -282,7 +282,8 @@ void tgangle(Real *xloc, Real *yloc, Integer *nl, Real *res)
     for (i=j+1; i<*nl; i++) {
       dx = (xloc[i] - xloc[j]) ;
       dy = (yloc[i] - yloc[j]) ;
-      res[ind] = dy/dx ;
+      /* Care here: considering the AZIMUTH angle, therefore dx/dy */
+      res[ind] = dx/dy ;
       ind++ ;
     }
   }

@@ -159,7 +159,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
   for graphical output of the results,
   \code{\link{krige.bayes}} for Bayesian prediction and \code{\link{ksline}}
   for a different implementation of kriging allowing for moving
-  neighborhood. For model fitting see \code{\link{likfit}} or \code{\link{variofit}}
+  neighborhood. For model fitting see \code{\link{likfit}} or \code{\link{variofit}}.
 }
 
 

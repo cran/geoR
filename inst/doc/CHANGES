@@ -1,3 +1,37 @@
+	
+	
+		=============================
+		CHANGES IN geoR VERSION 1.2-8
+		=============================
+
+NEW FEATURES
+   
+     o as.geodata() now saves stores the covariates in a data.frame format
+	
+     o changes in grf() and related functions to facilitate simulations in 1-D
+
+     o bug fix in persp.grf()
+
+     o change in argument name in plot.grf(): plot.grid changed to plot.locations 
+
+     o image.grf() and persp.grf() now recognises simulations in 1-D and produces a 
+       2D plot to shown the simulations (intead of an image or perspective plot)
+
+     o as.geodata() force numerical values in the $coords and $data outputs 
+
+     o change in the arrangement of plots in plot.geodata() 
+
+
+
+BUG FIXES
+
+     o fixes/changes in the documentation, geoRintro and geoR web-pages
+
+     o fix in trend.spatial() message
+
+     o fix in coords argument in plot.geodata(), which now also accepts an
+       object of the class "geodata"
+
 
 
 		=============================
@@ -20,7 +54,6 @@ BUG FIXES
      o fix in test for NA's to conform with R-1.5.0
 
      o replacement of T/F by TRUE/FALSE
-
 
 
 

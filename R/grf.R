@@ -1,7 +1,6 @@
 "grf" <-
   function(n, grid = "irreg",
-           nx = round(sqrt(n)), ny = round(sqrt(n)),
-           xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
+           nx, ny, xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
            cov.model = "matern",
            cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
@@ -14,7 +13,10 @@
   call.fc <- match.call()
   method <- match.arg(method)
   if((method == "circular.embedding") & messages.screen)
-    cat("grf: for simulation of fields with large number of points the consider the packages RandomFields.\n") 
+    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
+  ##
+  ## defining the model to simulate from
+  ##
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
@@ -22,7 +24,6 @@
                            "gneiting.matern", "pure.nugget"))
   if (cov.model == "matern" && kappa == 0.5)
     cov.model <- "exponential"
-  rseed <- .Random.seed
   tausq <- nugget
   if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]
@@ -42,6 +43,10 @@
     cat(messa$cov.structures)
     cat(paste("grf: decomposition algorithm used is: ", method, "\n"))
   }
+  ##
+  ##
+  ##
+  rseed <- .Random.seed
   results <- list()
   ##
   ## defining the locations for the simulated data
@@ -49,28 +54,67 @@
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
     if (messages.screen) 
-      cat("grf: simulation(s) on a grid provided by the user\n")
+      cat("grf: simulation on locations provided by the user\n")
   }
   else {
-    if (grid == "irreg") {
-      results$coords <- cbind(x = runif(n, xlims[1], xlims[2]),
-                              y = runif(n, ylims[1], ylims[2]))
+    ##
+    ## checking whether it is a 1D simulation
+    ##
+    if((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) |
+       diff(xlims) == 0 | diff(ylims) == 0){
+      sim1d <- TRUE
       if (messages.screen) 
-        cat(paste("grf: simulation(s) on random locations with ", n, " points\n"))
+        cat("simulations in 1D\n")
+    }
+    else sim1d <- FALSE
+    ##
+    ## defining number of points in each direction
+    ##
+    if(missing(nx)){
+      if(sim1d)
+        if(diff(xlims) == 0) nx <- 1
+        else nx <- n
+      else
+        if(grid == "reg") nx <- round(sqrt(n))
+        else nx <- n
+    }
+    if(missing(ny)){
+      if(sim1d)
+        if(diff(ylims) == 0) ny <- 1
+        else ny <- n
+      else
+        if(grid == "reg") ny <- round(sqrt(n))
+        else ny <- n
+    }
+    ##
+    ## defining the grid
+    ##
+    if (grid == "irreg") {
+      results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]),
+                              y = runif(ny, ylims[1], ylims[2]))
+      if (messages.screen) 
+        cat(paste("grf: simulation(s) on randomly chosen locations with ", n, " points\n"))
     }
     else {
       xpts <- seq(xlims[1], xlims[2], l = nx)
       ypts <- seq(ylims[1], ylims[2], l = ny)
       results$coords <- as.matrix(expand.grid(x = xpts, y = ypts))
-      xspacing <- xpts[2] - xpts[1] 
-      yspacing <- ypts[2] - ypts[1]
-      if((xspacing - yspacing) < 1e-12) equal.spacing <- TRUE
+      if(length(xpts) == 1) xspacing <- 0
+      else xspacing <- xpts[2] - xpts[1] 
+      if(length(ypts) == 1) yspacing <- 0
+      else yspacing <- ypts[2] - ypts[1] 
+      if(abs(xspacing - yspacing) < 1e-12) equal.spacing <- TRUE
+      else equal.spacing <- FALSE
       if (messages.screen) 
         cat(paste("grf: generating grid ", nx, " * ", ny, 
                   " with ", (nx*ny), " points\n"))
     }
   }
   n <- nrow(results$coords)
+  if(length(unique(results$coords[,1])) == 1 |
+     length(unique(results$coords[,2])) == 1)
+    sim1d <- TRUE
+  else sim1d <- FALSE
   ##
   ## transforming to the isotropic space 
   ##
@@ -166,6 +210,7 @@
                               nugget = nugget, cov.pars = cov.pars,
                               kappa = kappa, lambda = lambda,
                               aniso.pars = aniso.pars, method = method,
+                              sim.dim = ifelse(sim1d, "1d", "2d"),
                               .Random.seed = rseed, messages = messa,
                               call = call.fc))
   if(grid == "reg"){
@@ -242,48 +287,87 @@
   return(invisible())
 }
 
-"image.grf" <-
-  function (x, sim.number = 1, ...) 
+"plot.1d" <-
+  function(x, ...)
 {
-  xl <- as.numeric(levels(as.factor(x$coords[, 1])))
-  nx <- length(xl)
-  yl <- as.numeric(levels(as.factor(x$coords[, 2])))
-  ny <- length(yl)
-  x$data <- as.matrix(x$data)
-  n <- nrow(x$data)
-  if (nx * ny != n) 
-    stop("Probably irregular grid")
-  m <- matrix(x$data[, sim.number], ncol = ny)
-  coords.lims <- set.coords.lims(coords=x$coords)
+  x1vals <- unique(x$coords[,1])
+  x2vals <- unique(x$coords[,2])
+  cat("simulation in 1-D\n")
+  if(length(x1vals) == 1) col.ind <- 2
+  else col.ind <- 1
+  order.it <- order(x$coords[,col.ind])
+  if(is.null(list(...)$xla)) xlabel <- "locations"
+  else xlabel <- list(...)$xla
+  if(is.null(list(...)$yla)) ylabel <- "data"
+  else ylabel <- list(...)$yla
   pty.prev <- par()$pty
-  par(pty = "s")
-  image(xl, yl, m, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
+  par(pty="m")
+  plot(x$coords[order.it,col.ind], x$data[order.it],
+       xlab = xlabel, ylab = ylabel, ...)
   par(pty=pty.prev)
   return(invisible())
 }
 
-"persp.grf" <- 
-function(x, sim.number = 1, ...)
+"image.grf" <-
+  function (x, sim.number = 1, ...) 
 {
-	x <- as.numeric(levels(as.factor(x$coords[, 1])))
-	nx <- length(x)
-	y <- as.numeric(levels(as.factor(x$coords[, 2])))
-	ny <- length(y)
-	x$data <- as.matrix(x$data)
-	n <- nrow(x$data)
-	if(nx * ny != n)
-		stop("Probably irregular grid")
-	m <- matrix(x$data[, sim.number], ncol = ny)
-	persp(x, y, m, ...)
-	return(invisible())
+  x1vals <- unique(x$coords[,1])
+  x2vals <- unique(x$coords[,2])
+  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
+    plot.1d(x, ...)
+  else{
+    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
+    nx <- length(xl)
+    yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
+    ny <- length(yl)
+    x$data <- as.matrix(x$data)
+    n <- nrow(x$data)
+    if (nx * ny != n) 
+      stop("cannot produce perspective plot, probably irregular grid")
+    m <- matrix(x$data[, sim.number], ncol = ny)
+    coords.lims <- set.coords.lims(coords=x$coords)
+    pty.prev <- par()$pty
+    par(pty = "s")
+    image(xl, yl, m, xlim= coords.lims[,1], ylim=coords.lims[,2],...)
+    par(pty=pty.prev)
+  }
+  return(invisible())
+}
+
+"persp.grf" <- 
+  function(x, sim.number = 1, ...)
+{
+  x1vals <- unique(x$coords[,1])
+  x2vals <- unique(x$coords[,2])
+  if(length(x1vals) == 1 | length(x2vals) == 1)
+    plot.1d(x, ...)
+  else{
+    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
+    nx <- length(xl)
+    yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
+    ny <- length(yl)
+    x$data <- as.matrix(x$data)
+    n <- nrow(x$data)
+    if(nx * ny != n)
+      stop("cannot produce perspective plot, probably irregular grid")
+    m <- matrix(x$data[, sim.number], ncol = ny)
+    persp(xl, yl, m, ...)
+  }
+  return(invisible())
 }
 
 "plot.grf" <-
-  function (x, model.line = TRUE, plot.grid = FALSE, ylim="default", ...) 
+  function (x, model.line = TRUE, plot.locations = FALSE, ylim="default", ...) 
 {
   nsim <- ncol(x$data)
-  if (plot.grid) 
+  if (plot.locations){
     points.geodata(x, pt.divide="equal", xlab = "Coord X", ylab = "Coord Y")
+    if(is.null(list(...)$ask)){
+      ask.now <- par()$ask
+      par(ask = TRUE)
+      on.exit(par(ask=ask.now)) 
+    }
+  }
   if (is.vector(x$cov.pars)) 
     sill.total <- x$nugget + x$cov.pars[1]
   else sill.total <- x$nugget + sum(x$cov.pars[, 1])
@@ -303,5 +387,3 @@ function(x, sim.number = 1, ...)
   }
   return(invisible())
 }
-
-

@@ -324,7 +324,7 @@
         stop("krige.bayes: model$trend.l cannot be different from model$trend.d")
     ##
     if(messages.screen){
-      cat(switch(model$trend.d,
+      cat(switch(as.character(model$trend.d)[1],
                  "cte" = "krige.bayes: model with constant mean",
                  "1st" = "krige.bayes: model with mean given by a 1st degree polinomial on the coordinates",
                  "2nd" = "krige.bayes: model with mean given by a 2nd degree polinomial on the coordinates",
