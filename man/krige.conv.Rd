@@ -141,14 +141,15 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
   \item{predict}{a vector with predicted values.  }
   \item{krige.var}{a vector with predicted variances.  }
   \item{beta.est}{estimates of the \eqn{\beta}{beta}, parameter
-    implicit in kriging procedure. Not included if
-    \code{type.krige = "SK"}.  }
+    implicit in kriging procedure. Not included if \code{type.krige = "SK"}.  }
   \item{simulations}{an \eqn{ni \times n.sim}{ni x n.sim} matrix where \eqn{ni} is the
     number of prediction locations. Each column corresponds to a
     conditional simulation of the predictive distribution.
     Only returned if \code{n.sim > 0}.  }
   \item{message}{messages about the type of prediction performed.  }
   \item{call}{the function call.  }
+  Other results can be included depending on the options passed to
+  \code{\link{output.control}}. 
 }
 
 \references{
@@ -164,7 +165,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 }
 
 \seealso{\code{\link{output.control}} sets output options,
-\code{\link{image.kriging}} and \code{\link{persp.kriging}}
+  \code{\link{image.kriging}} and \code{\link{persp.kriging}}
   for graphical output of the results,
   \code{\link{krige.bayes}} for Bayesian prediction and \code{\link{ksline}}
   for a different implementation of kriging allowing for moving

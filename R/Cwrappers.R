@@ -9,7 +9,16 @@
     nX <- length(X)/nA
     nY <- length(Y)/nA
     if(length(lowerA) != (nA * (nA -1)/2))
-      stop("lowerA and diagA have incompatible dimentions")
+      stop("lowerA and diagA have incompatible dimensions")
+#    cat("---------------------------------\n")
+   # print(summary(as.vector(lowerA)))
+   # print(summary(as.vector(diagA)))
+   # print(summary(as.vector(X)))
+   # print(summary(as.vector(Y)))
+   # print(nX)
+   # print(nY)
+   # print(nA)
+   # print(summary(rep(0,(nX*nY))))
     out <- .C("bilinearform_XAY",
               as.double(as.vector(lowerA)),
               as.double(as.vector(diagA)),
@@ -20,6 +29,9 @@
               as.integer(nA),
               res=as.double(rep(0,(nX*nY))),
               PACKAGE = "geoR")$res
+    #print(111)
+    #print(summary(out))
+    #cat("---------------------------------\n")
     attr(out, "dim") <- c(nX, nY)
     return(out)
   }
@@ -30,7 +42,7 @@
     nA <- length(diagA)
     nX <- length(X)/nA
     if(length(lowerA) != (nA * (nA -1)/2))
-      stop("lowerA and diagA have incompatible dimentions")
+      stop("lowerA and diagA have incompatible dimensions")
     out <- .C("diag_quadraticform_XAX",
               as.double(as.vector(lowerA)),
               as.double(as.vector(diagA)),

@@ -10,23 +10,11 @@
 {
   call.fc <- match.call()
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
-    warning("object vario should preferably  be of the class \"variogram\"")
+    warning("object vario should preferably be of the geoR's class \"variogram\"")
   weights <- match.arg(weights)
-  if(missing(minimisation.function)){
-    if(weights == "equal") minimisation.function <- "nls"
-    else minimisation.function <- "optim"
-  }
-  if(any(cov.model == c("linear", "power")) & minimisation.function == "nls"){
-    cat("warning: minimisation function nls can not be used with given cov.model.\n          changing for \"optim\".\n")
-    minimisation.function <- "optim"
-  }
-  if(minimisation.function == "nls" & weights != "equal"){
-    warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changing for \"optim\".\n")
-    minimisation.function <- "optim"
-  }
   if(messages.screen)
     cat(paste("variofit: weights used:", weights, "\n"))
   cov.model <- match.arg(cov.model,
@@ -39,6 +27,18 @@
   ##  if(cov.model == "matern" | cov.model == "    powered.exponential" | 
   ##     cov.model == "cauchy" | cov.model == "gneiting.matern")
   ##    fix.kappa <- TRUE
+  if(missing(minimisation.function)){
+    if(weights == "equal") minimisation.function <- "nls"
+    else minimisation.function <- "optim"
+  }
+  if(any(cov.model == c("linear", "power")) & minimisation.function == "nls"){
+    cat("warning: minimisation function nls can not be used with given cov.model.\n          changing for \"optim\".\n")
+    minimisation.function <- "optim"
+  }
+  if(minimisation.function == "nls" & weights != "equal"){
+    warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changing for \"optim\".\n")
+    minimisation.function <- "optim"
+  }
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once\n")
   if (!is.null(simul.number)) 
@@ -88,8 +88,31 @@
     if(missing(ini.cov.pars)){
       ini.cov.pars <- as.matrix(expand.grid(c(vmax/2, 3*vmax/4, vmax),
                                             seq(0, 0.8*umax, len=6)))
-      if(!fix.nugget) nugget <- c(nugget, vmax/4, vmax/2)
-      warning("initial values not provided - default search performed")
+      if(!fix.nugget)
+        nugget <- unique(c(nugget, vmax/10, vmax/4, vmax/2))
+      if(!fix.kappa)
+        kappa <- unique(c(kappa, 0.25, 0.5, 1, 1.5, 2))
+      if(messages.screen)
+        warning("initial values not provided - performing default search")
+    }
+    else{
+      if(any(class(ini.cov.pars) == "eyefit")){
+        init <- nugget <- kappa <- NULL
+        for(i in 1:length(ini.cov.pars)){
+          init <- drop(rbind(init, ini.cov.pars[[i]]$cov.pars))
+          nugget <- c(nugget, ini.cov.pars[[i]]$nugget)
+          if(cov.model == "gneiting.matern")
+            kappa <- drop(rbind(kappa, ini.cov.pars[[i]]$kappa))
+          else
+            kappa <- c(kappa, ini.cov.pars[[i]]$kappa)
+        }
+        ini.cov.pars <- init
+      }
+      if(any(class(ini.cov.pars) == "variomodel")){
+        nugget <- ini.cov.pars$nugget
+        kappa <- ini.cov.pars$kappa
+        ini.cov.pars <- ini.cov.pars$cov.pars
+      }
     }
     if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
       ini.cov.pars <- as.matrix(ini.cov.pars)
@@ -178,7 +201,8 @@
       if(! "package:stats" %in% search()) require(nls)
       if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
       if(kappa == 0) kappa <- 0.5
-      if(cov.model == "power") Tphi.ini <- log(ini.cov.pars[2]/(2-ini.cov.pars[2])) 
+      if(cov.model == "power")
+        Tphi.ini <- log(ini.cov.pars[2]/(2-ini.cov.pars[2])) 
       else Tphi.ini <- log(ini.cov.pars[2])
       XY$cov.model <- cov.model
       ##
@@ -221,13 +245,14 @@
         else{
           if(cov.model == "powered.exponential")
             res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)),
-                                                   cov.model = cov.model, kappa=exp(Tkappa)))),
+                                                   cov.model = cov.model,
+                                                   kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
                        alg="plinear", data=XY, ...)
           else
             res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)),
                                                    cov.model = cov.model,
-                                                   kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))),
+                                                   kappa=exp(Tkappa)))),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
                        alg="plinear", data=XY, ...)
           kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL

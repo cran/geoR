@@ -189,6 +189,11 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   value of the log-likelihood is then used to start the
   minimisation algorithm.
 
+  Alternatively the argument \code{ini.cov.pars} can take an object of
+  the class \code{eyefit} or \code{variomodel}. This allows the usage 
+  of an output of the functions \code{\link{eyefit}}, \code{\link{variofit}} or
+  \code{\link{likfit}} be used as initial value.
+
   The argument \bold{realisations} allows replicated data to be used.
   For instance, data collected at different times at least partially
   the same locations

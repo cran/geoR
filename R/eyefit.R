@@ -20,7 +20,7 @@ summary.eyefit <- function(object, ...){
       tmp <- unclass(unlist(object[[i]]))
       if (tmp["cov.model"] != "gneiting.matern") tmp["kappa2"] <- NA
       if (all(tmp["cov.model"] != c("powered.exponential","cauchy","matern")))
-        tmp["kappa1"] <- NA
+        tmp["kappa"] <- NA
       res[i,] <- tmp[which(names(tmp) != "max.dist")]
     }
   }
@@ -29,6 +29,11 @@ summary.eyefit <- function(object, ...){
 
 print.summary.eyefit <- function(x, ...){
   print(x, ...)
+  return(invisible())
+}
+
+print.eyefit <- function(x, ...){
+  print(summary(x), ...)
   return(invisible())
 }
 

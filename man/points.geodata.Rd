@@ -18,7 +18,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                pt.divide=c("data.proportional","rank.proportional",
                            "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
-               cex.max, pch.seq, col.seq, add.to.plot = FALSE,
+               cex.max, cex.var, pch.seq, col.seq, add.to.plot = FALSE,
                x.leg, y.leg, dig.leg = 2, 
                round.quantiles = FALSE, graph.pars = FALSE, \dots)
 }
@@ -66,6 +66,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     of the data. If \code{pt.divide = "equal"} it is used to set
     the value for the
     graphical parameter \code{cex}. Defaults to 1.5.  }
+  \item{cex.var}{a numeric vector with the values of a variable defining the size of the points. }
   \item{pch.seq}{number(s) defining the graphical parameter \code{pch}.  }
   \item{col.seq}{number(s) defining the colors in the graphical parameter
     \code{col}.  }
@@ -100,7 +101,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     \item{"deciles"}{ten different sizes according to the
       deciles of the data. }
     \item{"equal"}{all points with the same size.  }
-    \item{a numerical vector with quantiles}{the values in the
+    \item{a scalar}{defines a number of quantiles, the number provided
+      defines the  number of different points sizes and colors.  }
+    \item{a numerical vector with quantiles and length > 1}{the values in the
       vector will be used by the function \code{\link{cut}} as break
       points to divide the data in classes. }
   }

@@ -1,8 +1,8 @@
 ".First.lib" <- function(lib, pkg)
 {
   library.dynam("geoR", package = pkg, lib.loc = lib)
-  messages <- ifelse(is.null(getOption("geoR.messages")), TRUE,
-                            getOption("geoR.messages"))
+  messages <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE,
+                            getOption("geoR.messages")))
   if(messages){
     cat("\n")
     cat("-------------------------------------------------------------\n")

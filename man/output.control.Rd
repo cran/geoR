@@ -13,7 +13,7 @@
 \usage{
 output.control(n.posterior, n.predictive, moments, n.back.moments,
                simulations.predictive, mean.var, quantile,
-               threshold, signal, messages)
+               threshold, sim.means, sim.vars, signal, messages)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -48,7 +48,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
   \item{quantile}{a (optional) numeric vector.
     If provided indicates whether quantiles of the
     simulations from the
-    predictive distributions are computed and returned.
+    predictive distribution are computed and returned.
     If a vector with numbers in the interval
     \eqn{[0,1]}{[0,1]} is provided, the output includes the object
     \code{quantiles}, which contains values of corresponding
@@ -69,6 +69,13 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     prediction location, the probability that the variable is less
     than or equal than the threshold provided by the user.
     Defaults to \code{FALSE}. }
+  \item{sim.means}{logical (optional). Indicates whether mean
+    of each of the conditional simulations of the predictive
+    distribution should be computed and returned. Defaults to
+  \code{TRUE} if simulations from the predictive are required.  } 
+  \item{sim.vars}{logical (optional). Indicates whether variance
+    of each of the conditional simulations of the predictive
+    distribution should be computed and returned. Defaults to \code{FALSE}.  } 
   \item{signal}{logical indicating whether the signal or the variable is
     to be predicted. Defaults to \code{NULL} and changed internally in
     the functions which call \code{output.control}. See \code{DETAILS}

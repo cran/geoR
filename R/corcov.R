@@ -108,12 +108,14 @@
     assign("ns", ns, env=env)
     assign("cov.model", cov.model, env=env)
   }
-  if(output) return(list(cov.model=cov.model, sigmasq=sigmasq, phi=phi, kappa=kappa, ns=ns))
+  if(output)
+    return(list(cov.model=cov.model, sigmasq=sigmasq, phi=phi, kappa=kappa, ns=ns))
   else return(invisible())
 }
 
 "cov.spatial" <-
-  function(obj, cov.model = 'matern', cov.pars = stop("no cov.pars argument provided"),
+  function(obj, cov.model = 'matern',
+           cov.pars = stop("no cov.pars argument provided"),
            kappa = 0.5)
 {
   fn.env <- sys.frame(sys.nframe())
@@ -124,7 +126,7 @@
   ##
   covs <- array(0, dim = dim(obj))
   for(i in 1:ns) {
-    if(phi[i] < 1e-12)
+    if(phi[i] < 1e-16)
       cov.model[i] <- "pure.nugget"
     cov.values <- switch(cov.model[i],
                          pure.nugget = rep(0, length(obj)),
@@ -171,18 +173,19 @@
     covs <- covs + cov.values
   }
   if(all(cov.model == "power")) covs <- max(covs) - covs
-  else covs[obj < 1e-15] <- sum(sigmasq)
+  else covs[obj < 1e-16] <- sum(sigmasq)
+  if(sum(sigmasq) < 1e-16) covs[obj < 1e-16] <- 1
   return(covs)
 }
 
 "varcov.spatial" <-
   function(coords = NULL, dists.lowertri = NULL, cov.model = "matern",
-            kappa = 0.5, nugget = 0, cov.pars = stop("no cov.pars argument"), 
-            inv = FALSE, det = FALSE,
-            func.inv = c("cholesky", "eigen", "svd", "solve"),
-            scaled = FALSE, only.decomposition = FALSE, 
-            sqrt.inv = FALSE, try.another.decomposition = TRUE,
-            only.inv.lower.diag = FALSE) 
+           kappa = 0.5, nugget = 0, cov.pars = stop("no cov.pars argument"), 
+           inv = FALSE, det = FALSE,
+           func.inv = c("cholesky", "eigen", "svd", "solve"),
+           scaled = FALSE, only.decomposition = FALSE, 
+           sqrt.inv = FALSE, try.another.decomposition = TRUE,
+           only.inv.lower.diag = FALSE) 
 {
   if(! "package:stats" %in% search()) require(mva)
   ##
@@ -200,8 +203,8 @@
   func.inv <- match.arg(func.inv)
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "linear", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "spherical", "circular", "cubic", "wave", "linear",
+                           "power", "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if (only.inv.lower.diag)  inv <- TRUE
   if (is.null(coords) & is.null(dists.lowertri)) 
@@ -238,13 +241,14 @@
       varcov[lower.tri(varcov)] <- covvec
       if (is.R()) remove("covvec")
       else remove("covvec", frame = sys.nframe())
-      diag(varcov) <- 1 + (tausq/sum(sigmasq))
+      if(sum(sigmasq) < 1e-16) diag(varcov) <- 1 
+      else diag(varcov) <- 1 + (tausq/sum(sigmasq))
     }
   }
   else {
     if (all(sigmasq < 1e-10) | all(phi < 1e-10)) {
       varcov <- diag(x = (tausq + sum(sigmasq)), n)
-    }
+     }
     else {
       covvec <- cov.spatial(obj = dists.lowertri, cov.model = cov.model, 
                             kappa = kappa, cov.pars = cov.pars)

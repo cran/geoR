@@ -11,7 +11,8 @@
 
 }
 \usage{
-statistics.predictive(simuls, mean.var = TRUE, quantile, threshold)
+statistics.predictive(simuls, mean.var = TRUE, quantile, threshold,
+                      sim.means, sim.vars)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -22,6 +23,10 @@ statistics.predictive(simuls, mean.var = TRUE, quantile, threshold)
     documentation for \code{\link{output.control}} .  }
   \item{threshold}{defines probability estimator. See
     documentation for \code{\link{output.control}}.  }
+  \item{sim.means}{Logical. Indicates whether or not to compute the mean
+    of of the conditional simulations.  }
+  \item{sim.vars}{Logical. Indicates whether or not to compute the variances
+    of the conditional simulations.  }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~
@@ -34,6 +39,8 @@ statistics.predictive(simuls, mean.var = TRUE, quantile, threshold)
   \item{quantiles}{quantiles, at each prediction location.}  
   \item{probabilities}{probabilities, at each prediction location, of been below
     the provided threshold.  }
+  \item{sim.means }{vector with means of each conditional simulation.  }
+  \item{sim.vars }{vector with variances of each conditional simulation.  }
 
 }
 

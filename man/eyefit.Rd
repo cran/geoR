@@ -4,6 +4,7 @@
 \alias{lines.eyefit}
 \alias{summary.eyefit}
 \alias{print.summary.eyefit}
+\alias{print.eyefit}
 \alias{plot.eyefit}
 
 %- Also NEED an '\alias' for EACH other topic documented here.

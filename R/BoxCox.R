@@ -1,11 +1,10 @@
 ##
 ## Box-Cox transformation in the package geoR
-## ------------------------------------------
+## -------------------------------------------------------------
 ##
 
 "boxcox.geodata" <- function(object, trend = "cte", ...)
 {
-  require(MASS)
   xmat <- unclass(trend.spatial(trend = trend, geodata = object))
   if (nrow(xmat) != length(object$data)) 
     stop("coords and trend have incompatible sizes")
@@ -328,7 +327,7 @@
       ind.zero <- (variance < 1e-12)
       temp.data[ind.zero,  ] <- mean[ind.zero]
       remove(ind.zero)
-      temp.data <- BCtransform(lambda = lambda, data = temp.data,
+      temp.data <- BCtransform(x = temp.data, lambda = lambda, 
                                inverse = TRUE)$data
       if(lambda < -0.001) {
         res$mean  <-  "resulting distribution has no mean for negative lambda. Medians returned"

@@ -13,6 +13,10 @@
     geodata <- list(coords = coords, data = data)
   if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
+  if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
+    warning(".Random.seed not initialised. Creating it with runif(1)")
+    runif(1)
+  }
   seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)
   base.env <- sys.frame(sys.nframe())
@@ -217,6 +221,8 @@
         if(is.null(output$mean.var)) output$mean.var <- NULL
         if(is.null(output$quantile)) output$quantile <- NULL
         if(is.null(output$threshold)) output$threshold <- NULL
+        if(is.null(output$sim.means)) output$sim.means <- NULL
+        if(is.null(output$sim.vars)) output$sim.vars <- NULL
         if(is.null(output$signal)) output$signal <- NULL
         if(is.null(output$messages.screen)) output$messages.screen <- TRUE
         output <- output.control(n.posterior = output$n.posterior,
@@ -224,8 +230,12 @@
                                  moments = output$moments,
                                  n.back.moments = output$n.back.moments, 
                                  simulations.predictive = output$simulations.predictive,
-                                 mean.var = output$mean.var, quantile = output$quantile,
-                                 threshold = output$threshold, signal = output$signal,
+                                 mean.var = output$mean.var,
+                                 quantile = output$quantile,
+                                 threshold = output$threshold,
+                                 sim.means = output$sim.means,
+                                 sim.vars = output$sim.vars,
+                                 signal = output$signal,
                                  message = output$messages.screen)
       }
     }
@@ -249,6 +259,11 @@
     if(is.null(moments) | prior$phi.prior == "fixed")
       moments <- TRUE
     n.back.moments <- output$n.back.moments
+    sim.means <- output$sim.means
+    if(is.null(sim.means))
+      sim.means <- ifelse(simulations.predictive, TRUE, FALSE)
+    sim.vars <- output$sim.vars
+    if(is.null(sim.vars)) sim.vars <- FALSE
     signal <- ifelse(is.null(output$signal), TRUE, output$signal)
     quantile.estimator <- output$quantile.estimator
     probability.estimator <- output$probability.estimator
@@ -268,7 +283,7 @@
   if(abs(lambda-1) > 0.001) {
     if(messages.screen)
       cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", round(lambda,dig=3), "\n"))
-    data <- BCtransform(data, lambda = lambda)$data
+    data <- BCtransform(x=data, lambda = lambda)$data
   }
   ##
   ## Building trend (covariates/design) matrices:   
@@ -912,7 +927,7 @@
     }
     else
       if(cov.model.number > 10)
-        stop("simulation in krige.bayes not implemented for the chosen correlation function")
+        stop("simulation in krige.bayes not implemented for the correlation function chosen")
     krige.bayes.aux20 <- function(phinug){
       iter <- get("counter", envir=counter.env)
       if(messages.screen & prior$phi.prior != "fixed")
@@ -991,7 +1006,7 @@
       ## Back transforming (To be include in C code???)
       ##
       if(abs(lambda - 1) > 0.001){
-        return(BCtransform(simul, lambda, inv=TRUE)$data)
+        return(BCtransform(x=simul, lambda=lambda, inv=TRUE)$data)
       }
       else
         return(simul)
@@ -1022,9 +1037,18 @@
                        statistics.predictive(simuls=kb$predictive$simulations,
                                              mean.var = mean.estimator,
                                              quantile = quantile.estimator,
-                                             threshold = probability.estimator))
+                                             threshold = probability.estimator,
+                                             sim.means = sim.means, 
+                                             sim.vars = sim.vars))
     ##
-    ## keeping or not samples from  predictive
+    ## Mean and variance of each (conditionally) simulated field 
+    ##
+    if(sim.means && exists("vecpars.back.order"))
+      kb$predictive$sim.means[vecpars.back.order]
+    if(sim.vars && exists("vecpars.back.order"))
+      kb$predictive$sim.vars[vecpars.back.order]
+    ##
+    ## keeping or not samples from predictive
     ##
     if(keep.simulations){
       if(prior$phi.prior != "fixed")
@@ -1081,7 +1105,7 @@
             values.to.plot, number.col, xlim, ylim, messages) 
 {
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   if (!is.numeric(values.to.plot)){
     switch(values.to.plot,
@@ -1154,7 +1178,7 @@
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, bound=TRUE))
     else
       stop("argument borders requires the package splancs - please install it")
     values.loc[inout.vec] <- values
@@ -1165,7 +1189,7 @@
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       if(require(splancs))
-        inout.vec <- as.vector(inout(pts = locations, poly = borders))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders, bound=TRUE))
       else
         stop("argument borders requires the package splancs - please install it")
       if(length(values.loc[inout.vec]) == length(values))
@@ -1763,7 +1787,7 @@
 "output.control" <-
   function(n.posterior, n.predictive, moments, n.back.moments, 
            simulations.predictive, mean.var, quantile,
-           threshold, signal, messages)
+           threshold, sim.means, sim.vars, signal, messages)
 {
   ##
   ## Assigning default values
@@ -1783,14 +1807,16 @@
   else quantile.estimator <- quantile
   if(missing(threshold)) probability.estimator <- NULL 
   else probability.estimator <- threshold
+  if(missing(sim.means)) sim.means <- NULL 
+  if(missing(sim.vars)) sim.vars <- NULL 
   if(missing(signal)) signal <- NULL
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
   ##
   ##
-  if(!is.null(quantile.estimator) | !is.null(probability.estimator) | !is.null(mean.estimator)){
+  if(!is.null(quantile.estimator) | !is.null(probability.estimator) | !is.null(mean.estimator) | !is.null(sim.means) | !is.null(sim.vars)){
     if(is.null(simulations.predictive)) keep.simulations <- FALSE
     else  keep.simulations <- ifelse(simulations.predictive, TRUE, FALSE)
     simulations.predictive <- TRUE
@@ -1815,6 +1841,7 @@
               mean.estimator = mean.estimator,
               quantile.estimator = quantile.estimator,
               probability.estimator = probability.estimator,
+              sim.means = sim.means, sim.vars = sim.vars,
               signal = signal, messages.screen = messages.screen)
   class(res) <- "output.geoR"
   return(res)
@@ -2153,15 +2180,15 @@
 }
 
 "statistics.predictive" <-
-  function(simuls, mean.var = TRUE, quantile, threshold)
+  function(simuls, mean.var = TRUE, quantile, threshold, sim.means, sim.vars)
 {
   results <- list()
-  if(missing(quantile)) quantile.estimator <- NULL
+  if(is.null(quantile)) quantile.estimator <- NULL
   else quantile.estimator <- quantile
-  if(missing(threshold)) probability.estimator <- NULL
+  if(is.null(threshold)) probability.estimator <- NULL
   else probability.estimator <- threshold
   ##
-  if(!is.null(mean.var) & mean.var){
+  if(!is.null(mean.var) && mean.var){
     results$mean.simulations <- drop(apply(simuls, 1, mean))
     results$variance.simulations <- drop(apply(simuls, 1, var))
   }
@@ -2189,6 +2216,13 @@
       names(results$probabilities.simulations) <-
         paste("threshold", probability.estimator, sep = "")
     }
+  }
+  if(!is.null(sim.means) && sim.means){
+    results$sim.means <- drop(apply(simuls, 2, mean))
+    results$variance.simulations <- drop(apply(simuls, 1, var))
+  }
+  if(!is.null(sim.vars) && sim.vars){
+    results$sim.vars <- drop(apply(simuls, 2, var))
   }
   return(results)
 }

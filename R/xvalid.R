@@ -9,7 +9,7 @@
   ##
   call.fc <- match.call()
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   n <- nrow(coords)

@@ -2,6 +2,34 @@
 ## Miscelaneous geoR functions
 ##
 
+"nearloc" <- function(points, locations, positions=FALSE)
+{
+  if(!is.data.frame(points) && is.list(points)){
+    points <- matrix(unlist(points[1:2]), nc=2)
+    backtolist <- TRUE
+    backnames <- names(points[1:2])
+  }
+  else backtolist <- FALSE
+  if(is.matrix(locations))
+    locations <- locations[,1:2]
+  if(is.data.frame(locations))
+    locations <- as.matrix(locations[,1:2])
+  if(is.list(locations))
+    locations <- matrix(unlist(locations[1:2]), nc=2)
+  if(ncol(locations) != 2)
+    stop("locations must be a matrix, data.frame, or list")
+  ind <- apply(loccoords(points, locations),1,which.min)
+  if(positions)
+    return(ind)
+  res <- locations[apply(loccoords(points, locations),1,which.min),]
+  rownames(res) <- ind
+  if(backtolist){
+    res <- list(res[,1], res[,2])
+    names(res) <- backnames
+  }
+  return(res)
+}
+
 "cite.geoR" <- function()
 {
     cat("\n")

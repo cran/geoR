@@ -98,6 +98,11 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   \code{nugget} and \code{kappa} (if included in the estimation).
   If \code{ini.cov.pars} is a matrix, the first column has values of
   \eqn{\sigma^2}{sigma^2} and the second has values of  \eqn{\phi}{phi}. 
+
+  Alternatively the argument \code{ini.cov.pars} can take an object of
+  the class \code{eyefit} or \code{variomodel}. This allows the usage 
+  of an output of the functions \code{\link{eyefit}}, \code{\link{variofit}} or
+  \code{\link{likfit}} be used as initial value.
   
   If \code{minimisation.function = "nls"} only the values of
   \eqn{\phi}{phi} and \eqn{\kappa}{kappa} (if this is included in the

@@ -193,51 +193,72 @@
   return(res)
 }
 
-"summary.geodata" <- function(object, ...)
+##"summary.geodata" <- function(object, trend="cte", lambda=1,by.realisations=TRUE, ...)
+"summary.geodata" <- function(object, lambda=1, by.realisations=TRUE,  ...)
 {
   if(! "package:stats" %in% search()) require(mva)
   res <- list()
-  if(!is.null(object$realisations)){
+  ##
+  ## data transformation (Box-Cox)
+  ##
+  if (lambda != 1) Tdata <- BCtransform(x=data, lambda=lambda)$data
+  ##
+  ## trend "removal" (getting residuals from a linear model)
+  ##
+#  xmat <- unclass(trend.spatial(trend = trend, geodata = x))
+#  if (nrow(xmat) != nrow(coords)) 
+#    stop("coords and trend have incompatible sizes")
+#  if (trend != "cte") {
+#    data <- lm(data ~ xmat + 0)$residuals
+#    names(data) <- NULL
+#  }
+  if(!is.null(object$realisations) && by.realisations){
+#  if(!is.null(object$realisations)){
     by2matrix <- function(x){
-      print(x)
       x <- unclass(x)
       attributes(x) <- NULL
       x.names <- names(x[[1]])
       x.n <- length(x)
       x <- matrix(unlist(x), nr=x.n, byrow=TRUE)
       colnames(x) <- x.names
-      rownames(x) <- paste("real.", 1:x.n, sep="")
-      print(111)
+##      rownames(x) <- paste("real.", 1:x.n, sep="")
+      rownames(x) <- real.names
       return(x)
     }
-    rr <- as.factor(object$realisations)
-    rr.names <- paste("real.", levels(rr), sep="")
-    res$n <- as.vector(by(object$coords, rr, nrow))
-    names(res$n) <- rr.names
-    print(100)
-    res$coords.summary <- by(ap$coords, rr,
+    real <- as.factor(object$realisations)
+    real.names <- paste("realisation.", levels(real), sep="")
+    res$n <- as.vector(by(object$coords, real, nrow))
+    names(res$n) <- real.names
+    res$coords.summary <- by(object$coords, real,
                              function(x) {res <- apply(x,2,range);
                                           rownames(res) <- c("min", "max");
                                           if(is.null(colnames(res))) colnames(res) <- c("Coord.X", "Coord.Y"); 
                                           res})
-    print(101)
-    attr(res$coords.summary, "dimnames") <- list(realisation = levels(rr)) 
-    res$distances.summary <- by2matrix(by(object$coords, rr,
+    attr(res$coords.summary, "dimnames") <- list(realisation = levels(real)) 
+    res$distances.summary <- by2matrix(by(object$coords, real,
                                 function(x){ res <- range(dist(x));
                                              names(res) <- c("min", "max");  
                                              res}))
-    res$data.summary <- by(object$data, rr,
+    res$data.summary <- by(object$data, real,
                            function(x) drop(apply(as.matrix(x), 2, summary)))
     if(ncol(as.matrix(object$data)) == 1)
       res$data.summary <- by2matrix(res$data.summary)
+    if(lambda != 1){
+      res$Tdata.summary <- by(Tdata, real,
+                              function(x) drop(apply(as.matrix(x), 2, summary)))
+      if(ncol(as.matrix(Tdata)) == 1)
+        res$Tdata.summary <- by2matrix(res$Tdata.summary)
+    }
     if(!is.null(object$units.m)){
-      res$units.m.summary <- by(object$units.m, rr,
+      res$units.m.summary <- by(object$units.m, real,
                                 function(x) drop(apply(as.matrix(x), 2, summary)))
       if(ncol(as.matrix(object$units.m)) == 1)
         res$units.m.summary <- by2matrix(res$units.m.summary)
     }
-      if(!is.null(object$covariate))
-      res$covariate.summary <- by(object$covariate, rr, summary)
+    if(!is.null(object$covariate)){
+      res$covariate.summary <- by(object$covariate, real, summary)
+      attr(res$covariate.summary, "dimnames") <- list(realisation = levels(real)) 
+    }
   }
   else{
     res$n <- nrow(object$coords)
@@ -248,6 +269,8 @@
     res$distances.summary <- range(dist(object$coords))
     names(res$distances.summary) <- c("min", "max")  
     res$data.summary <- drop(apply(as.matrix(object$data), 2, summary))
+    if(lambda != 1)
+      res$Tdata.summary <- drop(apply(as.matrix(Tdata), 2, summary))
     if(!is.null(object$units.m))
       res$units.m.summary <- drop(apply(as.matrix(object$units.m), 2, summary))
     if(!is.null(object$covariate))
@@ -257,20 +280,33 @@
     res$borders.summary <- apply(object$borders, 2, range)
     rownames(res$borders.summary) <- c("min", "max")
   }
+  others.ind <- is.na(match(names(object), c("coords","data","covariate","borders","realisations")))
+  if(sum(others.ind) > 0)
+    res$others <- names(object[others.ind])
+  class(res) <- "summary.geodata"
   return(res)
 }
 
 "print.summary.geodata" <- function(x, ...)
 {
-  cat(paste("Number of data points:",x$n,"\n"))
-  cat("Coordinates summary\n")
+  if(length(x$n) == 1)
+    cat(paste("Number of data points:",x$n,"\n"))
+  else
+    cat( paste(names(x$n),": number of data points:",x$n,"\n"))
+  cat("\nCoordinates summary\n")
   print(x$coords.summary)
+  cat("\nDistance summary\n")
+  print(x$distances.summary)
   if(!is.null(x$borders.summary)){
     cat("\nBorders summary\n")
     print(x$borders.summary)
   }
   cat("\nData summary\n")
   print(x$data.summary)
+  if(!is.null(x$Tdata.summary)){
+    cat("\nTransformed Data summary\n")
+    print(x$Tdata.summary)
+  }
   if(!is.null(x$units.m.summary)){
     cat("\nOffset variable summary\n")
     print(x$units.m.summary)
@@ -278,6 +314,10 @@
   if(!is.null(x$covariate.summary)){
     cat("\nCovariates summary\n")
     print(x$covariate.summary)
+  }
+  if(!is.null(x$others)){
+    cat("\nOther elements in the geodata object\n") 
+    print(x$others)
   }
   return(invisible())
 }
@@ -289,29 +329,36 @@
               "rank.proportional", "quintiles",
               "quartiles", "deciles", "equal"),
             lambda=1, trend="cte", weights.divide=NULL,
-            cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
+            cex.min, cex.max, cex.var,
+            pch.seq, col.seq, add.to.plot = FALSE,
             x.leg, y.leg, dig.leg = 2, 
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
+  ##
+  ## Checking input
+  ##
   if(missing(x)) x <- list(coords = coords, data = data)
-  # This is for compatibility with previously used argument pt.sizes
+  ## This is for compatibility with previously used argument pt.sizes
   if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
-  #
+  ##
   if(!is.numeric(pt.divide)) pt.divide <- match.arg(pt.divide)
   if(!is.vector(data)) data <- (as.data.frame(data))[,data.col]
+  npts <- nrow(coords)
   if(nrow(coords) != length(data))
     stop("coords and data have incompatible sizes")
-    if (!is.null(weights.divide)) {
+  if (!is.null(weights.divide)) {
     if (length(weights.divide) != length(data)) 
       stop("length of weights.divide must be equals to the length of data")
     data <- data/weights.divide
   }
+  if (missing(cex.min)) cex.min <- 0.5
+  if (missing(cex.max)) cex.max <- 1.5
   ##
   ## data transformation (Box-Cox)
   ##
-  if (lambda != 1) data <- BCtransform(data, lambda)$data
+  if (lambda != 1) data <- BCtransform(x=data, lambda=lambda)$data
   ##
-  ## trend removal
+  ## trend "removal" (getting residuals from a linear model)
   ##
   xmat <- unclass(trend.spatial(trend = trend, geodata = x))
   if (nrow(xmat) != nrow(coords)) 
@@ -320,6 +367,17 @@
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL
   }
+  ##
+  ## proportional to data or to external variable
+  ##
+  if(missing(cex.var)) cex.var <- data
+  if(length(cex.var) != npts)
+    stop("length of cex.var must be the same as the number of data locations")
+  ind <- order(cex.var)
+  r.y <- range(cex.var)
+  size <- cex.min + ((cex.var[ind] - r.y[1]) * (cex.max - 
+                                                cex.min))/(r.y[2] - r.y[1])
+  ind.order <- order(ind)  
   ##
   attach(x)
   eval(borders)
@@ -338,11 +396,10 @@
     plot(toplot, type = "n",
          xlim = coords.lims[,1], ylim = coords.lims[, 2], ...)
   }
-  if(!is.null(borders))
-    polygon(borders)
-  if (missing(cex.min)) cex.min <- 0.5
-  if (missing(cex.max)) cex.max <- 1.5
+  if(!is.null(borders)) polygon(borders)
   graph.list <- list()
+  ##
+  ##
   if(is.numeric(pt.divide) || all(pt.divide == "quintiles") | all(pt.divide == "quartiles") | all(pt.divide == "deciles")) {
     if (all(pt.divide == "quintiles")) {
       n.quant <- 5
@@ -357,9 +414,13 @@
     if (all(pt.divide == "deciles")) {
       n.quant <- 10
       if (missing(col.seq)) 
-        col.seq <- rainbow(13)[10:1]
+        col.seq <- terrain.colors(46)[seq(1,46,by=5)]
     }
-    if(is.numeric(pt.divide)){
+    if(is.numeric(pt.divide) && length(pt.divide) == 1){
+      n.quant <- pt.divide
+      if (missing(col.seq)) col.seq <- "gray"
+    }
+    if(is.numeric(pt.divide) && length(pt.divide) > 1){
       if(length(pt.divide <= length(data))){
         data.quantile <- pt.divide
         n.quant <- length(pt.divide) - 1
@@ -371,21 +432,23 @@
       data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
     if(!missing(col.seq) && all(col.seq == "gray")) col.seq <- gray(seq(1,0, l=n.quant))
     if (missing(pch.seq)) pch.seq <- rep(21, n.quant)
-    cex.pt <- seq(cex.min, cex.max, l = n.quant)
+    if(missing(cex.var))
+      size <- seq(cex.min, cex.max, l = n.quant)[as.numeric(graph.list$data.group)]
+    else size <- size[ind.order]
     if (round.quantiles == TRUE) {
       data.quantile[1] <- floor(data.quantile[1])
       data.quantile[n.quant + 1] <- ceiling(data.quantile[n.quant + 1])
       data.quantile <- round(data.quantile)
     }
     graph.list$quantiles <- data.quantile
-    graph.list$cex <- cex.pt
-    graph.list$col <- col.seq
-    graph.list$pch <- pch.seq
     graph.list$data.group <- cut(data, breaks=data.quantile, include.l=TRUE)
+    graph.list$cex <- size
+    graph.list$pch <- pch.seq
+    graph.list$col <- col.seq[as.numeric(graph.list$data.group)]
     if (add.to.plot) 
-      points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
+      points(coords, pch = pch.seq, cex = size, bg = graph.list$col, ...)
     else
-      points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)])
+      points(coords, pch = pch.seq, cex = size, bg = graph.list$col)
     ##
     ## Adding legend
     ##
@@ -400,48 +463,48 @@
     n <- length(data)
     if (missing(pch.seq)) pch.seq <- 21
     if (missing(col.seq)) col.seq <- 0
-    else if(all(col.seq == "gray")) col.seq <- gray(seq(1,0, l=n))
-    coords.order <- coords[order(data), ]
-    data.order <- data[order(data)]
+    else if(all(col.seq == "gray")) col.seq <- gray(seq(1,0.1, l=n))
+    ##    coords.order <- coords[ind, ]
+    data.order <- data[ind]
     if (pt.divide == "rank.proportional") {
+      if(missing(cex.var))
+        size <- seq(cex.min, cex.max, l = n)
+      else size <- size[ind.order]
       data.quantile <- range(data.order)
-      size <- seq(cex.min, cex.max, l = n)
-      graph.list$cex <- range(size)
-      graph.list$pch <- unique(range(pch.seq))
-      graph.list$col <- col.seq
-      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
-      else col.seq <- round(seq(1,length(col.seq),length=n))
-      for (i in 1:n) {
-        if (add.to.plot) 
-          points(coords.order[i, , drop = FALSE], cex = size[i], 
-                 pch = pch.seq, bg = col.seq[i], ...)
-        else points(coords.order[i, , drop = FALSE], 
-                    cex = size[i], pch = pch.seq, bg = col.seq[i])
-      }
     }
     if (pt.divide == "data.proportional") {
-      r.y <- range(data.order)
-      size <- cex.min + ((data.order - r.y[1]) * (cex.max - 
-                                                  cex.min))/(r.y[2] - r.y[1])
-      graph.list$cex <- c(cex.min, cex.max)
-      graph.list$pch <- unique(range(pch.seq))
-      graph.list$col <- col.seq
-      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
-      else col.seq <- round(seq(1,length(col.seq),length=n))
-      for (i in 1:n) {
-        if (add.to.plot) 
-          points(coords.order[i, , drop = FALSE], cex = size[i], 
-                 pch = pch.seq, bg = col.seq[i], ...)
-        else points(coords.order[i, , drop = FALSE], 
-                    cex = size[i], pch = pch.seq, bg = col.seq[i])
+      if(missing(cex.var)){
+        r.y <- range(data.order)
+        size <- cex.min + ((data.order - r.y[1]) * (cex.max - 
+                                                    cex.min))/(r.y[2] - r.y[1])
       }
+      else size <- size[ind.order]
     }
-    if (pt.divide == "equal") {
-      if (add.to.plot) 
-        points(coords, pch = pch.seq, bg = col.seq, cex = cex.max, ...)
-      else points(coords, pch = pch.seq, bg = col.seq, cex = cex.max)
-    }
-    if(!missing(x.leg) && !missing(y.leg)) warning(paste('arguments x.leg and y.leg are ignored when pt.divide = ',pt.divide,'\n'))
+    if (pt.divide == "equal") size <- cex.max
+    ##      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
+    ##      else col.seq <- round(seq(1,length(col.seq),length=n))
+    if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
+    if (length(col.seq) != n) col.seq <- round(seq(1,length(col.seq),length=n))
+    col.seq <- col.seq[ind.order]
+    graph.list$cex <- size
+    if(all(is.numeric(pch.seq)))
+      graph.list$pch <- unique(range(pch.seq))
+    else
+      graph.list$pch <- pch.seq
+    graph.list$col <- col.seq
+    ##
+    if (add.to.plot) 
+      points(coords, cex = size, pch = pch.seq, bg = col.seq, ...)
+    else points(coords, cex = size, pch = pch.seq, bg = col.seq)
+    ##      for (i in 1:n) {
+    ##        if (add.to.plot) 
+    ##          points(coords.order[i, , drop = FALSE], cex = size[i], 
+    ##                 pch = pch.seq, bg = col.seq[i], ...)
+    ##        else points(coords.order[i, , drop = FALSE], 
+    ##                    cex = size[i], pch = pch.seq, bg = col.seq[i])
+    ##      }
+    if(!missing(x.leg) && !missing(y.leg))
+      warning(paste('arguments x.leg and y.leg are ignored when pt.divide = ', pt.divide,'\n'))
   }
   if (graph.pars == TRUE) return(graph.list)
   else return(invisible())

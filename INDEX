@@ -49,6 +49,7 @@ locations.inside        select prediction locations inside borders
 loglik.GRF              Log-Likelihood for a Gaussian Random Field
 matern                  Computer Values of the Matern Correlation
                         Function
+nearloc                 Near location to a point
 nlmP                    Adapts nlm for Constraints in the Parameter
                         Values
 output.control          Defines output options for prediction

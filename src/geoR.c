@@ -170,8 +170,7 @@ void diag_quadraticform_XAX(Real *lower, Real *diag, Real *xvec,
   Integer  i,j,k;
   Real xij, xii;
   
-  for(k=0; k<*nx; k++){
-    
+  for(k=0; k<*nx; k++){    
     pos = 0;
     xij = 0.0;
     for (j=0; j<(*n-1); j++) {
@@ -179,7 +178,6 @@ void diag_quadraticform_XAX(Real *lower, Real *diag, Real *xvec,
 	xij += (xvec[(k*(*n) + j)] * xvec[(k*(*n) + i)] * lower[pos++]) ;
       }
     }
-    
     pos = 0;
     xii = 0.0;
     for (i=0; i<*n; i++){
@@ -187,7 +185,6 @@ void diag_quadraticform_XAX(Real *lower, Real *diag, Real *xvec,
     }
     res[k] = xii + 2*xij ;    
   }
-  
 }
 
 void bilinearform_XAY(Real *lower, Real *diag, Real *xvec, 
@@ -206,7 +203,7 @@ void bilinearform_XAY(Real *lower, Real *diag, Real *xvec,
        nx     : number of vectors of type x
        (= number of quadratic forms to be computed)
        ny     : number of vectors in yvec
-       n      : dimension of the matix A 
+       n      : dimension of the matrix A 
        (also size of each vector yvec and xvec)
        res    : store the result(s)
        
@@ -214,12 +211,11 @@ void bilinearform_XAY(Real *lower, Real *diag, Real *xvec,
      */
      
 {
-  Integer pos;  
-  Integer  i,j,k,l;
+  Integer pos;
+  Integer i, j, k, l;
   Real xyij, xyji, xyii;
   
   for (l=0; l<*ny; l++){
-    
     for(k=0; k<*nx; k++){
       pos = 0;
       xyij = 0.0;

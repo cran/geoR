@@ -12,7 +12,7 @@
   ##
   call.fc <- match.call()
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   method <- match.arg(method)
   if((method == "circular.embedding") & messages.screen)
@@ -50,6 +50,10 @@ RandomFields")
   ##
   ##
   ##
+  if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
+    warning(".Random.seed not initialised. Creating it with runif(1)")
+    runif(1)
+  }
   rseed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   results <- list()
   ##

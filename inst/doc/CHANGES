@@ -1,6 +1,68 @@
 
+      		==============================
+ 		CHANGES IN geoR VERSION 1.5-3
 		==============================
- 		     CHANGES IN geoR VERSION 1.5-2
+
+NEW FEATURES
+
+        o points.geodata() has a new optional argument "cex.var" which can
+          receive a vector of values defining the size os the points
+
+        o output.control() now allows krige.conv() and krige.bayes()
+          to return the mean and variance of each conditional simulation
+	  using the arguments "sim.means" and "sim.vars"
+
+        o new function nearloc()
+
+        o summary.geodata() now accepts the argument "lambda"
+
+        o print.eyefit() now prints the same as print.summary.eyfit()
+
+        o improvements im summary.geodata() when $realisations is available
+	  including new argument "by.realisations"
+
+        o likfit() now has a default serch for initial values if 
+          they are not provided and checks for unreasonable initial values
+          (not yet fully implemented)
+
+        o argument "ini" in variofit can now take an object of the class
+          "eyefit" or "variomodel", extracting the initial values from it
+
+        o points.geodata() can now take an scalar in the argument "pt.divide"
+           defining the number of quantiles
+
+
+
+BUGS
+
+        o bug fix in cov.spatial() to prevent error in kriging.conv()
+          when kriging with a model object with sigmasq=0 and phi=0
+
+        o fix in calls in backtranform.moments() to BCtransform()
+
+        o fix in grf(), krige.bayes() and krige.conv() to force initilisation
+	  of the random seed when it is not available
+	
+        o fix in variofit() for fix.kappa=F wich cov.model="powered"
+    
+        o summary.geodata now returns an object of the class
+          "summary.geodata" in print.summary.geodata
+
+        o internal calls to "splancs"'s function inout() now always uses 
+          the argument "bound=TRUE"
+
+        o fix in summary.eyefit()
+
+        o fix em geoR.messages (was not returning logical inside the functions)
+
+        o  fix in points.geodata() for col="gray" with pt.divide="data.proportional"
+            or pt.divide="rank.proportional"
+
+
+
+
+		==============================
+ 		CHANGES IN geoR VERSION 1.5-2
 		==============================
 
 NEW FEATURES
@@ -17,7 +79,7 @@ BUGS
 
 
 		==============================
- 		     CHANGES IN geoR VERSION 1.5-1
+                CHANGES IN geoR VERSION 1.5-1
 		==============================
 
 NEW FEATURES
@@ -27,11 +89,8 @@ NEW FEATURES
            larger number of locations.Future realeases
            may contain a wrapper for RandomFields functions
 
-        o variofit() now has a default serch for initial values if they are not provided
-           and check for unreasonable initial values
-
-        o likfit() now has a default serch for initial values if they are not provided
-           and check for unreasonable initial values
+        o variofit() now has a default search for initial values 
+          if they are not provided and checks for unreasonable initial values
 
         o new internal function check.locations() used to test
 	  the argument 'locations' in krige.conv(), ksline() and

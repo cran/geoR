@@ -102,6 +102,8 @@
         if(is.null(output$mean.var)) output$mean.var <- NULL
         if(is.null(output$quantile)) output$quantile <- NULL
         if(is.null(output$threshold)) output$threshold <- NULL
+        if(is.null(output$sim.means)) output$sim.means <- NULL
+        if(is.null(output$sim.vars)) output$sim.vars <- NULL
         if(is.null(output$signal)) output$signal <- NULL
         if(is.null(output$messages.screen)) output$messages.screen <- TRUE
         output <- output.control(n.posterior = output$n.posterior,
@@ -112,6 +114,8 @@
                                  mean.var = output$mean.var,
                                  quantile = output$quantile,
                                  threshold = output$threshold,
+                                 sim.means = output$sim.means,
+                                 sim.vars = output$sim.vars,
                                  signal = output$signal,
                                  messages = output$messages.screen)
       }
@@ -126,6 +130,11 @@
   simulations.predictive <- ifelse(is.null(output$simulations.predictive), FALSE, TRUE)
   keep.simulations <- ifelse(is.null(output$keep.simulations), TRUE, FALSE)
   mean.estimator <- output$mean.estimator
+  sim.means <- output$sim.means
+  if(is.null(sim.means))
+    sim.means <- ifelse(simulations.predictive, TRUE, FALSE)
+  sim.vars <- output$sim.vars
+  if(is.null(sim.vars)) sim.vars <- FALSE
   if(is.null(mean.estimator) & simulations.predictive) mean.estimator <- TRUE
   quantile.estimator <- output$quantile.estimator
   probability.estimator <- output$probability.estimator
@@ -208,7 +217,7 @@
   ##
   if(abs(lambda - 1) > 0.001) {
     if(messages.screen) cat("krige.conv: performing the Box-Cox data transformation\n")
-    data <- BCtransform(data, lambda = lambda)$data
+    data <- BCtransform(x=data, lambda = lambda)$data
   }
   ## 
   ## setting covariance parameters
@@ -226,8 +235,14 @@
   }
   ##  sill.partial <- micro.scale + sum(sigmasq)
   sill.partial <- sum(sigmasq)
-  tausq.rel <- nugget/sum(sigmasq)
-  tausq.rel.micro <- micro.scale/sum(sigmasq)
+  if(sill.partial < 1e-16){
+    tausq.rel <- 0
+    tausq.rel.micro <- 0
+  }
+  else{
+    tausq.rel <- nugget/sum(sigmasq)
+    tausq.rel.micro <- micro.scale/sum(sigmasq)
+  }
   n <- length(data)
   ni <- nrow(trend.l)
   ##
@@ -305,6 +320,10 @@
   ## ########### Sampling from the resulting distribution ###
   ##
   if(n.predictive > 0) {
+    if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
+      warning(".Random.seed not initialised. Creating it with runif(1)")
+      runif(1)
+    }
     seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
     if(messages.screen)
       cat("krige.conv: sampling from the predictive distribution (conditional simulations)\n")
@@ -385,17 +404,20 @@
       if(any(kc$simulations < -1/lambda))
         warning("Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale.")
       kc$simulations <-
-        BCtransform(kc$simulations, lambda, inv=TRUE)$data
+        BCtransform(x=kc$simulations, lambda=lambda, inv=TRUE)$data
     }
     ##
     ## mean/quantiles/probabilities estimators from simulations
     ##
     if(!is.null(mean.estimator) | !is.null(quantile.estimator) |
-       !is.null(probability.estimator)){
-      kc <- c(kc, statistics.predictive(simuls= kc$simulations,
+       !is.null(probability.estimator) | !is.null(sim.means) |
+       !is.null(sim.vars)){
+      kc <- c(kc, statistics.predictive(simuls = kc$simulations,
                                         mean.var = mean.estimator,
                                         quantile = quantile.estimator,
-                                        threshold = probability.estimator))
+                                        threshold = probability.estimator,
+                                        sim.means = sim.means,
+                                        sim.vars = sim.vars))
     }
     kc$.Random.seed <- seed
   }
@@ -709,7 +731,7 @@
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     dimnames(borders.obj) <- list(NULL, NULL)
     if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, bound=TRUE))
     else
       stop("argument borders requires the package splancs - please install it")
     values.loc[inout.vec] <- values
@@ -720,7 +742,7 @@
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       if(require(splancs))
-        inout.vec <- as.vector(inout(pts = locations, poly = borders))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders, bound=TRUE))
       else
         stop("argument borders requires the package splancs - please install it")
       if(length(values.loc[inout.vec]) == length(values))

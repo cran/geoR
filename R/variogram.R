@@ -14,7 +14,7 @@
   if(! "package:stats" %in% search()) require(modreg)
   call.fc <- match.call()
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   keep <- list(...)
   if(is.null(keep$keep.NA)) keep.NA <- FALSE
@@ -285,7 +285,7 @@
   if(! "package:stats" %in% search()) require(mva)
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   if(missing(nugget.tolerance)) nugget.tolerance <- 1e-12
   u <- as.vector(dist(as.matrix(coords)))
@@ -878,7 +878,7 @@
   call.fc <- match.call()
   obj.variog$v <- NULL
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
   ## reading input
@@ -986,7 +986,7 @@
   call.fc <- match.call()
   if(missing(geodata)) geodata <- list(coords=coords, data=data)
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
   ## Checking input

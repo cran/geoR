@@ -29,7 +29,7 @@
   temp.list <- list()
   temp.list$print.pars <- print.pars
   if(missing(messages))
-    messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
   cov.model <- match.arg(cov.model,
@@ -92,11 +92,28 @@
   ##
   ## Initial values for parameters
   ##
-#  var.data <- max(tapply(data, realisations, var))
+  ## have to consider transformation, residuals from trend etc
+#  var.data <- mean(tapply(data, realisations, var))
 #  d.max <- max(by(ap$coords, ap$realisations, function(x) max(dist(x))))
 #  if(missing(ini.cov.pars))
 #    ini.cov.pars <- expand.grid(var.data/2, 3*var.data/4, var.data)
-    
+  if(any(class(ini.cov.pars) == "eyefit")){
+    init <- nugget <- kappa <- NULL
+    for(i in 1:length(ini.cov.pars)){
+      init <- drop(rbind(init, ini.cov.pars[[i]]$cov.pars))
+      nugget <- c(nugget, ini.cov.pars[[i]]$nugget)
+      if(cov.model == "gneiting.matern")
+        kappa <- drop(rbind(kappa, ini.cov.pars[[i]]$kappa))
+      else
+        kappa <- c(kappa, ini.cov.pars[[i]]$kappa)
+    }
+    ini.cov.pars <- init
+  }
+  if(any(class(ini.cov.pars) == "variomodel")){
+    nugget <- ini.cov.pars$nugget
+    kappa <- ini.cov.pars$kappa
+    ini.cov.pars <- ini.cov.pars$cov.pars
+  }
   if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
     ini.cov.pars <- as.matrix(ini.cov.pars)
     if(nrow(ini.cov.pars) == 1)

@@ -182,7 +182,7 @@
   if (!require(splancs))
     cat("package splancs in required to select points inside the borders\n")
   locations <- locations[as.vector(inout(pts = locations,
-                                         poly = borders)),]
+                                         poly = borders, bound=TRUE)),]
   return(locations)
 }
 
@@ -213,7 +213,7 @@
     }
   if(nrow(borders) < 3) stop("borders must have at least 3 points")
   if(exists("inout")){
-    ind <- as.vector(inout(pts=xygrid, poly=borders))
+    ind <- as.vector(inout(pts=xygrid, poly=borders, bound=TRUE))
     xypoly <- xygrid[ind == TRUE,  ]
     if(vec.inout == FALSE)
       return(xypoly)
