@@ -21,7 +21,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
        cov.model = "matern", realisations,
        method.lik = "ML", components = FALSE,
-       nospatial = TRUE, limits = likfit.limits(),
+       nospatial = TRUE, limits = pars.limits(),
        print.pars = FALSE, messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
@@ -113,7 +113,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     model without spatial component are included in the output.  }
   \item{limits}{values defining lower and upper limits for the model
     parameters used in the numerical minimisation.
-    The auxiliary function \code{likfit.limits()} is called to set the limits.  }
+    The auxiliary function \code{\link{pars.limits}} is called to set the limits.  }
   \item{print.pars}{logical. If \code{TRUE} the parameters and the value
   of the negative log-likelihood (up to a constant) are printed each
   time the function to be minimised is called.  }
@@ -168,9 +168,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   of \code{optim}. In this case initial values are irrelevant.
   
   Lower and upper limits for parameter values can be
-  individually specified using the function \code{likfit.limits()}.
+  individually specified using the function \code{link{pars.limits}}.
   For example, including the following in the function call:\cr
-  \code{limits = likfit.limits(phi=c(0, 10), lambda=c(-2.5, 2.5))}, \cr
+  \code{limits = pars.limits(phi=c(0, 10), lambda=c(-2.5, 2.5))}, \cr
   will change the limits for the parameters \eqn{\phi}{phi} and \eqn{\lambda}{lambda}.
   Default values are used if the argument \code{limits} is not provided.  
   

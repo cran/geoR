@@ -48,7 +48,7 @@
   ##
   ##
   ##
-  rseed <- - get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
+  rseed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   results <- list()
   ##
   ## defining the locations for the simulated data

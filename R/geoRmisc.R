@@ -44,27 +44,45 @@
 }
 
 "zoom.coords" <-
-    function(coords, xzoom, yzoom=xzoom, xlim.ori, ylim.ori, xoff=0, yoff=0)
+  function(x, ...)
 {
-  if(missing(ylim.ori)) xlim.ori <- range(coords[,1], na.rm=TRUE)
-  if(missing(ylim.ori)) ylim.ori <- range(coords[,2], na.rm=TRUE)
+  UseMethod("zoom.coords")
+}
+
+"zoom.coords.default" <-
+    function(x, xzoom, yzoom=xzoom, xlim.ori, ylim.ori, xoff=0, yoff=0, ...)
+{
+  if(missing(ylim.ori)) xlim.ori <- range(x[,1], na.rm=TRUE)
+  if(missing(ylim.ori)) ylim.ori <- range(x[,2], na.rm=TRUE)
   xlim <- xlim.ori + c(-1,1) * (diff(xlim.ori)/2) * (xzoom - 1)
   ylim <- ylim.ori + c(-1,1) * (diff(ylim.ori)/2) * (yzoom - 1)
-  res <- coords2coords(coords, xlim=xlim, ylim=ylim, xlim.ori = xlim.ori, ylim.ori=ylim.ori)
+  res <- coords2coords(x, xlim=xlim, ylim=ylim, xlim.ori = xlim.ori, ylim.ori=ylim.ori)
   res[,1] <- res[,1] + xoff
   res[,2] <- res[,2] + yoff
   return(res)
 }
 
+"zoom.coords.geodata" <-
+  function(x, ...)
+{
+  x$coords <- zoom.coords.default(x$coords, ...)
+  if(!is.null(x$borders)) x$borders <- zoom.coords.default(x$borders, ...)
+  if(!is.null(x$subarea.lims)) x$subarea.lims <- zoom.coords.default(x$subarea.lims, ...)
+  return(x)
+}
+
 "rect.coords" <-
-  function(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE, ...)
+  function(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE, quiet=FALSE, ...)
 {
   rx <- range(coords[,1], na.rm=TRUE)
   ry <- range(coords[,2], na.rm=TRUE)
   res <- cbind(c(rx,rev(rx)), rep(ry,c(2,2)))
   res <- zoom.coords(res, xzoom=xzoom, yzoom=yzoom)
   if(add.to.plot) rect(res[1,1], res[1,2], res[3,1], res[3,2], ...)
-  return(res)  
+  if(quiet)
+    return(invisible())
+  else
+    return(res)  
 }
 
 # make it generic with a method for geoR
@@ -94,3 +112,47 @@
 {
   return(dup.coords.default(x$coords))
 }
+
+"subarea" <-
+  function(geodata, xlim, ylim, ...)
+{
+  if(class(geodata) != "geodata")
+    stop("an object of the class geodata must be provided")
+  if(missing(xlim) & !missing(ylim)) xlim <- c(-Inf, +Inf)
+  if(!missing(xlim) & missing(ylim)) ylim <- c(-Inf, +Inf)
+  if(missing(xlim) & missing(ylim)){
+    cat("Enter 2 points defining the corners of the subarea\n")
+    pt <- locator(2)
+    xlim <- sort(pt[[1]])
+    ylim <- sort(pt[[2]])
+  }
+  if(!is.vector(xlim) || length(xlim) != 2)
+    stop("xlim must be a vector with 2 elements")
+  if(!is.vector(ylim) || length(ylim) != 2)
+    stop("ylim must be a vector with 2 elements")
+  geo <- geodata
+  ind <- (geodata$coords[,1] > xlim[1] & geodata$coords[,1] < xlim[2] &  
+          geodata$coords[,2] > ylim[1] & geodata$coords[,2] < ylim[2])  
+  geo$coords <- geodata$coords[ind,]
+  xlim.all <- c(xlim, range(geo$coords[,1]))
+  ylim.all <- c(ylim, range(geo$coords[,2]))
+  if(is.vector(geodata$data)) geo$data <- geodata$data[ind]
+  else geo$data <- geodata$data[ind,]
+  geo$units.m <- geodata$units.m[ind]
+  if(!is.null(geodata$covariate)){
+    if(is.vector(geodata$covariate))
+      geo$covariate <- geodata$covariate[ind]
+    if(is.matrix(geodata$covariate) |  is.data.frame(geodata$covariate))   
+      geo$covariate <- geodata$covariate[ind,]
+  }
+  if(!is.null(geodata$borders)){
+    geo$borders <- geodata$borders[(geodata$borders[,1]>xlim[1] & geodata$borders[,1]<xlim[2] &  
+                                    geodata$borders[,2]>ylim[1] & geodata$borders[,2] < ylim[2]),]
+    xlim.all <- c(xlim.all, range(geo$borders[,1]))
+    ylim.all <- c(ylim.all, range(geo$borders[,2]))
+  }
+  geo$subarea.lims <- cbind(range(xlim.all[is.finite(xlim.all)]),
+                            range(ylim.all[is.finite(ylim.all)]))
+  return(geo)
+}
+

@@ -18,7 +18,7 @@
             cov.model = "matern", realisations,
             method.lik = "ML",
             components = FALSE, nospatial = TRUE,
-            limits = likfit.limits(), 
+            limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
 {
   if(is.R()) if(! "package:stats" %in% search()) require(mva)
@@ -581,6 +581,15 @@
 #    tausq <- sigmasq + tausq
 #    sigmasq <- 0
 #  }
+  ##
+  ## Preparing output
+  ##
+  if((phi < 0.001*min.dist)){
+    tausq <- tausq + sigmasq
+    sigmasq <- 0
+  }
+  if((sigmasq < 1e-12)) phi <- 0
+  ##
   n.model.pars <- beta.size + 7
   par.su <- data.frame(status=rep(-9,n.model.pars))
   ind.par.su <- c(rep(0, beta.size), ip$f.tausq, 0, 0, ip$f.kappa,
@@ -592,8 +601,6 @@
   row.names(par.su) <- c(beta.name, "tausq", "sigmasq", "phi", "kappa",
                              "psiR", "psiA", "lambda")
   par.su <- par.su[c((1:(n.model.pars-3)), n.model.pars-1, n.model.pars-2, n.model.pars),] 
-  ##
-  ## Preparing output
   ##
   lik.results <- list(cov.model = cov.model,
                       nugget = tausq,
@@ -614,6 +621,7 @@
                       parameters.summary = par.su,
                       info.minimisation.function = lik.minim,
                       max.dist = max.dist,
+                      trend = trend,
                       trend.matrix= xmat,
                       transform.info = list(fix.lambda = fix.lambda,
                         log.jacobian = log.jacobian.max))
@@ -1130,7 +1138,7 @@
   return(sumnegloglik) 
 }
 
-"likfit.limits" <-
+"pars.limits" <-
   function(phi = c(lower=0, upper=+Inf),
            sigmasq = c(lower=0, upper=+Inf),
            nugget.rel = c(lower=0, upper=+Inf),
@@ -1180,6 +1188,8 @@
               tausq.rel = tausq.rel, kappa = kappa,
               lambda = lambda, psiR = psiR, psiA = psiA))
 }
+
+"likfit.limits" <- pars.limits
 
 "print.likGRF" <-
   function (x, digits = max(3, getOption("digits") - 3), ...)
@@ -1307,17 +1317,29 @@
 
 "loglik.GRF" <-
   function(geodata, coords=geodata$coords, data=geodata$data,
+           obj.model = NULL,
            cov.model="exp", cov.pars,
            nugget=0, kappa=0.5, lambda=1, psiR=1, psiA=0,
            trend="cte", method.lik="ML",
            compute.dists = TRUE, realisations = NULL)
 {
+  if(!is.null(obj.model)){
+    if(!is.null(obj.model$cov.model)) cov.model <- obj.model$cov.model
+    if(!is.null(obj.model$cov.pars)) cov.pars <- obj.model$cov.pars
+    if(!is.null(obj.model$nugget)) nugget <- obj.model$nugget
+    if(!is.null(obj.model$kappa)) kappa <- obj.model$kappa
+    if(!is.null(obj.model$lambda)) lambda <- obj.model$lambda
+    if(!is.null(obj.model$psiR)) psiR <- obj.model$psiR
+    if(!is.null(obj.model$psiA)) psiA <- obj.model$psiA      
+   if(!is.null(obj.model$trend)) trend <- eval(obj.model$trend)
+  ## a resolver: problema em passando  trend
+  }
+  sigmasq <- cov.pars[1]
+  phi <- cov.pars[2]
   if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml") 
     method.lik <- "RML"
   if(method.lik == "ML" | method.lik == "ml")
     method.lik <- "ML"
-  sigmasq <- cov.pars[1]
-  phi <- cov.pars[2]
   if(is.null(realisations))
     realisations <- as.factor(rep(1, length(data)))
   else

@@ -5,6 +5,7 @@
             simul.number = NULL,  max.dist = vario$max.dist,
             weights = c("npairs", "equal", "cressie"),
             minimisation.function,
+            limits = pars.limits(), 
             messages, ...) 
 {
   call.fc <- match.call()
@@ -33,9 +34,11 @@
                            "spherical", "circular", "cubic", "wave",
                            "linear", "power", "powered.exponential", "cauchy",
                            "gneiting", "gneiting.matern", "pure.nugget"))
-#  if(cov.model == "matern" | cov.model == "powered.exponential" | 
-#     cov.model == "cauchy" | cov.model == "gneiting.matern")
-#    fix.kappa <- TRUE
+  if(cov.model == "powered.exponential")
+    if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
+  ##  if(cov.model == "matern" | cov.model == "    powered.exponential" | 
+  ##     cov.model == "cauchy" | cov.model == "gneiting.matern")
+  ##    fix.kappa <- TRUE
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once\n")
   if (!is.null(simul.number)) 
@@ -49,8 +52,8 @@
     XY <- list(u = vario$u, v = vario$v, n=vario$n)
   else
     XY <- list(u = vario$u[vario$u <= max.dist],
-                     v = vario$v[vario$u <= max.dist],
-                     n = vario$n[vario$u <= max.dist])
+               v = vario$v[vario$u <= max.dist],
+               n = vario$n[vario$u <= max.dist])
   if(cov.model == "pure.nugget"){
     ##
     ## parameter estimation for model which does not require numerical minimisation
@@ -99,7 +102,9 @@
       if(messages.screen)
         cat("variofit: searching for best initial value ...")
       ini.temp <- matrix(ini.cov.pars, ncol=2)
-      grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa)))
+      grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]),
+                                        phi=unique(ini.temp[,2]),
+                                        tausq=unique(nugget), kappa=unique(kappa)))
       ##  loss function:
       v.loss <- function(parms, u, v, n, cov.model, weights){
         sigmasq <- parms[1]
@@ -108,7 +113,8 @@
         tausq <- parms[3]
         kappa <- parms[4]
         if(cov.model == "power")
-          v.mod <- tausq + cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model="power", kappa=kappa)
+          v.mod <- tausq +
+            cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model="power", kappa=kappa)
         else
           v.mod <- (sigmasq + tausq) -
             cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model = cov.model,
@@ -160,19 +166,24 @@
         if(fix.kappa){
           XY$kappa <- as.vector(kappa)
           res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
-                                                        cov.model=cov.model, kappa=kappa)), ncol=1),
+                                                        cov.model=cov.model, kappa=kappa)),
+                                         ncol=1),
                      start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
         }
         else{
           if(cov.model == "powered.exponential")
             res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
-                                                          cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))),
-                                           ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
+                                                          cov.model=cov.model,
+                                                          kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))),
+                                           ncol=1),
+                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
                        data=XY, alg="plinear", ...)
           else
-            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model,
+            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
+                                                          cov.model=cov.model,
                                                           kappa=exp(Tkappa))), ncol=1),
-                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
+                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
+                       data=XY, alg="plinear", ...)       
           kappa <- exp(coef(res)["Tkappa"])
           names(kappa) <- NULL
         }
@@ -182,13 +193,22 @@
       else{
         if(fix.kappa){
           XY$kappa <- kappa
-          res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)), cov.model = cov.model, kappa=kappa))), start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
+          res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)),
+                                                 cov.model = cov.model, kappa=kappa))),
+                     start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
         }
         else{
           if(cov.model == "powered.exponential")
-            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=exp(Tkappa)))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)),
+                                                   cov.model = cov.model, kappa=exp(Tkappa)))),
+                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
+                       alg="plinear", data=XY, ...)
           else
-            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)),
+                                                   cov.model = cov.model,
+                                                   kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))),
+                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
+                       alg="plinear", data=XY, ...)
           kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL
         }
         nugget <- coef(res)[".lin1"];names(nugget) <- NULL
@@ -200,7 +220,8 @@
       if(nugget < 0 | cov.pars[1] < 0){
         warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
         temp <- c(sigmasq=cov.pars[1], phi=cov.pars[2], tausq=nugget, kappa=kappa)
-        print(rbind(round(temp, dig=4), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+        print(rbind(round(temp, dig=4),
+                    status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
         return(invisible())
       }
       value <- sum(resid(res)^2)
@@ -241,20 +262,39 @@
         }
       }
       else{
+        lower.l <- sapply(limits, function(x) x[1])
+        upper.l <- sapply(limits, function(x) x[2])
         if(fix.kappa == FALSE){
-            if(fix.nugget) lower <- c(0, 0, -Inf)
-            else lower <- c(0, 0, 0, -Inf)
-        }
+            if(fix.nugget){
+              lower <- lower.l[c("sigmasq.lower", "phi.lower","kappa.lower")]
+              upper <- upper.l[c("sigmasq.upper", "phi.upper","kappa.upper")]
+            }
+            else{
+              lower <- lower.l[c("sigmasq.lower", "phi.lower",
+                               "tausq.rel.lower", "kappa.lower")]
+              upper <- upper.l[c("sigmasq.upper", "phi.upper",
+                               "tausq.rel.upper", "kappa.upper")]
+            }
+          }
         else{
           if(cov.model == "power"){
-            if(fix.nugget) lower <- c(0, -Inf)
-            else lower <- c(0, -Inf, 0)
+            if(fix.nugget){
+              lower <- lower.l[c("sigmasq.lower", "phi.lower")]
+              upper <- upper.l[c("sigmasq.upper", "phi.upper")]
+            }
+            else{
+              lower <- lower.l[c("sigmasq.lower", "phi.lower", "tausq.rel.lower")]
+              upper <- upper.l[c("sigmasq.upper", "phi.upper", "tausq.rel.upper")]
+            }
           }
-          else lower <- 0
+          else{
+            lower <- lower.l["phi.lower"]
+            upper <- upper.l["phi.upper"]
+          }
         }
         result <- optim(ini, loss.vario, method = "L-BFGS-B",
                         hessian = TRUE, lower = lower,
-                        g.l = .global.list, ...)
+                        upper = upper, g.l = .global.list, ...)
 #        require(methods)
 #        if(exists("trySilent"))
 #          hess <- trySilent(solve(as.matrix(result$hessian)))

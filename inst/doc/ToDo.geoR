@@ -1,0 +1,70 @@
+Things to be done and/or checked in the package geoR
+======================================================
+- print/summary for xvalid
+
+- implement block kriging via simulation with options for 
+  squares or arbitrary polygons
+
+- implement composite log-likelihood
+
+- check for possible bug in xvalid for external trend
+
+- plot.variomodel (?) (currently done using curve or plot on cov.spatial)
+
+- nested models expanded to other functions 
+
+- removing checkings which can be concentrated in  cov.spatial
+
+- include a subregion argument in points.geodata (and maybe ohters)
+  taking a polygon 
+
+- plot.likfit with variogram of the model components
+
+- priors not equaly spaced in krige.bayes
+
+- include all the book's data-sets
+
+- create and update.proflik to facilitate the usage of proflik
+
+- reimplementation of nested covariance models in krige.conv
+
+- power and gneiting.matern models in likfit
+
+- include a data-set with "realisations"
+
+- add in the section examples of the documentation of likfit
+  an example with different realisations
+
+- automatic re-scaling of covariates with different orders of
+  magnitude 
+
+- automatic re-scaling of coordinate values
+
+- Create summary functions for:
+	proflik (?)
+	krige.bayes
+	others ?
+
+- A nicer and shorter version for "proflik" 
+
+- Incorporate "kappa", "psiR" and "psiA" in proflik
+
+- analytical computation of probabilities and (maybe) quantiles
+  in krige.bayes and krige.conv (partially done)
+
+- Implement the robust variogram estimator as described in Genton, 1998
+
+- Implement "glsfit" for variogram
+
+- Check whether is possible to make a more extensive use of the QR 
+  decomposition throughout the package, in particular in "varcov.spatial" and 
+  the "likfit" functions.
+
+- generalized covariances
+
+- Pocket plots including moving windows 
+
+- OLS/WLS/GLS fit of anisotropic variograms
+
+- use methods logLik for likfit
+

@@ -18,7 +18,7 @@
 \usage{
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders = NULL, trend="cte", lambda = 1, col.data = 1,
-             weights.divide = NULL, scatter3d = FALSE, \dots)
+             weights.divide = NULL, lowess = FALSE, scatter3d = FALSE, \dots)
 }
 
 %- maybe also `usage' for other objects do cumented here.
@@ -54,6 +54,9 @@
     the data is provided each  data is
     divided by the corresponding element in this vector.
     Defaults to \code{NULL}.  }
+  \item{lowess}{logical. Indicates whether the function
+    \code{\link{lowess}} should be used in the plots of the data against
+  the coordinates.  }
   \item{scatter3d}{logical. If \code{TRUE} the last plot is
     produced by
     \code{\link[scatterplot3d]{scatterplot3d}} showing

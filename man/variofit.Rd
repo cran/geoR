@@ -14,7 +14,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
          fix.kappa = TRUE, kappa = 0.5,
          simul.number = NULL, max.dist = vario$max.dist,
          weights = c("npairs", "equal", "cressie"),
-         minimisation.function, messages, \dots)
+         minimisation.function,
+         limits = pars.limits(), messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -54,6 +55,10 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
     variogram. Defaults to \code{vario$max.dist}.  }
   \item{weights}{type weights used in the loss function. See
     \code{DETAILS} below.  } 
+  \item{limits}{values defining lower and upper limits for the model
+    parameters used in the numerical minimisation.
+    Only valid if \code{minimisation.function = "optim"}.
+    The auxiliary function \code{\link{pars.limits}} is called to set the limits.  }
   \item{minimisation.function}{minimization function used to estimate
     the parameters. Options are \code{"optim"}, \code{"nlm"}.
     If \code{weights = "equal"} the option 

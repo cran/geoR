@@ -1,9 +1,8 @@
-".First.lib" <-
-  function(lib, pkg)
+".First.lib" <- function(lib, pkg)
 {
   library.dynam("geoR", package = pkg, lib.loc = lib)
   cat("\n")
-  cat("-------------------------------------------------\n")
+  cat("----------------------------------------------------------\n")
   ## from 1.9-0, package.description is deprecated in favour of
   ## packageDescription (which doesn't exist in previous versions)
   if(!exists("packageDescription",mode="function")){
@@ -16,9 +15,15 @@
                                       fields=c("Title","Version","Date"))
   cat(pkg.info$Title)
   cat("\n")
-  cat(paste("geoR version ", pkg.info$Version, " (", pkg.info$Date, ") is now loaded\n", sep=""))
-  cat("-------------------------------------------------\n")
+##  locn <- paste(.path.package(package="geoR"), "doc", "geoRintro.pdf", sep=.Platform$file.sep)
+##  cat(paste("See the document \"Introduction to geoR\" (package vignette)\n in", locn, "\n"))
+##  cat("Type \"demo(geoR)\" for a demonstration\n")
+  cat(paste("geoR version ", pkg.info$Version, " (built on ", pkg.info$Date, ") is now loaded\n", sep=""))
+  cat("----------------------------------------------------------\n")
   cat("\n")
   return(invisible(0))
 }
+
+
+
 

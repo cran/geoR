@@ -12,8 +12,8 @@
 
 \usage{
 loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
-           cov.model = "exp", cov.pars, nugget = 0, kappa = 0.5,
-           lambda = 1, psiR = 1, psiA = 0,
+           obj.model = NULL cov.model = "exp", cov.pars, nugget = 0,
+           kappa = 0.5, lambda = 1, psiR = 1, psiA = 0,
            trend = "cte", method.lik = "ML", compute.dists = TRUE,
            realisations = NULL)
 }
@@ -30,6 +30,9 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
     element \code{coords} of the argument \code{geodata}.  }
   \item{data}{a vector with data values. By default it takes the
     element \code{data} of the argument \code{geodata}.  }
+  \item{obj.model}{a object of the class \code{variomodel} with a fitted
+    model. Tipically an output of 
+    \code{\link{likfit}} or \code{\link{variofit}}. }
   \item{cov.model}{a string specifying the model for the correlation
     function. For further details see 
     documentation for \code{\link{cov.spatial}}. }
@@ -102,9 +105,21 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
 \seealso{\code{\link{likfit}} for likelihood-based parameter estimation.}
 
 \examples{
-if(is.R()) data(s100)
+data(s100)
 loglik.GRF(s100, cov.pars=c(0.8, .25), nugget=0.2)
 loglik.GRF(s100, cov.pars=c(0.8, .25), nugget=0.2, met="RML")
+
+## Computing the likelihood of a model fitted by ML
+s100.ml <- likfit(s100, ini=c(1, .5))
+s100.ml
+s100.ml$loglik
+loglik.GRF(s100, obj=s100.ml)
+
+## Computing the likelihood of a variogram fitted model
+s100.v <- variog(s100, max.dist=1)
+s100.vf <- variofit(s100.v, ini=c(1, .5))
+s100.vf
+loglik.GRF(s100, obj=s100.vf)
 }
 
 \keyword{spatial}

@@ -287,9 +287,9 @@
     colnames(toplot) <- c("X Coord", "Y Coord")
     plot(toplot, type = "n",
          xlim = coords.lims[,1], ylim = coords.lims[, 2], ...)
-    if(!is.null(borders))
-      polygon(borders)
   }
+  if(!is.null(borders))
+    polygon(borders)
   if (missing(cex.min)) cex.min <- 0.5
   if (missing(cex.max)) cex.max <- 1.5
   graph.list <- list()
@@ -399,7 +399,7 @@
 
 plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL, 
     trend = "cte", lambda = 1, col.data = 1, weights.divide = NULL, 
-    scatter3d = FALSE, ...) 
+    lowess = FALSE, scatter3d = FALSE, ...) 
 {
   if(missing(x)) x <- list(coords=coords, data = data)
   if (is.R()) par.ori <- par(no.readonly = TRUE)
@@ -427,9 +427,10 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL
+    data.lab <- "residuals"
   }
-  par(mfrow = c(2, 2))
-  par(mar = c(4, 4, 0, 0.5))
+  else data.lab <- "data"
+  par(mfrow = c(2, 2), mar = c(4, 4, 0, 0.5), mgp=c(2,.8,0))
   data.quantile <- quantile(data)
   if (is.null(borders)) 
     coords.lims <- set.coords.lims(coords = coords)
@@ -460,23 +461,28 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
     points(coords[(data > data.quantile[4]), ], pch = 4, 
            cex = 2, col = 8)
   }
-  plot(data, coords[, 2], ylab = "Coord Y", cex = 1, ylim = coords.lims[, 2])
+  plot(data, coords[, 2], ylab = "Coord Y", xlab = data.lab, cex = 1, ylim = coords.lims[, 2])
+  if(lowess){
+    foo <- lowess(data ~ coords[,2])
+    lines(foo[[2]], foo[[1]])
+  }
   if (!is.R()) 
     par(mar = c(5, 5, 1, 0.5))
-  plot(coords[, 1], data, xlab = "Coord X", cex = 1, xlim = coords.lims[, 1], )
+  plot(coords[, 1], data, xlab = "Coord X", ylab = data.lab, cex = 1, xlim = coords.lims[, 1], )
+  if(lowess) lines(lowess(data ~ coords[,1]))
   par(pty = "m")
   if (is.R()) par(mar = c(4, 4, 1, 1))
   else par(mar = c(0, 1, 0, 0.5))
   if (scatter3d) {
     if (!require(scatterplot3d)) {
       cat("plot.geodata: the argument scatter3d=TRUE requires the package \"scatterplot3d\" \n              will plot an histogram instead")
-      hist(data)
+      hist(data, xlab= data.lab)
     }
     else scatterplot3d(x = coords[, 1], y = coords[, 2], 
                        z = data, box = FALSE, type = "h", pch = 16, xlab = "Coord X", 
                        ylab = "Coord Y", ...)
   }
   ##  else xyzplot(coords = coords, data = data, ...)
-  else hist(data, main="", ...)
+  else hist(data, main="", xlab= data.lab, ...)
   return(invisible())
 }

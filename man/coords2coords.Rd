@@ -1,22 +1,29 @@
 \name{coords2coords}
 \alias{coords2coords}
 \alias{zoom.coords}
+\alias{zoom.coords.default}
+\alias{zoom.coords.geodata}
 \alias{rect.coords}
 
 \title{Operations on Coordinates}
 \description{
-  Functions for realocation, zooming and envolving rectangle of a set of coordinates.
+  Functions for shifting, zooming and envolving rectangle of a set of coordinates.
 }
 \usage{
 coords2coords(coords, xlim, ylim, xlim.ori, ylim.ori)
 
-zoom.coords(coords, xzoom, yzoom, xlim.ori, ylim.ori, xoff=0, yoff=0)
+zoom.coords(x, \ldots)
 
-rect.coords(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE, ...)
+zoom.coords.default(x, xzoom, yzoom, xlim.ori, ylim.ori, xoff=0, yoff=0, \ldots)
+
+zoom.coords.geodata(x, \ldots)
+
+rect.coords(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE,
+            quiet = FALSE, \ldots)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{coords}{two column matrix or data-frame with coordinates.  }
+  \item{coords, x}{two column matrix or data-frame with coordinates.  }
   \item{xlim}{range of the new x-coordinates. }
   \item{ylim}{range of the new y-coordinates. }
   \item{xlim.ori}{optional. Range of the original x-coordinates, by
@@ -29,6 +36,7 @@ rect.coords(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE, ...)
   \item{yoff}{scalar, shift in the y-direction.  }
   \item{add.to.plot}{logical, if \code{TRUE} the retangle is added to
     the current plot.  }
+  \item{quiet}{logical, none is returned.  }
   \item{\ldots}{further arguments to be passed to \code{\link{rect}}.  }
 }
 %\details{
@@ -50,7 +58,8 @@ rect.coords(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE, ...)
 
 % ~Make other sections like Warning with \section{Warning }{....} ~
 
-%\seealso{ ~~objects to See Also as \code{\link{~~fun~~}}, ~~~ }
+\seealso{\code{\link{subarea}}, \code{\link{rect}}}
+
 \examples{
 foo <- matrix(c(4,6,6,4,2,2,4,4), nc=2)
 foo1 <- zoom.coords(foo, 2)

@@ -73,7 +73,7 @@
   kappa <- model$kappa
   lambda <- model$lambda
   ##
-  ## reading prior input
+  ## reading prior specification
   ##
   if(missing(prior))
     prior <- prior.control()
@@ -131,15 +131,13 @@
   kb$prior <- prior$priors.info
   kb$model <- model
   class(kb$prior) <- "prior.geoR"
-
+  ##
   if(prior$dep.prior){
     npr <- length(prior$sigmasq)
     nphipr <- nrow(as.matrix(prior$sigmasq))
     ntaupr <- ncol(as.matrix(prior$sigmasq))
   }
-  else{
-    nphipr <- ntaupr <- npr <- 1
-  }
+  else nphipr <- ntaupr <- npr <- 1
   beta <- prior$beta
   if(prior$beta.prior == "fixed") beta.fixed <- beta
   if(prior$beta.prior == "normal"){
@@ -159,10 +157,8 @@
       }
     }
   }
-  if(prior$sigmasq.prior != "fixed")
-    S2.prior <- prior$sigmasq
-  else
-    sigmasq.fixed <- S2.prior <- prior$sigmasq
+  if(prior$sigmasq.prior != "fixed") S2.prior <- prior$sigmasq
+  else sigmasq.fixed <- S2.prior <- prior$sigmasq
   df.sigmasq.prior <- prior$df.sigmasq
   ##
   phi.discrete <- prior$phi.discrete
@@ -192,10 +188,8 @@
   ##
   ## reading output options
   ##
-  if(missing(output))
-    output <- output.control()
+  if(missing(output)) output <- output.control()
   else{
-##    if(is.null(class(output)) || class(output) != "output.geoR"){
     if(length(class(output)) == 0 || class(output) != "output.geoR"){
       if(!is.list(output))
         stop("krige.bayes: the argument output only takes a list or an output of the function output.control")
@@ -382,7 +376,7 @@
   }  
   ##
   ## Distances between data and prediction locations
-  ## Must be here AFTER anisotropy be checked
+  ## Must be here, AFTER anisotropy be checked
   ##
   if(do.prediction){
     assign("d0", loccoords(coords = coords, locations = locations), envir=pred.env)
@@ -525,8 +519,7 @@
       if(messages.screen)
         cat("krige.bayes: argument `phi.discrete` not provided, using default values\n")
     } 
-    if(!is.numeric(phi.discrete))
-      stop("non-numerical value provided in phi.discrete")
+    if(!is.numeric(phi.discrete)) stop("non-numerical value provided in phi.discrete")
     if(length(phi.discrete) == 1)
       stop("only one value provided in phi.discrete. Use prior.phi=`fixed`")
     n.phi.discrete <- length(phi.discrete)
@@ -1497,7 +1490,7 @@
            tausq.rel.discrete = NULL)
 {
   ##
-  ## 1. Checking parameters of the prior
+  ## 1. Checking parameters for the priors
   ##
   ##
   ## beta
@@ -1716,6 +1709,14 @@
       ip$tausq.rel$probs <- rep(1/length(tausq.rel.discrete), length(tausq.rel.discrete))
     names(ip$tausq.rel$probs) <- tausq.rel.discrete
   }
+  ## checking valid options for random/fixed parameters
+  if(ip$phi$status == "random")
+    if(ip$beta$status == "fixed" | ip$sigmasq$status == "fixed")
+      stop("random phi with fixed sigmasq and/or beta not implemented")
+  ##if(ip$sigmasq$status == "random")
+  ##  if(ip$beta$status == "fixed")
+  ##    stop("random sigmasq with fixed beta not implemented")
+  ##
   res <- list(beta.prior = beta.prior, beta = beta,
               beta.var.std = beta.var.std,
               sigmasq.prior = sigmasq.prior,
