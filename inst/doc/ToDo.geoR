@@ -1,6 +1,12 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
+- plot.variomodel (?) (currently done using curve or plot on cov.spatial)
+
+- nested models expanded to other functions 
+
+- removing checkings which can be concentrated in  cov.spatial
+
 - include a subregion argument in points.geodata (and maybe ohters)
   taking a polygon 
 

@@ -1,5 +1,6 @@
 \name{as.geodata}
 \alias{as.geodata}
+\alias{is.geodata}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Converts an Object to the Class "geodata"}
@@ -19,6 +20,8 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
            realisations = NULL,
            na.action = c("ifany", "ifdata", "ifcovar", "none"),
            rep.data.action, rep.covar.action)
+
+is.geodata(x)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -59,6 +62,7 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   \item{rep.covar.action}{idem to \code{rep.data.locations}, to be applied to
     the covariates, if any. Defaults to
     the same option set for \code{rep.data.locations}. }
+  \item{x}{an object which is tested for the class \code{geodata}.}
 }
 
 \details{

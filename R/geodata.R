@@ -8,6 +8,10 @@
 ##    - methods for this class
 ##
 
+"is.geodata" <- function (x){
+  inherits(x, "geodata") && (!is.null(x$coords)) && (!is.null(x$data)) && ncol(x$coords) == 2 && (nrow(x$coords) == nrow(as.matrix(x$data)))
+}
+
 "read.geodata" <-
   function(file, header = FALSE, coords.col= 1:2, data.col = 3,
            data.names = NULL, covar.col = NULL, covar.names = "header",

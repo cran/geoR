@@ -462,7 +462,7 @@
     mkte <- xmati %*% betawin
   }
   ##
-  ##  Simple kriging with known mean
+  ##  Simple kriging with know mean
   ##
   if(is.numeric(m0)) {
     difwin <- skwwin %*% (data - m0)

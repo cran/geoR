@@ -12,7 +12,7 @@
   if(missing(krige))
     krige <- krige.control()
   else{
-##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
+    ##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
     if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
       if(!is.list(krige))
         stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
@@ -224,11 +224,11 @@
   }
   else {
     stop("current version of krige.conv does not accept nested covariance models\n") 
-#    sigmasq <- cov.pars[, 1]
-#    phi <- cov.pars[, 2]
-#    cpars <- cbind(1, phi)
+    ##    sigmasq <- cov.pars[, 1]
+    ##    phi <- cov.pars[, 2]
+    ##    cpars <- cbind(1, phi)
   }
-##  sill.partial <- micro.scale + sum(sigmasq)
+  ##  sill.partial <- micro.scale + sum(sigmasq)
   sill.partial <- sum(sigmasq)
   tausq.rel <- nugget/sum(sigmasq)
   tausq.rel.micro <- micro.scale/sum(sigmasq)
@@ -242,12 +242,10 @@
                            kappa = kappa, nugget = tausq.rel,
                            cov.pars = cpars, inv = TRUE,
                            only.inv.lower.diag = TRUE)
-  temp <- bilinearformXAY(X = as.vector(trend.d),
-                          lowerA = as.vector(invcov$lower.inverse),
-                          diagA = as.vector(invcov$diag.inverse), 
-                          Y = as.vector(trend.d))
-  ittivtt <- solve.geoR(temp)
-  remove("temp")
+  ittivtt <- solve.geoR(bilinearformXAY(X = as.vector(trend.d),
+                                        lowerA = as.vector(invcov$lower.inverse),
+                                        diagA = as.vector(invcov$diag.inverse), 
+                                        Y = as.vector(trend.d)))
   if(beta.prior == "flat"){
     beta.flat <- drop(ittivtt %*% bilinearformXAY(X = as.vector(trend.d),
                                                   lowerA = as.vector(invcov$lower.inverse),
@@ -407,7 +405,7 @@
   }
   ##
   ## Backtransforming moments of the prediction distribution
-  ## NOTE: this shoulb be placed here, AFTER the simulations
+  ## NOTE: this must be placed here, AFTER the simulations
   ##
   if(abs(lambda-1) > 0.001){
     if(messages.screen){

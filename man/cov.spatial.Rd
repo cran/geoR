@@ -15,10 +15,7 @@
 }
 
 \usage{
-cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
-            "spherical", "circular", "cubic", "wave",
-            "power", "powered.exponential", "cauchy", 
-            "gneiting", "gneiting.matern", "pure.nugget"),
+cov.spatial(obj, cov.model= "matern",
             cov.pars=stop("no cov.pars argument provided"),
             kappa = 0.5)
 }
@@ -27,8 +24,11 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
 \arguments{
   \item{obj}{a numeric object (vector or matrix), typically with values
     of distances between pairs of spatial locations.  }
-  \item{cov.model}{a string indicating the type of the correlation
-    function.
+  \item{cov.model}{string indicating the type of the correlation
+    function. Available choices are: "matern", "exponential", "gaussian",
+            "spherical", "circular", "cubic", "wave",
+            "power", "powered.exponential", "cauchy", 
+            "gneiting", "gneiting.matern", "pure.nugget".
     See section \code{DETAILS} for available options and expressions of the correlation
     functions.  }
   \item{cov.pars}{a vector with 2 elements or an \eqn{ns \times 2}{ns x 2} matrix with
@@ -37,10 +37,8 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
     second element or column corresponds to the range parameter
     \eqn{\phi}{phi} of the correlation function.
     If a matrix is provided, each row corresponds to
-    the parameters of one \emph{spatial structure}.
-    Models with several structures
-    are also called \emph{nested models}
-    in the geostatistical literature.  }
+    the parameters of one \emph{spatial structure} (see DETAILS below).
+    }
   \item{kappa}{numerical value for the additional smoothness parameter of the
     correlation function.
     Only required by the following correlation
@@ -168,6 +166,16 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
     \rho_m(h|\phi=\phi,\kappa=\kappa_1)}{rho(h) = rho_g(h | phi=alpha) *
     rho_m(h | phi=phi, kappa = kappa_1)}
 
+
+  Models with several structures
+  usually called \emph{nested models}
+  in the geostatistical literature are also allowed.
+  In this case the argument \code{cov.pars} takes a matrix and
+  \code{cov.model} and \code{lambda} can either have length equal to
+  the number of rows of this matrix or length 1.
+  For the latter  cov.model and/or lambda are recycled, i.e. the same
+  value is used for all structures.
+
 }
 
 
@@ -240,6 +248,9 @@ legend(0.4,.4, c(expression(paste(kappa == 0.5, "  and  ",
        expression(paste(kappa == 2, "  and  ", phi == 0.140)),
        expression(paste(kappa == 3, "  and  ", phi == 0.117))),
        lty=c(2,1,2,1), lwd=c(1,1,2,2))
+# plotting a nested variogram model
+curve(v.f(x, cov.pars = rbind(c(.4, .2), c(.6,.3)),
+          cov.model = c("sph","exp")), 0, 1, ylab='nested model')
 }
 
 \keyword{spatial}%-- one or more ...

@@ -1,14 +1,8 @@
-"olsfit" <-
-  function(...)
-{
+"olsfit" <- function(...)
   stop("this function is now obsolete.\nuse variofit() instead.")
-}
 
-"wlsfit" <-
-  function(...)
-{
+"wlsfit" <- function(...)
   stop("this function is now obsolete.\nuse variofit() instead.")
-}
 
 "variofit" <-
   function (vario, ini.cov.pars, cov.model = "matern",
@@ -55,9 +49,9 @@
   if(!is.numeric(max.dist) || length(max.dist) > 1)
     stop("a single numerical value must be provided in the argument max.dist") 
   if (max.dist == vario$max.dist) 
-    XY <- data.frame(u = vario$u, v = vario$v, n=vario$n)
+    XY <- list(u = vario$u, v = vario$v, n=vario$n)
   else
-    XY <- data.frame(u = vario$u[vario$u <= max.dist],
+    XY <- list(u = vario$u[vario$u <= max.dist],
                      v = vario$v[vario$u <= max.dist],
                      n = vario$n[vario$u <= max.dist])
   if(cov.model == "pure.nugget"){
@@ -165,16 +159,23 @@
       XY$cov.model <- cov.model
       ##
       if (fix.nugget) {
-        XY$nugget <- nugget
+        XY$nugget <- as.vector(nugget)
         if(fix.kappa){
-          XY$kappa <- kappa
-          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=kappa)), ncol=1), start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
+          XY$kappa <- as.vector(kappa)
+          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
+                                                        cov.model=cov.model, kappa=kappa)), ncol=1),
+                     start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
         }
         else{
           if(cov.model == "powered.exponential")
-            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)
+            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
+                                                          cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))),
+                                           ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
+                       data=XY, alg="plinear", ...)
           else
-            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=exp(Tkappa))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
+            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model,
+                                                          kappa=exp(Tkappa))), ncol=1),
+                       start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
           kappa <- exp(coef(res)["Tkappa"])
           names(kappa) <- NULL
         }
@@ -341,14 +342,12 @@
         Tkappa <- theta[4]
       }
     }
-    else
-      theta.minimiser <- theta
+    else theta.minimiser <- theta
     penalty <- 10000 * sum(0 - pmin(theta.minimiser, 0))
     theta <- pmax(theta.minimiser, 0)
     if(g.l$fix.kappa == FALSE)
       theta <- c(theta.minimiser, Tkappa)
-    if (any(theta.minimiser < 0))
-      .temp.theta <<- theta
+    if (any(theta.minimiser < 0)) .temp.theta <<- theta
     else penalty <- 0
   }
   else penalty <- 0
@@ -370,10 +369,8 @@
   }
   else{
     kappa <- g.l$kappa
-    if (g.l$fix.nugget)
-      tausq <- g.l$nugget
-    else
-      tausq <- theta[3]
+    if (g.l$fix.nugget) tausq <- g.l$nugget
+    else tausq <- theta[3]
   }
   ##
   sigmasq <- theta[1]

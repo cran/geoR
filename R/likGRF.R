@@ -146,7 +146,7 @@
     psiR <- ini.temp[6]
     psiA <- ini.temp[7]
     grid.ini <- NULL
-    if(is.R()) {remove(".likGRF.dists.vec", pos=1); gc(verbose=FALSE)}    
+    if(is.R()) remove(".likGRF.dists.vec", pos=1)
     else remove(".likGRF.dists.vec", where=1)    
   }
   ##

@@ -49,59 +49,63 @@
 }
 
 "cov.spatial" <-
-  function(obj, cov.model = c("matern", "exponential", "gaussian",
-                  "spherical", "circular", "cubic", "wave",
-                  "linear", "power", "powered.exponential", "cauchy",
-                  "gneiting", "gneiting.matern", "pure.nugget"),
-           cov.pars = stop("no cov.pars argument provided"),
+  function(obj, cov.model = 'matern', cov.pars = stop("no cov.pars argument provided"),
            kappa = 0.5)
 {
-  ##
-  ## checking/reading input
-  ##
-  cov.model <- match.arg(cov.model)
-  if(cov.model == "matern" | cov.model == "powered.exponential" | 
-     cov.model == "cauchy" | cov.model == "gneiting.matern"){
-    if(is.null(kappa))
-      stop("for matern, powered.exponential, cauchy and gneiting.matern covariance functions the parameter kappa must be provided")
-    if(cov.model == "gneiting.matern" & length(kappa) != 2)
-      stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
-    if((cov.model == "matern" | cov.model == "powered.exponential" | 
-        cov.model == "cauchy") & length(kappa) != 1)
-      stop("for this choice of  correlation function model kappa should be a scalar parameter")
-    if(cov.model == "matern" & kappa == 0.5)
-      cov.model == "exponential"
-  }
-  ##
-  if(is.vector(cov.pars))
-    sigmasq <- cov.pars[1]
+  ## extracting covariance paramters
+  if(is.vector(cov.pars)) sigmasq <- cov.pars[1]
   else sigmasq <- cov.pars[, 1]
-  if(is.vector(cov.pars))
-    phi <- cov.pars[2]
+  if(is.vector(cov.pars)) phi <- cov.pars[2]
   else phi <- cov.pars[, 2]
-  if(cov.model == "linear"){
-    cov.model <- "power"
-    phi <- rep(1, length(phi))
+  if(is.null(kappa)) kappa <- NA
+  ## checking for nested models 
+  if(is.vector(cov.pars)) ns <- 1
+  else{
+    ns <- nrow(cov.pars)
+    if(length(cov.model) == 1) cov.model <- rep(cov.model, ns)
+    if(length(kappa) == 1) kappa <- rep(kappa, ns)
   }
-  if(is.vector(cov.pars))
-    ns <- 1
-  else ns <- nrow(cov.pars)
-  covs <- array(0, dim = dim(obj))
+  if(length(cov.model) != ns) stop('wrong length for cov.model')
+  if(length(kappa) != ns) stop('wrong length for kappa')
   ##
-  if(cov.model == "power")
-    if(any(phi >= 2) | any(phi <= 0))
-      stop("for power model cov.pars[2] must be in the interval ]0,2[")
+  cov.model <- sapply(cov.model, match.arg, c("matern", "exponential", "gaussian",
+                                              "spherical", "circular", "cubic", "wave",
+                                              "linear", "power", "powered.exponential", "cauchy",
+                                              "gneiting", "gneiting.matern", "pure.nugget"))
+  ## settings for power model (do not reverse order of the next two lines!)
+  phi[cov.model == "linear"] <- 1
+  cov.model[cov.model == "linear"] <- "power"
+  ## checking input for cov. models with extra parameter(s)
+  if(any(cov.model == 'gneiting.model') && ns > 1)
+    stop('nested models including the gneiting.matern are not implemented') 
+    for(i in 1:ns){
+    if(cov.model[i] == "matern" | cov.model[i] == "powered.exponential" | 
+       cov.model[i] == "cauchy" | cov.model[i] == "gneiting.matern"){
+      if(is.na(kappa[i]))
+        stop("for matern, powered.exponential, cauchy and gneiting.matern covariance functions the parameter kappa must be provided")
+      if(cov.model[i] == "gneiting.matern" & length(kappa) != 2*ns)
+        stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
+      if((cov.model[i] == "matern" | cov.model[i] == "powered.exponential" | 
+          cov.model[i] == "cauchy") & length(kappa) != 1*ns)
+        stop("kappa must have 1 parameter for this correlation function")
+      if(cov.model[i] == "matern" & kappa[i] == 0.5) cov.model[i] == "exponential"
+    }
+    if(cov.model[i] == "power")
+      if(any(phi[i] >= 2) | any(phi[i] <= 0))
+        stop("for power model the phi parameters must be in the interval ]0,2[")
+  }
   ##
   ## computing correlations/covariances
   ##
+  covs <- array(0, dim = dim(obj))
   for(i in 1:ns) {
     if(phi[i] < 1e-12)
-      cov.model <- "pure.nugget"
-    cov.values <- switch(cov.model,
+      cov.model[i] <- "pure.nugget"
+    cov.values <- switch(cov.model[i],
                          pure.nugget = rep(0, length(obj)),
                          wave = (1/obj) * (phi[i] * sin(obj/phi[i])),
                          exponential = exp( - (obj/phi[i])),
-                         matern = matern(u = obj, phi = phi[i], kappa = kappa),
+                         matern = matern(u = obj, phi = phi[i], kappa = kappa[i]),
                          gaussian = exp( - ((obj/phi[i])^2)),
                          spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj/phi[i]) +
                            0.5 * (obj/phi[i])^3), 0),
@@ -120,13 +124,8 @@
                                                       0.75 * (obj.sc^7))), 0)
                          },
                          power = (obj)^phi,
-                         powered.exponential = {
-                           if(kappa > 2 | kappa <= 0)
-                             stop("for power exponential correlation model the parameter kappa must be in the intervel (0,2]"
-                                  );
-                           exp( - ((obj/phi[i])^kappa))
-                         },
-                         cauchy = (1 + (obj/phi[i])^2)^(-kappa),
+                         powered.exponential = exp( - ((obj/phi[i])^kappa[i])),
+                         cauchy = (1 + (obj/phi[i])^2)^(-kappa[i]),
                          gneiting = {
                            obj.sc <- obj/phi[i];
                            t2 <- (1 - obj.sc);
@@ -146,7 +145,7 @@
     cov.values <- sigmasq[i] * cov.values
     covs <- covs + cov.values
   }
-  if(cov.model == "power") covs <- max(covs) - covs
+  if(all(cov.model == "power")) covs <- max(covs) - covs
   else covs[obj < 1e-15] <- sum(sigmasq)
   return(covs)
 }
@@ -205,8 +204,7 @@
     if (all(phi < 1e-12)) 
       varcov <- diag(x = (1 + (tausq/sum(sigmasq))), n)
     else {
-      if (is.vector(cov.pars)) 
-        cov.pars.sc <- c(1, phi)
+      if (is.vector(cov.pars)) cov.pars.sc <- c(1, phi)
       else cov.pars.sc <- cbind(1, phi)
       covvec <- cov.spatial(obj = dists.lowertri, cov.model = cov.model, 
                             kappa = kappa, cov.pars = cov.pars.sc)
