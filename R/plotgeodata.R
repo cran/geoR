@@ -25,6 +25,8 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
         else data <- ((data^lambda) - 1)/lambda
     }
     xmat <- unclass(trend.spatial(trend = trend, geodata = x))
+    if (nrow(xmat) != nrow(coords)) 
+      stop("coords and trend have incompatible sizes")
     if (trend != "cte") {
       data <- lm(data ~ xmat + 0)$residuals
       names(data) <- NULL

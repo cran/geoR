@@ -18,7 +18,7 @@ Loading required package: geoR
 
 ------------------------------------------------
 geoR - functions for geostatistical analysis
-geoR version 1.3-2 is now loaded
+geoR version 1.3-3 is now loaded
 ------------------------------------------------
 
 [1] TRUE
@@ -53,14 +53,15 @@ grf: End of simulation procedure. Number of realizations: 1
 > ## 1.2 Estimating parameters by ML
 > ##
 > ap.ml <- likfit(ap, trend = ~ap1.d+ap2.d, ini=c(.5,.5))
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > ap.ml
 likfit: estimated model parameters:
@@ -208,14 +209,15 @@ grf: End of simulation procedure. Number of realizations: 1
 > ## 2.2 Estimating parameters by ML
 > ##
 > aq.ml <- likfit(aq, trend = "1st", ini=c(.5,.5))
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > aq.ml
 likfit: estimated model parameters:

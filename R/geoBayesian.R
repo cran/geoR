@@ -279,13 +279,15 @@
   if(nrow(coords) != length(data))
     stop("krige.bayes: number of data is different of number of data locations (coordinates)")
   trend.data <- unclass(trend.spatial(trend=model$trend.d, geodata = geodata))
+  if(nrow(trend.data) != nrow(coords))
+    stop("trend specification not compatible with the length of the data") 
   beta.size <- ncol(trend.data)
   if(beta.size > 1)
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
   else beta.names <- "beta"
   if(prior$beta.prior == "normal" |  prior$beta.prior == "fixed"){
     if(beta.size != length(beta))
-      stop("krige.bayes: size of beta incompatible with the trend model (covariates)")
+      stop("size of beta incompatible with the trend model (covariates)")
   }
   if(do.prediction) {
     ##
@@ -344,7 +346,7 @@
            envir=pred.env)
     ni <- nrow(get("trend.loc", envir=pred.env))
     if(nrow(locations) != ni)
-      stop("krige.bayes: number of points to be estimated is different of the number of trend locations")
+      stop("trend.l is not compatible with number of prediction locations")
     expect.env <- new.env()
     assign("expect", 0, envir=expect.env)
     assign("expect2", 0, envir=expect.env)

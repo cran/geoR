@@ -9,8 +9,6 @@
 #define Integer long
 #define Real double
 
-
-
 Real geoRmatern(Real uphi, Real kappa)
 {   
   
@@ -26,7 +24,7 @@ Real geoRmatern(Real uphi, Real kappa)
     if (kappa==0.5) 
       ans = exp(-uphi);
     else {
-      cte = pow(2, (-(kappa-1)))/gammafn(kappa); 
+      cte = R_pow(2, (-(kappa-1)))/gammafn(kappa); 
       ans = cte * R_pow(uphi, kappa) * bessel_k(uphi,kappa,1); 
     }
   }
@@ -93,8 +91,9 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
       else
 	return 0 ;
       break;
-    case 7: /* power */
-      return exp(phi * log(h)) ;
+    case 7: /* power: for the power variogram, the correlation function does not exists 
+	     The value returned here corresponds to the variogram */
+      return  R_pow(h, phi) ;
       break;
     case 8: /* powered.exponential */
       return exp(-1 *  R_pow(hphi, kappa))  ;
@@ -104,7 +103,7 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
       break;
     case 10:  /* gneiting */
       hphi4 = 1 - hphi;
-      if (hphi4 > 0) hphi4 = pow(hphi4, 8);
+      if (hphi4 > 0) hphi4 = R_pow(hphi4, 8);
       else hphi4 = 0 ;
       hphi2 = hphi * hphi ;
       return (1 + 8 * hphi + 25 * hphi2 + 32 * (hphi2 * hphi)) * hphi4 ;
@@ -134,10 +133,17 @@ void veccorrval(Real *phi, Real *kappa, Real *h, Integer *n,
 		Integer *cornr, Real *res)  
 {
   Integer register j ;
+  Real cmax = 0;
   
-  for (j=0; j<(*n); j++)
+  for (j=0; j<(*n); j++){
     res[j] = corrfctvalue(*phi, *kappa, h[j], *cornr)  ;
-  
+    if(*cornr == 7) cmax = fmax2(cmax, res[j]) ;
+  }
+  if(*cornr == 7){
+    for (j=0; j<(*n); j++){
+      res[j] = (cmax - res[j])/cmax  ;
+    }
+  }
   return ;
 }
 
@@ -458,13 +464,8 @@ void lower_R0minusXAXplusBvar(Real *lower, Real *diag, Real *xvec,
   Real bxyij, bxyji, bxyii;
   
   for (l=0; l<nxcol; l++){
-    
     for(k=l; k<nxcol; k++){
-      
-      /*      
-	      Computing lower triangle (including diagonal) of XAX
-      */
-      
+      /* Computing lower triangle (including diagonal) of XAX */
       pos = 0;
       xyij = 0.0;
       xyji = 0.0;
@@ -664,13 +665,11 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr,
      */   
      
 { 
-  
   Integer register i,j, ind;
   Real register dx, dy;
-  Real h;
-  
+  Real h, cmax;
   ind = 0;
-  
+  cmax = 0;
   for (j=0; j<*nl; j++) {  
     for (i=j; i<*nl; i++) {
       if(i == j){
@@ -690,11 +689,19 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr,
 	else
 	  res[ind] = h ;
       }
+      cmax = fmax2(cmax, res[ind]) ;
       ind++ ;
     }
   }
+  if(*cornr == 7){
+    ind = 0;
+    for (j=0; j<*nl; j++) {  
+      for (i=j; i<*nl; i++) {
+	res[ind] = (cmax - res[ind])/cmax ;
+      }
+    }
+  }
 }
-
 
 void kb_sim(Real *means, Real *nscores,
 	    Real *lowerA, Real *diagA, 

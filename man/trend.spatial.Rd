@@ -26,9 +26,9 @@ trend.spatial(trend, geodata)
   The implicity model assumes that there is an underlying process
   with mean \eqn{\mu(x)}{mu(x)}, where \eqn{x = (x_1, x_2)}{x = (x1, x2)} denotes the coordinates
   of a spatial location.
-  The argument \code{trend} defines the form of the mean with the
-  following options for usage:
-
+  The argument \code{trend} defines the form of the mean and the
+  following options are allowed:
+  
   \itemize{
     \item{\code{"cte"}}{the mean is assumed to be constant over the region,
       in which case \eqn{\mu(x)= \mu}{mu(x) = mu}. This is the default
@@ -45,8 +45,9 @@ trend.spatial(trend, geodata)
 	beta4*(x2)^2 + beta5*x1*x2.}}
     \item{\code{~ model}}{a model specification. See
       \code{\link{formula}} for further details on how to specify
-      a model using formulas. Notice that the model term before
-      \code{~} is not necessary. Tipically used to include covariates
+      a model in \R  using formulas. Notice that the model term before
+      the \code{~} is not necessary.
+      Typically used to include covariates
       (external trend) in the model.}
   }
   
@@ -54,22 +55,22 @@ trend.spatial(trend, geodata)
   The following specifications are equivalent:
   \itemize{
     \item \code{trend = "1st"} and \code{trend = ~ x1 + x2}
-    \item \code{trend = "2nd"} and \code{trend = ~ x1 + x2 + x1^2 + x2^2 + x1*x2}
+    \item \code{trend = "2nd"} and \code{trend = ~ x1 + x2 + I(x1^2) + I(x2^2) + I(x1*x2)}
   }
-
+  
   \bold{Search path for covariates}\cr
   Typically, functions in the package \code{geoR} which calls
-  \code{trend.spatial} will have the arguments \code{goedata},
+  \code{trend.spatial} will have the arguments \code{geodata},
   \code{coords} and \code{data}. 
-
+  
   When the trend is specifed as \code{trend = ~ model}
   the terms included in the model will be searched for in the following
-  loactions (in this order):
+  path sequence (in this order):
   \enumerate{
     \item as elements of the list \code{geodata}
-    \item as columns in the data-frame \code{geodata$covariates}
-    \item as columns in the data-frame \code{geodata$data}
-    \item in the search path
+    \item as columns in a data-frame \code{geodata$covariates}
+    \item as columns in a data-frame \code{geodata$data}
+    \item in the session search path
   }
 }
 
@@ -92,10 +93,12 @@ trend.spatial(trend, geodata)
 }
 
 \note{This is an auxiliary function typically called by
-  other \bold{geoR} functions.  }
+  other \bold{geoR} functions.
+}
 
-\seealso{The section \code{DETAILS} in \code{\link{likfit}} for more
-  on the underlying model.}
+\seealso{The section \code{DETAILS} in the documentation for
+  \code{\link{likfit}} for more about the underlying model.
+}
 
 \examples{
 data(SIC)

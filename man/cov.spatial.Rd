@@ -50,7 +50,6 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
 
 
 \details{
-  
   Covariance functions return the value of the covariance
   \eqn{C(h)} between a pair variables located at points separated by the
   distance \eqn{h}.
@@ -76,23 +75,19 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
   \bold{exponential}\cr
   \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{exp(-h/phi)}
 
-  
   \bold{wave}\cr
   \deqn{\rho(h) = \frac{\phi}{h}\sin(\frac{h}{\phi})}{(phi/h) *
     sin(h/phi)} 
 
-  
   \bold{matern}\cr
   \deqn{\rho(h) =
     \frac{1}{2^{\kappa-1}\Gamma(\kappa)}(\frac{h}{\phi})^\kappa
     K_{\kappa}(\frac{h}{\phi})}{rho(h) =
     (1/(2^(kappa-1) * \Gamma(kappa))) * ((h/phi)^kappa) * K_{kappa}(h/phi)} 
-
   
   \bold{gaussian}\cr
   \deqn{\rho(h) = \exp[(-\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
 
-  
   \bold{spherical}\cr
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
     1 - 1.5\frac{h}{\phi} + 0.5(\frac{h}{\phi})^3
@@ -102,7 +97,6 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
     1 - 1.5 * (h/phi) + 0.5(h/phi)^3   if h < $phi$ , 
     0   otherwise}
     
-  
   \bold{circular}\cr
   Let \eqn{\theta = \min(\frac{h}{\phi},1)}{theta = min(h/phi,1)} and
   \deqn{g(h)= 2\frac{(\theta\sqrt{1-\theta^2}+
@@ -120,23 +114,39 @@ cov.spatial(obj, cov.model=c("matern", "exponential", "gaussian",
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
     7(\frac{h}{\phi})^2-8.75(\frac{h}{\phi})^3+
     3.5(\frac{h}{\phi})^5-0.75(\frac{h}{\phi})^7 \mbox{ , if $h<\phi$} \cr
-    0  \mbox{ , otherwise}
+    0  \mbox{ , otherwise.}
     \end{array} \right.}{rho(h) = 
     7 * ((h/phi)^2) - 8.75 * ((h/phi)^3) +
     3.5 * ((h/phi)^5) - 0.75 * ((h/phi)^7) if h < phi
-    , 0  otherwise}
-
+    , 0  otherwise.}
   
-  \bold{power}\cr
-  For the power model the parameters \eqn{\sigma^2}{sigma^2} and
-  \eqn{\phi}{phi} of the covariance function will no longer
-  have the interpretation as \emph{partial sill} and \emph{range}
+  \bold{power (and linear)}\cr
+  The parameters of the this model
+  \eqn{\sigma^2}{sigma^2} and \eqn{\phi}{phi} can not be  
+  interpreted as \emph{partial sill} and \emph{range}
   as for the other models.
-  \deqn{\rho(h) = {h}^{\phi}}{h^phi} 
+  This model implies an unlimited dispersion and,
+  therefore, has no sill and corresponds to a process which is only
+  intrinsically stationary.
+  The variogram function is given by:
+  \deqn{\gamma(h) = \sigma^2 {h}^{\phi} \mbox{ , } 0 < \phi < 2,
+    \sigma^2 > 0}{sigma^2
+    * h^phi , 0 < phi < 2, sigma^2 > 0} 
+
+  Since the corresponding process is not second order stationary the
+  covariance and correlation functions are not defined.
+  For internal calculations the \emph{geoR} functions uses "working" covariance and correlation
+  functions computed as:
+  \deqn{\rho_w(h) = \frac{C_w(h)}{max(\gamma(h))} =
+    \frac{max(\gamma(h)) - \gamma(h)}{max(\gamma(h))}.}{rho_w(h) =
+    C_w(h)/max(gamma(h)) = (max(gamma(h)) - gamma(h))/max(gamma(h)).}
+  
+  The \emph{linear} model corresponds to the particular case where
+  \eqn{\phi = 1}{phi = 1}.
   
   \bold{powered.exponential}\cr
   \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^\kappa] \mbox{ , } 0 < \kappa
-    \leq 2}{rho(h) = exp[-(h/phi)^kappa] if  0 < \kappa <= 2}
+    \leq 2}{rho(h) = exp[-(h/phi)^kappa] if  0 < kappa <= 2}
 
   
   \bold{cauchy} \cr

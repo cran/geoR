@@ -81,6 +81,8 @@
   ## trend removal
   ##
   xmat <- unclass(trend.spatial(trend = trend, geodata = geodata))
+  if (nrow(xmat) != n.data) 
+    stop("coords and trend have incompatible sizes")
   if (trend != "cte") {
     if (is.vector(data)) {
       temp.fit <- lm(data ~ xmat + 0)
@@ -820,11 +822,15 @@
     sill.total <- 1
   }
   ## defining a function to plot the variogram curve
-  gamma.f <- function(x)
-    return(sill.total -
-           cov.spatial(x, cov.model = cov.model,
-                       kappa = kappa,
-                       cov.pars = cov.pars))
+  gamma.f <- function(x){
+    if(any(cov.model == c("linear", "power")))
+      return(nugget + cov.pars[1] * (x^cov.pars[2]))  
+    else
+      return(sill.total -
+      cov.spatial(x, cov.model = cov.model,
+                  kappa = kappa, cov.pars = cov.pars))
+    
+  }
   ## ploting the curve
   curve(gamma.f(x), from=0, to=max.dist, add=TRUE, ...)
   return(invisible())
@@ -849,6 +855,7 @@
   if (is.vector(x$cov.pars)) 
     my.l$sill.total <- x$nugget + x$cov.pars[1]
   else my.l$sill.total <- x$nugget + sum(x$cov.pars[, 1])
+  my.l$nugget <- x$nugget
   my.l$cov.pars <- x$cov.pars
   my.l$cov.model <- x$cov.model
   if (scaled){
@@ -857,13 +864,15 @@
     else my.l$cov.pars[,1] <-  my.l$cov.cov.pars[,1]/my.l$sill.total
     my.l$sill.total <- 1
   }
-  gamma.f <- function(x, my.l)
-    {
+  gamma.f <- function(x, my.l){
+    if(any(my.l$cov.model == c("linear", "power")))
+      return(my.l$nugget + my.l$cov.pars[1] * (x^my.l$cov.pars[2]))
+    else
       return(my.l$sill.total -
-             cov.spatial(x, cov.model = my.l$cov.model,
-                         kappa = my.l$kappa,
-                         cov.pars = my.l$cov.pars))
-    }
+        cov.spatial(x, cov.model = my.l$cov.model,
+                    kappa = my.l$kappa,
+                    cov.pars = my.l$cov.pars))
+  }
   curve(gamma.f(x,my.l=my.l), from=0, to=my.l$max.dist, add=TRUE, ...)
   return(invisible())
 }

@@ -27,19 +27,24 @@
     if(weights == "equal") minimisation.function <- "nls"
     else minimisation.function <- "optim"
   }
-  if(minimisation.function == "nls" & weights != "equal"){
-    warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changed for \"optim\".\n")
+  if(any(cov.model == c("linear", "power")) & minimisation.function == "nls"){
+    cat("warning: minimisation function nls can not be used with given cov.model.\n          changing for \"optim\".\n")
     minimisation.function <- "optim"
   }
-  if(messages.screen){
-    cat(paste("variofit: weights used:", weights, "\n"))
-    cat(paste("variofit: minimisation function used:", minimisation.function, "\n"))
+  if(minimisation.function == "nls" & weights != "equal"){
+    warning("variofit: minimisation function nls can only be used with weights=\"equal\".\n          changing for \"optim\".\n")
+    minimisation.function <- "optim"
   }
+  if(messages.screen)
+    cat(paste("variofit: weights used:", weights, "\n"))
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+                           "spherical", "circular", "cubic", "wave",
+                           "linear", "power", "powered.exponential", "cauchy",
+                           "gneiting", "gneiting.matern", "pure.nugget"))
+  if(cov.model == "matern" | cov.model == "powered.exponential" | 
+     cov.model == "cauchy" | cov.model == "gneiting.matern")
+    fix.kappa <- TRUE
   if (is.matrix(vario$v) & is.null(simul.number)) 
     stop("object in vario$v is a matrix. This function works for only 1 empirical variogram at once\n")
   if (!is.null(simul.number)) 
@@ -55,183 +60,232 @@
     XY <- data.frame(u = vario$u[vario$u <= max.dist],
                      v = vario$v[vario$u <= max.dist],
                      n = vario$n[vario$u <= max.dist])
-  ##
-  ##  Checking initial values
-  ##
-  if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
-    ini.cov.pars <- as.matrix(ini.cov.pars)
-    if(nrow(ini.cov.pars) == 1)
-      ini.cov.pars <- as.vector(ini.cov.pars)
-    else{
-      if((cov.model != "pure.nugget") & (ncol(ini.cov.pars) != 2))
-        stop("\nini.cov.pars must be a matrix or data.frame with 2 components: \ninitial values for sigmasq (partial sill) and phi (range parameter)\n")
+  if(cov.model == "pure.nugget"){
+    ##
+    ## parameter estimation for model which does not require numerical minimisation
+    ##
+    minimisation.function <- "not used"
+    message <- "correlation function chosen does not require numerical minimisation"
+    if(weights == "equal") lm.wei <- rep(1, length(XY$u))
+    else lm.wei <- XY$n
+    if(cov.model == "pure.nugget"){
+      if(fix.nugget){
+        temp <- lm((XY$v-nugget) ~ 1, weights = lm.wei)
+        cov.pars <- c(temp$coef, 0)
+      }
+      else{
+        temp <- lm(XY$v ~ 1, weights = lm.wei)
+        nugget <- temp$coef
+        cov.pars <- c(0,0)
+      }
     }
+    value <- sum((temp$residuals)^2)
   }
-  if(is.vector(ini.cov.pars)){
-    if((cov.model != "pure.nugget") & (length(ini.cov.pars) != 2))
-      stop("\nini.cov.pars must be a vector with 2 components: \ninitial values for sigmasq and phi\n")
-  }
-  ##
-  ## Preparing grid of initial values and choosing the best
-  ##
-  if(is.matrix(ini.cov.pars) | (length(nugget) > 1) | (length(kappa) > 1)) {
+  else{
     if(messages.screen)
-      cat("variofit: searching for best initial value ...")
-    ini.temp <- matrix(ini.cov.pars, ncol=2)
-    grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa)))
-    ##  loss function:
-    v.loss <- function(parms, u, v, n, cov.model, weights){
-      sigmasq <- parms[1]
-      phi <- parms[2]
-      tausq <- parms[3]
-      kappa <- parms[4]
-      v.mod <- (sigmasq + tausq) -
-        cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model = cov.model,
-                    kappa = kappa)
-      if(weights == "equal")
-        loss <- sum((v - v.mod)^2)
-      if (weights == "npairs") 
-        loss <- sum(n * (v - v.mod)^2)
-      if (weights == "cressie") 
-        loss <- sum((n/(v.mod^2)) * (v - v.mod)^2)
-      return(loss)
+      cat(paste("variofit: minimisation function used:", minimisation.function, "\n"))
+    ##
+    ## setting things for numerical minimisation
+    ##
+    ##  Checking initial values
+    ##
+    if(is.matrix(ini.cov.pars) | is.data.frame(ini.cov.pars)){
+      ini.cov.pars <- as.matrix(ini.cov.pars)
+      if(nrow(ini.cov.pars) == 1)
+        ini.cov.pars <- as.vector(ini.cov.pars)
+      else{
+        if(ncol(ini.cov.pars) != 2)
+          stop("\nini.cov.pars must be a matrix or data.frame with 2 components: \ninitial values for sigmasq (partial sill) and phi (range parameter)\n")
+      }
     }
-    grid.loss <- apply(grid.ini, 1, v.loss, u=XY$u, v=XY$v, n=XY$n, cov.model = cov.model, weights = weights)
-    ini.temp <- grid.ini[which(grid.loss == min(grid.loss)),, drop=FALSE]
-    if(is.R()) rownames(ini.temp) <- "initial.value"
-    if(messages.screen){
-      cat(" selected values:\n")
-      print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
-      cat(paste("loss value:", max(grid.loss), "\n"))
-    }
-    names(ini.temp) <- NULL
-    ini.cov.pars <- ini.temp[1:2]
-    nugget <- ini.temp[3]
-    kappa <- ini.temp[4]
-    grid.ini <- NULL
-  }
-  ##
-  ## transforming kappa for constraint minimisation
-  ##
-  if(fix.kappa == FALSE){
-    if(cov.model == "powered.exponential")
-      Tkappa.ini <- log(kappa/(2-kappa))
     else
-      Tkappa.ini <- log(kappa)
-  }
-  ##
-  ## minimisation using "nls"
-  ##
-  if (minimisation.function == "nls") {
-    require(nls)
-    if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
-    if(kappa == 0) kappa <- 0.5
-    Tphi.ini <- log(ini.cov.pars[2])
-    XY$cov.model <- cov.model
+      if(length(ini.cov.pars) > 2)
+        stop("\nini.cov.pars must provide initial values for sigmasq and phi\n")
     ##
-    if (fix.nugget) {
-      XY$nugget <- nugget
-      if(fix.kappa){
-        XY$kappa <- kappa
-        res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=kappa)), ncol=1), start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
-      }
-      else{
-        if(cov.model == "powered.exponential")
-          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)
+    ## Preparing grid of initial values and choosing the best
+    ##
+    if(is.matrix(ini.cov.pars) | (length(nugget) > 1) | (length(kappa) > 1)) {
+      if(messages.screen)
+        cat("variofit: searching for best initial value ...")
+      ini.temp <- matrix(ini.cov.pars, ncol=2)
+      grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa)))
+      ##  loss function:
+      v.loss <- function(parms, u, v, n, cov.model, weights){
+        sigmasq <- parms[1]
+        phi <- parms[2]
+        if(cov.model == "power") phi <- 2 * exp(phi)/(1+exp(phi))
+        tausq <- parms[3]
+        kappa <- parms[4]
+        if(cov.model == "power")
+          v.mod <- tausq + cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model="power", kappa=kappa)
         else
-          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=exp(Tkappa))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
-        kappa <- exp(coef(res)["Tkappa"])
-        names(kappa) <- NULL
+          v.mod <- (sigmasq + tausq) -
+            cov.spatial(u, cov.pars=c(sigmasq, phi), cov.model = cov.model,
+                        kappa = kappa)
+        if(weights == "equal")
+          loss <- sum((v - v.mod)^2)
+        if (weights == "npairs") 
+          loss <- sum(n * (v - v.mod)^2)
+        if (weights == "cressie") 
+          loss <- sum((n/(v.mod^2)) * (v - v.mod)^2)
+        return(loss)
       }
-      cov.pars <- coef(res)[c(".lin", "Tphi")]
-      names(cov.pars) <- NULL
-      cov.pars[2] <- exp(cov.pars[2])
-    }
-    else{
-      if(fix.kappa){
-        XY$kappa <- kappa
-        res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)), cov.model = cov.model, kappa=kappa))), start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
+      grid.loss <- apply(grid.ini, 1, v.loss, u=XY$u, v=XY$v, n=XY$n, cov.model = cov.model, weights = weights)
+      ini.temp <- grid.ini[which(grid.loss == min(grid.loss)),, drop=FALSE]
+      if(is.R()) rownames(ini.temp) <- "initial.value"
+      if(messages.screen){
+        cat(" selected values:\n")
+        print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+        cat(paste("loss value:", max(grid.loss), "\n"))
       }
-      else{
-        if(cov.model == "powered.exponential")
-          res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=exp(Tkappa)))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
-        else
-          res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
-        kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL
-      }
-      nugget <- coef(res)[".lin1"];names(nugget) <- NULL
-      cov.pars <- coef(res)[c(".lin2", "Tphi")]
-      names(cov.pars) <- NULL
-      cov.pars[2] <- exp(cov.pars[2]) 
+      names(ini.temp) <- NULL
+      ini.cov.pars <- ini.temp[1:2]
+      nugget <- ini.temp[3]
+      kappa <- ini.temp[4]
+      grid.ini <- NULL
     }
-    if(nugget < 0 | cov.pars[1] < 0){
-      warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
-      temp <- c(sigmasq=cov.pars[1], phi=cov.pars[2], tausq=nugget, kappa=kappa)
-      print(rbind(round(temp, dig=4), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
-      return(invisible())
-    }
-    value <- sum(resid(res)^2)
-    message <- "nls does not provides convergence message"
-  }
-  ##
-  ## minimisation using "optim" or "nlm"
-  ##
-  if (minimisation.function == "nlm" | minimisation.function == "optim") {
     ##
-    ## Preparing lists for the minimiser
+    ## transforming kappa for constraint minimisation
     ##
-    .global.list <- list(u = XY$u, v = XY$v, n=XY$n, fix.nugget = fix.nugget,
-                         nugget = nugget, fix.kappa = fix.kappa, kappa = kappa,
-                         cov.model = cov.model, m.f = minimisation.function,
-                         weights = weights)
-    ##
-    ## Preparing initial value
-    ##
-    ini <- ini.cov.pars
-    if(fix.nugget == FALSE) ini <- c(ini, nugget)
-    if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
-    names(ini) <- NULL
-    if(minimisation.function == "nlm"){
-      result <- nlm(loss.vario, ini, g.l = .global.list, ...)
-      result$par <- result$estimate
-      result$value <- result$minimum
-      result$convergence <- result$code
-      if(is.R()){
-        if(!is.null(get(".temp.theta", pos =1)))
-          result$par <- get(".temp.theta", pos=1)
-      }
-      else{
-        if(!is.null(get(".temp.theta", where = 1)))
-          result$par <- get(".temp.theta", where = 1)
-      }
-    }
-    else{
-      if(fix.kappa == FALSE){
-        if(fix.nugget) lower <- c(0, 0, -Inf)
-        else lower <- c(0, 0, 0, -Inf)
-      }
-      else lower <- 0
-      result <- optim(ini, loss.vario, method = "L-BFGS-B",
-                      hessian = TRUE, lower = lower, g.l = .global.list, ...)
-      hess <- sqrt(diag(solve(as.matrix(result$hessian))))
-    }
-    value <- result$value
-    message <- paste(minimisation.function, "convergence code:", result$convergence)
-    cov.pars <- as.vector(result$par[1:2])
     if(fix.kappa == FALSE){
-      if (fix.nugget)
-        Tkappa <- result$par[3]
-      else{
-        nugget <- result$par[3]
-        Tkappa <- result$par[4]
-      }
-      if(.global.list$cov.model == "powered.exponential")
-        kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
-      else kappa <- exp(Tkappa)
+      if(cov.model == "powered.exponential")
+        Tkappa.ini <- log(kappa/(2-kappa))
+      else
+        Tkappa.ini <- log(kappa)
     }
-    else
-      if(fix.nugget == FALSE)
-        nugget <- result$par[3]        
+    ##
+    ## minimisation using "nls"
+    ##
+    if (minimisation.function == "nls") {
+      require(nls)
+      if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
+      if(kappa == 0) kappa <- 0.5
+      if(cov.model == "power") Tphi.ini <- log(ini.cov.pars[2]/(2-ini.cov.pars[2])) 
+      else Tphi.ini <- log(ini.cov.pars[2])
+      XY$cov.model <- cov.model
+      ##
+      if (fix.nugget) {
+        XY$nugget <- nugget
+        if(fix.kappa){
+          XY$kappa <- kappa
+          res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=kappa)), ncol=1), start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
+        }
+        else{
+          if(cov.model == "powered.exponential")
+            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)
+          else
+            res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)), cov.model=cov.model, kappa=exp(Tkappa))), ncol=1), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), data=XY, alg="plinear", ...)       
+          kappa <- exp(coef(res)["Tkappa"])
+          names(kappa) <- NULL
+        }
+        cov.pars <- coef(res)[c(".lin", "Tphi")]
+        names(cov.pars) <- NULL
+      }
+      else{
+        if(fix.kappa){
+          XY$kappa <- kappa
+          res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)), cov.model = cov.model, kappa=kappa))), start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
+        }
+        else{
+          if(cov.model == "powered.exponential")
+            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=exp(Tkappa)))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+          else
+            res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)), cov.model = cov.model, kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))), start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini), alg="plinear", data=XY, ...)
+          kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL
+        }
+        nugget <- coef(res)[".lin1"];names(nugget) <- NULL
+        cov.pars <- coef(res)[c(".lin2", "Tphi")]
+        names(cov.pars) <- NULL
+      }
+      if(cov.model == "power") cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
+      else cov.pars[2] <- exp(cov.pars[2])
+      if(nugget < 0 | cov.pars[1] < 0){
+        warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
+        temp <- c(sigmasq=cov.pars[1], phi=cov.pars[2], tausq=nugget, kappa=kappa)
+        print(rbind(round(temp, dig=4), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+        return(invisible())
+      }
+      value <- sum(resid(res)^2)
+      message <- "nls does not provides convergence message"
+    }
+    ##
+    ## minimisation using "optim" or "nlm"
+    ##
+    if (minimisation.function == "nlm" | minimisation.function == "optim") {
+      ##
+      ## Preparing lists for the minimiser
+      ##
+      .global.list <- list(u = XY$u, v = XY$v, n=XY$n, fix.nugget = fix.nugget,
+                           nugget = nugget, fix.kappa = fix.kappa, kappa = kappa,
+                           cov.model = cov.model, m.f = minimisation.function,
+                           weights = weights)
+      ##
+      ## Preparing initial value
+      ##
+      ini <- ini.cov.pars
+      if(cov.model == "power") ini[2] <- log(ini[2]/(2-ini[2])) 
+      if(cov.model == "linear") ini <- ini[1] 
+      if(fix.nugget == FALSE) ini <- c(ini, nugget)
+      if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
+      names(ini) <- NULL
+      if(minimisation.function == "nlm"){
+        result <- nlm(loss.vario, ini, g.l = .global.list, ...)
+        result$par <- result$estimate
+        result$value <- result$minimum
+        result$convergence <- result$code
+        if(is.R()){
+          if(!is.null(get(".temp.theta", pos =1)))
+            result$par <- get(".temp.theta", pos=1)
+        }
+        else{
+          if(!is.null(get(".temp.theta", where = 1)))
+            result$par <- get(".temp.theta", where = 1)
+        }
+      }
+      else{
+        if(fix.kappa == FALSE){
+            if(fix.nugget) lower <- c(0, 0, -Inf)
+            else lower <- c(0, 0, 0, -Inf)
+        }
+        else{
+          if(cov.model == "power"){
+            if(fix.nugget) lower <- c(0, -Inf)
+            else lower <- c(0, -Inf, 0)
+          }
+          else lower <- 0
+        }
+        result <- optim(ini, loss.vario, method = "L-BFGS-B",
+                        hessian = TRUE, lower = lower,
+                        g.l = .global.list, ...)
+        op.sem <- options()$show.error.messages
+        options(show.error.messages = FALSE)
+        hess <- try(solve(as.matrix(result$hessian)))
+        options(show.error.messages = op.sem)
+        if(!inherits(hess, "try-error"))
+          hess <- sqrt(diag(hess))
+        else print("WARNING: hessian could not be computed")
+      }
+      value <- result$value
+      message <- paste(minimisation.function, "convergence code:", result$convergence)
+      if(cov.model == "linear")
+        result$par <- c(result$par[1],1,result$par[-1])
+      cov.pars <- as.vector(result$par[1:2])
+      if(cov.model == "power") cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
+      if(fix.kappa == FALSE){
+        if (fix.nugget)
+          Tkappa <- result$par[3]
+        else{
+          nugget <- result$par[3]
+          Tkappa <- result$par[4]
+        }
+        if(.global.list$cov.model == "powered.exponential")
+          kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
+        else kappa <- exp(Tkappa)
+      }
+      else
+        if(fix.nugget == FALSE)
+          nugget <- result$par[3]        
+    }
   }
   ##
   ## Estimating implicity beta
@@ -258,10 +312,10 @@
   return(estimation)
 }
 
-
 "loss.vario" <-
   function (theta, g.l) 
 {
+  if(g.l$cov.model == "linear") theta <- c(theta[1], 1, theta[-1])
   ##
   ## Imposing constraints for nlm
   ##
@@ -269,11 +323,17 @@
     .temp.theta <<- NULL
     if(g.l$fix.kappa == FALSE){
       if(g.l$fix.nugget){
-        theta.minimiser <- theta[1:2]
+        if(g.l$cov.model == "power")
+          theta.minimiser <- theta[1]
+        else          
+          theta.minimiser <- theta[1:2]
         Tkappa <- theta[3]
       }
       else{
-        theta.minimiser <- theta[1:3]
+        if(g.l$cov.model == "power")
+          theta.minimiser <- theta[c(1:3)]
+        else          
+          theta.minimiser <- theta[1:3]
         Tkappa <- theta[4]
       }
     }
@@ -314,12 +374,16 @@
   ##
   sigmasq <- theta[1]
   phi <- theta[2]
+  if(g.l$cov.model == "power") phi <- 2 * exp(phi)/(1+exp(phi))
   sill.total <- sigmasq + tausq
   ##
   ## Computing values for the theoretical variogram 
   ##
-  gamma <- sill.total - cov.spatial(g.l$u, cov.model = g.l$cov.model, 
-                                    kappa = kappa, cov.pars = c(sigmasq, phi))
+  if(any(g.l$cov.model == c("linear", "power")))
+    gamma <- tausq + sigmasq * (g.l$u^phi)
+  else
+    gamma <- sill.total - cov.spatial(g.l$u, cov.model = g.l$cov.model, 
+                                      kappa = kappa, cov.pars = c(sigmasq, phi))
   ##
   ## Computing loss function
   ##

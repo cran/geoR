@@ -57,7 +57,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     Regarded as a
     fixed value if \code{fix.nugget = TRUE} otherwise
     as the initial value for the 
-    minimization algorithm. 
+    minimisation algorithm. 
     Defaults to zero.  }
   \item{fix.kappa}{logical, indicating whether the extra parameter
     \eqn{\kappa}{kappa} should be regarded as fixed
@@ -67,7 +67,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{kappa}{value of the extra parameter \eqn{\kappa}{kappa}.
     Regarded as a fixed value if \code{fix.kappa = TRUE}
     otherwise as the initial value for the
-    minimization algorithm. Defaults to
+    minimisation algorithm. Defaults to
     \eqn{0.5}. This parameter is valid only if the covariance function is one
     of: \code{"matern"}, \code{"powered.exponential"}, \code{"cauchy"} or
     \code{"gneiting.matern"}.  For more details on covariance functions
@@ -81,7 +81,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \eqn{\lambda}{lambda}.
     Regarded as a fixed value if \code{fix.lambda = TRUE} otherwise 
     as the initial value for the
-    minimization algorithm. Defaults to
+    minimisation algorithm. Defaults to
     \eqn{1}. Two particular cases are \eqn{\lambda = 1}{lambda = 1}
     indicating no transformation and \eqn{\lambda = 0}{lambda
       = 0} indicating log-transformation.  }
@@ -94,7 +94,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \eqn{\psi_A}{psi_A}. 
     Regarded as a fixed value if \code{fix.psiA = TRUE}
     otherwise  as the initial value for the
-    minimization algorithm.
+    minimisation algorithm.
     Defaults to \eqn{0}. See \code{\link{coords.aniso}} for further
     details on anisotropy correction.  }
   \item{fix.psiR}{logical, indicating whether the anisotropy ratio parameter
@@ -106,7 +106,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \eqn{\psi_R}{psi_R}. 
     Regarded as a fixed value if \code{fix.psiR = TRUE}
     otherwise as the initial value for the
-    minimization algorithm.
+    minimisation algorithm.
     Defaults to \eqn{1}. See \code{\link{coords.aniso}} for further
     details on anisotropy correction.  }
   \item{cov.model}{a string specifying the model for the correlation
@@ -125,7 +125,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{nospatial}{logical. If \code{TRUE} parameter estimates for the
     model without spatial component are included in the output.  }
   \item{limits}{values defining lower and upper limits for the model
-    parameters used in the numerical minimization.
+    parameters used in the numerical minimisation.
     The auxiliary function \code{likfit.limits()} is called to set the
     limits.  }
   \item{print.pars}{logical. If \code{TRUE} the parameters and the value
@@ -134,15 +134,15 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{messages.screen}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
-  \item{\dots}{additional parameters to be passed to the minimization
+  \item{\dots}{additional parameters to be passed to the minimisation
     function. Typically  arguments of the type  \code{control()} which controls the
-    behavior of the minimization algorithm. For further details see documentation 
-    for the minimization function \code{\link{optim}}.  }
+    behavior of the minimisation algorithm. For further details see documentation 
+    for the minimisation function \code{\link{optim}}.  }
 }
 
 \details{
   This function estimate the parameters of the Gaussian random field model,
-  specified here by:
+  specified as:
   \deqn{Y(x) = \mu(x) + S(x) + e}{Y(x) = mu(x) + S(x) + e}
   where
   \itemize{
@@ -152,8 +152,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \item \eqn{\mu(x) = X\beta}{mu(x) = X \%*\% beta} is the mean component of
     the model (trend). 
     \item \eqn{S(x)} is a stationary Gaussian process with variance \eqn{\sigma^2}{sigma^2}
-    (partial sill) and a correlation function parametrized by
-    \eqn{\phi}{phi} (the range parameter). Possible extra parameters
+    (partial sill) and a correlation function parametrized in its
+    simplest form by \eqn{\phi}{phi} (the range parameter). Possible extra parameters
     for the correlation function are the smoothness parameter
     \eqn{\kappa}{kappa} and the anisotropy parameters \eqn{\phi_R}{phi_R} and
     \eqn{\phi_A}{phi_A} (anisotropy ratio and angle, respectively).  
@@ -161,19 +161,25 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     (nugget variance).
   }
   
-  The additional parameter \eqn{\lambda}{lambda} allows the Box-Cox
-  transformation. If used \eqn{Y(x)} above is replaced by \eqn{g(Y(x))}
+  The additional parameter \eqn{\lambda}{lambda} allows for the Box-Cox
+  transformation of the response variable.
+  If used (i.e. if \eqn{\lambda \neq 1}) \eqn{Y(x)} above is replaced by \eqn{g(Y(x))}
   such that
   \deqn{g(Y(x)) = \frac{Y^\lambda(x) - 1}{\lambda}.}{g(Y(x)) = ((Y^lambda(x)) -
     1)/lambda .}
 
-  Two cases of particular interest are \eqn{\lambda = 1}{lambda = 1}
-  indicating no transformation and \eqn{\lambda = 0}{lambda = 0}
-  indicating log-transformation.
+  Two particular cases are \eqn{\lambda = 1}{lambda = 1}
+  which indicates no transformation and \eqn{\lambda = 0}{lambda = 0}
+  indicating the log-transformation.
   
-  Parameter estimation is performed numerically using the \R
-  function \code{\link{optim}} to minimize the
-  negative log-likelihood computed by \code{negloglik.GRF}.
+  In general parameter estimation is performed numerically using the \R
+  function \code{\link{optim}} to minimise the
+  negative log-likelihood computed by the function \code{negloglik.GRF}.
+  If the nugget, anisotropy (\eqn{\psi_A, \psi_R}{psiA, psiR}),
+  smoothness (\eqn{\kappa}{kappa}) and transformation (\eqn{\lambda}{lambda}) parameters
+  are held fixed then the numerical minimisation can be reduced to
+  one-dimension and the function \code{\link{optimize}} is used instead
+  of \code{optim}. In this case initial values are irrelevant.
   
   Lower and upper limits for parameter values can be
   individually specified using the function \code{likfit.limits()}.
@@ -191,17 +197,18 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     \time 2}{n x 2} matrix for the argument \code{ini.cov.pars} and/or
   providing a vector for the values of the remaining model parameters.
   In this case the log-likelihood is computed for all combinations of
-  model parameters. The set with results in the maximum value of the
-  log-likelihood is then used to start the minimisation algorithm.
+  the model parameters. The parameter set which maximises the
+  value of the log-likelihood is then used to start the
+  minimisation algorithm.
 
   The argument \bold{realisations} allows replicated data to be used.
   For instance, data collected at different times at least partially
   the same locations
-  can be pooled toghether in the parameter estimation if independence is
+  can be pooled together in the parameter estimation if independence is
   assumed between time points.
   The argument \code{realisations} takes a vector indicating the
   replication number (e.g. the times). The log-likelihoods are computed
-  for each replication and added toghether.\cr
+  for each replication and added together.\cr
   \emph{Notice that this assumes independence among the replications}.
 }
 
@@ -275,7 +282,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \code{\link{lines.variomodel}} for graphical output,
   \code{\link{proflik}} for computing profile likelihoods,
   \code{\link{variofit}} and for other estimation methods, 
-  and \code{\link{optim}} for the numerical minimization function.
+  and \code{\link{optim}} for the numerical minimisation function.
 }
 
 \examples{

@@ -18,7 +18,7 @@ Loading required package: geoR
 
 ------------------------------------------------
 geoR - functions for geostatistical analysis
-geoR version 1.3-2 is now loaded
+geoR version 1.3-3 is now loaded
 ------------------------------------------------
 
 [1] TRUE
@@ -61,34 +61,37 @@ grf: End of simulation procedure. Number of realizations: 1
 > ## estimating parameters of for each relisation
 > ##
 > ap1.ml <- likfit(ap1, ini=c(3,1))
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > ap2.ml <- likfit(ap2, ini=c(3,1))
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > ap3.ml <- likfit(ap3, ini=c(3,1))
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > ap1.ml
 likfit: estimated model parameters:
@@ -112,14 +115,15 @@ likfit: maximised log-likelihood = -65.7
 > ## estimating parameters for the pooled data
 > ##
 > sim01.ml <- likfit(sim01, ini=c(3,1), reali = sim01$real)
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > ##
 > ## Changing the order of the coordinates
@@ -129,14 +133,15 @@ likfit: end of numerical maximisation.
 > ind3 <- sample(1:40)
 > sim02 <- list(coords=rbind(ap1$coords[ind1,],ap2$coords[ind2,],ap3$coords[ind3,]), data=c(ap1$data[ind1],ap2$data[ind2],ap3$data[ind3]),realisation=rep(1:3,rep(40,3)))
 > sim02.ml <- likfit(sim02, ini=c(3,1), reali = sim02$real)
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > sim01.ml
 likfit: estimated model parameters:
@@ -159,14 +164,15 @@ likfit: maximised log-likelihood = -196
 > ind3 <- sample(1:40, 25)
 > sim03 <- list(coords=rbind(ap1$coords[ind1,],ap2$coords[ind2,],ap3$coords[ind3,]), data=c(ap1$data[ind1],ap2$data[ind2],ap3$data[ind3]),realisation=rep(1:3,c(30, 20, 25)))
 > sim03.ml <- likfit(sim03, ini=c(3,1), reali = sim03$real)
--------------------------------------------------------
-likfit: Initialising likelihood maximisation using the function optim.
-likfit: Use control() to pass arguments for the maximisation function.
-        For more details see documentation for optim.
+---------------------------------------------------------------
+likfit: likelihood maximisation using the function optim.
+likfit: Use control() to pass additional
+         arguments for the maximisation function.
+        For further details see documentation for optim.
 likfit: It is highly advisable to run this function several
         times with different initial values for the parameters.
 likfit: WARNING: This step can be time demanding!
--------------------------------------------------------
+---------------------------------------------------------------
 likfit: end of numerical maximisation.
 > sim03.ml
 likfit: estimated model parameters:

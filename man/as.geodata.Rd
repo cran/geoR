@@ -6,11 +6,11 @@
 
 \description{
   Converts a matrix or a data-frame to an object of the
-  \code{\link{class}}  \code{"geodata"}.
+  \code{\link{class}}  \code{"geodata"}.\cr
   Objects of the class \code{"geodata"} are lists with two obligatory
-  components, \code{coords} and \code{data}.  Optional components are
-  allowed and a typical example is a vector or matrix with  values
-  of the covariate(s).
+  components: \code{coords} and \code{data}.
+  Optional components are allowed and a typical example is a vector or
+  matrix with covariate(s) value(s).
 }
 
 \usage{
@@ -24,21 +24,20 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
 %- maybe also `usage' for other objects documented here.
 
 \arguments{
-  \item{obj}{a matrix or data-frame. Each line corresponds to one
-    spatial location. It should contain values of 
-    coordinates, data and, optionally, covariates at the locations.  }
+  \item{obj}{a matrix or data-frame where each line corresponds to one
+    spatial location. It should contain values of 2D coordinates,
+    data and, optionally, covariate(s) value(s) at the locations.  }
   \item{coords.col}{a vector with the column numbers corresponding to the
     spatial coordinates.  }
   \item{data.col}{a scalar or vector with column number(s) corresponding
     to the data.  }
-  \item{data.names}{a string or vector of strings with names for
+  \item{data.names}{optional. A string or vector of strings with names for
     the data columns. Only valid if there is more than one column of
-    data.
-    By default, the names in the original object are used.  }
+    data. By default, takes the names from the original object.  }
   \item{covar.col}{optional. A scalar or vector
     of the column number(s) corresponding to the covariate(s).  }
-  \item{covar.names}{a string or vector of strings with the name(s) of
-    the covariates. By default, the names in the original object are used.  }
+  \item{covar.names}{optional. A string or vector of strings with the name(s) of
+    the covariates. By default take the names from the original object.  }
   \item{realisations}{optional. A vector indicating the realisation
     number or a number indicating a column in \code{obj} with the
     realisation indicator variable.
@@ -53,10 +52,9 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
     one data at the same location. The default option \code{"none"}
     keeps the repeated locations, if any. The option \code{"first"} retains
     only the first data recorded at each location. Alternativelly a
-    function can be passed and it will be used. For intance if
+    function can be passed and it will be used. For instance if
     \code{mean} is provided, the function will compute and return the average of
-    the data at coincident locations.
-    The non-default
+    the data at coincident locations. The non-default
     options will eliminate the repeated locations.  }
   \item{rep.covar.action}{idem to \code{rep.data.locations}, to be applied to
     the covariates, if any. Defaults to
@@ -69,6 +67,9 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   Storing data in this format facilitates the usage of the functions in \bold{geoR}.
   However, conversion of objects to this class is not obligatory
   to carry out the analysis.
+
+  \code{NA}'s are not allowed in the coordinates. By default the
+  respective rows will not be included in the output.
 
   \bold{Realisations}\cr
   Tipically geostatistical data correspond to a unique realisation of
@@ -126,10 +127,18 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   \emph{ASCII} file and \code{\link{list}} for general information on lists.
 }
 
-%\examples{}
+\examples{
+\dontrun{
+## converting the data-set "topo" from the package spatial (VR's bundle)
+## to the geodata format:
+require(spatial)
+data(topo)
+topo
+topogeo <- as.geodata(topo)
+names(topogeo)
+topogeo
+}
+}
 \keyword{spatial}
 \keyword{classes}
 \keyword{manip}
-
-
-

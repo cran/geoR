@@ -1,43 +1,39 @@
 "trend.spatial" <-
   function (trend, geodata) 
 {
-  if(missing(geodata)) geodata <- list()
+  if(!missing(geodata)){
+    attach(geodata, pos=2)
+    if(!is.null(geodata$covariate)){
+      attach(geodata$covariate, pos=3)
+      on.exit(detach("geodata$covariate"), add=TRUE)
+    }
+    on.exit(detach("geodata"), add=TRUE)
+  }
   if (inherits(trend, "formula")) {
-    trend.frame <- geodata[attr(terms(trend), "term.labels")]
-    if(any(is.null(names(trend.frame)) || is.na(names(trend.frame)))){
-      trend.mat <- data.frame()
-      class(trend.mat) <- "try-error"
-    }
-    else
-      trend.mat <- try(model.matrix(trend, data = trend.frame))
-    if (inherits(trend.mat, "try-error")) {
-      if (!is.null(geodata$covariates)) 
-        trend.mat <-
-          try(model.matrix(trend, 
-                           data = as.data.frame(geodata$covariates)))
-      if (inherits(trend.mat, "try-error")) 
-	if(is.data.frame(geodata$data) | is.list(geodata$data))
-          trend.mat <- try(model.matrix(trend,
-                                        data = as.data.frame(geodata$data)))
-      if (inherits(trend.mat, "try-error")) 
-        trend.mat <- try(model.matrix(trend))
-      if (inherits(trend.mat, "try-error")) 
-        stop("\ntrend elements not found")
-    }
+    trend.mat <- try(model.matrix(trend))
+    if (inherits(trend.mat, "try-error")) 
+      stop("\ntrend elements not found")
   }
   else {
     if(is.numeric(trend))
       trend.mat <- unclass(trend)
-    else if (trend == "cte") 
+    else if (trend == "cte"){
+      if(missing(geodata))
+        stop("argument geodata must be provided with trend=\"cte\"")
       trend.mat <- as.matrix(rep(1, nrow(geodata$coords)))
-    else if (trend == "1st") 
+    }
+    else if (trend == "1st"){
+      if(missing(geodata))
+        stop("argument geodata must be provided with trend=\"1st\"")
       trend.mat <- cbind(1, geodata$coords)
-    else if (trend == "2nd") 
+    }
+    else if (trend == "2nd"){ 
+      if(missing(geodata))
+        stop("argument geodata must be provided with trend=\"2nd\"")
       trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
                          geodata$coords[,2]^2,
                          geodata$coords[,1] * geodata$coords[,2])
-    ## This would use orthogonal polynomials:
-    ##      trend.mat <- poly(as.matrix(geodata$coords), degree = 2)
+    }
     else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are \"cte\", \"1st\", \"2nd\" or  a model formula")
   }
   trend.mat <- as.matrix(trend.mat)
@@ -45,6 +41,54 @@
   class(trend.mat) <- "trend.spatial"
   return(trend.mat)
 }
+
+#"trend.spatial" <-
+#  function (trend, geodata) 
+#{
+#  print(search())
+#  if(missing(geodata)) geodata <- list()
+#  if (inherits(trend, "formula")) {
+#    trend.frame <- geodata[attr(terms(trend), "term.labels")]
+#    if(any(is.null(names(trend.frame)) || is.na(names(trend.frame)))){
+#      trend.mat <- data.frame()
+#      class(trend.mat) <- "try-error"
+#    }
+#    else
+#      trend.mat <- try(model.matrix(trend, data = trend.frame))
+#    if (inherits(trend.mat, "try-error")) {
+#      if (!is.null(geodata$covariate))
+#        trend.mat <-
+#          try(model.matrix(trend, 
+#                           data = as.data.frame(geodata$covariate)))
+#      if (inherits(trend.mat, "try-error"))
+#      	if(is.data.frame(geodata$data) | is.list(geodata$data))
+#          trend.mat <- try(model.matrix(trend, data = as.data.frame(geodata$data)))
+#      if (inherits(trend.mat, "try-error")) 
+#        trend.mat <- try(model.matrix(trend))
+#      if (inherits(trend.mat, "try-error")) 
+#        stop("\ntrend elements not found")
+#    }
+#  }
+#  else {
+#    if(is.numeric(trend))
+#      trend.mat <- unclass(trend)
+#    else if (trend == "cte") 
+#      trend.mat <- as.matrix(rep(1, nrow(geodata$coords)))
+#    else if (trend == "1st") 
+#      trend.mat <- cbind(1, geodata$coords)
+#    else if (trend == "2nd") 
+#      trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
+#                         geodata$coords[,2]^2,
+#                         geodata$coords[,1] * geodata$coords[,2])
+#    ## This would use orthogonal polynomials:
+#    ##      trend.mat <- poly(as.matrix(geodata$coords), degree = 2)
+#    else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are \"cte\", \"1st\", \"2nd\" or  a model formula")
+#  }
+#  trend.mat <- as.matrix(trend.mat)
+#  dimnames(trend.mat) <- list(NULL, NULL)
+#  class(trend.mat) <- "trend.spatial"
+#  return(trend.mat)
+#}
 
 "locations.inside" <-
   function(locations, borders)
@@ -424,6 +468,8 @@
   ## trend removal
   ##
   xmat <- unclass(trend.spatial(trend = trend, geodata = x))
+  if (nrow(xmat) != nrow(coords)) 
+    stop("coords and trend have incompatible sizes")
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL

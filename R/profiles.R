@@ -135,9 +135,11 @@
   ## 2. data preparation
   ##
   trend <- unclass(trend.spatial(trend=obj.likfit$trend, geodata = geodata))
+  if (nrow(trend) != nrow(coords)) 
+    stop("coords and trend have incompatible sizes")
   data <- as.vector(data)
   dimnames(trend) <- list(NULL, NULL)
-  if(obj.likfit$transform.info$fix.lambda == TRUE) {
+  if(obj.likfit$transform.info$fix.lambda) {
     if(obj.likfit$lambda != 1) {
       if(any(data <= 0))
         stop("Data transformation not allowed when there are zeros or negative data"

@@ -139,6 +139,8 @@
     if (method == "circular.embedding") {
       if (grid == "irreg") 
         stop("Option for \"circular.embedding\" algorithm only allowed for regular grids. You might have to include the argument grid=\"reg\"")
+      if(cov.model == "power")
+        stop("power covariance model not implemented for the circular embedding method") 
       stepx <- (xlims[2] - xlims[1])/(nx - 1)
       stepy <- (ylims[2] - ylims[1])/(ny - 1)
       if (round(1e+08 * stepx) != round(1e+08 *stepy)) 

@@ -81,12 +81,13 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{direction}{a numerical value for the directional (azimuth) angle. This
     used to specify directional variograms. Default defines the
     omnidirectional variogram. The value must be in the interval
-    \eqn{[0, 180]} degrees.  }
+    \eqn{[0, \pi]}{[0, pi]} radians (\eqn{[0, 180]} degrees).  }
   \item{tolerance}{numerical value for the tolerance angle, when
     computing directional variograms. The value must be in the interval
-    \eqn{[0, 90]} degrees.  Defaults to \eqn{\pi/8}{pi/8}.  }
+    \eqn{[0, \pi/2]}{[0, pi/2]} radians (\eqn{[0, 90]} degrees).  Defaults to \eqn{\pi/8}{pi/8}.  }
   \item{unit.angle}{defines the unit for the specification of angles in
-    the two previous arguments. Options are \code{"degrees"} and \code{"radians"}. }
+    the two previous arguments. Options are \code{"radians"} and
+    \code{"degrees"}, with default to \code{"radians"}. }
   \item{messages.screen}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }

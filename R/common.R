@@ -22,6 +22,7 @@
     if(cov.model == "matern" & kappa == 0.5)
       cov.model == "exponential"
   }
+  ##
   if(is.vector(cov.pars))
     sigmasq <- cov.pars[1]
   else sigmasq <- cov.pars[, 1]
@@ -33,52 +34,56 @@
   else ns <- nrow(cov.pars)
   covs <- array(0, dim = dim(obj))
   ##
+  if(cov.model == "power")
+    if(any(phi >= 2) | any(phi <= 0))
+      stop("for power model cov.pars[2] must be in the interval ]0,2[")
+  ##
   ## computing correlations/covariances
   ##
   for(i in 1:ns) {
     if(phi[i] < 1e-12)
       cov.model <- "pure.nugget"
     cov.values <- switch(cov.model,
-                  pure.nugget = rep(0, length(obj)),
-                  wave = (1/obj) * (phi[i] * sin(obj/phi[i])),
-                  exponential = exp( - (obj/phi[i])),
-                  matern = matern(u = obj, phi = phi[i], kappa = kappa),
-                  gaussian = exp( - ((obj/phi[i])^2)),
-                  spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj/phi[i]) +
-                    0.5 * (obj/phi[i])^3), 0),
-                  circular = {
-                    obj.sc <- obj/phi[i];
-                    obj.sc[obj.sc > 1] <- 1;
-                    ifelse(obj < phi[i], (1 - (2 * ((obj.sc) *
-                                                    sqrt(1 - ((obj.sc)^2)) +
-                                                    asin(obj.sc)))/pi), 0)
-                  },
-                  cubic = {
-                    obj.sc <- obj/phi[i];
-                    ifelse(obj < phi[i], (1 - (7 * (obj.sc^2) -
-                                               8.75 * (obj.sc^3) +
-                                               3.5 * (obj.sc^5) -
-                                               0.75 * (obj.sc^7))), 0)
-                  },
-                  power = (obj)^phi,
-                  powered.exponential = {
-                    if(kappa > 2 | kappa <= 0)
-                      stop("for power exponential correlation model the parameter kappa must be in the intervel (0,2]"
-                           );
-                    exp( - ((obj/phi[i])^kappa))
-                  },
-                  cauchy = (1 + (obj/phi[i])^2)^(-kappa),
-                  gneiting = {
-                    obj.sc <- obj/phi[i];
-                    t2 <- (1 - obj.sc);
-                    t2 <- ifelse(t2 > 0, (t2^8), 0);
-                    (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^
-                                                              3)) * t2
-                  },
-                  gneiting.matern = { 
-                    obj.sc <- obj/(phi[i] * kappa[2]);
-                    t2 <- (1 - obj.sc);
-                    t2 <- ifelse(t2 > 0, (t2^8), 0);
+                         pure.nugget = rep(0, length(obj)),
+                         wave = (1/obj) * (phi[i] * sin(obj/phi[i])),
+                         exponential = exp( - (obj/phi[i])),
+                         matern = matern(u = obj, phi = phi[i], kappa = kappa),
+                         gaussian = exp( - ((obj/phi[i])^2)),
+                         spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj/phi[i]) +
+                           0.5 * (obj/phi[i])^3), 0),
+                         circular = {
+                           obj.sc <- obj/phi[i];
+                           obj.sc[obj.sc > 1] <- 1;
+                           ifelse(obj < phi[i], (1 - (2 * ((obj.sc) *
+                                                           sqrt(1 - ((obj.sc)^2)) +
+                                                           asin(obj.sc)))/pi), 0)
+                         },
+                         cubic = {
+                           obj.sc <- obj/phi[i];
+                           ifelse(obj < phi[i], (1 - (7 * (obj.sc^2) -
+                                                      8.75 * (obj.sc^3) +
+                                                      3.5 * (obj.sc^5) -
+                                                      0.75 * (obj.sc^7))), 0)
+                         },
+                         power = (obj)^phi,
+                         powered.exponential = {
+                           if(kappa > 2 | kappa <= 0)
+                             stop("for power exponential correlation model the parameter kappa must be in the intervel (0,2]"
+                                  );
+                           exp( - ((obj/phi[i])^kappa))
+                         },
+                         cauchy = (1 + (obj/phi[i])^2)^(-kappa),
+                         gneiting = {
+                           obj.sc <- obj/phi[i];
+                           t2 <- (1 - obj.sc);
+                           t2 <- ifelse(t2 > 0, (t2^8), 0);
+                           (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^
+                                                                     3)) * t2
+                         },
+                         gneiting.matern = { 
+                           obj.sc <- obj/(phi[i] * kappa[2]);
+                           t2 <- (1 - obj.sc);
+                           t2 <- ifelse(t2 > 0, (t2^8), 0);
                     cov.values <- (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^3)) * t2;
                     cov.values * matern(u = obj, phi = phi[i], kappa = kappa[1])
                   },
@@ -87,7 +92,8 @@
     cov.values <- sigmasq[i] * cov.values
     covs <- covs + cov.values
   }
-  covs[obj < 1e-15] <- sum(sigmasq)
+  if(cov.model == "power") covs <- max(covs) - covs
+  else covs[obj < 1e-15] <- sum(sigmasq)
   return(covs)
 }
 
@@ -165,8 +171,13 @@
     stop("data.names allowed only if there is more than 1 column of data")
   res <- list()
   ##
-  ## setting the coordinates of the data locations
+  ## testing for NA's setting the coordinates of the data locations
   ##
+  if(any(is.na(obj[,coords.col]))){
+    warning("NA's not allowed in the coordinates")
+    obj <- obj[complete.cases(obj),]
+    warning("eliminating rows with NA's")
+  }
   res$coords <- as.matrix(obj[,coords.col])
   ##
   ## setting the data
@@ -376,6 +387,11 @@
 {
   if (is.R()) 
     require(mva)
+  ##
+  op.sem <- options()$show.error.message
+  options(show.error.message = FALSE)
+  on.exit(options(show.error.message = op.sem))
+  ##
   func.inv <- match.arg(func.inv)
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
@@ -407,7 +423,7 @@
     dists.lowertri <- as.vector(dist(coords))
   }
   if (round(1e+12 * min(dists.lowertri)) == 0) 
-    warning("Two or more pairs of data at coincident (or very close) locations. \nThis can cause matrices operations to crash!\n")
+    warning("Two or more pairs of data at coincident (or very close) locations. \nThis may cause crashes in some matrices operations.\n")
   varcov <- matrix(0, n, n)
   if (scaled) {
     if (all(phi < 1e-12)) 
@@ -507,11 +523,7 @@
     if (func.inv == "solve") {
       if (det) 
         stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
-      error.now <- options()$show.error.message
-      options(show.error.messages = FALSE)
       invcov <- try(solve(varcov))
-      if(is.null(error.now) || error.now == TRUE)
-        options(show.error.messages = TRUE)        
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"

@@ -69,6 +69,8 @@
   if(method == "ML" & cov.model == "power")
     stop("\n\"power\" model can only be used with method=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
+  if (nrow(xmat) != nrow(coords)) 
+    stop("coords and trend have incompatible sizes")
   fit.ols <- lm(z ~ xmat + 0)
   trend.ols <- list(coefficients = fit.ols$coefficients)
   var.z <- sum((fit.ols$residual)^2)/(n-length(fit.ols$coefficients))

@@ -1,6 +1,6 @@
 
 R : Copyright 2002, The R Development Core Team
-Version 1.5.1 Patched (2002-07-17)
+Version 1.5.1 Patched (2002-08-07)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -18,7 +18,7 @@ Loading required package: geoR
 
 ------------------------------------------------
 geoR - functions for geostatistical analysis
-geoR version 1.3-2 is now loaded
+geoR version 1.3-3 is now loaded
 ------------------------------------------------
 
 [1] TRUE
@@ -731,17 +731,17 @@ Truncation in the back-transformation: there are simulated values less than (- 1
 > ap.kb03 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
 > ap.ok03[1:2]
 $predict
-[1] 2.977 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
+[1] 2.978 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
 
 $krige.var
-[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.027 4.198 2.668
+[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.026 4.198 2.669
 
 > ap.kb03$pred[1:2]
 $mean
-[1] 2.977 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
+[1] 2.978 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
 
 $variance
-[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.027 4.198 2.668
+[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.026 4.198 2.669
 
 > ##
 > dm <- round(ap.ok03[[1]] - ap.kb03$pred[[1]], dig=8)

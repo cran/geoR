@@ -12,6 +12,8 @@
   if (length(data) != n) 
     stop("coords and data have incompatible sizes")
   xmat <- trend.spatial(trend = model$trend, geodata = geodata)
+  if (nrow(xmat) != n) 
+    stop("coords and trend have incompatible sizes")
   ##
   ## Locations to be used in the cross-validation
   ##

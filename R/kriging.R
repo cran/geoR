@@ -182,14 +182,15 @@
     cat("\n")
   }
   trend.d <- unclass(trend.spatial(trend=krige$trend.d, geodata = geodata))
+  if (nrow(trend.d) != nrow(coords)) 
+      stop("coords and trend.d have incompatible sizes")
   beta.size <- ncol(trend.d)
   if(beta.prior == "deg")
     if(beta.size != length(beta))
       stop("size of mean vector is incompatible with trend specified") 
-  if(!is.null(class(krige$trend.l)) && class(krige$trend.l) == "trend.spatial")
-    trend.l <- unclass(krige$trend.l)
-  else
-    trend.l <- unclass(trend.spatial(trend=krige$trend.l, geodata = list(coords = locations)))
+  trend.l <- unclass(trend.spatial(trend=krige$trend.l, geodata = list(coords = locations)))
+  if (nrow(trend.l) != nrow(locations)) 
+    stop("locations and trend.l have incompatible sizes")
   if(beta.size > 1)
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
   else beta.names <- "beta"

@@ -26,7 +26,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
     parameter). See \code{DETAILS} below.  }
   \item{cov.model}{a string with the name of the correlation
     function. For further details see documentation for
-    \code{\link{cov.spatial}}.
+    \code{\link{cov.spatial}}. For the linear model use \code{cov.model
+      = "linear"}.
     Defaults are equivalent to the \emph{exponential} model.  }
   \item{fix.nugget}{logical, indicating whether the parameter
     \eqn{\tau^2}{tau^2} (nugget variance) should be regarded as fixed
@@ -93,9 +94,15 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   
   If \code{minimisation.function = "nls"} only the values of
   \eqn{\phi}{phi} and \eqn{\kappa}{kappa} (if this is included in the
-  estimation) are used. The remaning are not need by this algorithm.
+  estimation) are used. Values for the remaning are not need by the algorithm.
   
+  If \code{cov.model = "linear"} only the value of
+  \eqn{\sigma^2}{sigma^2} is used. Values for the
+  remaning are not need by this algorithm.
   
+  If \code{cov.model = "pure.nugget"} no initial values are needed since
+  no minimisation function is used.
+
   
   \bold{Weights}
   

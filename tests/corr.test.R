@@ -18,9 +18,11 @@ for(cm in c("exponential", "matern", "gaussian",
     "cauchy", "gneiting", "pure.nugget"))
   {
     kp <- 1.9
-    x1 <- tc(x, 30, kp, cm)
-    x2 <- cov.spatial(x, cm, cov.pars=c(1, 30), kappa = kp)
-    if(all(x1-x2) < 1e-8)
+    if(cm == "power") vphi <- 1.5
+    else vphi <- 30
+    x1 <- tc(x, vphi, kp, cm)
+    x2 <- cov.spatial(x, cm, cov.pars=c(1, vphi), kappa = kp)
+    if(all(x1-x2 < 1e-8))
       cat(paste(cm, "OK\n"))
     else{
       cat(cm)

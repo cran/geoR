@@ -25,6 +25,7 @@
                            "spherical", "circular", "cubic", "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
+  if(cov.model == "power") stop("power model is not allowed")
   if(fix.kappa & !is.null(kappa))
     if(cov.model == "matern" & kappa == 0.5)
       cov.model <- "exponential"
@@ -42,24 +43,26 @@
     stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method.lik <- method.lik
   ##
-  ## Coodinates, data and covariates
+  ## setting coordinates, data and covariate matrices
   ##
   coords <- as.matrix(coords)
   data <- as.vector(data)
   n <- length(data)
   if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
-  if(missing(geodata))
+  if(missing(geodata)){
     xmat <- unclass(trend.spatial(trend=trend, geodata=list(coords = coords, data = data)))
-  else
+  }
+  else{
     xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
+  }
   if(nrow(xmat) != n)
     stop("trend matrix has dimension incompatible with the data")
   test.xmat <- solve.geoR(crossprod(xmat))
   test.xmat <- NULL
   beta.size <- temp.list$beta.size <- dim(xmat)[2]
   ##
-  ## setting a factor for indicating different realisations
+  ## setting a factor to indicate different realisations
   ##
   if(missing(realisations))
     realisations <- as.factor(rep(1, n))
@@ -104,8 +107,10 @@
     grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
     .likGRF.dists.vec <<- lapply(split(as.data.frame(coords), realisations), vecdist)
     temp.f <- function(parms, coords, data, temp.list)
-      return(loglik.GRF(coords = coords, data = as.vector(data),
-                        cov.model=temp.list$cov.model, cov.pars=parms[1:2],
+      return(loglik.GRF(geodata = geodata,
+                        coords = coords, data = as.vector(data),
+                        cov.model=temp.list$cov.model,
+                        cov.pars=parms[1:2],
                         nugget=parms["tausq"], kappa=parms["kappa"],
                         lambda=parms["lambda"], psiR=parms["psiR"],
                         psiA=parms["psiA"], trend= trend,
@@ -237,22 +242,13 @@
     ##    fixed.pars <- c(fixed.pars, ini.cov.pars[1])
     ##    fixed.values$sigmasq <- 0
   }
+  ##
   names(ini) <- NULL
+  if(length(ini) == 1) justone <- TRUE
+  else justone <- FALSE
   ##
   ip <- list(f.tausq = fix.nugget, f.kappa = fix.kappa, f.lambda = fix.lambda,
              f.psiR = fix.psiR, f.psiA = fix.psiA)
-  ##  
-  if(messages.screen == TRUE) {
-    cat("-------------------------------------------------------\n")
-    cat("likfit: Initialising likelihood maximisation using the function ")
-    if(is.R()) cat("optim.\n") else cat("nlminb.\n")
-    cat("likfit: Use control() to pass arguments for the maximisation function.")
-    cat("\n        For more details see documentation for ")
-    if(is.R()) cat("optim.\n") else cat("nlminb.\n")        
-    cat("likfit: It is highly advisable to run this function several\n        times with different initial values for the parameters.\n")
-    cat("likfit: WARNING: This step can be time demanding!\n")
-    cat("-------------------------------------------------------\n")
-  }
   ##
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
   temp.list$coords <- coords
@@ -283,13 +279,31 @@
             ((temp.list$n[i]-beta.size)/2) + 0.5 * sum(log(xx.eigen$values))
     }
   }
+  ##  
+  if(messages.screen == TRUE) {
+    cat("---------------------------------------------------------------\n")
+    cat("likfit: likelihood maximisation using the function ")
+    if(is.R()){if(justone) cat("optimize.\n") else cat("optim.\n")} else cat("nlminb.\n")
+    cat("likfit: Use control() to pass additional\n         arguments for the maximisation function.")
+    cat("\n        For further details see documentation for ")
+    if(is.R()){if(justone) cat("optimize.\n") else cat("optim.\n")} else cat("nlminb.\n")        
+    cat("likfit: It is highly advisable to run this function several\n        times with different initial values for the parameters.\n")
+    cat("likfit: WARNING: This step can be time demanding!\n")
+    cat("---------------------------------------------------------------\n")
+  }
   ##
   ## Numerical minimization of the -loglikelihood
   ##
   if(is.R()){
-    lik.minim <- optim(par = ini, fn = negloglik.GRF, method="L-BFGS-B",
-                       lower=lower.optim, upper=upper.optim,
-                       fp=fixed.values, ip=ip, temp.list = temp.list, ...)
+    if(length(ini) == 1){
+      if(upper.optim == Inf) upper.optim <- 1000*max.dist
+      lik.minim <- optimize(negloglik.GRF,lower=lower.optim,upper=upper.optim,fp=fixed.values, ip=ip,temp.list = temp.list, ...)
+      lik.minim <- list(par = lik.minim$minimum, value = lik.minim$objective, convergence = 0, message = "function optimize used")      
+    }
+    else
+      lik.minim <- optim(par = ini, fn = negloglik.GRF, method="L-BFGS-B",
+                         lower=lower.optim, upper=upper.optim,
+                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
   else{
     lik.minim <- nlminb(ini, negloglik.GRF,
@@ -615,15 +629,18 @@
     }
     else{
       if(is.R())
-        lik.lambda.ns <- optim(par=1, fn = boxcox.negloglik, method = "L-BFGS-B",
+        lik.lambda.ns <- optim(par=1, fn = boxcox.negloglik,
+                               method = "L-BFGS-B",
                                lower = limits$lambda["lower"],
                                upper = limits$lambda["upper"],
-                               data = data, xmat = xmat, lik.method = method.lik)
+                               data = data, xmat = xmat,
+                               lik.method = method.lik)
       else
         lik.lambda.ns <- nlminb(par=1, fn = boxcox.negloglik,
                                 lower=limits$lambda["lower"],
                                 upper=limits$lambda["upper"],
-                                data = data, xmat = xmat, lik.method = method.lik)
+                                data = data, xmat = xmat,
+                                lik.method = method.lik)
       lambda.ns <- lik.lambda.ns$par
       if(abs(lambda) < 0.0001) tdata.ns <- log(data)
       else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
@@ -974,16 +991,16 @@
   }
   ##
   if(temp.list$print.pars){
-    running.pars <- c(sigmasq, phi, tausq, kappa, psiA, psiR, lambda)
-    names(running.pars) <-
-      c("sigmasq", "phi", "tausq", "kappa", "psiA", "psiR", "lambda")
+    running.pars <- c(phi = phi, tausq = tausq, kappa =kappa, psiA = psiA, psiR = psiR, lambda = lambda)
+    if(ip$f.tausq && fp$tausq > 0)
+      running.pars <- c(sigmasq=sigmasq, running.pars)
     print(running.pars)
   }
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(.Machine$double.xmax/10000)
-  if((tausq+sigmasq) < 1e-16) return(.Machine$double.xmax/10000)
+  if(kappa < 1e-04) return(.Machine$double.xmax^0.5)
+  if((tausq+sigmasq) < (.Machine$double.eps^0.5)) return(.Machine$double.xmax^0.5)
   ##
   ## Anisotropy
   ##
@@ -1044,14 +1061,14 @@
                            nugget = tausq, cov.pars=c(sigmasq, phi),
                            sqrt.inv = TRUE, det = TRUE)
     }
-    if(!is.null(iv$crash.parms)) return(.Machine$double.xmax/100)
+    if(!is.null(iv$crash.parms)) return(.Machine$double.xmax^0.5)
     sivx <- crossprod(iv$sqrt.inverse, xmat)
     xivx <- crossprod(sivx)
     sivy <- crossprod(iv$sqrt.inverse, z)
     xivy <- crossprod(sivx, sivy)
     betahat <- solve.geoR(xivx, xivy)
-    if(inherits(betahat, "try-error")){
-      error.now <- options()$show.error.message
+   if(inherits(betahat, "try-error")){
+        error.now <- options()$show.error.message
       options(show.error.messages = FALSE)
       t.ei <- eigen(xivx, symmetric = TRUE)
       betahat <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
@@ -1085,8 +1102,8 @@
     sumnegloglik <- sumnegloglik + negloglik
   }
   sumnegloglik <- sumnegloglik - log.jacobian
-  if(sumnegloglik > .Machine$double.xmax/1000 | sumnegloglik == Inf | sumnegloglik == -Inf)
-    sumnegloglik <- (.Machine$double.xmax/1000)
+  if(sumnegloglik > (.Machine$double.xmax^0.5) | sumnegloglik == Inf | sumnegloglik == -Inf)
+    sumnegloglik <- .Machine$double.xmax^0.5
   if(temp.list$print.pars)
     cat(paste("log-likelihood = ", -sumnegloglik, "\n"))
   return(sumnegloglik) 
@@ -1290,8 +1307,8 @@
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(-(.Machine$double.xmax/100))
-  if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax/100))
+  if(kappa < 1e-04) return(-(.Machine$double.xmax^0.5))
+  if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax^0.5))
   ##
   ## Trend matrix
   ##
@@ -1299,6 +1316,8 @@
     xmat <- unclass(trend.spatial(trend=trend, geodata = list(coords = coords, data = data)))
   else
     xmat <- unclass(trend.spatial(trend=trend, geodata = geodata))
+  if (nrow(xmat) != nrow(coords)) 
+    stop("coords and trend have incompatible sizes")
   beta.size <- ncol(xmat)
   xmat <- split(as.data.frame(unclass(xmat)), realisations)
   xmat <- lapply(xmat, as.matrix)
@@ -1384,8 +1403,8 @@
     sumnegloglik <- sumnegloglik + negloglik 
   }
   sumnegloglik <- sumnegloglik - log.jacobian
-  if(sumnegloglik > .Machine$double.xmax/1000)
-    sumnegloglik <- (.Machine$double.xmax/1000)
+  if(sumnegloglik > (.Machine$double.xmax^0.5))
+    sumnegloglik <- .Machine$double.xmax^0.5
   return(as.vector(-sumnegloglik))
 }
 

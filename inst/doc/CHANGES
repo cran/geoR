@@ -1,5 +1,33 @@
 				
 		=============================
+		CHANGES IN geoR VERSION 1.3-3
+		=============================
+
+NEW FEATURES
+
+     o as.geodata() tests for NA's in the coordinates
+     
+     o likfit() now uses optimize() instead of optim() when
+       minimization is unidimensional  
+
+     o  tests for size of the trend matrix in comparison
+        with the number of coordinates
+				
+     o  improvements in trend.spatial() and its documentation
+
+BUGS
+   
+     o bug fix in varcov.spatial() causing craches in repetitive uses of this
+       function, as for example when called by likfit() in simulation studies.
+
+     o  bug fix and modifications in variofit() for covariance models  
+	"linear" and "power". 
+
+     o bug fixed for the power model in cov.spatial and functions in geoR.c
+			
+
+
+		=============================
 		CHANGES IN geoR VERSION 1.3-2
 		=============================
 
