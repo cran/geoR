@@ -11,13 +11,18 @@
   if(missing(xmat)) xmat <- rep(1, n)
   xmat <- as.matrix(xmat)
   if(any(xmat[,1] != 1)) xmat <- cbind(1, xmat)
+  ## do not reverse order of the next two lines:
+  xmat <- xmat[!is.na(data),,drop=FALSE]
+  data <- data[!is.na(data)]
+  n <- length(data)
+  ##
   beta.size <- ncol(xmat)
   if(nrow(xmat) != length(data))
     stop("xmat and data have incompatible lengths")
   ##  lik.method <- match.arg(lik.method, choices = c("ML", "RML"))
   lik.method <- "ML"
   ##
-  absmin <- 1.001 * abs(min(data)) + 0.001 * range(data) 
+  absmin <- abs(min(data)) + 0.0001 * diff(range(data)) 
   if(!is.null(lambda2)){
     if(missing(lambda)) lambda.ini <- seq(-2, 2, by=0.2)
     else lambda.ini <- lambda

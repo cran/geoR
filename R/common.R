@@ -175,7 +175,7 @@
   ##
   if(any(is.na(obj[,coords.col]))){
     warning("NA's not allowed in the coordinates")
-    obj <- obj[complete.cases(obj),]
+    obj <- obj[complete.cases(obj),,drop=FALSE]
     warning("eliminating rows with NA's")
   }
   res$coords <- as.matrix(obj[,coords.col])

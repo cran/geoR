@@ -226,8 +226,8 @@
     phi <- cov.pars[, 2]
     cpars <- cbind(1, sigmasq)
   }
-  sill.partial <- micro.scale + sum(sigmasq)
-  sill.total <- nugget + sum(sigmasq)
+##  sill.partial <- micro.scale + sum(sigmasq)
+  sill.partial <- sum(sigmasq)
   tausq.rel <- nugget/sum(sigmasq)
   tausq.rel.micro <- micro.scale/sum(sigmasq)
   n <- length(data)
@@ -358,8 +358,7 @@
         nloc <- ni
         ind.not.coincide <- TRUE
       }
-      if (signal) Dval <- 1.0 + tausq.rel.micro
-      else Dval <-  1.0 + tausq.rel
+      Dval <- 1.0 + nug.factor
       if(beta.prior == "deg")
         vbetai <- matrix(0, ncol = beta.size, nrow = beta.size)
       else
@@ -521,12 +520,11 @@
 }
 
 "prepare.graph.kriging" <-
-  function (obj, locations, borders, values, xlim, ylim) 
+  function (locations, borders, values, xlim, ylim) 
 {
   if(!is.null(borders)){
     borders <- as.matrix(as.data.frame(borders))
-    if(is.R())
-      require(splancs)
+    if(is.R()) require(splancs)
     inout.vec <- as.vector(inout(pts = locations, poly = borders))
     if(sum(inout.vec) != length(values))
       stop("image.kriging: length of the argument values is incompatible with number of elements inside the borders.")
@@ -551,10 +549,12 @@
 
 "image.kriging" <-
   function (x, locations, borders, 
-            values = x$predict, coords.data, xlim, ylim, 
+            values = x$predict, coords.data,
+            xlim, ylim, 
             x.leg, y.leg, cex.leg = 0.8, vertical = FALSE, ...) 
 {
-  dots.l <- list(...)
+  pty.prev <- par()$pty
+  ldots <- list(...)
   if(missing(x)) x <- NULL
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -569,26 +569,31 @@
   if(missing(ylim)) ylim <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
-  locations <- prepare.graph.kriging(obj=x, locations=locations,
-                                     borders=borders,
-                                     values=values,
+  locations <- prepare.graph.kriging(locations=locations,
+                                     borders=borders, values=values,
                                      xlim = xlim, ylim = ylim) 
-  pty.prev <- par()$pty
   par(pty = "s")
   image(x=locations$x, y=locations$y, z=locations$values,
-        xlim = locations$coords.lims[,1],
-        ylim = locations$coords.lims[,2], ...)
-  if(!is.null(coords.data))
-    points(coords.data, pch=20)
-  if(!is.null(borders))
-    polygon(borders, lwd=2)
-  if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
-  if(!is.null(x.leg) & !is.null(y.leg))
+        xlim = locations$coords.lims[,1], ylim = locations$coords.lims[,2], ...)
+  ##
+  ## adding points at data locations
+  ##
+  if(!is.null(coords.data)) points(coords.data, pch=20)
+  ##
+  ## adding borders
+  ##
+  if(!is.null(borders)) polygon(borders, lwd=2)
+  ##
+  ## adding the legend
+  ##
+  if(!is.null(x.leg) & !is.null(y.leg)){
+    if(is.null(ldots$col)) ldots$col <- heat.colors(12)
     legend.krige(x.leg=x.leg, y.leg=y.leg,
                  values=locations$values[!is.na(locations$values)],
                  vertical = vertical, cex=cex.leg,
-                 col=dots.l$col)
-  par(pty.prev)
+                 col=ldots$col)
+  }
+  par(pty = pty.prev)
   return(invisible())
 }
 
@@ -601,7 +606,7 @@
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)) borders <- NULL
-  locations <- prepare.graph.kriging(obj=x, locations=locations,
+  locations <- prepare.graph.kriging(locations=locations,
                                      borders=borders, values=values) 
   persp(locations$x, locations$y, locations$values, ...)
   return(invisible())

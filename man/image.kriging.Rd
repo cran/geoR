@@ -3,6 +3,8 @@
 \alias{image.kriging}
 \alias{persp.kriging}
 \alias{prepare.graph.kriging}
+\alias{plot.1d}
+
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Image or Perspective Plot with Kriging Results}
@@ -13,7 +15,7 @@
 }
 
 \usage{
-\method{image}{kriging}(x, locations, borders, values = obj$predict,
+\method{image}{kriging}(x, locations, borders, values = x$predict,
               coords.data, xlim, ylim, x.leg, y.leg, cex.leg = 0.75,
               vertical = FALSE, \dots)
 
@@ -41,14 +43,15 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
-  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
+  \item{xlim, ylim} {the range to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
   \item{cex.leg}{controls the size of the numerical values in the legend.  }
   \item{vertical}{logical, defining whether the legend is drawn in
     horizontal (default) or vertical position.  }
   \item{\dots}{further arguments to be passed to the functions
-    \code{\link{image}} or \code{\link{persp}}.  } 
-  
+    \code{\link{image}} or \code{\link{persp}}. For instance the
+    argument \code{zlim} can be used to set the the minimum and maximum
+    `z' values for which colors should be plotted. }   
 }
 
 %\details{
@@ -90,7 +93,7 @@ par(mfrow=c(1,2), mar=c(3,3,0,0), mgp=c(1.5, .8,0))
 image(kc, loc=loci)
 image(kc, loc=loci, val=kc$krige.var)
 
-# two different ways to add legends 
+# notice two different ways to add the legends:
 image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
 image(kc, loc=loci, val=kc$krige.var, ylim=c(-0.2, 1))
 legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=kc$krige.var)

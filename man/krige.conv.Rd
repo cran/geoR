@@ -93,10 +93,10 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
   \item{nugget}{the value of the nugget variance parameter \eqn{\tau^2}{tau^2}. Defaults to zero.  }
   \item{micro.scale}{micro-scale variance. If different from zero, the
     nugget variance is divided into 2 terms: \emph{micro-scale variance}
-    and \emph{measurement error}. This affect the estimated precision of
-    the predictions. 
+    and \emph{measurement error}. This affect the precision of the predictions. 
     Often in practice, these two variance components are indistinguishable but the
-    distinction can be made here if justifiable.  } 
+    distinction can be made here if justifiable. See the section
+    \code{DETAILS} in the documentation of \code{\link{output.control}}. } 
   \item{dist.epsilon}{a numeric value. Locations which are separated
     by a distance less than this value
     are considered co-located.  }

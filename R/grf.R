@@ -291,10 +291,8 @@
 }
 
 "plot.1d" <-
-  function(x, ...)
+  function(x, xlim, ylim, x1vals, ...)
 {
-  x1vals <- unique(x$coords[,1])
-  x2vals <- unique(x$coords[,2])
   cat("simulation in 1-D\n")
   if(length(x1vals) == 1) col.ind <- 2
   else col.ind <- 1
@@ -306,48 +304,106 @@
   pty.prev <- par()$pty
   par(pty="m")
   plot(x$coords[order.it,col.ind], x$data[order.it],
-       xlab = xlabel, ylab = ylabel, ...)
+       xlab = xlabel, ylab = ylabel, xlim = xlim,
+       ylim = ylim, ...)
   par(pty=pty.prev)
   return(invisible())
 }
 
 "image.grf" <-
-  function (x, sim.number = 1, ...) 
+  function (x, sim.number = 1, xlim, ylim,
+            x.leg, y.leg, cex.leg = 0.8, vertical = FALSE, ...) 
 {
-  x1vals <- unique(x$coords[,1])
-  x2vals <- unique(x$coords[,2])
+  pty.prev <- par()$pty
+  x1vals <- unique(round(x$coords[,1], dig=12))
+  x2vals <- unique(round(x$coords[,2], dig=12))
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
+  ##
+  ## Plotting simulations in 1-D
+  ##
   if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
-    plot.1d(x, ...)
+    plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
   else{
-    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
-    nx <- length(xl)
-    yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
-    ny <- length(yl)
+    ##
+    ## Plotting simulations in 2-D
+    ##
+    ldots <- list(...)
+    ##
+    ## Checking for retangular grid
+    ##
+    nx <- length(as.numeric(levels(as.factor(round(x$coords[, 1], dig=12)))))
+    ny <- length(as.numeric(levels(as.factor(round(x$coords[, 2], dig=12)))))
     x$data <- as.matrix(x$data)
     n <- nrow(x$data)
     if (nx * ny != n) 
-      stop("cannot produce image plot probably due to data on irregular grid")
-    m <- matrix(x$data[, sim.number], ncol = ny)
-    coords.lims <- set.coords.lims(coords=x$coords)
-    x.ex <- diff(range(coords.lims[,1]))/(2*(nx-1))
-    y.ex <- diff(range(coords.lims[,2]))/(2*(ny-1))
-    xlim.ex <- coords.lims[,1] + c(-x.ex, x.ex)
-    ylim.ex <- coords.lims[,2] + c(-y.ex, y.ex)
-    pty.prev <- par()$pty
+      stop("cannot produce image plot probably due to irregular grid of locations")
+    ##
+    ## Preparing image plot elements
+    ##
+    locations <- prepare.graph.kriging(locations=x$coords,
+                                       values=x$data[, sim.number],
+                                       borders =  NULL,
+                                       xlim = xlim, ylim = ylim) 
+    ##
     par(pty = "s")
-    image(xl, yl, m, xlim= xlim.ex, ylim=ylim.ex,...)
-    par(pty=pty.prev)
+    image(x=locations$x, y=locations$y, z=locations$values,
+          xlim = locations$coords.lims[,1],
+          ylim = locations$coords.lims[,2], ...)
+    ##
+    ## Adding the legend (if the case)
+    ##
+    if(!missing(x.leg) && !missing(y.leg)){
+      if(is.null(ldots$col)) ldots$col <- heat.colors(12)
+      legend.krige(x.leg=x.leg, y.leg=y.leg,
+                   values=locations$values[!is.na(locations$values)],
+                   vertical = vertical, cex=cex.leg,
+                   col=ldots$col)
+    }
   }
+  par(pty = pty.prev)
   return(invisible())
 }
+
+#"image.grf" <-
+#  function (x, sim.number = 1, ...) 
+#{
+#  x1vals <- unique(x$coords[,1])
+#  x2vals <- unique(x$coords[,2])
+#  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
+#    plot.1d(x, ...)
+#  else{
+#    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
+#    nx <- length(xl)
+ #   yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
+#    ny <- length(yl)
+ #   x$data <- as.matrix(x$data)
+ #   n <- nrow(x$data)
+ #   if (nx * ny != n) 
+ #     stop("cannot produce image plot probably due to data on irregular grid")
+ ##   m <- matrix(x$data[, sim.number], ncol = ny)
+ #   coords.lims <- set.coords.lims(coords=x$coords)
+ #   x.ex <- diff(range(coords.lims[,1]))/(2*(nx-1))
+ #   y.ex <- diff(range(coords.lims[,2]))/(2*(ny-1))
+ #   xlim.ex <- coords.lims[,1] + c(-x.ex, x.ex)
+ #   ylim.ex <- coords.lims[,2] + c(-y.ex, y.ex)
+ #   pty.prev <- par()$pty
+ #   par(pty = "s")
+ #   image(xl, yl, m, xlim= xlim.ex, ylim=ylim.ex,...)
+ #   par(pty=pty.prev)
+ # }
+ # return(invisible())
+#}
 
 "persp.grf" <- 
   function(x, sim.number = 1, ...)
 {
-  x1vals <- unique(x$coords[,1])
-  x2vals <- unique(x$coords[,2])
-  if(length(x1vals) == 1 | length(x2vals) == 1)
-    plot.1d(x, ...)
+  x1vals <- unique(round(x$coords[,1], dig=12))
+  x2vals <- unique(round(x$coords[,2], dig=12))
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
+  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
+    plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
   else{
     xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
     nx <- length(xl)

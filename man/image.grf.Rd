@@ -12,7 +12,9 @@
 }
 
 \usage{
-\method{image}{grf}(x, sim.number = 1, \dots)
+\method{image}{grf}(x, sim.number = 1, xlim, ylim, x.leg, y.leg,
+            cex.leg = 0.75, vertical = FALSE, \dots)
+\dots)
 
 \method{persp}{grf}(x, sim.number = 1, \dots)
 }
@@ -25,6 +27,11 @@
     Indicates the number of the simulation top be plotted.
     Only valid if the object contains more than one simulation.
     Defaults to 1.  }
+  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
+  \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
+  \item{cex.leg}{controls the size of the numerical values in the legend.  }
+  \item{vertical}{logical, defining whether the legend is drawn in
+    horizontal (default) or vertical position.  }
   \item{\dots}{further arguments to be passed to the functions
     \code{\link{image}} or \code{\link{persp}}.  }
 }
@@ -56,17 +63,13 @@
 
 \examples{
 # generating 4 simulations of a Gaussian random field
-sim <- grf(225, grid="reg", cov.pars=c(1, .25), nsim=4)
+sim <- grf(441, grid="reg", cov.pars=c(1, .25), nsim=4)
 op <- par(no.readonly = TRUE)
-par(mfrow=c(2,2))
-par(mar=c(3,3,1,1))
-par(mgp = c(2,1,0))
-par(pty="s")
+par(mfrow=c(2,2), mar=c(3,3,1,1), mgp = c(2,1,0))
 for (i in 1:4)
   image(sim, sim.n=i)
 par(op)
 }
-
 
 \keyword{spatial}
 \keyword{dplot}

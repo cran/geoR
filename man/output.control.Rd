@@ -69,20 +69,58 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     prediction location, the probability that the variable is less
     than or equal than the threshold provided by the user.
     Defaults to \code{FALSE}. }
-  \item{signal}{logical. If \code{TRUE} the signal is predicted, otherwise the
-    variable is predicted. If no transformation is performed the
-    expectations are the same in both cases and
-    the kriging variances are different when the nugget parameter
-    is different from zero.  }  
+  \item{signal}{logical indicating whether the signal or the variable is
+    to be predicted. Defaults to \code{NULL} and changed internally in
+    the functions which call \code{output.control}. See \code{DETAILS}
+    below.  }
   \item{messages.screen}{logical. Indicates
     whether or not status messages are printed on the output device
     while the function is running. Defaults to \code{TRUE}. }
 
 }
 
-%\details{
-%  ~~ If necessary, more details than the __description__  above ~~
-%}
+\details{
+
+  \bold{SIGNAL}
+
+  This function is typically called by the \code{geoR}'s prediction functions
+  \code{\link{krige.bayes}} and \code{\link{krige.conv}}
+  defining the output to be returned by these functions.
+
+  The underlying model
+  \deqn{Y(x) = \mu + S(x) + \epsilon}{Y(x) = mu + S(x) + e}
+  assumes that observations \eqn{Y(x)}{Y(x)} are noisy
+  versions of a \emph{signal} \eqn{S(x)}{S(x)} and
+  \eqn{Var(\epsilon)=\tau^2}{Var(e)=tau^2} is the nugget variance.
+
+  If \eqn{\tau^2 = 0}{tau^2 = 0} the \eqn{Y} and \eqn{S} are
+  indistiguishable.\cr
+
+  If \eqn{\tau^2 > 0}{tau^2 > 0} and regarded as measurement error the
+  option \code{signal} defines whether the \eqn{S} (\code{signal =
+    TRUE}) or the variable \eqn{Y} (\code{signal = FALSE}) is to be
+  predicted.\cr
+  For the latter the predictions will "honor" the data,
+  i.e. at data locations predictions will coincide with the data.\cr
+  For unsampled locations, when there is no transformation of the data,
+  the predicted values will be the same
+  regardless whether \code{signal = TRUE} or \code{FALSE} but the
+  predictions variances will differ.
+
+  By default \code{\link{krige.bayes}} sets \code{signal = TRUE}
+  and \code{\link{krige.conv}} sets \code{signal = FALSE}.
+
+  The function \code{\link{krige.conv}} has an argument
+  \code{micro.scale}. If \eqn{micro.scale > 0} the error term is
+  divided as \eqn{\epsilon = \epsilon_{ms} + \epsilon_{me}}{e = e_{ms} +
+    e_{me}} and the nugget variance is divided into two terms: \emph{micro-scale variance}
+  and \emph{measurement error}.\cr
+  If \code{signal = TRUE} the term \eqn{\epsilon_{ms}}{e_{ms}} is
+  regarded as part of the signal and consequently the \emph{micro-scale variance} is added to
+  the prediction variance.\cr
+  If \code{signal = FALSE} the total error variance \eqn{\tau^2}{tau^2}
+  is added to the prediction variance.
+}
 
 \value{
   A list with processed arguments to be passed to the main function.
@@ -97,7 +135,7 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{\code{\link{krige.bayes}} and  \code{\link{krige.conv}}}
+\seealso{The prediction functions \code{\link{krige.bayes}} and  \code{\link{krige.conv}}.}
 
 %\examples{
 %}

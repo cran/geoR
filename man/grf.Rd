@@ -4,7 +4,6 @@
 \alias{grf.aux2}
 \alias{grf.aux1}
 \alias{grfclass}
-\alias{plot.1d}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -169,11 +168,11 @@ plot(sim1)
 #
 # a "smallish" simulation
 sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 
-image(sim2)
+image(sim2, xlab="X Coord", ylab="Y Coord")
 #
 # a "bigger" one
 sim3 <- grf(40401, grid = "reg", cov.pars = c(10, .2), met = "circ") 
-image.grf(sim3)
+image(sim3, xlab="X Coord", ylab="Y Coord")
 ##
 ## 1-D simulations using the same seed and different noise/signal ratios
 ##
