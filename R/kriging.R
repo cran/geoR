@@ -176,8 +176,8 @@
     else
       cat(switch(as.character(krige$trend.d)[1],
                  "cte" = "krige.conv: model with constant mean",
-                 "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
-                 "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",
+                 "1st" = "krige.conv: model with mean given by a 1st order polynomial on the coordinates",
+                 "2nd" = "krige.conv: model with mean given by a 2nd order polynomial on the coordinates",
                  "krige.conv: model with mean defined by covariates provided by the user"))
     cat("\n")
   }
@@ -482,7 +482,7 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic",
-                           "wave", "power",
+                           "wave", "linear", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(micro.scale > nugget)
@@ -534,9 +534,9 @@
     remove("temp")
   }
   locations <- locations[order(locations[, 2], locations[,1]), ]
-  x <- as.numeric(levels(as.factor(locations[, 1])))
+  x <- as.numeric(levels(as.factor(round(locations[, 1],dig=8))))
   nx <- length(x)
-  y <- as.numeric(levels(as.factor(locations[, 2])))
+  y <- as.numeric(levels(as.factor(round(locations[, 2],dig=8))))
   ny <- length(y)
   if(missing(xlim)) xlim <- NULL
   if(missing(ylim)) ylim <- NULL

@@ -8,13 +8,10 @@
             unit.angle = c("radians","degrees"),
             messages.screen = TRUE, ...) 
 {
-  if (is.R()){
-    require(mva)
-    require(modreg)
-  }
+  require(mva)
+  require(modreg)
   call.fc <- match.call()
-  if(missing(geodata))
-    geodata <- list(coords = coords, data = data)
+  if(missing(geodata)) geodata <- list(coords = coords, data = data)
   keep <- list(...)
   if(is.null(keep$keep.NA)) keep.NA <- FALSE
   else keep.NA <- keep$keep.NA
@@ -55,8 +52,7 @@
     }
   }
   else
-    if(messages.screen)
-      cat("variog: computing omnidirectional variogram\n")
+    if(messages.screen) cat("variog: computing omnidirectional variogram\n")
   ##   
   ##
   coords <- as.matrix(coords)
@@ -72,6 +68,9 @@
   ##
   option <- match.arg(option)
   estimator.type <- match.arg(estimator.type)
+  ##
+  ## transformation
+  ##
   if (abs(lambda - 1) > 0.0001) {
     if (abs(lambda) < 0.0001) 
       data <- log(data)
@@ -115,6 +114,9 @@
   }
   min.dist <- min(u)
   if(min.dist < nugget.tolerance) nt.ind <- TRUE
+  ##
+  ## directional
+  ##
   if(direction != "omnidirectional"){
     u.ang <- .C("tgangle",
                 as.double(as.vector(coords[,1])),
@@ -125,6 +127,7 @@
     u.ang <- atan(u.ang)
     u.ang[u.ang < 0] <- u.ang[u.ang < 0] + pi
   }
+  ##
   if (option == "bin" && bin.cloud == FALSE && direction == "omnidirectional") {
     if (missing(max.dist)) 
       umax <- max(u)  
@@ -157,8 +160,7 @@
                    as.integer(estimator.type == "modulus"), as.double(max.dist), 
                    cbin = as.integer(cbin), vbin = as.double(vbin), 
                    as.integer(TRUE), sdbin = as.double(sdbin),
-                   PACKAGE = "geoR")[c("vbin", 
-                                       "cbin", "sdbin")]
+                   PACKAGE = "geoR")[c("vbin", "cbin", "sdbin")]
     }
     result <- array(unlist(lapply(as.data.frame(data), bin.f)), 
                     dim = c(nbins, 3, n.datasets))
@@ -267,7 +269,7 @@
   result <- c(result, list(var.mark = data.var, beta.ols = beta.ols,
                            output.type = option, max.dist = max.dist, 
                            estimator.type = estimator.type, n.data = n.data,
-                           lambda = lambda, trend = trend))
+                           lambda = lambda, trend = trend, pairs.min = pairs.min))
   result$nugget.tolerance <- nugget.tolerance
   if(direction != "omnidirectional") result$direction <- ang.rad
   else result$direction <- "omnidirectional"
@@ -784,7 +786,7 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
-                           "power", "powered.exponential", "cauchy",
+                           "linear", "power", "powered.exponential", "cauchy",
                            "gneiting", "gneiting.matern", "pure.nugget"))
   if(missing(cov.pars)){
     if(missing(x) || is.null(x$cov.pars)) 
@@ -823,12 +825,30 @@
   }
   ## defining a function to plot the variogram curve
   gamma.f <- function(x){
-    if(any(cov.model == c("linear", "power")))
-      return(nugget + cov.pars[1] * (x^cov.pars[2]))  
+    if(any(cov.model == c("linear", "power"))){
+      if(is.vector(cov.pars)){
+        if(cov.model == "linear") cov.pars[2] <- 1
+        return(nugget + cov.pars[1] * (x^cov.pars[2]))
+      }
+      else{
+        if(length(cov.model) == 1) cov.model <- rep(cov.model, nrow(cov.pars))
+        if(length(cov.model) != nrow(cov.pars)) stop("cov.model and cov.pars have incompatible dimentions")
+        vals <- rep(nugget, length(x))
+        for (i in 1:nrow(cov.pars)){
+          if(any(cov.model[i] == c("linear", "power"))){
+            if(cov.model[i] == "linear") cov.pars[i,2] <- 1
+            vals <- vals + (cov.pars[i,1] * (x^cov.pars[i,2]))
+          }
+          else vals <- vals + cov.pars[i,1] - cov.spatial(x, cov.model = cov.model[i],
+                                                          kappa = kappa, cov.pars = cov.pars[i,])
+        }
+        return(vals)
+      }
+    }
     else
       return(sill.total -
-      cov.spatial(x, cov.model = cov.model,
-                  kappa = kappa, cov.pars = cov.pars))
+             cov.spatial(x, cov.model = cov.model,
+                         kappa = kappa, cov.pars = cov.pars))
     
   }
   ## ploting the curve
@@ -1039,6 +1059,14 @@
     estimator.type <- obj.variog$estimator.type
   else estimator.type <- "classical"
   ##
+  ## transformation
+  ##
+  if (abs(obj.variog$lambda - 1) > 0.0001) {
+    if (abs(obj.variog$lambda) < 0.0001) 
+      data <- log(data)
+    else data <- ((data^obj.variog$lambda) - 1)/obj.variog$lambda
+  }
+  ##
   ## trend removal
   ##
   xmat <- unclass(trend.spatial(trend = obj.variog$trend, geodata = geodata))
@@ -1071,7 +1099,9 @@
     cat(paste("variog.env: computing the empirical variogram for the", 
               nsim, "simulations\n"))
   nbins <- length(obj.variog$bins.lim) - 1
-  if(is.R()){
+  ##
+  ##
+  if(obj.variog$direction == "omnidirectional"){
     bin.f <- function(sim){
       cbin <- vbin <- sdbin <- rep(0, nbins)  
       temp <- .C("binit",
@@ -1091,30 +1121,19 @@
       return(temp)
     }
     simula.bins <- apply(simula$data, 2, bin.f)
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
   }
   else{
-    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "modulus"),
-                 as.double(max.u),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin),
-                 PACKAGE = "geoR")$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
-    simula.bins <- simula.bins[obj.variog$ind.bin,]
+    variog.vbin <- function(x, ...)
+      variog(geodata = geodata, data = x, 
+             uvec = obj.variog$uvec,
+             estimator.type = obj.variog$estimator.type, 
+             nugget.tolerance = obj.variog$nugget.tolerance, max.dist = obj.variog$max.dist,
+             pairs.min = obj.variog$pairs.min,
+             direction = obj.variog$direction, tolerance=obj.variog$tolerance,
+             messages.screen = F, ...)$v 
+    simula.bins <- apply(simula$data, 2, variog.vbin)
   }
+  simula.bins <- simula.bins[obj.variog$ind.bin,]
   if(save.sim == FALSE) simula$data <- NULL
   ##
   ## computing envelops

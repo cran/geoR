@@ -22,7 +22,6 @@ geoR version 1.3-7 is now loaded
 [Previously saved workspace restored]
 
 > invisible(options(echo = TRUE))
-> 
-> R : Copyright 2002, The R Development Core Team
+> %!PS-Adobe-3.0
 Error: syntax error
 Execution halted

@@ -1,13 +1,44 @@
 		=============================
+		CHANGES IN geoR VERSION 1.3-7
+		=============================
+
+NEW FEATURES
+	
+     o changes in as.geodata to keep factor attributes of the covariates
+
+     o type of contrast used is now returned in likfit
+
+     o new data-sets "ca20" and "hoef" included
+ 
+
+
+BUGS
+
+     o varcov.spatial now tries the svd() decomposition when chol() fails. 
+   
+     o likfit issues messages that parameter estimation for the "power" and 
+       "gneiting.matern" models is not implemented.
+
+     o change in the measure of variability in backtransform.moments.
+       (q0.75 - q0.25)/4 replaced by (q0.975 - q0.025)/4
+       and the restult is calles uncertainty instead of variability
+
+     o bug fix in variog.mc.env when lambda != 1 and for directional variograms
+
+     o bug fix in proflik when fix.lambda = FALSE
+
+
+
+		=============================
 		CHANGES IN geoR VERSION 1.3-6
 		=============================
 
 NEW FEATURES
-
+	
      o improvements in the documentation for output.control     
        with better explanations about the option signal
  
-     o changes in image.grf now allowing  inclusion of legends
+     o changes in image.grf now allowing inclusion of legends
        and better control of graphical parameters
 
 BUGS
@@ -66,7 +97,7 @@ BUGS
      o bug fix in varcov.spatial() causing craches in repetitive uses of this
        function, as for example when called by likfit() in simulation studies.
 
-     o  bug fix and modifications in variofit() for covariance models  
+     o bug fix and modifications in variofit() for covariance models  
 	"linear" and "power". 
 
      o bug fixed for the power model in cov.spatial and functions in geoR.c
@@ -79,7 +110,7 @@ BUGS
 
 NEW FEATURES
    
-     o  changes in the documentation of Box-Cox related functions
+     o changes in the documentation of Box-Cox related functions
 
      o trend.spatial now assigns a class "trend.spatial" to its output
 

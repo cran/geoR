@@ -25,7 +25,8 @@
                            "spherical", "circular", "cubic", "wave", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  if(cov.model == "power") stop("power model is not allowed")
+  if(cov.model == "power") stop("parameter estimation for power model is not implemented")
+  if(cov.model == "gneiting.matern") stop("parameter estimation for gneiting.matern model is not yet implemented")
   if(fix.kappa & !is.null(kappa))
     if(cov.model == "matern" & kappa == 0.5)
       cov.model <- "exponential"
@@ -50,12 +51,12 @@
   n <- length(data)
   if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
-  if(missing(geodata)){
-    xmat <- unclass(trend.spatial(trend=trend, geodata=list(coords = coords, data = data)))
-  }
-  else{
+  if(missing(geodata))
+    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+  else
     xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
-  }
+  xmat.contrasts  <- attr(xmat,"contrasts")
+  xmat <- unclass(xmat)
   if(nrow(xmat) != n)
     stop("trend matrix has dimension incompatible with the data")
   test.xmat <- solve.geoR(crossprod(xmat))
@@ -714,6 +715,7 @@
 #    lik.results$s2 <- (crossprod(residual.comp,invcov) %*% residual.comp)/(n - beta.size)
   }
   ##
+  lik.results$contrasts <- xmat.contrasts
   lik.results$call <- call.fc
   ##
   ## Assigning classes

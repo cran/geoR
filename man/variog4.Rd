@@ -37,8 +37,8 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   \item{trend}{specifies the mean part of the model.
     The options are:
     \code{"cte"} (constant mean),
-    \code{"1st"} (a first degree polynomial
-    on the coordinates), \code{"2nd"} (a second degree polynomial
+    \code{"1st"} (a first order polynomial
+    on the coordinates), \code{"2nd"} (a second order polynomial
     on the coordinates), or a formula of the type \code{~X} where \code{X}
     is a matrix with the covariates (external trend). Defaults to \code{"cte"}.  }
   \item{lambda}{values of the Box-Cox transformation parameter.

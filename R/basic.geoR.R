@@ -45,7 +45,6 @@
 #"trend.spatial" <-
 #  function (trend, geodata) 
 #{
-#  print(search())
 #  if(missing(geodata)) geodata <- list()
 #  if (inherits(trend, "formula")) {
 #    trend.frame <- geodata[attr(terms(trend), "term.labels")]

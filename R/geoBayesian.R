@@ -335,8 +335,8 @@
     if(messages.screen){
       cat(switch(as.character(model$trend.d)[1],
                  "cte" = "krige.bayes: model with constant mean",
-                 "1st" = "krige.bayes: model with mean given by a 1st degree polinomial on the coordinates",
-                 "2nd" = "krige.bayes: model with mean given by a 2nd degree polinomial on the coordinates",
+                 "1st" = "krige.bayes: model with mean given by a 1st order polynomial on the coordinates",
+                 "2nd" = "krige.bayes: model with mean given by a 2nd order polynomial on the coordinates",
                  "krige.bayes: model with mean defined by covariates provided by the user"))
       cat("\n")
     }

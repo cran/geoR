@@ -1,7 +1,7 @@
 "cov.spatial" <-
   function(obj, cov.model = c("matern", "exponential", "gaussian",
                   "spherical", "circular", "cubic", "wave",
-                  "power", "powered.exponential", "cauchy",
+                  "linear", "power", "powered.exponential", "cauchy",
                   "gneiting", "gneiting.matern", "pure.nugget"),
            cov.pars = stop("no cov.pars argument provided"),
            kappa = 0.5)
@@ -29,6 +29,10 @@
   if(is.vector(cov.pars))
     phi <- cov.pars[2]
   else phi <- cov.pars[, 2]
+  if(cov.model == "linear"){
+    cov.model <- "power"
+    phi <- rep(1, length(phi))
+  }
   if(is.vector(cov.pars))
     ns <- 1
   else ns <- nrow(cov.pars)
@@ -99,7 +103,7 @@
 
 "cor.number" <- 
   function(cov.model= c("exponential", "matern", "gaussian",
-             "spherical", "circular", "cubic", "wave", "power",
+             "spherical", "circular", "linear", "cubic", "wave", "power",
              "powered.exponential", "cauchy", "gneiting",
              "gneiting.matern", "pure.nugget"))
 {
@@ -175,7 +179,7 @@
   ##
   if(any(is.na(obj[,coords.col]))){
     warning("NA's not allowed in the coordinates")
-    obj <- obj[complete.cases(obj),,drop=FALSE]
+    obj <- obj[complete.cases(obj),,drop = FALSE]
     warning("eliminating rows with NA's")
   }
   res$coords <- as.matrix(obj[,coords.col])
@@ -184,35 +188,24 @@
   ##
   res$data <- as.matrix(obj[,data.col])
   if(length(data.col) == 1) res$data <- as.vector(res$data)
-  else
-    if(!is.null(data.names)) colnames(res$data) <- data.names
+  else if(!is.null(data.names)) colnames(res$data) <- data.names
   ##
   ## setting the covariates, if the case 
   ##
   if(!is.null(covar.col)){
-    res[[3]] <- as.matrix(obj[,covar.col])
+    res[[3]] <- as.data.frame(obj[,covar.col])
     if(covar.names == "obj.names"){
       if(is.matrix(obj))      
         col.names <- dimnames(obj)[2]
       if(is.data.frame(obj))      
         col.names <- names(obj)
     }
-    if(length(covar.col) == 1){
-      if(covar.names == "obj.names"){
-        if(is.null(col.names)) names(res)[3] <- "covariate"
-        else names(res)[3] <- col.names[covar.col]
-      }
-      else
-        names(res)[3] <- covar.names
-    }
-    else{
-      names(res)[3] <- "covariate"
-      if(covar.names == "obj.names")
-        if(is.null(col.names)) colnames(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
-        else  colnames(res[[3]]) <- col.names[covar.col]
-      else
-        colnames(res[[3]]) <- covar.names
-    }
+    names(res)[3] <- "covariate"
+    if(covar.names == "obj.names")
+      if(is.null(col.names)) names(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
+      else  names(res[[3]]) <- col.names[covar.col]
+    else
+      names(res[[3]]) <- covar.names
   }
   ##
   ## Dealing with NA's
@@ -241,7 +234,7 @@
         res$coords <- res$coords[ind,]
         res$data <- drop(as.matrix(res$data)[ind,])
         if(!is.null(covar.col))
-          res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+          res[[3]] <- drop(res[[3]][ind,])
         cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the covariate(s)\n")) 
       }
     }
@@ -285,7 +278,7 @@
     }
     res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
     if(!is.null(covar.col))
-      res[[3]] <- drop(apply(as.matrix(res[[3]]), 2, rep.action.f, rep.action=rep.covar.action))
+      res[[3]] <- drop(apply(res[[3]], 2, rep.action.f, rep.action=rep.covar.action))
     if(!is.null(res$realisations))
       res$realisations <- res$realisations[!rep.dup]
   }
@@ -297,7 +290,6 @@
       cat("WARNING: there are data at coincident locations, some of the geoR's functions will not work.\n")
   }
   ##
-  if(!is.null(covar.col)) res[[3]] <- as.data.frame(res[[3]])
   class(res) <- "geodata"
   return(res)
 }
@@ -385,8 +377,7 @@
             sqrt.inv = FALSE, try.another.decomposition = TRUE,
             only.inv.lower.diag = FALSE) 
 {
-  if (is.R()) 
-    require(mva)
+  if (is.R()) require(mva)
   ##
   op.sem <- options()$show.error.message
   options(show.error.message = FALSE)
@@ -395,20 +386,17 @@
   func.inv <- match.arg(func.inv)
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
+                           "spherical", "circular", "cubic", "wave", "linear", "power",
                            "powered.exponential", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  if (only.inv.lower.diag) 
-    inv <- TRUE
+  if (only.inv.lower.diag)  inv <- TRUE
   if (is.null(coords) & is.null(dists.lowertri)) 
     stop("one of the arguments, coords or dists.lowertri must be provided")
   if (!is.null(coords) & !is.null(dists.lowertri)) 
     stop("only ONE argument, either coords or dists.lowertri must be provided")
-  if (!is.null(coords)) 
-    n <- nrow(coords)
-  if (!is.null(dists.lowertri)) {
+  if (!is.null(coords))  n <- nrow(coords)
+  if (!is.null(dists.lowertri))
     n <- as.integer(round(0.5 * (1 + sqrt(1 + 8 * length(dists.lowertri)))))
-  }
   tausq <- nugget
   if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]
@@ -419,9 +407,7 @@
     phi <- cov.pars[, 2]
   }
 ##  print(c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa))
-  if (!is.null(coords)) {
-    dists.lowertri <- as.vector(dist(coords))
-  }
+  if (!is.null(coords)) dists.lowertri <- as.vector(dist(coords))
   if (round(1e+12 * min(dists.lowertri)) == 0) 
     warning("Two or more pairs of data at coincident (or very close) locations. \nThis may cause crashes in some matrices operations.\n")
   varcov <- matrix(0, n, n)
@@ -461,8 +447,10 @@
     if (func.inv == "cholesky") {
       varcov.sqrt <- try(chol(varcov))
       if (inherits(varcov.sqrt, "try-error")) {
-        if (try.another.decomposition) 
-          func.inv <- "eigen"
+        if (try.another.decomposition){
+          cat("trying another decomposition (svd)\n")
+          func.inv <- "svd"
+        }
         else {
           print(varcov.sqrt[1])
           stop()
@@ -473,10 +461,8 @@
           if (is.R()) remove("varcov")
           else remove("varcov", frame = sys.nframe())
         if (only.decomposition == FALSE) {
-          if (det) 
-            cov.logdeth <- sum(log(diag(varcov.sqrt)))
-          if (sqrt.inv) 
-            inverse.sqrt <- solve(varcov.sqrt)
+          if (det) cov.logdeth <- sum(log(diag(varcov.sqrt)))
+          if (sqrt.inv) inverse.sqrt <- solve(varcov.sqrt)
           if (inv) {
             if (is.R()) {
               invcov <- chol2inv(varcov.sqrt)
@@ -497,8 +483,10 @@
       varcov.svd <- svd(varcov, nv = 0)
       cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))))
       if (inherits(cov.logdeth, "try-error")) {
-        if (try.another.decomposition) 
+        if (try.another.decomposition){
+          cat("trying another decomposition (eigen)\n")
           func.inv <- "eigen"
+        }
         else {
           print(cov.logdeth[1])
           stop()
@@ -537,7 +525,9 @@
     }
     if (func.inv == "eigen") {
       varcov.eig <- try(eigen(varcov, symmetric = TRUE))
+      print(3)
       cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
+      print(4)
       if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
         diag(varcov) <- 1.0001 * diag(varcov)
         varcov.eig <- try(eigen(varcov, symmetric = TRUE))

@@ -1,13 +1,12 @@
 Package: geoR
-Version: 1.3-6
-Date: 2002/09/03
-Title: geoR - functions for geostatistical analysis
+Version: 1.3-7
+Date: 2002/11/26
+Title: geoR - functions for geostatistical data analysis
 Author: Paulo J. Ribeiro Jr <paulo.ribeiro@est.ufpr.br> \\
         Peter J. Diggle <p.diggle@lancaster.ac.uk> 
 Maintainer: Paulo J. Ribeiro Jr <Paulo.Ribeiro@est.ufpr.br>
 Depends: R (>= 1.3.0), splancs, scatterplot3d, MASS
-Description: Functions to perform geostatistical analysis including likelihood-based 
-             and Bayesian methods.
+Description: Geostatistical analysis including likelihood-based and Bayesian methods.
 License: GPL Version 2 or later
 URL: http://www.est.ufpr.br/geoR
 

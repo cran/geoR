@@ -23,7 +23,7 @@
   containing the following components:
   
   \describe{    
-    \item{\code{coords}}{a list with the coordinates of the recording
+    \item{\code{coords}}{a matrix with the coordinates of the recording
       stations.  }
     \item{\code{data}}{a vector with the average recorded rainfall for the May-June period.  }
     \item{\code{borders}}{a matrix with the coordinates defining the borders of

@@ -146,14 +146,13 @@ post2prior(obj)
     \code{"reciprocal"} , \code{"squared.reciprocal"} and
     \code{"fixed"}.
     Alternativelly, a user defined discrete distribution can be
-    specified. In this case the argument takes the a vector of
-    probabilities of a discrete distribution and the support points
-    should be provided in the argument \code{phi.discrete}. \cr     
-    If the \code{"fixed"} the argument \eqn{\phi}{phi}
-    should be provided and it is regarded as fixed when performing predictions.\cr
+    specified. In this case the argument takes a vector of numerical
+    values of probabilities with corresponding support points
+    provided in the argument \code{phi.discrete}. \cr     
+    If \code{"fixed"} the argument \eqn{\phi}{phi}
+    must be provided and is regarded as fixed when performing predictions.\cr
     For the exponential prior the argument \code{phi} provides
-    the value for
-    the hyperparameter \eqn{\nu}{nu} which also corresponds to the
+    the value for the hyperparameter \eqn{\nu}{nu} which corresponds to the
     expected value for this distribution.
   }
   
@@ -161,7 +160,9 @@ post2prior(obj)
     \code{phi.prior = "fixed"}.  }
   
   \item{phi.discrete}{support points of the discrete prior
-    for the range parameter \eqn{\phi}{phi}.  }
+    for the range parameter \eqn{\phi}{phi}. The default is a sequence
+    of 51 values between 0 and 2 times the maximum distance between the
+    data locations.}
   
   \item{tausq.rel.prior}{specifies a prior distribution for the
     relative nugget parameter
@@ -206,7 +207,7 @@ post2prior(obj)
 
   \bold{PRIOR SPECIFICATION}
   
-  The basis of the Bayesian algorithm is tht discretisation of the prior
+  The basis of the Bayesian algorithm is the discretisation of the prior
   distribution for the parameters \eqn{\phi}{phi} and \eqn{\tau^2_{rel}
     =\frac{\tau^2}{\sigma^2}}{tau_rel = tau/sigma}.
   The Tech. Report (see \code{References} below)

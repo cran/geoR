@@ -299,7 +299,7 @@
   ni <- length(mean)
   mean <- as.vector(mean)
   variance <- as.vector(variance)
-  if (ni != length(variance)) stop("mean and variancces must have same length")
+  if (ni != length(variance)) stop("mean and variances must have same length")
   if(abs(lambda-1) > 0.001){
     if(simul.back){
       res$distribution <- "back-transformed (Box-Cox) from Gaussian by simulation"
@@ -322,9 +322,9 @@
       else{
         res$mean <- as.vector(apply(temp.data, 1, mean))
         res$variance <- as.vector(apply(temp.data, 1, var))
-        quants <- apply(temp.data, 1, quantile, prob=c(.25,.5, .75))
+        quants <- apply(temp.data, 1, quantile, prob=c(.025,.5, .975))
         res$median <- drop(quants[2,])
-        res$variability <- drop((quants[3,] - quants[1,])/4)
+        res$uncertainty <- drop((quants[3,] - quants[1,])/4)
       }
     }
     else{
@@ -345,8 +345,8 @@
           res$variance <- temp^((2/lambda)-2) *  variance
         res$median <- temp^(1/lambda)
       }
-      res$variability <- (qnorm(.75, mean = mean, sd = sqrt(variance)) -
-                          qnorm(.25, mean = mean, sd = sqrt(variance)))/4
+      res$uncertainty <- (qnorm(.975, mean = mean, sd = sqrt(variance)) -
+                          qnorm(.025, mean = mean, sd = sqrt(variance)))/4
     }
   }
   else{

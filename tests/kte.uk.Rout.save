@@ -1,6 +1,6 @@
 
 R : Copyright 2002, The R Development Core Team
-Version 1.5.1 Patched (2002-07-17)
+Version 1.6.1 Patched (2002-11-06)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -13,14 +13,16 @@ Type `demo()' for some demos, `help()' for on-line help, or
 `help.start()' for a HTML browser interface to help.
 Type `q()' to quit R.
 
+
+------------------------------------------------
+geoR - functions for geostatistical data analysis
+geoR version 1.3-7 is now loaded
+------------------------------------------------
+
+[Previously saved workspace restored]
+
+> invisible(options(echo = TRUE))
 > require(geoR)
-Loading required package: geoR 
-
-------------------------------------------------
-geoR - functions for geostatistical analysis
-geoR version 1.3-6 is now loaded
-------------------------------------------------
-
 [1] TRUE
 > options(digits = 3, width = 80)
 > set.seed(15)
@@ -238,7 +240,7 @@ likfit: maximised log-likelihood = -87.3
 > uk.control <- krige.control(trend.d = "1st", trend.l = "1st",
 +                              obj.model = aq.ml)
 > aq.uk <- krige.conv(aq, loc=pred.grid, krige=uk.control)
-krige.conv: model with mean given by a 1st degree polinomial on the coordinates
+krige.conv: model with mean given by a 1st order polynomial on the coordinates
 krige.conv: Kriging performed using global neighbourhood 
 > aq.uk[1:2]
 $predict
@@ -313,4 +315,6 @@ $krige.var
 [433] 0.354 0.319 0.279 0.314 0.341 0.327 0.332 0.360 0.417
 
 > 
+> proc.time()
+[1] 15.88  0.22 16.07  0.00  0.00
 > 

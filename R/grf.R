@@ -400,8 +400,9 @@
 {
   x1vals <- unique(round(x$coords[,1], dig=12))
   x2vals <- unique(round(x$coords[,2], dig=12))
-  if(missing(xlim)) xlim <- NULL
-  if(missing(ylim)) ylim <- NULL
+  ldots <- list(...)
+  if(is.null(ldots$xlim)) xlim <- NULL
+  if(is.null(ldots$ylim)) ylim <- NULL
   if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
     plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
   else{

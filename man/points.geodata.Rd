@@ -43,8 +43,8 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     See \code{DETAILS} below for the available options.
     Defaults to \code{pt.divide = "data.proportional"}.   }
   \item{trend}{specifies the mean part of the model. The options are:
-    \code{"cte"} (constant mean - default option), \code{"1st"} (a first degree polynomial
-    on the coordinates), \code{"2nd"} (a second degree polynomial
+    \code{"cte"} (constant mean - default option), \code{"1st"} (a first order polynomial
+    on the coordinates), \code{"2nd"} (a second order polynomial
     on the coordinates), or a formula of the type \code{~X} where \code{X}
     is a matrix with the covariates (external trend).
     If provided the trend is "removed" using the function

@@ -590,6 +590,7 @@
   }
   return(proflik)
 }
+
 "proflik.aux10" <-
   function(phitausq.rel.lambda, ...)
 {
@@ -1625,13 +1626,13 @@ function(phi.lambda, ...)
 {
   z <- .temp.list$z
   n <- .temp.list$n
-  if(lambda == 1) {
-    log.jacobian <- .temp.list$log.jacobian
+  if(lambda == 1){
+    ##    log.jacobian <- .temp.list$log.jacobian
+    log.jacobian <- 0
   }
   else {
     if(any(z <= 0))
-      stop("Transformation option not allowed when there are zeros or negative data"
-           )
+      stop("Transformation option not allowed when there are zeros or negative data")
     if(any(z^(lambda - 1) <= 0))
       log.jacobian <- log(prod(z^(lambda - 1)))
     else log.jacobian <- sum(log(z^(lambda - 1)))

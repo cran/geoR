@@ -32,7 +32,7 @@ out.kc <- output.control(mes=F)
 cat("===================================================\n")
 cat("TESTING KRIGE.CONV\n")
 kc <- krige.conv(ap, loc=loci, krige=krige.control(cov.pars=c(1,.25)), output=out.kc)
-kc[1:2]
+lapply(kc[1:2], round, dig=4)
 kc.pred <- round(kc$pred[c(2,5)], dig=4)
 kc.var <- round(kc$krige.var[c(2,5)], dig=4)
 ##

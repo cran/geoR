@@ -33,11 +33,11 @@ trend.spatial(trend, geodata)
     \item{\code{"cte"}}{the mean is assumed to be constant over the region,
       in which case \eqn{\mu(x)= \mu}{mu(x) = mu}. This is the default
       option.  }
-    \item{\code{"1st"}}{the mean is assumed to be a first degree polynomial
+    \item{\code{"1st"}}{the mean is assumed to be a first order polynomial
       on the coordinates:
       \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2}{%
 	mu(x) = beta0 + beta1*x1 + beta2*x2. }}
-    \item{\code{"2nd"}}{the mean is assumed to be a second degree polynomial
+    \item{\code{"2nd"}}{the mean is assumed to be a second order polynomial
       on the coordinates:
       \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 (x_1)^2 +
 	\beta_4 (x_2)^2 + \beta_5 x_1 *  x_2}{%
@@ -102,9 +102,9 @@ trend.spatial(trend, geodata)
 
 \examples{
 data(SIC)
-# a first degree polynomial trend
+# a first order polynomial trend
 trend.spatial("1st", sic.100)[1:5,]
-# a second degree polynomial trend
+# a second order polynomial trend
 trend.spatial("2nd", sic.100)[1:5,]
 # a trend with a covariate
 trend.spatial(~altitude, sic.100)[1:5,]
