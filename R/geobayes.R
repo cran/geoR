@@ -11,7 +11,7 @@
   ##
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
-  if(is.R()) require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)

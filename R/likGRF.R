@@ -21,7 +21,7 @@
             limits = likfit.limits(), 
             print.pars = FALSE, messages, ...) 
 {
-  if(is.R()) require(mva)
+  if(is.R()) if(! "package:stats" %in% search()) require(mva)
   ##
   ## Checking input
   ##

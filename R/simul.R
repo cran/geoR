@@ -279,7 +279,7 @@
   function (x, max.dist = max(dist(x$coords)), length = 100, 
             lwd = 2, ...) 
 {
-  if(is.R()) require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
       x$cov.model == "cauchy" | x$cov.model == "gneiting-matern") 
     kappa <- x$kappa

@@ -152,7 +152,7 @@
   if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
   if(!is.function(rep.covar.action))
     rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
-  require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
   rep.dup <- duplicated(rep.lev)
   if(sum(rep.dup) > 0)
@@ -196,7 +196,7 @@
   res$coords.summary <- apply(x$coords, 2, range)
   rownames(res$coords.summary) <- c("min", "max")
   if(is.null(colnames(object$coords))) colnames(res$coords.summary) <- c("Coord.X", "Coord.Y")
-  require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   res$distances.summary <- range(dist(x$coords))
   names(res$distances.summary) <- c("min", "max")  
   if(!is.null(x$borders)){

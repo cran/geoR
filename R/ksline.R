@@ -21,7 +21,7 @@
     if(messages.screen)
       cat("ksline: results will be returned only for prediction locations inside the borders\n")
   }
-  require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
@@ -392,7 +392,7 @@
             micro.scale, location.number, 
             xmati, mkte, mkt, betawin, signal, dist.epsilon) 
 {
-  require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   i <- location.number
   sigmasq <- cov.pars[1]
   phi <- cov.pars[2]

@@ -28,7 +28,7 @@
     if(cov.model == "matern" & kappa == 0.5)
       cov.model <- "exponential"
   minimisation.function <- match.arg(minimisation.function)
-  if(is.R()) require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   ftau <- nugget
   fixtau <- fix.nugget
   coords <- as.matrix(coords)

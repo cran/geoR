@@ -5,9 +5,11 @@ boxcox.geodata          Box-Cox transformation for geodata objects
 boxcox                  The Box-Cox Transformed Normal Distribution
 ca20                    Calcium content in soil samples
 cite.geoR               Citing Package geoR in Publications
+coords2coords           Operations on Coordinates
 coords.aniso            Geometric Anisotropy Correction
 cov.spatial             Computes Value of the Covariance Function
 elevation               Surface Elevations
+gambia                  Gambia Malaria Data
 geoR-defunct            Defunct Functions in the Package geoR
 grf                     Simulation of Gaussian Random Fields
 hist.krige.bayes        Plots Sample from Posterior Distributions

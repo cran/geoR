@@ -159,7 +159,7 @@
             sqrt.inv = FALSE, try.another.decomposition = TRUE,
             only.inv.lower.diag = FALSE) 
 {
-  if (is.R()) require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   ##
 ##  op.sem <- options()$show.error.message
 ##  options(show.error.message = FALSE)

@@ -9,8 +9,8 @@
        unit.angle = c("radians","degrees"), 
        messages, ...) 
 {
-  require(mva)
-  require(modreg)
+  if(! "package:stats" %in% search()) require(mva)
+  if(! "package:stats" %in% search()) require(modreg)
   call.fc <- match.call()
   if(missing(messages))
     messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))
@@ -245,7 +245,7 @@
       }
     }
     if (option == "smooth") {
-      require(modreg)
+      if(! "package:stats" %in% search()) require(modreg)
       if (is.matrix(v)) stop("smooth not yet available for more than one data-set")
       temp <- ksmooth(u, v, ...)
       result <- list(u = temp[[1]], v = temp[[2]])
@@ -281,7 +281,7 @@
             unit.angle = c("radians", "degrees"),
             messages, ...) 
 {
-  require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   if(missing(messages))
     messages.screen <- ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages"))

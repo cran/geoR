@@ -148,7 +148,7 @@
     ## minimisation using "nls"
     ##
     if (minimisation.function == "nls") {
-      require(nls)
+      if(! "package:stats" %in% search()) require(nls)
       if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
       if(kappa == 0) kappa <- 0.5
       if(cov.model == "power") Tphi.ini <- log(ini.cov.pars[2]/(2-ini.cov.pars[2])) 
