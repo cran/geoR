@@ -220,7 +220,7 @@
       attr(results, "yspacing") <- yspacing
     }
   }
-  class(results) <- c("grf", "geodata")
+  class(results) <- c("grf", "geodata", "variomodel")
   return(results)
 }
 
@@ -268,7 +268,7 @@
   return(x)
 }
 
-"lines.grf" <-
+"lines.variomodel.grf" <-
   function (x, max.dist = max(dist(x$coords)), length = 100, 
             lwd = 2, ...) 
 {
@@ -357,7 +357,7 @@
 }
 
 "plot.grf" <-
-  function (x, model.line = TRUE, plot.locations = FALSE, ylim="default", ...) 
+  function (x, model.line = TRUE, plot.locations = FALSE, ...) 
 {
   nsim <- ncol(x$data)
   if (plot.locations){

@@ -1372,8 +1372,7 @@ function(phi.lambda, ...)
 
 "plot.proflik" <-
   function(x, pages = c("user", "one", "two"),
-           uni.only = FALSE, bi.only = FALSE,
-           type.bi = c("contour", "persp"),
+           uni.only, bi.only, type.bi = c("contour", "persp"),
            conf.int = c(0.90000000000000002,0.94999999999999996),
            yaxis.lims = c("conf.int", "as.computed"),
            by.col = TRUE, log.scale = FALSE, use.splines = TRUE,
@@ -1392,22 +1391,40 @@ function(phi.lambda, ...)
   par(ask = ask)
   on.exit(par(ask = parask))  
   ##
-  pages <- match.arg(pages)
-  if(all(is.character(yaxis.lims)))
-    yaxis.lims <- match.arg(yaxis.lims)
-  type.bi <- match.arg(type.bi)
+  ## Checking whether to plot 1D and/or 2D profiles
+  ##
+  if(missing(uni.only)){
+    if(x$n.bi == 0) uni.only <- TRUE
+    else uni.only <- FALSE
+  }
+  if(missing(bi.only)){
+    if(x$n.uni == 0) bi.only <- TRUE
+    else bi.only <- FALSE
+  }
+  if(!is.logical(uni.only))
+    stop("argument uni.only must be logical (TRUE or FALSE)")
+  if(!is.logical(bi.only))
+    stop("argument bi.only must be logical (TRUE or FALSE)")
   n.uni <- x$n.uni
   n.bi <- x$n.bi
-  if(n.bi == 0)
-    uni.only <- TRUE
   if((uni.only == FALSE) & (bi.only == FALSE))
     np <- n.uni + n.bi
   if((uni.only == TRUE) & (bi.only == FALSE))
     np <- n.uni
   if((uni.only == FALSE) & (bi.only == TRUE))
     np <- n.bi
-  if(n.uni==0 & np > 0) bi.only <- TRUE
-  if(n.bi==0 & np > 0) uni.only <- TRUE
+  if(n.uni == 0 & np > 0) bi.only <- TRUE
+  if(n.bi == 0 & np > 0) uni.only <- TRUE
+  ##
+  ##
+  ##
+  if(all(is.character(yaxis.lims)))
+    yaxis.lims <- match.arg(yaxis.lims)
+  type.bi <- match.arg(type.bi)
+  ##
+  ## Definig number of pages to place the plots
+  ##
+  pages <- match.arg(pages)
   if(pages == "one") {
     if(np >= 1 & np < 4)
       par(mfrow = c(np, 1))
@@ -1422,7 +1439,10 @@ function(phi.lambda, ...)
       par(mfrow = c(n.uni, 1))
     if(n.uni >= 4)
       par(mfrow = c(ceiling(n.uni/2), 2))
-  }     
+  }
+  ##
+  ##
+  ##
   if(bi.only == FALSE) {
     for(i in 1:n.uni) {
       if(x$method.lik == "ML")

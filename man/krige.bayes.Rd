@@ -330,9 +330,12 @@ post2prior(obj)
 }
 
 
-\seealso{\code{\link{lines.krige.bayes}},
+\seealso{\code{\link{lines.variomodel.krige.bayes}},
+  \code{\link{plot.krige.bayes}} for outputs related to the
+  parameters in the model,
   \code{\link{image.krige.bayes}} and
-  \code{\link{persp.krige.bayes}} for graphical output of the results.  
+  \code{\link{persp.krige.bayes}} for graphical output of
+  prediction results.  
   \code{\link{krige.conv}} and
   \code{\link{ksline}} for conventional kriging methods.
 }
@@ -347,7 +350,7 @@ ex.data <- grf(50, cov.pars=c(10, .25))
 ex.grid <- as.matrix(expand.grid(seq(0,1,l=21), seq(0,1,l=21)))
 #
 # computing posterior and predictive distributions
-# (warning: this can take some time to run)
+# (warning: the next command can be time demanding)
 ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  prior.control(phi.discrete=seq(0, 2, l=21)))
 #
@@ -358,14 +361,24 @@ plot(ex.bayes, type="h", tausq.rel = FALSE, col=c("red", "blue"))
 par(mfrow=c(2,1))
 hist(ex.bayes)
 par(mfrow=c(1,1))
-#
-# Plotting empirical variograms and some Bayesian estimates
-plot(ex.data)
-# adding lines with fitted variograms
-lines(ex.bayes)
-lines(ex.bayes, summ="median", lty=2)
-lines(ex.bayes, summ="mean", lwd=2, lty=2)
-#
+
+# Plotting empirical variograms and some Bayesian estimates:
+# Empirical variogram
+plot(variog(ex.data, max.dist = 1), ylim=c(0, 15))
+# Since ex.data is a simulated data we can plot the line with the "true" model 
+lines(ex.data)
+# adding lines with summaries of the posterior of the binned variogram
+lines(ex.bayes, summ = mean, lwd=1, lty=2)
+lines(ex.bayes, summ = median, lwd=2, lty=2)
+# adding line with summary of the posterior of the parameters
+lines(ex.bayes, summary = "mode", post = "parameters")
+
+# Plotting again the empirical variogram
+plot(variog(ex.data, max.dist=1), ylim=c(0, 15))
+# and adding lines with median and quantiles estimates
+my.summary <- function(x){quantile(x, prob = c(0.05, 0.5, 0.95))}
+lines(ex.bayes, summ = my.summary, ty="l", lty=c(2,1,2), col=1)
+
 # Plotting some prediction results
 op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
@@ -393,10 +406,10 @@ ex.bayes <- krige.bayes(ex.data, loc=ex.grid, prior =
                  tausq.rel.discrete=seq(0, 2, l=3)),
                  output=output.control(n.post=100))
 plot(ex.data)
-lines(ex.bayes)
+lines(ex.bayes, sum = mean)
 plot(ex.bayes)
-lines(ex.bayes, summ="median", lty=2)
-lines(ex.bayes, summ="mean", lwd=2, lty=2)
+lines(ex.bayes, summ="median", lty=2, post="par")
+lines(ex.bayes, summ="mean", lwd=2, lty=2, post="par")
 op <- par(no.readonly = TRUE)
 par(mfrow=c(2,2))
 par(mar=c(3,3,1,1))

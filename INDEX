@@ -19,19 +19,27 @@ ksline                  Spatial Prediction -- Conventional Kriging
 legend.krige            Add a legend to a image with kriging results
 likfit                  Likelihood Based Parameter Estimation for
                         Gaussian Random Fields
-lines.grf               Lines with True Variogram for Simulated Data
-lines.krige.bayes       Add a (Bayesian) Estimated Variogram to a Plot
+lines.variomodel.krige.bayes
+                        Adds a Bayesian Estimate of the Variogram to a
+                        Plot
 lines.variogram         Line with a Empirical Variogram
 lines.variogram.envelope
                         Adds Envelopes Lines to a Variogram Plot
-lines.variomodel        Line with a Variogram Model
+lines.variomodel        Adds a Line with a Variogram Model to a
+                        Variogram Plot
+lines.variomodel.grf    Lines with True Variogram for Simulated Data
+lines.variomodel.likGRF
+                        Adds a Variogram Line to a Variogram Plot
+lines.variomodel.variofit
+                        Adds a Line with a Fitted Variogram Model to a
+                        Variogram Plot
 locations.inside        select prediction locations inside borders
 loglik.GRF              Log-Likelihood for a Gaussian Random Field
 matern                  Computer Values of the Matern Correlation
                         Function
 nlmP                    Adapts nlm for Constraints in the Parameter
                         Values
-output.control          Defines output options 
+output.control          Defines output options for prediction functions 
 parana                  Rainfall Data from Parana State, Brasil
 plot.geodata            Exploratory Geostatistical Plots
 plot.grf                Plots Variograms for Simulated Data

@@ -14,7 +14,7 @@
 
 \usage{
 \method{plot}{krige.bayes}(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
-                 type=c("bars", "h", "l", "b", "o", "p"), thin, ...)
+                 type=c("bars", "h", "l", "b", "o", "p"), thin, \dots)
 
 }
 
@@ -65,7 +65,7 @@
 }
 
 \examples{
-## See documentation for krige.bayes
+## See examples in the documentation of the function krige.bayes
 }
 
 \keyword{spatial}

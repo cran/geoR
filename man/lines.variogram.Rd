@@ -12,7 +12,7 @@
 
 \usage{
 \method{lines}{variogram}(x, max.dist, type = "o",  scaled = FALSE,
-         pts.range.cex, ...)
+         pts.range.cex, \dots)
 }
 
 \arguments{

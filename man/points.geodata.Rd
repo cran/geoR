@@ -19,7 +19,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                            "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
                cex.max, pch.seq, col.seq, add.to.plot = FALSE,
-               round.quantiles = FALSE, graph.pars = FALSE, ...)
+               round.quantiles = FALSE, graph.pars = FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

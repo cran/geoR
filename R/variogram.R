@@ -3,7 +3,7 @@
             uvec = "default", trend = "cte", lambda = 1,
             option = c("bin", "cloud", "smooth"),
             estimator.type = c("classical", "modulus"), 
-            nugget.tolerance, max.dist = NULL, pairs.min = 2,
+            nugget.tolerance, max.dist, pairs.min = 2,
             bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
             unit.angle = c("radians","degrees"),
             messages.screen = TRUE, ...) 
@@ -121,9 +121,9 @@
     u.ang[u.ang < 0] <- u.ang[u.ang < 0] + pi
   }
   if (option == "bin" && bin.cloud == FALSE && direction == "omnidirectional") {
-    if (!is.null(max.dist)) 
-      umax <- max(u[u < max.dist])
-    else umax <- max(u)
+    if (missing(max.dist)) 
+      umax <- max(u)  
+    else umax <- max(u[u < max.dist])
     if (all(uvec == "default")) 
       uvec <- seq(0, umax, l = 13)
     if (is.numeric(uvec) & length(uvec) == 1) 
@@ -140,7 +140,7 @@
     uvec <- c(0, (bins.lim[-(1:2)] - 0.5 * diff(bins.lim)[-1]))
     ##    }
     nbins <- length(bins.lim) - 1
-    if (is.null(max.dist)) 
+    if (missing(max.dist)) 
       max.dist <- max(bins.lim)
     if(bins.lim[1] < 1e-16) bins.lim[1] <- -1
     bin.f <- function(data) {
@@ -184,7 +184,7 @@
         v[, i] <- v[, i,drop=FALSE]^(0.5)
       else v[, i] <- (v[, i,drop=FALSE]^2)/2
     }
-    if (!is.null(max.dist)) {
+    if (!missing(max.dist)) {
       v <- v[u <= max.dist,,drop=FALSE]
       if(direction != "omnidirectional")
         u.ang <- u.ang[u <= max.dist]
@@ -209,9 +209,9 @@
       result <- list(u = u, v = v)
     }
     if (option == "bin") {
-      if (!is.null(max.dist)) 
-        umax <- max(u[u < max.dist])
-      else umax <- max(u)
+      if (missing(max.dist)) 
+        umax <- max(u)
+      else umax <- max(u[u < max.dist]) 
       result <- rfm.bin(cloud = list(u = u, v = v),
                         estimator.type = estimator.type, 
                         uvec = uvec, nugget.tolerance = nugget.tolerance, 
@@ -255,8 +255,10 @@
       temp <- ksmooth(u, v, ...)
       result <- list(u = temp[[1]], v = temp[[2]])
     }
+    if(missing(max.dist))
+      max.dist <- max(u)
   }
-  result <- c(result, list(var.mark = data.var, output.type = option, 
+  result <- c(result, list(var.mark = data.var, output.type = option, max.dist = max.dist, 
                            estimator.type = estimator.type, n.data = n.data,
                            lambda = lambda, trend = trend))
   result$nugget.tolerance <- nugget.tolerance
@@ -758,7 +760,75 @@
 }
 
 "lines.variomodel" <-
-  function (x, max.dist, scaled = FALSE,...)
+  function (x, ...)
+{
+  UseMethod("lines.variomodel")
+}
+
+"lines.variomodel.default" <-
+  function (x, cov.model, cov.pars, nugget, kappa,
+            max.dist, scaled = FALSE, ...)
+{
+  ## reading model/other components
+  if(missing(cov.model)){
+    if(missing(x) || is.null(x$cov.model)) 
+      stop("argument cov.model must be provided")
+    else cov.model <- x$cov.model
+  }
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian",
+                           "spherical", "circular", "cubic", "wave",
+                           "power", "powered.exponential", "cauchy",
+                           "gneiting", "gneiting.matern", "pure.nugget"))
+  if(missing(cov.pars)){
+    if(missing(x) || is.null(x$cov.pars)) 
+      stop("argument cov.pars must be provided")
+    else cov.pars <- x$cov.pars
+  }
+  if(missing(nugget)){
+    if(missing(x) || is.null(x$nugget)) 
+      stop("argument nugget must be provided")
+    else nugget <- x$nugget
+  }
+  if (cov.model == "matern" | cov.model == "powered.exponential" | 
+      cov.model == "cauchy" | cov.model == "gneiting-matern"){
+    if(missing(kappa)){
+      if(missing(x) || is.null(x$kappa)) 
+        stop("argument kappa must be provided")
+      else kappa <- x$kappa
+    }
+  }
+  else kappa <- 0.5
+  if(missing(max.dist)){
+    if(missing(x) || is.null(x$max.dist)) 
+      stop("argument max.dist must be provided")
+    else max.dist <- x$max.dist
+  }
+  ## computing the total sill for single or nested model 
+  if (is.vector(cov.pars)) 
+    sill.total <- nugget + cov.pars[1]
+  else sill.total <- nugget + sum(cov.pars[, 1])
+  ## checking whether to scale the variogram 
+  if (scaled){
+    if(is.vector(cov.model))
+      cov.pars[1] <-  cov.pars[1]/sill.total
+    else cov.pars[,1] <-  cov.pars[,1]/sill.total
+    sill.total <- 1
+  }
+  ## defining a function to plot the variogram curve
+  gamma.f <- function(x)
+    return(sill.total -
+           cov.spatial(x, cov.model = cov.model,
+                       kappa = kappa,
+                       cov.pars = cov.pars))
+  ## ploting the curve
+  curve(gamma.f(x), from=0, to=max.dist, add=TRUE, ...)
+  return(invisible())
+}
+
+"lines.variomodel.variofit" <-
+  "lines.variomodel.likGRF" <-
+  function (x, max.dist, scaled = FALSE, ...)
 {
   my.l <- list()
   if(missing(max.dist)){
@@ -786,10 +856,11 @@
   gamma.f <- function(x, my.l)
     {
       return(my.l$sill.total -
-             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
+             cov.spatial(x, cov.model = my.l$cov.model,
+                         kappa = my.l$kappa,
                          cov.pars = my.l$cov.pars))
     }
-  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
+  curve(gamma.f(x,my.l=my.l), from=0, to=my.l$max.dist, add=TRUE, ...)
   return(invisible())
 }
 

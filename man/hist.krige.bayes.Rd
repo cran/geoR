@@ -12,7 +12,7 @@
 }
 
 \usage{
-\method{hist}{krige.bayes}(x, pars, density.est = TRUE, histogram = TRUE, ...)
+\method{hist}{krige.bayes}(x, pars, density.est = TRUE, histogram = TRUE, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.

@@ -1,6 +1,6 @@
-\name{lines.grf}
+\name{lines.variomodel.grf}
 
-\alias{lines.grf}
+\alias{lines.variomodel.grf}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -13,8 +13,8 @@
 }
 
 \usage{
-\method{lines}{grf}(x, max.dist = max(dist(obj$coords)), length = 100,
-          lwd = 2, ...)
+\method{lines.variomodel}{grf}(x, max.dist = max(dist(obj$coords)),
+length = 100, lwd = 2, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -26,7 +26,7 @@
   \item{length}{number of points used to compute and draw the variogram line.}
   \item{lwd}{width of the line.  }
   \item{\dots}{further arguments to be passed to the function
-    \code{\link{lines}}.  }
+    \code{\link{curve}}.  }
 }
 
 %\details{
@@ -51,7 +51,8 @@
 %\note{ ~~further notes~~ }
 
 
-\seealso{\code{\link{grf}}, \code{\link{plot.grf}}, \code{\link{lines}}.}
+\seealso{\code{\link{lines.variomodel}},
+  \code{\link{grf}}, \code{\link{plot.grf}}, \code{\link{curve}}.}
 
 \examples{
 sim <- grf(100, cov.pars=c(1, .25)) # simulates data

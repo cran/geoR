@@ -14,7 +14,7 @@
   function (vario, ini.cov.pars, cov.model = "matern",
             fix.nugget = FALSE, nugget = 0, 
             fix.kappa = TRUE, kappa = 0.5,
-            simul.number = NULL,  max.dist = "all",
+            simul.number = NULL,  max.dist = vario$max.dist,
             weights = c("npairs", "equal", "cressie"),
             minimisation.function,
             messages.screen = TRUE, ...) 
@@ -47,12 +47,14 @@
   ##
   ## Setting maximum distance
   ##
-  if (max.dist == "all") 
+  if(!is.numeric(max.dist) || length(max.dist) > 1)
+    stop("a single numerical value must be provided in the argument max.dist") 
+  if (max.dist == vario$max.dist) 
     XY <- data.frame(u = vario$u, v = vario$v, n=vario$n)
   else
     XY <- data.frame(u = vario$u[vario$u <= max.dist],
                      v = vario$v[vario$u <= max.dist],
-                     n = vario$v[vario$u <= max.dist])
+                     n = vario$n[vario$u <= max.dist])
   ##
   ##  Checking initial values
   ##
@@ -240,7 +242,7 @@
   ##
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
-                     trend = vario$trend, max.dist = max(vario$u),
+                     trend = vario$trend, max.dist = max.dist,
                      minimisation.function = minimisation.function)
   if(exists("hess")) estimation$hessian <- hess
   estimation$weights <- weights
@@ -251,7 +253,7 @@
   estimation$lambda <- vario$lambda
   estimation$call <- call.fc
   estimation$message <- message
-  class(estimation) <- "variomodel"
+  class(estimation) <- c("variomodel", "variofit")
   return(estimation)
 }
 

@@ -15,7 +15,7 @@
 \method{plot}{xvalid}(x, coords, borders = NULL, ask = TRUE,
             error = TRUE, std.error = TRUE, data.predicted = TRUE,
             pp = TRUE, map = TRUE, histogram = TRUE,
-            error.predicted = TRUE, error.data = TRUE, ...)
+            error.predicted = TRUE, error.data = TRUE, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.

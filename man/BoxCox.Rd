@@ -18,13 +18,13 @@
 }
 
 \usage{
-boxcox.fit(data, xmat, lambda, lambda2 = FALSE, add.to.data = 0,...)
+boxcox.fit(data, xmat, lambda, lambda2 = FALSE, add.to.data = 0,\dots)
 
-print.boxcox.fit(x, ...)
+print.boxcox.fit(x, \dots)
 
-plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$data), ...)
+plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$data), \dots)
 
-lines.boxcox.fit(x, data = eval(x$call$data), ...)
+lines.boxcox.fit(x, data = eval(x$call$data), \dots)
 
 rboxcox(n, lambda, lambda2 = NULL, mean = 0, sd = 1)
 

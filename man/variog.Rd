@@ -21,10 +21,10 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
        uvec = "default", trend = "cte", lambda = 1, 
        option = c("bin", "cloud", "smooth"), 
        estimator.type = c("classical", "modulus"), 
-       nugget.tolerance = 0, max.dist = NULL, pairs.min = 2, 
+       nugget.tolerance = 0, max.dist, pairs.min = 2, 
        bin.cloud = FALSE, direction = "omnidirectional",
        tolerance = pi/8, unit.angle = c("radians", "degrees"),
-       messages.screen = TRUE, ...) 
+       messages.screen = TRUE, \dots) 
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -68,8 +68,8 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   \item{max.dist}{a numerical value defining the maximum distance for
     the variogram. Pairs of locations
     separated for distance larger than this value are ignored for the
-    variogram calculation. Defaults to the maximum distance among the pairs
-    of data locations.  }
+    variogram calculation. If not provided defaults takes the maximum
+    distance among all pairs of data locations.  }
   \item{pairs.min}{a integer number defining the minimum numbers of
     pairs for the bins.
     For \code{option = "bin"},
@@ -104,14 +104,15 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
   The two estimators currently implemented are:
   \itemize{
     \item \emph{classical} (method of moments) estimator:
-    \deqn{\gamma(h) = \frac{1}{N_h} \sum_{i=1}^{N_h}[Y(x_{(i+h)}) -
-      Y(x_i)]^2}{gamma(h) = (1/N_h) sum (Y(x_i+h) - Y(x_i))^2}
+    \deqn{\gamma(h) = \frac{1}{2N_h} \sum_{i=1}^{N_h}[Y(x_{(i+h)}) -
+      Y(x_i)]^2}{gamma(h) = (1/2N_h) sum (Y(x_i+h) - Y(x_i))^2}
 
     \item Hawkins and Cressie's \emph{modulus} estimator
-    \deqn{\gamma(h) = [\frac{1}{N_h} \sum_{i=1}^{N_h}|Y(x_{i+h}) -
-      Y(x_i)|^{\frac{1}{2}}]^4}{gamma(h) = ((1/N_h) sum |Y(x_(i+h)) -
-      Y(x_i)|^(1/2))^4}
-  }
+    \deqn{\gamma(h) = \frac{[\frac{1}{N_h}\sum_{i=1}^{N_h}|Y(x_{i+h}) -
+	Y(x_i)|^{\frac{1}{2}}]^4}{0.914 + \frac{0.988}{N_h}}}{\gamma(h)
+      = ([(1/N_h)\sum_{i=1}^{N_h} |Y(x_{i+h}) -
+	Y(x_i)|^(1/2)]^4)/(0.914 + (0.988/N_h))}
+      }
 
 
   \bold{Defining the bins}
@@ -173,6 +174,8 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     \code{pairs.min}.  }
   \item{var.mark }{variance of the data.  }
   \item{output.type }{echoes the \code{option} argument.  }
+  \item{max.dist}{maximum distance between pairs allowed in the
+    variogram calculations.}
   \item{estimator.type }{echoes the type of estimator used.  }
   \item{n.data }{number of data.  }
   \item{lambda}{value of the transformation parameter.  }

@@ -58,7 +58,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
         rangenugget.rel.values = FALSE, silllambda.values = FALSE,
         rangelambda.values = TRUE,  nuggetlambda.values = FALSE,
         nugget.rellambda.values = FALSE,
-        uni.only = TRUE, bi.only = FALSE, ...)
+        uni.only = TRUE, bi.only = FALSE, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.

@@ -12,9 +12,9 @@
 variofit(vario, ini.cov.pars, cov.model = "matern",
          fix.nugget = FALSE, nugget = 0,
          fix.kappa = TRUE, kappa = 0.5,
-         simul.number = NULL, max.dist = "all",
+         simul.number = NULL, max.dist = vario$max.dist,
          weights = c("npairs", "equal", "cressie"),
-         minimisation.function, messages.screen = TRUE, ...)
+         minimisation.function, messages.screen = TRUE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

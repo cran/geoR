@@ -10,7 +10,7 @@
 }
 
 \usage{
-\method{plot}{grf}(x, model.line = TRUE, plot.locations = FALSE, ylim = "default", ...)
+\method{plot}{grf}(x, model.line = TRUE, plot.locations = FALSE, \dots)
 }
 
 
@@ -21,8 +21,6 @@
     plot with the sample variogram(s).  }
   \item{plot.locations}{logical. If \code{TRUE} a plot with data locations is
     also shown.  }
-  \item{ylim}{limits for the y-axis. The default is the maximum value of
-    the variogram among all of the simulations.  }
   \item{\dots}{further arguments to be passed to the functions
     \code{\link{variog}} and \code{\link{plot}}.  }
 }

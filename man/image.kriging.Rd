@@ -15,9 +15,9 @@
 \usage{
 \method{image}{kriging}(x, locations, borders, values = obj$predict,
               coords.data, x.leg, y.leg, cex.leg = 0.75,
-              vertical = FALSE, ...)
+              vertical = FALSE, \dots)
 
-persp.kriging(x, locations, borders, values = obj$predict, ...)
+persp.kriging(x, locations, borders, values = obj$predict, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.

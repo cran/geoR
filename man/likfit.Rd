@@ -22,7 +22,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        cov.model = "matern", realisations,
        method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = likfit.limits(),
-       print.pars = FALSE, messages.screen = TRUE, ...)
+       print.pars = FALSE, messages.screen = TRUE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -225,8 +225,12 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     or \code{"REML"} (restricted maximum likelihood).  }
   \item{loglik}{the value of the maximized likelihood.  }
   \item{npars}{number of estimated parameters.  }
-  \item{AIC}{value of the Akaike information criteria.  }
-  \item{BIC}{value of the Bayesian information criteria.  }
+  \item{AIC}{value of the Akaike Information Criteria, \eqn{AIC=-2
+      ln(L) + 2 p} where \eqn{L} is the maximised likelihood and p is
+    the number of parameters in the model.  }
+  \item{BIC}{value of the Bayesian Information Criteria,
+    \eqn{BIC=-2ln(L) + p log(n)}, where \eqn{n} is the number of data,
+      \eqn{L,p} as for AIC above.  }
   \item{parameters.summary}{a data-frame with all model parameters,
     their status (estimated or fixed) and values.  }
   \item{info.minimisation}{results returned by the minimisation function.}

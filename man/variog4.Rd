@@ -13,7 +13,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
         nugget.tolerance = 0, max.dist = NULL, pairs.min = 2,
         bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4),
         tolerance = pi/8, unit.angle = c("radians", "degrees"),
-        messages.screen = TRUE, ...)
+        messages.screen = TRUE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

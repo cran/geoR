@@ -30,7 +30,7 @@
   kb <- list(posterior = list(beta=list(), sigmasq=list(),
                phi=list(), tausq.rel=list()),
              predictive=list(mean = NULL, variance = NULL, distribution = NULL))
-  class(kb$posterior) <- "posterior.krige.bayes"
+  class(kb$posterior) <- c("posterior.krige.bayes", "variomodel")
   class(kb$predictive) <- "predictive.krige.bayes"
   pred.env <- new.env()
   ##
@@ -1031,53 +1031,10 @@
   attr(kb, "prediction.locations") <- call.fc$locations
   if(!is.null(call.fc$borders))
     attr(kb, "borders") <- call.fc$borders
-  class(kb) <- c("krige.bayes", "kriging")
+  class(kb) <- c("krige.bayes", "kriging", "variomodel")
   if(messages.screen)
     cat("krige.bayes: done!\n")
   return(kb)
-}
-
-
-"lines.krige.bayes" <- 
-  function(x, max.dist,
-           summary.posterior = c("mode", "median", "mean"), ...)
-{
-  my.l <- list()
-  if(missing(max.dist)){
-    my.l$max.dist <- x$max.dist
-    if (is.null(my.l$max.dist) | !is.numeric(my.l$max.dist)) 
-      stop("numerical argument max.dist needed for this object")
-  }
-  else my.l$max.dist <- max.dist
-  spost <- match.arg(summary.posterior)
-  if(is.null(x$call$cov.model))
-    my.l$cov.model <- "exponential"
-  else {
-    my.l$cov.model <- x$call$cov.model
-    if(x$call$cov.model == "matern" | x$call$cov.model == "powered.exponential" | x$
-       call$cov.model == "cauchy" | x$call$cov.model == "gneiting-matern")
-      my.l$kappa <- x$call$kappa
-    else my.l$kappa <- NULL
-  }
-  if(spost == "mode")
-    spost1 <- "mode.cond"
-  else spost1 <- spost
-  my.l$cov.pars <- c(x$posterior$sigmasq$summary[spost1],
-                     x$posterior$phi$summary[spost])
-  names(my.l$cov.pars) <- NULL
-  if(is.numeric(x$posterior$tausq.rel$summary))
-    nugget <- x$posterior$tausq.rel$summary[spost] * my.l$cov.pars[1]
-  else nugget <- 0
-  names(nugget) <- NULL
-  my.l$sill.total <- nugget + my.l$cov.pars[1]
-  gamma.f <- function(x, my.l)
-    {
-      return(my.l$sill.total -
-             cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
-                         cov.pars = my.l$cov.pars))
-    }
-  curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
-  return(invisible())
 }
 
 "prepare.graph.krige.bayes" <-
@@ -2146,5 +2103,75 @@
       if(density.est) plot(plD, xlab=xl, ...)
   }
   return(invisible(res))
+}
+
+"lines.variomodel.krige.bayes" <- 
+  function(x, summary.posterior, max.dist, uvec,
+           posterior = c("variogram", "parameters"),  ...)
+{
+  my.l <- list()
+  ##
+  ## Setting the maximum distance to compute the variogram
+  ##
+  if(missing(max.dist)){
+    my.l$max.dist <- x$max.dist
+    if (is.null(my.l$max.dist) | !is.numeric(my.l$max.dist)) 
+      stop("a numerical value must be provided to the argument max.dist")
+  }
+  else my.l$max.dist <- max.dist
+  ##
+  ## picking the variogram model
+  ##
+  if(is.null(x$call$cov.model))
+    my.l$cov.model <- "exponential"
+  else {
+    my.l$cov.model <- x$call$cov.model
+    if(x$call$cov.model == "matern" | x$call$cov.model == "powered.exponential" |
+       x$call$cov.model == "cauchy" | x$call$cov.model == "gneiting-matern")
+      my.l$kappa <- x$call$kappa
+    else my.l$kappa <- NULL
+  }
+  ##
+  if(is.function(summary.posterior)) spost <- post.fc <- summary.posterior
+  else spost <- match.arg(summary.posterior, choices = c("mode", "median", "mean"))
+  ##
+  if(!is.null(x$posterior$sample) & posterior == "variogram"){
+    if(!is.function(spost))
+      stop("summary.posterior must be a function when posterior = \"variogram\"")
+    if(missing(uvec)) my.l$uvec <- seq(0, my.l$max.dist, l=51)
+    calc.vario <- function(x, info = my.l){
+      return((x[1] * (1 + x[3])) -
+             cov.spatial(info$uvec, cov.model = my.l$cov.model, kappa = my.l$kappa, cov.pars = x[1:2]))
+    }
+    post.vario <- apply(x$posterior$sample[c("sigmasq","phi","tausq.rel")], 1, calc.vario)
+    gamma.post <- drop(apply(post.vario, 1, post.fc))
+    if(is.vector(gamma.post))
+      lines(my.l$uvec, gamma.post, ...)
+    else
+      matplot(my.l$uvec, t(gamma.post), add = TRUE, ...)
+  }
+  else{
+    if(is.function(spost))
+      stop("summary.posterior must be one of \"mean\", \"median\" or \"mode\" when posterior = \"parameters\"")
+    if(spost == "mode")
+      spost1 <- "mode.cond"
+    else spost1 <- spost
+    my.l$cov.pars <- c(x$posterior$sigmasq$summary[spost1],
+                       x$posterior$phi$summary[spost])
+    names(my.l$cov.pars) <- NULL
+    if(is.numeric(x$posterior$tausq.rel$summary))
+      nugget <- x$posterior$tausq.rel$summary[spost] * my.l$cov.pars[1]
+    else nugget <- 0
+    names(nugget) <- NULL
+    my.l$sill.total <- nugget + my.l$cov.pars[1]
+    gamma.f <- function(x, my.l)
+      {
+        return(my.l$sill.total -
+               cov.spatial(x, cov.model = my.l$cov.model, kappa = my.l$kappa,
+                           cov.pars = my.l$cov.pars))
+      }
+    curve(gamma.f(x,my.l=my.l), from = 0, to = my.l$max.dist, add=TRUE, ...)
+  }
+  return(invisible())
 }
 

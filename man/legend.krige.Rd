@@ -12,7 +12,7 @@
 
 \usage{
 legend.krige(x.leg, y.leg, values, scale.vals,
-             vertical = FALSE, ...)
+             vertical = FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

@@ -19,7 +19,7 @@
                             "mean.simulations", "variance.simulations",
                             "quantiles", "probabilities", "simulation"),
                   number.col, coords.data, x.leg, y.leg, cex.leg = 0.75,
-                  vertical = FALSE, ...)
+                  vertical = FALSE, \dots)
 
 
 
@@ -27,7 +27,7 @@
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
                        "quantiles", "probabilities", "simulation"),
-                  number.col, ...)
+                  number.col, \dots)
 }
 
 \arguments{

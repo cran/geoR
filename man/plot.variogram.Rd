@@ -13,7 +13,7 @@
 \usage{
 \method{plot}{variogram}(x, max.dist, vario.col = "all", scaled = FALSE,
                var.lines = FALSE, envelope.obj = NULL,
-               pts.range.cex, bin.cloud = FALSE,  ...)
+               pts.range.cex, bin.cloud = FALSE,  \dots)
 }
 
 

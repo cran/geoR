@@ -21,7 +21,7 @@
 xvalid(geodata, coords = geodata$coords, data = geodata$data,
        model, reestimate = FALSE, variog.obj = NULL,
        output.reestimate = FALSE, locations.xvalid = "all",
-       data.xvalid = NULL, messages.screen = TRUE, ...)
+       data.xvalid = NULL, messages.screen = TRUE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 

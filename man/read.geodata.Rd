@@ -13,7 +13,9 @@
 \usage{
 read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
              data.names = NULL, covar.col = NULL,
-             covar.names = "header", realisations = NULL, ...)
+             covar.names = "header", realisations = NULL,
+             na.action = c("ifany", "ifdata", "ifcovar", "none"),
+             rep.data.action, rep.covar.action, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -36,6 +38,15 @@ read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
     used.  }
   \item{realisations}{optional. A vector indicating the replication
     number. For more details see documentation for
+    \code{\link{as.geodata}}.  }
+  \item{na.action}{a string. Defines action to be taken in the presence of
+    \code{NA}'s. For more details see documentation for
+    \code{\link{as.geodata}}.  }
+  \item{rep.data.action}{a string or a function. Defines action to be taken when there is more than
+    one data at the same location. For more details see documentation for
+    \code{\link{as.geodata}}.  }
+  \item{rep.covar.action}{a string or a function. Defines action to be taken when there is more than
+    one covariate at the same location. For more details see documentation for
     \code{\link{as.geodata}}.  }
   \item{\dots}{further arguments to be passed to the function \code{\link{read.table}}.  }
 }

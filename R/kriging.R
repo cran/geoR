@@ -75,7 +75,7 @@
   else{
     if(is.null(class(output)) || class(output) != "output.geoR"){
       if(!is.list(output))
-        stop("krige.conv: the argument output only takes a list or an output of the function output.control")
+        stop("krige.conv: the argument output can take only a list or an output of the function output.control")
       else{
         output.names <- c("n.posterior","n.predictive","moments","n.back.moments","simulations.predictive",
                           "mean.var","quantile","threshold","signal","messages.screen")
@@ -611,12 +611,18 @@
             add=TRUE, col=leg.l$col)    
   }
   else{
-    nc <- length(breaks) - 1
+                                        # recent bug(?) fix:
+                                        #    nc <- length(breaks) - 1
+    nc <- length(leg.l$breaks) - 1
     if(is.null(leg.l$col))
       leg.l$col <- heat.colors(nc)
+                                        # recent bug(?) fix:
+                                        #      image(x.leg, lags.x(xs=y.leg, nl=nc),
+                                        #          matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
+                                        #          add=TRUE, col=leg.l$col, breaks=leg.l$breaks)
     if(vertical)
       image(x.leg, lags.x(xs=y.leg, nl=nc),
-          matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
+          matrix(seq(v.r[1], v.r[2], l=nc), nrow=1),
           add=TRUE, col=leg.l$col, breaks=leg.l$breaks)
     else
       image(lags.x(xs=x.leg, nl=nc), y.leg,

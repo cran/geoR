@@ -10,7 +10,7 @@ constraints (upper and/or lower bounds) in the values of the parameters.
 }
 \usage{
 nlmP(objfunc, params, lower=rep(-Inf, length(params)),
-     upper=rep(+Inf, length(params)), ...)
+     upper=rep(+Inf, length(params)), \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

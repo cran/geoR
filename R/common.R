@@ -123,9 +123,12 @@
 "read.geodata" <-
   function(file, header = FALSE, coords.col= 1:2, data.col = 3,
            data.names = NULL, covar.col = NULL, covar.names = "header",
-           realisations = NULL, ...)
+           realisations = NULL,
+           na.action = c("ifany", "ifdata", "ifcovar"),
+           rep.data.action, rep.covar.action, ...)
 {
   call.fc <- match.call()
+  ##
   obj <- read.table(file = file, header = header, ...)
   if(covar.names == "header"){
     if(!is.null(covar.col)){
@@ -134,26 +137,47 @@
     }
     else covar.names <- NULL
   }
+  ##
+  if(missing(rep.data.action)) rep.data.action <- "none"
+  if(!is.function(rep.data.action))
+    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
+  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
+  if(!is.function(rep.covar.action))
+    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
+  ##
   res <- as.geodata(obj = obj, coords.col = coords.col, data.col = data.col,
-                    covar.col = covar.col, covar.names = covar.names)
+                    covar.col = covar.col, covar.names = covar.names,
+                    realisations = realisations, rep.data.action = rep.data.action,
+                    rep.covar.action = rep.covar.action)
   res$call <- call.fc
   return(res)
 }
 
 "as.geodata" <-
   function(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names", realisations = NULL)
+           covar.col = NULL, covar.names = "obj.names", realisations = NULL,
+           na.action = c("ifany", "ifdata", "ifcovar", "none"),
+           rep.data.action, rep.covar.action)
 {
   if(!is.matrix(obj) & !is.data.frame(obj))
     stop("object must be a matrix or data.frame")
   if(!is.null(data.names) & length(data.col) < 2)
     stop("data.names allowed only if there is more than 1 column of data")
   res <- list()
+  ##
+  ## setting the coordinates of the data locations
+  ##
   res$coords <- as.matrix(obj[,coords.col])
+  ##
+  ## setting the data
+  ##
   res$data <- as.matrix(obj[,data.col])
   if(length(data.col) == 1) res$data <- as.vector(res$data)
   else
     if(!is.null(data.names)) colnames(res$data) <- data.names
+  ##
+  ## setting the covariates, if the case 
+  ##
   if(!is.null(covar.col)){
     res[[3]] <- as.matrix(obj[,covar.col])
     if(covar.names == "obj.names"){
@@ -163,37 +187,102 @@
         col.names <- names(obj)
     }
     if(length(covar.col) == 1){
-      if(covar.names == "obj.names")
-        names(res)[3] <- col.names[covar.col]
+      if(covar.names == "obj.names"){
+        if(is.null(col.names)) names(res)[3] <- "covariate"
+        else names(res)[3] <- col.names[covar.col]
+      }
       else
         names(res)[3] <- covar.names
     }
     else{
-      names(res)[3] <- "covariates"
+      names(res)[3] <- "covariate"
       if(covar.names == "obj.names")
-        colnames(res[[3]]) <- col.names[covar.col]
+        if(is.null(col.names)) colnames(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
+        else  colnames(res[[3]]) <- col.names[covar.col]
       else
         colnames(res[[3]]) <- covar.names
     }
     res[[3]] <- as.data.frame(res[[3]])
   }
-  require(mva)
-  if(is.null(realisations)){
-    if(sum(dist(res$coords) < 1e-12) > 0)
-      cat("WARNING: there are data at coincident locations, some geoR functions will not work\n")
+  ##
+  ## Dealing with NA's
+  ##
+  if(na.action != "none"){
+    if(na.action == "ifany")
+      na.data <- na.covar <- TRUE
+    if(na.action == "ifdata")
+      {na.data <- TRUE; na.covar <- FALSE}
+    if(na.action == "ifcovar")
+      {na.data <- FALSE; na.covar <- TRUE}
+    not.na <- function(x) !any(is.na(x))
+    if(na.data){
+      ind <- apply(as.matrix(res$data), 1, not.na)
+      if(!all(ind)){
+        res$coords <- res$coords[ind,]
+        res$data <- drop(as.matrix(res$data)[ind,])
+        if(!is.null(covar.col))
+          res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+      }
+    }
+    if(!is.null(covar.col) && na.covar){
+      ind <- apply(as.matrix(res[[3]]), 1, not.na)
+      if(!all(ind)){
+        res$coords <- res$coords[ind,]
+        res$data <- drop(as.matrix(res$data)[ind,])
+        if(!is.null(covar.col))
+          res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+      }
+    }
   }
+  ##
+  ## Checking whether there are data from different realisations
+  ##
+  if(missing(rep.data.action)) rep.data.action <- "none"
+  if(!is.function(rep.data.action))
+    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
+  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
+  if(!is.function(rep.covar.action))
+    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
+  if(is.null(realisations)) realisations <- as.factor(rep(1, nrow(res$coords)))
   else{
     if(is.numeric(realisations) && length(realisations) == 1)
-      realisations <- obj[,realisations]
-    res$realisations <- as.factor(realisations)
-    if(length(res$realisations) != nrow(res$coords))
-      stop("realisations and coords have incompatible dimentions")
+      realisations <- as.factor(obj[,realisations])
+    res$realisations <- realisations
+  }
+  if(length(realisations) != nrow(res$coords))
+    stop("realisations and coords have incompatible dimensions")
+  ##
+  ## Checking whether there are data at coincident locations
+  ## and dealing with this acoording to the value of the argument
+  ## rep.data.action 
+  ##
+  require(mva)
+  if(is.function(rep.data.action) || rep.data.action == "first"){
+    rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
+    rep.dup <- duplicated(rep.lev)
+    res$coords <- res$coords[!rep.dup,]
+    measure.var.f <- function(x) return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
+    res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
+    rep.action.f <- function(x, rep.action){ 
+      if(!is.function(rep.action) && rep.action == "first")
+        return(x[!rep.dup])
+      else
+        return((as.vector(by(x, rep.lev, rep.action))[codes(factor(rep.lev))])[!rep.dup])
+    }
+    res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
+    if(!is.null(covar.col))
+      res[[3]] <- drop(apply(as.matrix(res[[3]]), 2, rep.action.f, rep.action=rep.covar.action))
+    if(!is.null(res$realisations))
+      res$realisations <- res$realisations[!rep.dup]
+  }
+  else{
     check.coincide <- function(x){sum(dist(x) < 1e-12) > 0}
     any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
     any.coincide <- as.vector(unlist(any.coincide))
     if(sum(any.coincide) > 0)
-      cat("WARNING: there are data at coincident locations within the same realisations, some of the geoR's functions will not work\n")      
+      cat("WARNING: there are data at coincident locations, some of the geoR's functions will not work.\n")
   }
+  ##
   class(res) <- "geodata"
   return(res)
 }

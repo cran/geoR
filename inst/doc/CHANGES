@@ -1,5 +1,57 @@
-	
-	
+		
+		=============================
+		CHANGES IN geoR VERSION 1.3-0
+		=============================
+
+NEW FEATURES
+   
+     o the file geoRintro.pdf is no longer included in the package 
+       distribution due to its size.
+       The file remain available on the web on html, ps and pdf formats
+
+     o lines.variomodel() is now a generic functions.
+       and the previous lines.variomodel moved to
+       lines.variomodel.default().
+       So far methods implemented for lines.variomodel.krige.bayes()
+       and lines.variomodel.grf()
+
+     o changes in lines.krige.bayes():
+       - lines.krige.bayes voced to lines.variomodel.krige.bayes().
+       - lines.variomodel.krige.bayes() now computes and plots 
+         summaries of the posterior for the variogram functions
+         as the default option. 
+       - The previous functionality using summaries of the posterior 
+          of the model parameters remains available as non-default.
+
+     o 	read.geodata() and as.geodata() have now options to deal 
+        with more that one data at the same location
+
+     o 	read.geodata() and as.geodata() have now options to deal 
+        with NA's
+
+     o 	read.geodata() and as.geodata() returns $m.var, 
+        the measurement variance when there is more than 
+        one data at the same location
+
+
+BUG FIXES
+ 
+     o AIC and BIC in likfit() now computed as:
+            AIC = 2log(L) + 2p
+            BIC = 2log(L) + p log(n)
+
+     o bug fix in plot.proflik() when 2D profiles not computed
+
+     o variog() now returns $max.dist which is used as default option in variofit()
+
+     o bug fix in weigths $n variofit() when max.dist was provided by the user
+
+     o documentation of variog(): fix in the equation of the variograms estimators
+
+     o bug fixes in legend.krige()
+
+
+
 		=============================
 		CHANGES IN geoR VERSION 1.2-8
 		=============================

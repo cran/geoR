@@ -11,8 +11,8 @@
   This function performs spatial prediction for fixed covariance
   parameters using global neighbourhood.
   
-  Available options implement the following kriging
-  types: \emph{SK} (simple kriging), \emph{OK} (ordinary kriging),
+  Options available implement the following types of kriging:
+  \emph{SK} (simple kriging), \emph{OK} (ordinary kriging),
   \emph{KTE} (external trend kriging) and \emph{UK} (universal kriging). 
   
 }
@@ -155,7 +155,8 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
-\seealso{\code{\link{image.kriging}} and \code{\link{persp.kriging}}
+\seealso{\code{\link{output.control}} sets output options,
+\code{\link{image.kriging}} and \code{\link{persp.kriging}}
   for graphical output of the results,
   \code{\link{krige.bayes}} for Bayesian prediction and \code{\link{ksline}}
   for a different implementation of kriging allowing for moving
@@ -164,13 +165,31 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 
 
 \examples{
-if(is.R()) data(s100) 
-loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
+if(is.R()) data(s100)
+# Defining a prediction grid
+loci <- expand.grid(seq(0,1,l=21), seq(0,1,l=21))
+# predicting by ordinary kriging
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
-par(mfrow=c(1,2))
+# mapping point estimates and variances
+par.ori <- par(no.readonly = TRUE)
+par(mfrow=c(1,2), mar=c(3.5,3.5,1,0), mgp=c(1.5,.5,0))
 image(kc, main="kriging estimates")
 image(kc, val=sqrt(kc$krige.var), main="kriging std. errors")
+# Now setting the output to simulate from the predictive
+# (obtaining conditional simulations),
+# and to compute quantile and probability estimators
+s.out <- output.control(n.predictive = 1000, quant=0.9, thres=2)
+kc <- krige.conv(s100, loc = loci,
+         krige = krige.control(cov.pars = c(1,.25)),
+         output = s.out)
+par(mfrow=c(2,2))
+image(kc, val=kc$sim[,1], main="a cond. simul.")
+image(kc, val=kc$sim[,1], main="another cond. simul.")
+image(kc, val=(1 - kc$prob), main="Map of P(Y > 2)")
+image(kc, val=kc$quant, main="Map of y s.t. P(Y < y) = 0.9")
+par(par.ori)
+#
 \testonly{
 loci <- expand.grid(seq(0,1,l=6), seq(0,1,l=6))
 kc <- krige.conv(s100, loc=loci,

@@ -15,7 +15,10 @@
 
 \usage{
 as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names", realisations = NULL)
+           covar.col = NULL, covar.names = "obj.names",
+           realisations = NULL,
+           na.action = c("ifany", "ifdata", "ifcovar", "none"),
+           rep.data.action, rep.covar.action)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -40,6 +43,24 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
     number of a number indicating a column in \code{obj} with the
     realisation indicatior.
     See \code{DETAILS} below.  }
+  \item{na.action}{string defining action to be taken in the presence of
+    \code{NA}'s. The default option \code{"ifany"} excludes all points
+    for which there are \code{NA}'s in the data or covariates. The option \code{"ifdata"} excludes points
+    for which there are \code{NA}'s in the data. The default option \code{"ifcovar"} excludes all points
+    for which there are \code{NA}'s in the covariates. The option
+    \code{"none"} do not exclude points.  }
+  \item{rep.data.action}{a string or a function. Defines action to be taken when there is more than
+    one data at the same location. The default option \code{"none"}
+    keeps the repeated locations, if any. The option \code{"first"} retains
+    only the first data recorded at each location. Alternativelly a
+    function can be passed and it will be used. For intance if
+    \code{mean} is provided, the function will compute and return the average of
+    the data at coincident locations.
+    The non-default
+    options will eliminate the repeated locations.  }
+  \item{rep.covar.action}{idem to \code{rep.data.locations}, to be applied to
+    the covariates, if any. Defaults to
+    the same option set for \code{rep.data.locations}. }
 }
 
 \details{
