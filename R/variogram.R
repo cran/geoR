@@ -57,8 +57,7 @@
   ##
   coords <- as.matrix(coords)
   data <- as.matrix(data)
-  if(nrow(coords) != nrow(data))
-    stop("coords and data have incompatible dimentions") 
+  if(nrow(coords) != nrow(data)) stop("coords and data have incompatible dimentions") 
   data.var <- apply(data, 2, var)
   n.data <- nrow(coords)
   n.datasets <- ncol(data)
@@ -72,8 +71,7 @@
   ## transformation
   ##
   if (abs(lambda - 1) > 0.0001) {
-    if (abs(lambda) < 0.0001) 
-      data <- log(data)
+    if (abs(lambda) < 0.0001) data <- log(data)
     else data <- ((data^lambda) - 1)/lambda
   }
   ##
@@ -286,7 +284,7 @@
             uvec = "default", trend = "cte", lambda = 1,
             option = c("bin", "cloud", "smooth"),
             estimator.type = c("classical", "modulus"), 
-            nugget.tolerance, max.dist = NULL, pairs.min = 2,
+            nugget.tolerance, max.dist, pairs.min = 2,
             bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
             unit.angle = c("radians", "degrees"), messages.screen = TRUE, ...) 
 {
@@ -301,23 +299,20 @@
   if(unit.angle == "radians")
     dg <- direction * 180/pi
   else dg <- direction
-  if (!is.null(max.dist)) 
-    umax <- max(u[u < max.dist])
-  else umax <- max(u)
+  if (missing(max.dist)) 
+    umax <- max(u)  
+  else umax <- max(u[u < max.dist])
   if (all(uvec == "default")) 
-    uvec <- seq(0, umax, l = 12)
+    uvec <- seq(0, umax, l = 13)
+  if (is.numeric(uvec) & length(uvec) == 1) 
+    uvec <- seq(0, umax, l = uvec)
   ubin <- c(0, uvec)
   nvec <- length(ubin)
   d <- 0.5 * diff(ubin[2:nvec])
-  bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 
-                                                2] + ubin[nvec]))
-  ##  if (uvec[1] == 0 & nugget.tolerance <= 1e-12) 
-  ##    uvec[1] <- (bins.lim[1] + bins.lim[2])/2
-  ##  if (nugget.tolerance > 1e-12) {
+  bins.lim <- c(0, (ubin[2:(nvec - 1)] + d), (d[nvec - 2] + ubin[nvec]))
   bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim > 
                                               nugget.tolerance])
   uvec <- c(0, (bins.lim[-(1:2)] - 0.5 * diff(bins.lim)[-1]))
-  ##  }
   u <- NULL
   for(angle in direction){
     res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-

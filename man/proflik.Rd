@@ -176,20 +176,24 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
 op <- par(no.readonly=TRUE)
 data(s100)
 ml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE)
-# a first atempt to find reasonable values for the x-axis:
+## a first atempt to find reasonable values for the x-axis:
 prof <- proflik(ml, s100, sill.values=seq(0.5, 1.5, l=4),
                 range.val=seq(0.1, .5, l=4))
 par(mfrow=c(1,2))
 plot(prof)
-# a nicer setting and now including 2-D profiles:
+## a nicer setting 
 \dontrun{
 prof <- proflik(ml, s100, sill.values=seq(0.45, 2, l=11),
-                range.val=seq(0.1, .55, l=11), uni.only=FALSE)
-par(mfrow=c(2,2))
-plot(prof, nlevels=16)
+                range.val=seq(0.1, .55, l=11))
+plot(prof)
+## to include 2-D profiles use:
+## (commented because this is time demanding)
+#prof <- proflik(ml, s100, sill.values=seq(0.45, 2, l=11),
+#                range.val=seq(0.1, .55, l=11), uni.only=FALSE)
+#par(mfrow=c(2,2))
+#plot(prof, nlevels=16)
 }
 par(op)
-
 }
 
 \keyword{spatial}

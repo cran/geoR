@@ -10,7 +10,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
         uvec = "default", trend = "cte", lambda = 1,
         option = c("bin", "cloud", "smooth"),
         estimator.type = c("classical", "modulus"),
-        nugget.tolerance = 0, max.dist = NULL, pairs.min = 2,
+        nugget.tolerance = 0, max.dist, pairs.min = 2,
         bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4),
         tolerance = pi/8, unit.angle = c("radians", "degrees"),
         messages.screen = TRUE, \dots)
@@ -28,12 +28,8 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   \item{data}{a vector or matrix with data values.
     If a matrix is provided, each column is regarded as one variable or realization.
     Defaults to \code{geodata$data}, if provided.}
-  \item{uvec}{a vector with values defining the variogram binning. Only
-    used when
-    \code{option = "bin"}. The values of \code{uvec} defines the mid-points of the bins.\cr
-    If \eqn{uvec[1] > 0} the first bin is: \eqn{0 < u <= uvec[2] - 0.5*(uvec[2] - uvec[1])}.\cr
-    If \eqn{uvec[1] = 0} first bin is: \eqn{0 < u <= 0.5*uvec[1]} and
-    \eqn{uvec[1]} is replaced by the midpoint of this interval.}
+  \item{uvec}{a vector with values defining the variogram binning. For
+    further details see documentation for \code{\link{variog}}.  } 
   \item{trend}{specifies the mean part of the model.
     The options are:
     \code{"cte"} (constant mean),

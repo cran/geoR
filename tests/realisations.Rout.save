@@ -13,16 +13,14 @@ Type `demo()' for some demos, `help()' for on-line help, or
 `help.start()' for a HTML browser interface to help.
 Type `q()' to quit R.
 
+> require(geoR)
+Loading required package: geoR 
 
 ------------------------------------------------
 geoR - functions for geostatistical data analysis
-geoR version 1.3-7 is now loaded
+geoR version 1.3-8 is now loaded
 ------------------------------------------------
 
-[Previously saved workspace restored]
-
-> invisible(options(echo = TRUE))
-> require(geoR)
 [1] TRUE
 > options(digits = 3, width = 80)
 > set.seed(18)
@@ -183,6 +181,4 @@ likfit: estimated model parameters:
 
 likfit: maximised log-likelihood = -130
 > ##
-> proc.time()
-[1] 30.22  0.44 30.64  0.00  0.00
 > 

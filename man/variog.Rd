@@ -115,7 +115,6 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
 	Y(x_i)|^(1/2)]^4)/(0.914 + (0.988/N_h))}
       }
 
-
   \bold{Defining the bins}
 
   \emph{The default}\cr

@@ -29,13 +29,17 @@
   n.cov.pars <- obj.likfit$npars - length(obj.likfit$beta)
   if(obj.likfit$transform.info$fix.lambda == FALSE)
     n.cov.pars <- n.cov.pars - 1
-  if(missing(sill.values)) sill.values <- FALSE
-  if(missing(range.values)) range.values <- FALSE 
+  if(missing(sill.values))
+    sill.values <- sillrange.values <- sillnugget.values <- FALSE
+  if(missing(range.values))
+    range.values <- sillrange.values <- rangenugget.values <- rangelambda.values <- FALSE 
   if(!is.null(obj.likfit$call$fix.nugget))
     if(obj.likfit$call$fix.nugget == TRUE)
       nugget.values <-  nugget.rel.values <- FALSE
-  if(missing(nugget.values)) nugget.values <- FALSE
-  if(missing(nugget.rel.values)) nugget.rel.values <- FALSE
+  if(missing(nugget.values))
+    nugget.values <- sillnugget.values <- rangenugget.values <- nuggetlambda.values <- FALSE
+  if(missing(nugget.rel.values))
+    nugget.rel.values <- sillnugget.rel.values <- rangenugget.rel.values <- nugget.rellambda.values <- FALSE
   if(missing(lambda.values) | obj.likfit$transform.info$fix.lambda) lambda.values <- FALSE  
   if(uni.only){
     sillrange.values <- sillnugget.values <- rangenugget.values <-
@@ -145,8 +149,7 @@
              )
       if(obj.likfit$lambda == 0)
         data <- log(data)
-      else data <- ((data^obj.likfit$lambda) - 1)/obj.likfit$
-      lambda
+      else data <- ((data^obj.likfit$lambda) - 1)/obj.likfit$lambda
     }
   }
   n <- length(data)
@@ -185,9 +188,8 @@
                             tausq.rel.est = tausq.rel,
                             tausq.est = tausq,
                             sigmasq.est = sigmasq), pos=1)
-  if(obj.likfit$transform.info$fix.lambda == TRUE) {
+  if(obj.likfit$transform.info$fix.lambda == TRUE)
     .temp.list$log.jacobian <<- obj.likfit$transform.info$log.jacobian
-  }
   ##
   ## 3. One-dimentional profile likelihoods
   ##
@@ -218,8 +220,7 @@
           .temp.list$ini.grid <<- NULL
         }
         else {
-          stop("not yet implemented for fixed nugget != 0"
-               )
+          stop("not yet implemented for fixed nugget != 0")
         }
       }
       if(n.cov.pars == 3) {
@@ -241,6 +242,8 @@
         .temp.list$ini.grid <<- NULL
       }
       v.ord <- order(c(sigmasq, sill.values))
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.sigmasq <- pl.sigmasq + obj.likfit$transform.info$log.jacobian
       result$sill <- list(sill = c(sigmasq, sill.values)[
                             v.ord], proflik.sill = c(loglik, pl.sigmasq)[
                                       v.ord], est.sill = c(sigmasq, loglik))
@@ -268,6 +271,8 @@
                         1, proflik.aux7, ...)
       }
       v.ord <- order(c(phi, range.values))
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.phi <- pl.phi + obj.likfit$transform.info$log.jacobian
       result$range <- list(range = c(phi, range.values)[
                              v.ord], proflik.range = c(loglik, pl.phi)[
                                        v.ord], est.range = c(phi, loglik))
@@ -283,6 +288,8 @@
         pl.tausq <- apply(matrix(nugget.values, ncol = 
                                  1), 1, proflik.aux11, ...)
         v.ord <- order(c(tausq, nugget.values))
+        if(obj.likfit$transform.info$fix.lambda == TRUE)
+          pl.tausq <- pl.tausq + obj.likfit$transform.info$log.jacobian
         result$nugget <- list(nugget = c(tausq, 
                                 nugget.values)[v.ord], proflik.nugget
                               = c(loglik, pl.tausq)[v.ord], 
@@ -298,6 +305,8 @@
         pl.tausq.rel <- apply(matrix(nugget.rel.values,
                                      ncol = 1), 1, proflik.aux5, ...)
         v.ord <- order(c(tausq.rel, nugget.rel.values))
+        if(obj.likfit$transform.info$fix.lambda == TRUE)
+          pl.tausq.rel <- pl.tausq.rel + obj.likfit$transform.info$log.jacobian
         result$nugget.rel <- list(nugget.rel = c(
                                     tausq.rel, nugget.rel.values)[v.ord],
                                   proflik.nugget = c(loglik, pl.tausq.rel
@@ -371,6 +380,8 @@
         pl.sigmasqphi <- apply(sillrange.values, 1, proflik.aux13, ...)
       }
       names(pl.sigmasqphi) <- NULL
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.sigmasqphi <- pl.sigmasqphi + obj.likfit$transform.info$log.jacobian
       result$sillrange <- list(sill = as.numeric(levels(as.factor(sillrange.values[,1]))), range = 
                                as.numeric(levels(as.factor(sillrange.values[,2]))), proflik.sillrange = pl.sigmasqphi, 
                                est.sillrange = c(sigmasq, phi, loglik))
@@ -393,6 +404,8 @@
       pl.sigmasqtausq <- apply(sillnugget.values, 1, proflik.aux15, ...)
       .temp.list$ini.grid <<- NULL
       names(pl.sigmasqtausq) <- NULL
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.sigmasqtausq <- pl.sigmasqtausq + obj.likfit$transform.info$log.jacobian
       result$sillnugget <- list(sill = as.numeric(levels(as.factor(sillnugget.values[,1]))), nugget = as.numeric(levels(as.factor(sillnugget.values[,2]))), proflik.sillnugget = 
                                 pl.sigmasqtausq, est.sillrange = c(sigmasq,
                                                    tausq, loglik))
@@ -409,6 +422,8 @@
       pl.phitausq <- apply(rangenugget.values, 1, proflik.aux17, ...)
       .temp.list$ini.grid <<- NULL
       names(pl.phitausq) <- NULL
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.phitausq <- pl.phitausq + obj.likfit$transform.info$log.jacobian
       result$rangenugget <- list(range = as.numeric(levels(as.factor(rangenugget.values[,1]))), nugget
                                = as.numeric(levels(as.factor(rangenugget.values[,1]))), proflik.rangenugget = 
                                pl.phitausq, est.rangenugget = c(phi, tausq,
@@ -433,6 +448,8 @@
                                    proflik.aux19, ...)
       .temp.list$ini.grid <<- NULL
       names(pl.sigmasqtausq.rel) <- NULL
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.sigmasqtausq.rel <- pl.sigmasqtausq.rel + obj.likfit$transform.info$log.jacobian
       result$sillnugget.rel <- list(sill = as.numeric(levels(as.factor(sillnugget.rel.values[,1]))), 
                                     nugget.rel = as.numeric(levels(as.factor(sillnugget.rel.values[,2]))), 
                                     proflik.sillnugget.rel = pl.sigmasqtausq.rel,
@@ -448,6 +465,8 @@
             )
       pl.phitausq.rel <- apply(rangenugget.rel.values, 1, proflik.aux30, ...)
       names(pl.phitausq.rel) <- NULL
+      if(obj.likfit$transform.info$fix.lambda == TRUE)
+        pl.phitausq.rel <- pl.phitausq.rel + obj.likfit$transform.info$log.jacobian
       result$rangenugget.rel <- list(range = as.numeric(levels(as.factor(rangenugget.rel.values[,1]))),
                                    nugget.rel = as.numeric(levels(as.factor(rangenugget.rel.values[,2]))), 
                                    proflik.rangenugget.rel = pl.phitausq.rel,

@@ -195,7 +195,7 @@
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
   else beta.names <- "beta"
   ##
-  ## Anisotropy correction (should be placed AFTER trend.d/trend.l
+  ## Anisotropy correction (this should be placed AFTER trend.d/trend.l
   ##
   if(!is.null(aniso.pars)) {
     if((abs(aniso.pars[1]) > 0.001) & (abs(aniso.pars[2] - 1) > 0.001)){
@@ -209,8 +209,7 @@
   ## Box-Cox transformation
   ##
   if(abs(lambda - 1) > 0.001) {
-    if(messages.screen)
-      cat("krige.conv: Box-Cox data transformation performed.\n")
+    if(messages.screen) cat("krige.conv: performing the Box-Cox data transformation\n")
     data <- BCtransform(data, lambda = lambda)$data
   }
   ## 
@@ -222,9 +221,10 @@
     cpars <- c(1, phi)
   }
   else {
-    sigmasq <- cov.pars[, 1]
-    phi <- cov.pars[, 2]
-    cpars <- cbind(1, sigmasq)
+    stop("current version of krige.conv does not accept nested covariance models\n") 
+#    sigmasq <- cov.pars[, 1]
+#    phi <- cov.pars[, 2]
+#    cpars <- cbind(1, phi)
   }
 ##  sill.partial <- micro.scale + sum(sigmasq)
   sill.partial <- sum(sigmasq)
@@ -247,32 +247,28 @@
   ittivtt <- solve.geoR(temp)
   remove("temp")
   if(beta.prior == "flat"){
-    temp <- bilinearformXAY(X = as.vector(trend.d),
-                            lowerA = as.vector(invcov$lower.inverse),
-                            diagA = as.vector(invcov$diag.inverse), 
-                            Y = as.vector(data))
-    beta.flat <- drop(ittivtt %*% temp)
-    remove("temp")  
+    beta.flat <- drop(ittivtt %*% bilinearformXAY(X = as.vector(trend.d),
+                                                  lowerA = as.vector(invcov$lower.inverse),
+                                                  diagA = as.vector(invcov$diag.inverse), 
+                                                  Y = as.vector(data)))
   }
   v0 <- loccoords(coords = coords, locations = locations)
   if(n.predictive > 0){
-    ## checking data points coincident with prediction locations
+    ## checking if there are data points coincident with prediction locations
     loc.coincide <- apply(v0, 2, function(x, min.dist){any(x < min.dist)},
                           min.dist=krige$dist.epsilon)
-    if(any(loc.coincide))
-      loc.coincide <- (1:ni)[loc.coincide]
-    else
-      loc.coincide <- NULL
+    if(any(loc.coincide)) loc.coincide <- (1:ni)[loc.coincide]
+    else loc.coincide <- NULL
     if(!is.null(loc.coincide)){
       temp.f <- function(x, data, dist.eps){return(data[x < dist.eps])}
       data.coincide <- apply(v0[, loc.coincide, drop=FALSE], 2, temp.f, data=data, dist.eps=krige$dist.epsilon)
     }
-    else
-      data.coincide <- NULL
+    else data.coincide <- NULL
   }
-  else
-    remove("locations")
+  else remove("locations")
+  ## using nugget interpreted as microscale variation or measurement error
   nug.factor <- ifelse(signal, tausq.rel.micro, tausq.rel)
+  ## covariances between data and prediction locations
   v0 <- ifelse(v0 < krige$dist.epsilon, 1+nug.factor,
                cov.spatial(obj = v0, cov.model = cov.model, 
                            kappa = kappa, cov.pars = cpars))

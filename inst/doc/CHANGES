@@ -1,3 +1,29 @@
+
+		=============================
+		CHANGES IN geoR VERSION 1.3-8
+		=============================
+
+NEW FEATURES
+	
+     o 
+
+
+BUGS
+
+     o bug fix prevents crash in variog4
+
+     o krige.conv no longer accepts nested covariance models to avoid a bug
+       (this may be re-implemented in the future)
+
+     o correction in values of proflik for objects with fixed lambda different from 0
+
+     o remove "non-sense" printing in varcov.spatial (affecting several functions)
+       (introduced in 1.3-7)
+       
+     o bug fix in krige.conv for nested covariance models
+
+
+
 		=============================
 		CHANGES IN geoR VERSION 1.3-7
 		=============================
