@@ -45,7 +45,7 @@
 
 \description{
   Computes profile likelihoods for model parameters
-  previously estimated by using the function
+  previously estimated using the function
   \code{\link{likfit}}. 
 }
 
@@ -145,24 +145,24 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
     be due to the lack of the convergence in the numerical minimization
     for particular values of the parameter(s).  
     If this is the case it might be necessary to pass \code{control} arguments 
-    to the minimization functions. The argument \dots can be used for this.
-    See documentation of the functions \code{\link{optim}} and/or
-    \code{\link{nlm}} for further details.
+    to the minimization functions using the argument \dots.
     It's also advisable to try the different options for the
     \code{minimisation.function} argument.
+    See documentation of the functions \code{\link{optim}} and/or
+    \code{\link{nlm}} for further details.
     
     \item 2-D profiles can be computed by setting the argument
-    \code{uni.only = FALSE}. However, be sure first that the 2-D profiles  are
-    really wanted. Their computation can be time demanding due to the fact that 
-    computation is performed on a grid determined by the
+    \code{uni.only = FALSE}. However, before computing 2-D profiles be
+    sure they are really necessary.
+    Their computation can be time demanding since it 
+    is performed on a grid determined by the
     cross-product of the values defining the 1-D profiles.
         
     \item There is no "default strategy" to find reasonable values for the
     x-axis.
     They must be found in a "try-and-error" exercise. It's recommended
     to use short sequences in the initial attempts.
-    This is illustrated in the \code{EXAMPLE} section below.
-
+    The \code{EXAMPLE} section below illustrates this.
   }
 
 }
@@ -174,7 +174,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
 
 \examples{
 op <- par(no.readonly=TRUE)
-if(is.R()) data(s100)
+data(s100)
 ml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE)
 # a first atempt to find reasonable values for the x-axis:
 prof <- proflik(ml, s100, sill.values=seq(0.5, 1.5, l=4),

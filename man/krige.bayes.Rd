@@ -4,6 +4,8 @@
 \alias{model.control}
 \alias{prior.control}
 \alias{post2prior}
+\alias{print.krige.bayes}
+\alias{print.posterior.krige.bayes}
 
 \title{Bayesian Analysis for Gaussian Geostatistical Models}
 

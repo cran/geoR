@@ -24,10 +24,10 @@ plot.geodata <- function (x, coords = x$coords, data = x$data, borders = NULL,
             data <- log(data)
         else data <- ((data^lambda) - 1)/lambda
     }
-    xmat <- trend.spatial(trend = trend, geodata = x)
+    xmat <- unclass(trend.spatial(trend = trend, geodata = x))
     if (trend != "cte") {
-        data <- lm(data ~ xmat + 0)$residuals
-        names(data) <- NULL
+      data <- lm(data ~ xmat + 0)$residuals
+      names(data) <- NULL
     }
     par(mfrow = c(2, 2))
     par(mar = c(4, 4, 0, 0.5))

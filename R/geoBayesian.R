@@ -278,7 +278,7 @@
   dimnames(coords) <- list(NULL, NULL)
   if(nrow(coords) != length(data))
     stop("krige.bayes: number of data is different of number of data locations (coordinates)")
-  trend.data <- trend.spatial(trend=model$trend.d, geodata = geodata)
+  trend.data <- unclass(trend.spatial(trend=model$trend.d, geodata = geodata))
   beta.size <- ncol(trend.data)
   if(beta.size > 1)
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
@@ -319,9 +319,16 @@
       if((inherits(model$trend.d, "formula") == FALSE) | (inherits(model$trend.l, "formula") == FALSE))
         stop("krige.bayes: model$trend.d and model$trend.l must have similar specification\n")
     }
-    else
-      if(model$trend.d != model$trend.l)
-        stop("krige.bayes: model$trend.l cannot be different from model$trend.d")
+    else{
+      if((!is.null(class(model$trend.d)) && class(model$trend.d) == "trend.spatial") &
+         (!is.null(class(model$trend.l)) && class(model$trend.l) == "trend.spatial")){
+        if(ncol(model$trend.d) != ncol(model$trend.l))
+          stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
+      }
+      else
+        if(model$trend.d != model$trend.l)
+          stop("krige.bayes: especification of model$trend.l and model$trend.d must be similar")
+    }
     ##
     if(messages.screen){
       cat(switch(as.character(model$trend.d)[1],
@@ -333,7 +340,7 @@
     }
     ##
     dimnames(locations) <- list(NULL, NULL)
-    assign("trend.loc", trend.spatial(trend=model$trend.l, geodata = list(coords = locations)),
+    assign("trend.loc", unclass(trend.spatial(trend=model$trend.l, geodata = list(coords = locations))),
            envir=pred.env)
     ni <- nrow(get("trend.loc", envir=pred.env))
     if(nrow(locations) != ni)
@@ -543,8 +550,8 @@
       if(messages.screen){
         krige.bayes.counter(.temp.ap = par.set,
                             n.points = ntocount)
-        assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
       }
+      assign("parset", get("parset", envir=counter.env)+1, envir=counter.env)
       phi <- phinug[1]
       tausq.rel <- phinug[2]
       if(prior$beta.prior == "normal" && npr > 1)
@@ -628,11 +635,11 @@
       frame.inv <- sys.frame(sys.nframe())
     }
     ##
+    counter.env <- new.env()
+    assign("parset", 1, envir=counter.env)
     if(messages.screen){
-      counter.env <- new.env()
       ntocount <- nrow(phidist$phitausq)
       cat(paste("krige.bayes: computing the posterior probabilities.\n             Number of parameter sets: ", ntocount,"\n"))
-      assign("parset", 1, envir=counter.env)
     }
     temp.res <- apply(phidist$phitausq, 1, phi.tausq.rel.post)
     remove("bsp")
@@ -1039,7 +1046,7 @@
 
 "prepare.graph.krige.bayes" <-
   function (obj, locations, borders, 
-            values.to.plot, number.col) 
+            values.to.plot, number.col, xlim, ylim) 
 {
   if (!is.numeric(values.to.plot)){
     switch(values.to.plot,
@@ -1112,7 +1119,9 @@
   nx <- length(x)
   y <- as.numeric(levels(as.factor(locations[, 2])))
   ny <- length(y)
-  coords.lims <- set.coords.lims(coords=locations)
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
+  coords.lims <- set.coords.lims(coords=locations, xlim=xlim, ylim=ylim)
   coords.lims[,1] <- coords.lims[,1] + c(-.025, .025) * diff(coords.lims[,1])
   coords.lims[,2] <- coords.lims[,2] + c(-.025, .025) * diff(coords.lims[,2])
   return(list(x=x, y=y, values = matrix(values,ncol=ny), coords.lims=coords.lims))
@@ -1123,7 +1132,7 @@
             values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
-            number.col, coords.data,
+            number.col, coords.data, xlim, ylim,
             x.leg, y.leg, cex.leg = 0.75, vertical = FALSE, ...) 
 {
   if(missing(x)) x <- NULL
@@ -1144,16 +1153,19 @@
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                          borders=borders,
                                          values.to.plot=values.to.plot,
-                                         number.col = number.col)
+                                         number.col = number.col,
+                                         xlim = xlim, ylim = ylim)
   pty.prev <- par()$pty
   par(pty = "s")
   image(locations$x, locations$y, locations$values,
-        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2],...)
+        xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
   if(!is.null(coords.data))
     points(coords.data)
   if(!is.null(borders))
@@ -2175,3 +2187,14 @@
   return(invisible())
 }
 
+"print.krige.bayes" <-
+  function(x, ...)
+{
+  print.default(x, ...)
+}
+
+"print.posterior.krige.bayes" <-
+  function(x, ...)
+{
+  print.default(x, ...)
+}

@@ -1,6 +1,7 @@
 \name{SIC}
 
 \alias{sic}
+\alias{SIC}
 \alias{sic.100}
 \alias{sic.367}
 \alias{sic.all}

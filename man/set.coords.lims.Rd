@@ -9,11 +9,12 @@
 }
 
 \usage{
-set.coords.lims(coords)
+set.coords.lims(coords, xlim, ylim)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{coords}{an \eqn{n \times 2}{nx2} matrix with coordinates.  }
+  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~
@@ -23,7 +24,10 @@ set.coords.lims(coords)
 }
 
 %\references{ ~put references to the literature/web site here ~ }
-%\author{ ~~who you are~~ }
+\author{
+  Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
+}
 %\note{ ~~further notes~~ }
 
  

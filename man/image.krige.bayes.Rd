@@ -18,8 +18,8 @@
                   values.to.plot=c("mean", "variance",
                             "mean.simulations", "variance.simulations",
                             "quantiles", "probabilities", "simulation"),
-                  number.col, coords.data, x.leg, y.leg, cex.leg = 0.75,
-                  vertical = FALSE, \dots)
+                  number.col, coords.data, xlim, ylim, x.leg, y.leg,
+                  cex.leg = 0.75, vertical = FALSE, \dots)
 
 
 
@@ -53,8 +53,8 @@
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
-  \item{x.leg}{limits for the legend in the \eqn{x} direction.  }
-  \item{y.leg}{limits for the legend in the \eqn{y} direction.  }
+  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
+  \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
   \item{cex.leg}{controls the size of the numerical values in the legend.  }
   \item{vertical}{logical, defining whether the legend is drawn in
     horizontal (default) or vertical position.  }

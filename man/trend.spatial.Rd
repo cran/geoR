@@ -6,8 +6,8 @@
 \title{Builds the Trend Matrix}
 
 \description{
-  Builds the trend matrix according to the specification
-  of the mean part of the model provided by the user. 
+  Builds the \emph{trend} matrix in accordance to a specification
+  of the mean provided by the user. 
 }
 
 \usage{
@@ -18,16 +18,16 @@ trend.spatial(trend, geodata)
 \arguments{
   \item{trend}{specifies the mean part of the model.
     See \code{DETAILS} below.  }
-  \item{geodata}{an object of the class \code{geodata} as described in
+  \item{geodata}{optional. An object of the class \code{geodata} as described in
     \code{\link{as.geodata}}. }
 }
 
 \details{
-  The implicty model assumes that there is an underlying process
+  The implicity model assumes that there is an underlying process
   with mean \eqn{\mu(x)}{mu(x)}, where \eqn{x = (x_1, x_2)}{x = (x1, x2)} denotes the coordinates
   of a spatial location.
   The argument \code{trend} defines the form of the mean with the
-  following options:
+  following options for usage:
 
   \itemize{
     \item{\code{"cte"}}{the mean is assumed to be constant over the region,
@@ -39,10 +39,10 @@ trend.spatial(trend, geodata)
 	mu(x) = beta0 + beta1*x1 + beta2*x2. }}
     \item{\code{"2nd"}}{the mean is assumed to be a second degree polynomial
       on the coordinates:
-      \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_1 (x_1)^2 +
-	\beta_2 (x_2)^2 + \beta_1 x_1 * \beta_2 x_2}{%
-	\mu(x)= beta0 + beta1*x1 + beta2*x2 + beta1*(x1)^2 +
-	beta2*(x2)^2 + beta1*x1 * beta2*x2.}}
+      \deqn{\mu(x)= \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 (x_1)^2 +
+	\beta_4 (x_2)^2 + \beta_5 x_1 *  x_2}{%
+	\mu(x)= beta0 + beta1*x1 + beta2*x2 + beta3*(x1)^2 +
+	beta4*(x2)^2 + beta5*x1*x2.}}
     \item{\code{~ model}}{a model specification. See
       \code{\link{formula}} for further details on how to specify
       a model using formulas. Notice that the model term before
@@ -54,8 +54,7 @@ trend.spatial(trend, geodata)
   The following specifications are equivalent:
   \itemize{
     \item \code{trend = "1st"} and \code{trend = ~ x1 + x2}
-    \item \code{trend = "2nd"} and \code{trend = ~ x1 + x2 + x1^2 +
-      x2^2 + x1*x2}
+    \item \code{trend = "2nd"} and \code{trend = ~ x1 + x2 + x1^2 + x2^2 + x1*x2}
   }
 
   \bold{Search path for covariates}\cr
@@ -70,11 +69,14 @@ trend.spatial(trend, geodata)
     \item as elements of the list \code{geodata}
     \item as columns in the data-frame \code{geodata$covariates}
     \item as columns in the data-frame \code{geodata$data}
+    \item in the search path
   }
 }
 
 \value{
-  An \eqn{n \times p}{n x p} trend matrix where \eqn{n}
+  An object of the class \code{trend.spatial}
+  which is an \eqn{n \times p}{n x p} \emph{trend}
+  matrix, where \eqn{n}
   is the number of spatial
   locations and \eqn{p} is the number of mean parameters in the model. 
 }
@@ -89,14 +91,23 @@ trend.spatial(trend, geodata)
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
-\note{This is an auxiliary function called by
+\note{This is an auxiliary function typically called by
   other \bold{geoR} functions.  }
 
-%\seealso{}
-%
-%\examples{
-%
-%}
+\seealso{The section \code{DETAILS} in \code{\link{likfit}} for more
+  on the underlying model.}
+
+\examples{
+data(SIC)
+# a first degree polynomial trend
+trend.spatial("1st", sic.100)[1:5,]
+# a second degree polynomial trend
+trend.spatial("2nd", sic.100)[1:5,]
+# a trend with a covariate
+trend.spatial(~altitude, sic.100)[1:5,]
+# a first degree trend plus a covariate
+trend.spatial(~coords+altitude, sic.100)[1:5,]
+}
 
 \keyword{spatial}%-- one or more ...
 

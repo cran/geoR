@@ -32,7 +32,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   \item{grid}{optional. An \eqn{n \times 2}{n x 2} matrix with coordinates of the
     simulated data.  }
   \item{nx}{optional. Number of points in the X direction.  }
-  \item{ny}{optional. Number of points in the X direction.  }
+  \item{ny}{optional. Number of points in the Y direction.  }
   \item{xlims}{optional. Limits of the area in the X direction. Defaults
   to \eqn{[0,1]}.  }
   \item{ylims}{optional. Limits of the area in the Y direction.  Defaults

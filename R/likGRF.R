@@ -50,9 +50,9 @@
   if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
   if(missing(geodata))
-    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+    xmat <- unclass(trend.spatial(trend=trend, geodata=list(coords = coords, data = data)))
   else
-    xmat <- trend.spatial(trend=trend, geodata=geodata)
+    xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
   if(nrow(xmat) != n)
     stop("trend matrix has dimension incompatible with the data")
   test.xmat <- solve.geoR(crossprod(xmat))
@@ -256,7 +256,7 @@
   ##
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
   temp.list$coords <- coords
-  temp.list$xmat <- split(as.data.frame(xmat), realisations)
+  temp.list$xmat <- split(as.data.frame(unclass(xmat)), realisations)
   temp.list$xmat <- lapply(temp.list$xmat, as.matrix)
   temp.list$n <- as.vector(unlist(lapply(temp.list$xmat, nrow)))
   ##
@@ -654,7 +654,7 @@
   if(length(lik.results$beta.var) == 1)
     lik.results$beta.var <- as.vector(lik.results$beta.var)
   if(length(lik.results$beta) > 1){
-    if(inherits(trend, "formula"))
+    if(inherits(trend, "formula") || (!is.null(class(trend)) && class(trend=="trend.spatial")))
       beta.names <- c("intercept", paste("covar", 1:(ncol(xmat)-1), sep = ""))
     else
       if(trend == "1st")
@@ -1296,11 +1296,11 @@
   ## Trend matrix
   ##
   if(missing(geodata))
-    xmat <- trend.spatial(trend=trend, geodata = list(coords = coords, data = data))
+    xmat <- unclass(trend.spatial(trend=trend, geodata = list(coords = coords, data = data)))
   else
-    xmat <- trend.spatial(trend=trend, geodata = geodata)
+    xmat <- unclass(trend.spatial(trend=trend, geodata = geodata))
   beta.size <- ncol(xmat)
-  xmat <- split(as.data.frame(xmat), realisations)
+  xmat <- split(as.data.frame(unclass(xmat)), realisations)
   xmat <- lapply(xmat, as.matrix)
   ##
   ## Anisotropy

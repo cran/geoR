@@ -7,7 +7,8 @@
 \alias{BCtransform}
 \alias{rMVnorm}
 \alias{solve.geoR}
-
+\alias{print.grf}
+  
 \title{geoR internal functions}
 
 \description{

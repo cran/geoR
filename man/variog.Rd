@@ -173,6 +173,8 @@ variog(geodata, coords=geodata$coords, data=geodata$data,
     pairs in each bin is greater or equal to the value in the argument
     \code{pairs.min}.  }
   \item{var.mark }{variance of the data.  }
+  \item{beta.ols }{parameters of the mean part of the model fitted by
+    ordinary least squares.  }
   \item{output.type }{echoes the \code{option} argument.  }
   \item{max.dist}{maximum distance between pairs allowed in the
     variogram calculations.}

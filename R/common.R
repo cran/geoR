@@ -222,6 +222,7 @@
         res$data <- drop(as.matrix(res$data)[ind,])
         if(!is.null(covar.col))
           res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+        cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the data\n")) 
       }
     }
     if(!is.null(covar.col) && na.covar){
@@ -231,18 +232,13 @@
         res$data <- drop(as.matrix(res$data)[ind,])
         if(!is.null(covar.col))
           res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+        cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the covariate(s)\n")) 
       }
     }
   }
   ##
   ## Checking whether there are data from different realisations
   ##
-  if(missing(rep.data.action)) rep.data.action <- "none"
-  if(!is.function(rep.data.action))
-    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
-  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
-  if(!is.function(rep.covar.action))
-    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
   if(is.null(realisations)) realisations <- as.factor(rep(1, nrow(res$coords)))
   else{
     if(is.numeric(realisations) && length(realisations) == 1)
@@ -256,10 +252,18 @@
   ## and dealing with this acoording to the value of the argument
   ## rep.data.action 
   ##
+  if(missing(rep.data.action)) rep.data.action <- "none"
+  if(!is.function(rep.data.action))
+    rep.data.action <- match.arg(rep.data.action, choices = c("none", "first")) 
+  if(missing(rep.covar.action)) rep.covar.action <- rep.data.action
+  if(!is.function(rep.covar.action))
+    rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
   require(mva)
   if(is.function(rep.data.action) || rep.data.action == "first"){
     rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
     rep.dup <- duplicated(rep.lev)
+    if(sum(rep.dup) > 0)
+      cat(paste("as.geodata:", sum(rep.dup), "redundant locations found"))
     res$coords <- res$coords[!rep.dup,]
     measure.var.f <- function(x) return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
     res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
@@ -580,9 +584,11 @@
 }
 
 "set.coords.lims" <-
-  function(coords)
+  function(coords, xlim, ylim)
 {
   coords.lims <- apply(coords, 2, range)
+  if(!missing(xlim) && is.numeric(xlim)) coords.lims[,1] <- xlim[order(xlim)]
+  if(!missing(ylim) && is.numeric(ylim)) coords.lims[,2] <- ylim[order(ylim)]
   coords.diff <- diff(coords.lims)
   if (coords.diff[1] != coords.diff[2]) {
     coords.diff.diff <- abs(diff(as.vector(coords.diff)))

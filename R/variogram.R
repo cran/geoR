@@ -71,11 +71,7 @@
   ## variogram estimator
   ##
   option <- match.arg(option)
-  if (estimator.type == "robust") 
-    estimator.type <- "modulus"
   estimator.type <- match.arg(estimator.type)
-  if (estimator.type == "modulus") 
-    estimator.type <- "robust"
   if (abs(lambda - 1) > 0.0001) {
     if (abs(lambda) < 0.0001) 
       data <- log(data)
@@ -84,19 +80,25 @@
   ##
   ## trend removal
   ##
-  xmat <- trend.spatial(trend = trend, geodata = geodata)
+  xmat <- unclass(trend.spatial(trend = trend, geodata = geodata))
   if (trend != "cte") {
     if (is.vector(data)) {
-      data <- lm(data ~ xmat + 0)$residuals
+      temp.fit <- lm(data ~ xmat + 0)
+      beta.ols <- temp.fit$coeff
+      data <- temp.fit$residuals
+      temp.fit <- NULL
       names(data) <- NULL
     }
     else {
-      only.res <- function(y, x) {
-        lm(y ~ x + 0)$residuals
-      }
+      only.res <- function(y, x)
+        lm(y ~ xmat + 0)$residuals
       data <- apply(data, 2, only.res, x = xmat)
+      only.beta <- function(y, x)
+        lm(y ~ xmat + 0)$coef
+      beta.ols <- apply(data, 2, only.beta, x = xmat)
     }
   }
+  else beta.ols <- apply(as.matrix(data), 2, mean)
   ##
   ## Defining bins
   ##
@@ -149,7 +151,7 @@
                    as.double(as.vector(coords[, 1])),
                    as.double(as.vector(coords[, 2])), as.double(as.vector(data)), 
                    as.integer(nbins), as.double(as.vector(bins.lim)), 
-                   as.integer(estimator.type == "robust"), as.double(max.dist), 
+                   as.integer(estimator.type == "modulus"), as.double(max.dist), 
                    cbin = as.integer(cbin), vbin = as.double(vbin), 
                    as.integer(TRUE), sdbin = as.double(sdbin))[c("vbin", 
                                        "cbin", "sdbin")]
@@ -180,7 +182,7 @@
     v <- matrix(0, nrow = length(u), ncol = n.datasets)
     for (i in 1:n.datasets) {
       v[, i] <- as.vector(dist(data[, i]))
-      if (estimator.type == "robust") 
+      if (estimator.type == "modulus") 
         v[, i] <- v[, i,drop=FALSE]^(0.5)
       else v[, i] <- (v[, i,drop=FALSE]^2)/2
     }
@@ -258,7 +260,8 @@
     if(missing(max.dist))
       max.dist <- max(u)
   }
-  result <- c(result, list(var.mark = data.var, output.type = option, max.dist = max.dist, 
+  result <- c(result, list(var.mark = data.var, beta.ols = beta.ols,
+                           output.type = option, max.dist = max.dist, 
                            estimator.type = estimator.type, n.data = n.data,
                            lambda = lambda, trend = trend))
   result$nugget.tolerance <- nugget.tolerance
@@ -501,7 +504,7 @@
 
 "rfm.bin" <-
   function (cloud, l = 15, uvec = "default", nugget.tolerance, 
-            estimator.type = c("classical", "robust"), bin.cloud = FALSE,
+            estimator.type = c("classical", "modulus"), bin.cloud = FALSE,
             max.dist, keep.NA = FALSE)
 {
   if (all(uvec == "default")) 
@@ -549,7 +552,7 @@
       if (bin.cloud == TRUE) 
         bins.clouds[[i]] <- cloud$v[ind]
       nbin[i] <- sum(ind)
-      if (estimator.type == "robust") 
+      if (estimator.type == "modulus") 
         vbin[i] <- ((vbin[i])^4)/(0.914 + (0.988/nbin[i]))
       if (nbin[i] > 0) 
         sdbin[i] <- sqrt(var(cloud$v[ind]))
@@ -566,7 +569,7 @@
         bins.clouds[2:(length(bins.clouds) + 1)] <- bins.clouds[1:nc]
         bins.clouds[[1]] <- cloud$v[ind]
       }
-      if (estimator.type == "robust") 
+      if (estimator.type == "modulus") 
         v.zero <- ((v.zero)^4)/(0.914 + (0.988/n.zero))
       if (n.zero > 0) 
         sd.zero <- sqrt(var(cloud$v[ind]))
@@ -603,7 +606,7 @@
       nbin[i] <- sum(ind)
       for (j in 1:nvcols) {
         vbin[i, j] <- mean(cloud$v[ind, j])
-        if (estimator.type == "robust") 
+        if (estimator.type == "modulus") 
           vbin[i, j] <- ((vbin[i, j])^4)/(0.914 + (0.988/nbin[i]))
         if (nbin[i] > 0) 
           sdbin[i, j] <- sqrt(var(cloud$v[ind, j]))
@@ -621,7 +624,7 @@
         ind <- (cloud$u == 0)
         n.zero[j] <- sum(ind)
         v.zero[j] <- mean(cloud$v[ind, j])
-        if (estimator.type == "robust") 
+        if (estimator.type == "modulus") 
           v.zero[j] <- ((v.zero[j])^4)/(0.914 + (0.988/n.zero[j]))
         if (n.zero[j] > 0) 
           sd.zero[j] <- sqrt(var(cloud$v[ind, j]))
@@ -692,9 +695,8 @@
     stop("plot.variogram: object must be a binned variogram with option bin.cloud=TRUE")
   if (bin.cloud == TRUE && any(!is.na(x$bin.cloud))) 
     boxplot(x$bin.cloud, varwidth = TRUE, 
-            xlab = "midpoints of distance class",
-            ylab = paste("variogram values / ", 
-              x$estimator.type, "estimator"))
+            xlab = "distance",
+            ylab = paste(x$estimator.type, "variogram"))
   else {
     if(!missing(pts.range.cex)){
       cex.min <- min(pts.range.cex)
@@ -940,7 +942,7 @@
                 messages.screen = FALSE, lambda = obj.variog$lambda)
   if(messages.screen)
     cat("variog.env: adding the mean or trend\n")
-  x.mat <- trend.spatial(trend=obj.variog$trend, geodata = geodata)
+  x.mat <- unclass(trend.spatial(trend=obj.variog$trend, geodata = geodata))
   simula$data <- as.vector(x.mat %*% beta) + simula$data
   ##
   ## computing empirical variograms for the simulations
@@ -959,7 +961,7 @@
                  as.double(as.vector(sim)),
                  as.integer(nbins),
                  as.double(as.vector(obj.variog$bins.lim)),
-                 as.integer(estimator.type == "robust"),
+                 as.integer(estimator.type == "modulus"),
                  as.double(max(obj.variog$u)),
                  as.double(cbin),
                  vbin = as.double(vbin),
@@ -981,7 +983,7 @@
                  as.double(as.vector(sim)),
                  as.integer(nbins),
                  as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "robust"),
+                 as.integer(estimator.type == "modulus"),
                  as.double(max.u),
                  as.double(cbin),
                  vbin = as.double(vbin),
@@ -1014,6 +1016,7 @@
             messages.screen = TRUE) 
 {
   call.fc <- match.call()
+  if(missing(geodata)) geodata <- list(coords=coords, data=data)
   ##
   ## Checking input
   ##
@@ -1024,6 +1027,22 @@
   if(!is.null(obj.variog$estimator.type))
     estimator.type <- obj.variog$estimator.type
   else estimator.type <- "classical"
+  ##
+  ## trend removal
+  ##
+  xmat <- unclass(trend.spatial(trend = obj.variog$trend, geodata = geodata))
+  if (obj.variog$trend != "cte") {
+    if (is.vector(data)) {
+      data <- lm(data ~ xmat + 0)$residuals
+      names(data) <- NULL
+    }
+    else {
+      only.res <- function(y, x) {
+        lm(y ~ xmat + 0)$residuals
+      }
+      data <- apply(data, 2, only.res, x = xmat)
+    }
+  }
   ##
   ## generating several "data-sets" by permutating data values
   ##
@@ -1051,7 +1070,7 @@
                  as.double(as.vector(sim)),
                  as.integer(nbins),
                  as.double(as.vector(obj.variog$bins.lim)),
-                 as.integer(estimator.type == "robust"),
+                 as.integer(estimator.type == "modulus"),
                  as.double(max(obj.variog$u)),
                  as.double(cbin),
                  vbin = as.double(vbin),
@@ -1073,7 +1092,7 @@
                  as.double(as.vector(sim)),
                  as.integer(nbins),
                  as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "robust"),
+                 as.integer(estimator.type == "modulus"),
                  as.double(max.u),
                  as.double(cbin),
                  vbin = as.double(vbin),

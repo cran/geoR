@@ -14,7 +14,7 @@
 
 \usage{
 \method{image}{kriging}(x, locations, borders, values = obj$predict,
-              coords.data, x.leg, y.leg, cex.leg = 0.75,
+              coords.data, xlim, ylim, x.leg, y.leg, cex.leg = 0.75,
               vertical = FALSE, \dots)
 
 persp.kriging(x, locations, borders, values = obj$predict, \dots)
@@ -41,8 +41,8 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
-  \item{x.leg}{limits for the legend in the \eqn{x} direction.  }
-  \item{y.leg}{limits for the legend in the \eqn{y} direction.  }
+  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
+  \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
   \item{cex.leg}{controls the size of the numerical values in the legend.  }
   \item{vertical}{logical, defining whether the legend is drawn in
     horizontal (default) or vertical position.  }
@@ -80,14 +80,22 @@ persp.kriging(x, locations, borders, values = obj$predict, \dots)
   on the plotting functions.}
 
 \examples{
-if(is.R()) data(s100) 
+data(s100) 
 loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
-par(mfrow=c(1,2))
-image.kriging(kc, loc=loci)
-image.kriging(kc, loc=loci, val=kc$krige.var)
 
+op <- par(no.readonly = TRUE)
+par(mfrow=c(1,2), mar=c(3,3,0,0), mgp=c(1.5, .8,0))
+image(kc, loc=loci)
+image(kc, loc=loci, val=kc$krige.var)
+
+# two different ways to add legends 
+image(kc, loc=loci, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1))
+image(kc, loc=loci, val=kc$krige.var, ylim=c(-0.2, 1))
+legend.krige(y.leg=c(-0.2,-0.1), x.leg=c(0,1), val=kc$krige.var)
+
+par(op)
 }
 
 \keyword{spatial}

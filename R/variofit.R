@@ -242,7 +242,8 @@
   ##
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
-                     trend = vario$trend, max.dist = max.dist,
+                     trend = vario$trend, beta.ols = vario$beta.ols,
+                     max.dist = max.dist, 
                      minimisation.function = minimisation.function)
   if(exists("hess")) estimation$hessian <- hess
   estimation$weights <- weights

@@ -213,7 +213,8 @@
 
 "plot.xvalid" <-
   function (x, coords, borders = NULL, ask = TRUE,
-            error = TRUE, std.error = TRUE, data.predicted = TRUE,
+            error = TRUE, std.error = TRUE,
+            data.predicted = TRUE,
             pp = TRUE, map = TRUE, histogram = TRUE,
             error.predicted = TRUE, error.data = TRUE, ...)
 {
@@ -251,7 +252,7 @@
     else
       if(ncol(coords) > 2)
         stop("argument coords must be a two column matrix or a data frame with the data coordinates")
-      else borders <- as.matrix(coords)
+      else coords <- as.matrix(coords)
   }
   ##
   ## auxiliary computations for plots
@@ -323,7 +324,8 @@
     if(map){
       par(pty = "s")
       ##
-      plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
+      plot(coords, xlab = "Coord X", ylab = "Coord Y",
+           type = "n", 
            xlim = coords.lims[, 1], ylim = coords.lims[, 2])
       if (is.R()) {
         points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)

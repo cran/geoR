@@ -42,19 +42,19 @@
         if(is.null(krige$dist.epsilon)) krige$dist.epsilon <-  1e-10
         if(is.null(krige$aniso.pars)) krige$aniso.pars <- NULL  
         if(is.null(krige$lambda)) krige$lambda <- 1 
-          krige <- krige.control(type.krige = krige$type.krige,
-                                 trend.d = krige$trend.d,
-                                 trend.l = krige$trend.l,
-                                 obj.model = krige$obj.model,
-                                 beta = krige$beta,
-                                 cov.model = krige$cov.model,
-                                 cov.pars = krige$cov.pars,
-                                 kappa = krige$kappa,
-                                 nugget = krige$nugget,
-                                 micro.scale = krige$micro.scale,
-                                 dist.epsilon = krige$dist.epsilon, 
-                                 aniso.pars = krige$aniso.pars,
-                                 lambda = krige$lambda)
+        krige <- krige.control(type.krige = krige$type.krige,
+                               trend.d = krige$trend.d,
+                               trend.l = krige$trend.l,
+                               obj.model = krige$obj.model,
+                               beta = krige$beta,
+                               cov.model = krige$cov.model,
+                               cov.pars = krige$cov.pars,
+                               kappa = krige$kappa,
+                               nugget = krige$nugget,
+                               micro.scale = krige$micro.scale,
+                               dist.epsilon = krige$dist.epsilon, 
+                               aniso.pars = krige$aniso.pars,
+                               lambda = krige$lambda)
         
       }
     }
@@ -171,19 +171,25 @@
   ## building the trend matrix
   ##
   if(messages.screen){
-    cat(switch(as.character(krige$trend.d)[1],
-               "cte" = "krige.conv: model with constant mean",
-               "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
-               "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",
-               "krige.conv: model with mean defined by covariates provided by the user"))
+    if(is.numeric(krige$trend.d))
+      cat("krige.conv: model with covariates matrix provided by the user")
+    else
+      cat(switch(as.character(krige$trend.d)[1],
+                 "cte" = "krige.conv: model with constant mean",
+                 "1st" = "krige.conv: model with mean given by a 1st degree polinomial on the coordinates",
+                 "2nd" = "krige.conv: model with mean given by a 2nd degree polinomial on the coordinates",
+                 "krige.conv: model with mean defined by covariates provided by the user"))
     cat("\n")
   }
-  trend.d <- trend.spatial(trend=krige$trend.d, geodata = geodata)
+  trend.d <- unclass(trend.spatial(trend=krige$trend.d, geodata = geodata))
   beta.size <- ncol(trend.d)
   if(beta.prior == "deg")
     if(beta.size != length(beta))
       stop("size of mean vector is incompatible with trend specified") 
-  trend.l <- trend.spatial(trend=krige$trend.l, geodata = list(coords = locations))
+  if(!is.null(class(krige$trend.l)) && class(krige$trend.l) == "trend.spatial")
+    trend.l <- unclass(krige$trend.l)
+  else
+    trend.l <- unclass(trend.spatial(trend=krige$trend.l, geodata = list(coords = locations)))
   if(beta.size > 1)
     beta.names <- paste("beta", (0:(beta.size-1)), sep="")
   else beta.names <- "beta"
@@ -487,8 +493,14 @@
       stop("krige.control: trend.d and trend.l must have similar specification")
   }
   else{
-    if(trend.d != trend.l)
-      stop("krige.control: trend.l is different from trend.d")
+    if((!is.null(class(trend.d)) && class(trend.d) == "trend.spatial") &
+       (!is.null(class(trend.l)) && class(trend.l) == "trend.spatial")){
+      if(ncol(trend.d) != ncol(trend.l))
+        stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
+    }
+    else
+      if(trend.d != trend.l)
+        stop("krige.control: trend.l is different from trend.d")
   }
   ##
   res <- list(type.krige = type.krige,
@@ -504,7 +516,7 @@
 }
 
 "prepare.graph.kriging" <-
-  function (obj, locations, borders, values) 
+  function (obj, locations, borders, values, xlim, ylim) 
 {
   if(!is.null(borders)){
     borders <- as.matrix(as.data.frame(borders))
@@ -523,7 +535,9 @@
   nx <- length(x)
   y <- as.numeric(levels(as.factor(locations[, 2])))
   ny <- length(y)
-  coords.lims <- set.coords.lims(coords = locations)
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
+  coords.lims <- set.coords.lims(coords = locations, xlim = xlim, ylim = ylim)
   coords.lims[,1] <- coords.lims[,1] + c(-.025, .025) * diff(coords.lims[,1])
   coords.lims[,2] <- coords.lims[,2] + c(-.025, .025) * diff(coords.lims[,2])
   return(list(x=x, y=y, values = matrix(values,ncol=ny),
@@ -532,9 +546,10 @@
 
 "image.kriging" <-
   function (x, locations, borders, 
-            values = x$predict, coords.data,
+            values = x$predict, coords.data, xlim, ylim, 
             x.leg, y.leg, cex.leg = 0.8, vertical = FALSE, ...) 
 {
+  dots.l <- list(...)
   if(missing(x)) x <- NULL
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -545,21 +560,23 @@
     else borders <- NULL
   }
   if(missing(coords.data)) coords.data <- NULL
+  if(missing(xlim)) xlim <- NULL
+  if(missing(ylim)) ylim <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   locations <- prepare.graph.kriging(obj=x, locations=locations,
                                      borders=borders,
-                                     values=values) 
+                                     values=values,
+                                     xlim = xlim, ylim = ylim) 
   pty.prev <- par()$pty
   par(pty = "s")
-  image(locations$x, locations$y, locations$values,
-        xlim= locations$coords.lims[,1],
-        ylim=locations$coords.lims[,2],...)
+  image(x=locations$x, y=locations$y, z=locations$values,
+        xlim = locations$coords.lims[,1],
+        ylim = locations$coords.lims[,2], ...)
   if(!is.null(coords.data))
     points(coords.data, pch=20)
   if(!is.null(borders))
     polygon(borders, lwd=2)
-  dots.l <- list(...)
   if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
   if(!is.null(x.leg) & !is.null(y.leg))
     legend.krige(x.leg=x.leg, y.leg=y.leg,
@@ -591,7 +608,7 @@
   values <- values[!is.na(values)]
   if(length(x.leg) != 2 | length(y.leg) != 2)
     stop("x.leg and y.leg require a vector with 2 elements")
-  v.r <- range(values, na.rm=TRUE)
+  v.r <- range(values, na.rm = TRUE)
   lags.x <- function(xs, nl){
     xs.r <- 0.5 * diff(xs/(nl-1))
     return(seq(xs[1]+xs.r, xs[2]-xs.r, l=nl))
@@ -611,15 +628,9 @@
             add=TRUE, col=leg.l$col)    
   }
   else{
-                                        # recent bug(?) fix:
-                                        #    nc <- length(breaks) - 1
     nc <- length(leg.l$breaks) - 1
     if(is.null(leg.l$col))
       leg.l$col <- heat.colors(nc)
-                                        # recent bug(?) fix:
-                                        #      image(x.leg, lags.x(xs=y.leg, nl=nc),
-                                        #          matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
-                                        #          add=TRUE, col=leg.l$col, breaks=leg.l$breaks)
     if(vertical)
       image(x.leg, lags.x(xs=y.leg, nl=nc),
           matrix(seq(v.r[1], v.r[2], l=nc), nrow=1),

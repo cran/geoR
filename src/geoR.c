@@ -321,7 +321,7 @@ void distdiag(Real *xloc, Real *yloc, Integer *nl, Real *res)
 }
 
 void binit(Integer *n, Real *xc, Real *yc, Real *sim, 
-	   Integer *nbins, Real *lims, Integer *robust, 
+	   Integer *nbins, Real *lims, Integer *modulus, 
 	   Real *maxdist, Integer *cbin, Real *vbin,
 	   Integer *sdcalc, Real *sdbin)
 {
@@ -341,7 +341,7 @@ void binit(Integer *n, Real *xc, Real *yc, Real *sim,
 	  if(dist <= *maxdist)
 	    {
 	      v = sim[i] - sim[j];
-	      if (*robust) v = sqrt(sqrt(v*v));
+	      if (*modulus) v = sqrt(sqrt(v*v));
 	      else v = (v*v)/2.0;
 	      ind = 0;
 	      while (dist >= lims[ind] && ind <= *nbins ) ind++ ;
@@ -363,7 +363,7 @@ void binit(Integer *n, Real *xc, Real *yc, Real *sim,
 	    sdbin[j] = sqrt((sdbin[j] - ((vbin[j] * vbin[j])/cbin[j]))/(cbin[j] - 1));
 	  }
 	vbin[j] = vbin[j]/cbin[j];
-	if (*robust) {
+	if (*modulus) {
 	  vbin[j] = vbin[j] * vbin[j];
 	  vbin[j] = (vbin[j] * vbin[j])/(0.914 + (0.988/cbin[j]));
 	}

@@ -1,4 +1,37 @@
-		
+				
+		=============================
+		CHANGES IN geoR VERSION 1.3-1
+		=============================
+
+NEW FEATURES
+   
+     o  changes in the documentation of Box-Cox related functions
+
+     o trend.spatial now assigns a class "trend.spatial" to its output
+
+     o functions with argument trend can now also take an output of the 
+       function trend.spatial()
+        
+
+BUG FIXES
+
+     o fix in variog.model.env() and variog.mc.env() when argument "trend" is used
+
+     o bug fix in krige.bayes when argument messa=F
+
+     o bug fix in image.kriging() and image.krige.bayes()
+
+     o fix and additions in the documentation of trend.spatial()
+
+     o bug fix in print.grf(), krige.bayes.grf() 
+       caused by changes in version 1.3-0
+ 
+     o in plot.xvalid() when "borders = NULL"
+
+     o more details on the argument realisations in documentation for
+       likfit and as.geodata
+
+
 		=============================
 		CHANGES IN geoR VERSION 1.3-0
 		=============================
@@ -10,13 +43,14 @@ NEW FEATURES
        The file remain available on the web on html, ps and pdf formats
 
      o lines.variomodel() is now a generic functions.
-       and the previous lines.variomodel moved to
+       and the previous lines.variomodel() is moved to
        lines.variomodel.default().
-       So far methods implemented for lines.variomodel.krige.bayes()
-       and lines.variomodel.grf()
+       So far methods implemented for lines.variomodel.krige.bayes(),
+       lines.variomodel.grf(), lines.variomodel.likGRF() and
+       lines.variomodel.variofit()
 
      o changes in lines.krige.bayes():
-       - lines.krige.bayes voced to lines.variomodel.krige.bayes().
+       - lines.krige.bayes moved to lines.variomodel.krige.bayes().
        - lines.variomodel.krige.bayes() now computes and plots 
          summaries of the posterior for the variogram functions
          as the default option. 

@@ -1,0 +1,906 @@
+
+R : Copyright 2002, The R Development Core Team
+Version 1.5.1 Patched (2002-07-17)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type `license()' or `licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type `contributors()' for more information.
+
+Type `demo()' for some demos, `help()' for on-line help, or
+`help.start()' for a HTML browser interface to help.
+Type `q()' to quit R.
+
+> require(geoR)
+Loading required package: geoR 
+
+------------------------------------------------
+geoR - functions for geostatistical analysis
+geoR version 1.3-1 is now loaded
+------------------------------------------------
+
+[1] TRUE
+> options(digits = 3, width = 80)
+> set.seed(30)
+> ##rm(list=ls())
+> ##
+> ##
+> locs <- expand.grid((1:3)/3,(1:3)/3)
+> ##
+> ##
+> output.sk <- output.ok <- output.control(n.pred=1000, mes=F)
+> #output.sk <- output.ok <- output.control(mes=F)
+> output.kb <- output.control(n.pred=1000, signal=F, mess=F)
+> ##
+> ## Simple kriging
+> ##
+> cat("==============\n")
+==============
+> cat("Simple kriging\n")
+Simple kriging
+> cat("==============\n")
+==============
+> ##
+> ##
+> ap <- grf(70, cov.pars=c(1, .3), mes=F)
+Loading required package: mva 
+> ap.ml <- likfit(ap, ini=c(1, .3), mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.564   0.010   0.498   0.236 
+
+likfit: maximised log-likelihood = -48.1
+> summary(ap.ml)
+Summary of the parameter estimation
+-----------------------------------
+Estimation method: maximum likelihood 
+
+Parameters of the mean component (trend):
+ beta 
+0.564 
+
+Parameters of the spatial component:
+   correlation function: exponential
+      (estimated) variance parameter sigmasq (partial sill) =  0.498
+      (estimated) cor. fct. parameter phi (range parameter)  =  0.236
+   anisotropy parameters:
+      (fixed) anisotropy angle = 0  ( 0 degrees )
+      (fixed) anisotropy ratio = 1
+
+Parameter of the error component:
+      (estimated) nugget =  0.01
+
+Transformation parameter:
+      (fixed) Box-Cox parameter = 1 (no transformation)
+
+Maximised Likelihood:
+   log.L n.params      AIC      BIC 
+   -48.1      4.0    104.2    113.2 
+
+Call:
+likfit(geodata = ap, ini.cov.pars = c(1, 0.3), messages.screen = F)
+
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml)
+> model.kb <- model.control()
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk01 <- krige.conv(ap, loc=locs, krige=krige.sk, output=output.sk)
+> ap.kb01 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output=output.kb)
+> ap.sk01[1:2]
+$predict
+[1]  0.9351  0.9670  1.1780 -0.1812  0.5996  1.1447 -0.0918 -0.3182  0.3312
+
+$krige.var
+[1] 0.0983 0.1532 0.2798 0.1072 0.1136 0.1131 0.2885 0.1729 0.3700
+
+> ap.kb01$pred[1:2]
+$mean
+[1]  0.9351  0.9670  1.1780 -0.1812  0.5996  1.1447 -0.0918 -0.3182  0.3312
+
+$variance
+[1] 0.0983 0.1532 0.2798 0.1072 0.1136 0.1131 0.2885 0.1729 0.3700
+
+> ##
+> dm <- round(ap.sk01[[1]] - ap.kb01$pred[[1]], dig=8)
+> dv <- round(ap.sk01[[2]] - ap.kb01$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm1 sk mean not ok\n"), "dm1 sk mean OK\n"))
+dm1 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv1 sk var not ok\n"), "dv1 sk var OK\n"))
+dv1 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap$data <- exp(ap$data)
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.564   0.010   0.498   0.236 
+
+likfit: maximised log-likelihood = -86.1
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0)
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk02 <- krige.conv(ap, loc=locs, krige= krige.sk, output=output.sk)
+> ap.kb02 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.sk02[1:2]
+$predict
+[1] 2.676 2.839 3.736 0.880 1.928 3.324 1.054 0.793 1.676
+
+$krige.var
+[1] 0.7392 1.3348 4.5049 0.0877 0.4471 1.3228 0.3715 0.1187 1.2570
+
+> ap.kb02$pred[1:2]
+$mean
+[1] 2.676 2.839 3.736 0.880 1.928 3.324 1.054 0.793 1.676
+
+$variance
+[1] 0.7392 1.3348 4.5049 0.0877 0.4471 1.3228 0.3715 0.1187 1.2570
+
+> ##
+> dm <- round(ap.sk02[[1]] - ap.kb02$pred[[1]], dig=8)
+> dv <- round(ap.sk02[[2]] - ap.kb02$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm2 sk mean not ok\n"), "dm2 sk mean OK\n"))
+dm2 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv2 sk var not ok\n"), "dv2 sk var OK\n"))
+dv2 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.5, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.875   0.083   0.909   0.276 
+
+likfit: maximised log-likelihood = -91.8
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0.5)
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk03 <- krige.conv(ap, loc=locs, krige=krige.sk, output=output.sk)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.sk, output = output.sk) 
+> ap.kb03 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.sk03[1:2]
+$predict
+[1] 2.564 2.674 3.630 0.947 2.018 3.176 1.091 0.866 1.817
+
+$krige.var
+[1] 0.611 0.869 1.926 0.231 0.523 0.861 0.563 0.299 1.206
+
+> ap.kb03$pred[1:2]
+$mean
+[1] 2.564 2.674 3.630 0.947 2.018 3.176 1.091 0.866 1.817
+
+$variance
+[1] 0.611 0.869 1.926 0.231 0.523 0.861 0.563 0.299 1.206
+
+> ##
+> dm <- round(ap.sk03[[1]] - ap.kb03$pred[[1]], dig=8)
+> dv <- round(ap.sk03[[2]] - ap.kb03$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm3 sk mean not ok\n"), "dm3 sk mean OK\n"))
+dm3 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv3 sk var not ok\n"), "dv3 sk var OK\n"))
+dv3 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.25, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.698   0.035   0.654   0.252 
+
+likfit: maximised log-likelihood = -88
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0.25)
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> seed.now <- .Random.seed
+> ap.sk04 <- krige.conv(ap, loc=locs, krige=krige.control(type="sk", obj.model=ap.ml), output=output.sk)
+> .Random.seed <- seed.now
+> ap.kb04 <- krige.bayes(ap, loc=locs, model = model.kb, prior=prior.kb, output=output.kb)
+> ap.sk04[1:2]
+$predict
+[1] 2.614 2.743 3.634 0.910 1.975 3.237 1.073 0.827 1.736
+
+$krige.var
+[1] 0.602 0.923 2.346 0.127 0.437 0.947 0.350 0.158 0.916
+
+> ap.kb04$pred[1:2]
+$mean
+[1] 2.614 2.743 3.634 0.910 1.975 3.237 1.073 0.827 1.736
+
+$variance
+[1] 0.602 0.923 2.346 0.127 0.437 0.947 0.350 0.158 0.916
+
+> ##
+> dm <- round(ap.sk04[[1]] - ap.kb04$pred[[1]], dig=8)
+> dv <- round(ap.sk04[[2]] - ap.kb04$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm4 sk mean not ok\n"), "dm4 sk mean OK\n"))
+dm4 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv4 sk var not ok\n"), "dv4 sk var OK\n"))
+dv4 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ## Ordinary kriging
+> ##
+> cat("================\n")
+================
+> cat("Ordinary kriging\n")
+Ordinary kriging
+> cat("================\n")
+================
+> ##
+> ##
+> ap$data <- log(ap$data)
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.564   0.010   0.498   0.236 
+
+likfit: maximised log-likelihood = -48.1
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml)
+> model.kb <- model.control()
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok01 <- krige.conv(ap, loc=locs, krige=krige.ok, output=output.ok)
+> ap.kb01 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output=output.kb)
+> ap.ok01[1:2]
+$predict
+[1]  0.9351  0.9670  1.1780 -0.1812  0.5996  1.1447 -0.0918 -0.3182  0.3312
+
+$krige.var
+[1] 0.0983 0.1532 0.2831 0.1072 0.1136 0.1132 0.2913 0.1732 0.3810
+
+> ap.kb01$pred[1:2]
+$mean
+[1]  0.9351  0.9670  1.1780 -0.1812  0.5996  1.1447 -0.0918 -0.3182  0.3312
+
+$variance
+[1] 0.0983 0.1532 0.2831 0.1072 0.1136 0.1132 0.2913 0.1732 0.3810
+
+> ##
+> dm <- round(ap.ok01[[1]] - ap.kb01$pred[[1]], dig=8)
+> dv <- round(ap.ok01[[2]] - ap.kb01$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm1 ok mean not ok\n"), "dm1 ok mean OK\n"))
+dm1 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv1 ok var not ok\n"), "dv1 ok var OK\n"))
+dv1 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap$data <- exp(ap$data)
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.564   0.010   0.498   0.236 
+
+likfit: maximised log-likelihood = -86.1
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0)
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok02 <- krige.conv(ap, loc=locs, krige= krige.ok, output=output.ok)
+> ap.kb02 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.ok02[1:2]
+$predict
+[1] 2.676 2.839 3.742 0.880 1.928 3.324 1.055 0.793 1.685
+
+$krige.var
+[1] 0.7392 1.3349 4.5821 0.0877 0.4471 1.3250 0.3766 0.1190 1.3168
+
+> ap.kb02$pred[1:2]
+$mean
+[1] 2.676 2.839 3.742 0.880 1.928 3.324 1.055 0.793 1.685
+
+$variance
+[1] 0.7392 1.3349 4.5821 0.0877 0.4471 1.3250 0.3766 0.1190 1.3168
+
+> ##
+> dm <- round(ap.ok02[[1]] - ap.kb02$pred[[1]], dig=8)
+> dv <- round(ap.ok02[[2]] - ap.kb02$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm2 ok mean not ok\n"), "dm2 ok mean OK\n"))
+dm2 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv2 ok var not ok\n"), "dv2 ok var OK\n"))
+dv2 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.5, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.875   0.083   0.909   0.276 
+
+likfit: maximised log-likelihood = -91.8
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0.5)
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok03 <- krige.conv(ap, loc=locs, krige=krige.ok, output=output.ok)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.ok, output = output.ok) 
+> ap.kb03 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.ok03[1:2]
+$predict
+[1] 2.564 2.674 3.632 0.947 2.018 3.176 1.092 0.867 1.822
+
+$krige.var
+[1] 0.611 0.869 1.947 0.231 0.523 0.862 0.568 0.300 1.243
+
+> ap.kb03$pred[1:2]
+$mean
+[1] 2.564 2.674 3.632 0.947 2.018 3.176 1.092 0.867 1.822
+
+$variance
+[1] 0.611 0.869 1.947 0.231 0.523 0.862 0.568 0.300 1.243
+
+> ##
+> dm <- round(ap.ok03[[1]] - ap.kb03$pred[[1]], dig=8)
+> dv <- round(ap.ok03[[2]] - ap.kb03$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm3 ok mean not ok\n"), "dm3 ok mean OK\n"))
+dm3 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv3 ok var not ok\n"), "dv3 ok var OK\n"))
+dv3 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.25, mes=F)
+> ap.ml
+likfit: estimated model parameters:
+   beta   tausq sigmasq     phi 
+  0.698   0.035   0.654   0.252 
+
+likfit: maximised log-likelihood = -88
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml)
+> model.kb <- model.control(lambda = 0.25)
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> seed.now <- .Random.seed
+> ap.ok04 <- krige.conv(ap, loc=locs, krige=krige.control(type="ok", obj.model=ap.ml), output=output.ok)
+> .Random.seed <- seed.now
+> ap.kb04 <- krige.bayes(ap, loc=locs, model = model.kb, prior=prior.kb, output=output.kb)
+> ap.ok04[1:2]
+$predict
+[1] 2.614 2.743 3.637 0.910 1.975 3.237 1.074 0.827 1.743
+
+$krige.var
+[1] 0.602 0.923 2.373 0.127 0.437 0.949 0.353 0.158 0.943
+
+> ap.kb04$pred[1:2]
+$mean
+[1] 2.614 2.743 3.637 0.910 1.975 3.237 1.074 0.827 1.743
+
+$variance
+[1] 0.602 0.923 2.373 0.127 0.437 0.949 0.353 0.158 0.943
+
+> ##
+> dm <- round(ap.ok04[[1]] - ap.kb04$pred[[1]], dig=8)
+> dv <- round(ap.ok04[[2]] - ap.kb04$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm4 ok mean not ok\n"), "dm4 ok mean OK\n"))
+dm4 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv4 ok var not ok\n"), "dv4 ok var OK\n"))
+dv4 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ## With trend model
+> ##
+> ##
+> cat("=========================\n")
+=========================
+> cat("Simple kriging with trend\n")
+Simple kriging with trend
+> cat("=========================\n")
+=========================
+> ##
+> ##
+> ap <- grf(70, cov.pars=c(1, .3), mes=F)
+> ap$data <- ap$data - 2 * ap$coords[,1] + 3 * ap$coords[,2] + rnorm(70, sd=.5)
+> ##
+> ##
+> model.kb <- model.control(trend.d = "1st", trend.l = "1st")
+> ##
+> ## Simple kriging
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.216  -2.499   2.068   0.001   0.720   0.066 
+
+likfit: maximised log-likelihood = -79.8
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk01 <- krige.conv(ap, loc=locs, krige=krige.sk, output=output.sk)
+> ap.kb01 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output=output.kb)
+> ap.sk01[1:2]
+$predict
+[1]  0.74256 -0.66633 -1.57069  0.78328 -0.64827 -0.87150  1.03210  0.50012
+[9] -0.00224
+
+$krige.var
+[1] 0.581 0.696 0.719 0.657 0.539 0.622 0.618 0.697 0.677
+
+> ap.kb01$pred[1:2]
+$mean
+[1]  0.74256 -0.66633 -1.57069  0.78328 -0.64827 -0.87150  1.03210  0.50012
+[9] -0.00224
+
+$variance
+[1] 0.581 0.696 0.719 0.657 0.539 0.622 0.618 0.697 0.677
+
+> ##
+> dm <- round(ap.sk01[[1]] - ap.kb01$pred[[1]], dig=8)
+> dv <- round(ap.sk01[[2]] - ap.kb01$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm1 sk mean not ok\n"), "dm1 sk mean OK\n"))
+dm1 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv1 sk var not ok\n"), "dv1 sk var OK\n"))
+dv1 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap$data <- exp(ap$data)
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.216  -2.499   2.068   0.001   0.720   0.066 
+
+likfit: maximised log-likelihood = -85.8
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> model.kb$lambda <- 0
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk02 <- krige.conv(ap, loc=locs, krige= krige.sk, output=output.sk)
+> ap.kb02 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.sk02[1:2]
+$predict
+[1] 2.810 0.727 0.298 3.039 0.685 0.571 3.823 2.337 1.400
+
+$krige.var
+[1]  6.2274  0.5327  0.0934  8.5737  0.3347  0.2813 12.5048  5.5046  1.8971
+
+> ap.kb02$pred[1:2]
+$mean
+[1] 2.810 0.727 0.298 3.039 0.685 0.571 3.823 2.337 1.400
+
+$variance
+[1]  6.2274  0.5327  0.0934  8.5737  0.3347  0.2813 12.5048  5.5046  1.8971
+
+> ##
+> dm <- round(ap.sk02[[1]] - ap.kb02$pred[[1]], dig=8)
+> dv <- round(ap.sk02[[2]] - ap.kb02$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm2 sk mean not ok\n"), "dm2 sk mean OK\n"))
+dm2 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv2 sk var not ok\n"), "dv2 sk var OK\n"))
+dv2 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.5, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  1.028  -3.557   2.493   0.000   1.833   0.073 
+
+likfit: maximised log-likelihood = -114
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> model.kb$lambda <- 0.5
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.sk03 <- krige.conv(ap, loc=locs, krige=krige.sk, output=output.sk)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.sk, output = output.sk) 
+> ap.kb03 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.sk03[1:2]
+$predict
+[1] 2.976 1.024 0.490 3.234 0.905 0.743 3.369 2.480 1.594
+
+$krige.var
+[1] 3.944 1.407 0.478 4.906 0.965 0.844 4.834 3.952 2.337
+
+> ap.kb03$pred[1:2]
+$mean
+[1] 2.976 1.024 0.490 3.234 0.905 0.743 3.369 2.480 1.594
+
+$variance
+[1] 3.944 1.407 0.478 4.906 0.965 0.844 4.834 3.952 2.337
+
+> ##
+> dm <- round(ap.sk03[[1]] - ap.kb03$pred[[1]], dig=8)
+> dv <- round(ap.sk03[[2]] - ap.kb03$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm3 sk mean not ok\n"), "dm3 sk mean OK\n"))
+dm3 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv3 sk var not ok\n"), "dv3 sk var OK\n"))
+dv3 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.25, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.566  -2.828   2.142   0.000   0.975   0.070 
+
+likfit: maximised log-likelihood = -94.1
+> krige.sk <- krige.control(type="sk", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> model.kb$lambda <- 0.25
+> prior.kb <- prior.control(beta.prior="fixed",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], beta=ap.ml$beta, sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> seed.now <- .Random.seed
+> ap.sk04 <- krige.conv(ap, loc=locs, krige=krige.sk, output=output.sk)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.sk, output = output.sk) 
+> .Random.seed <- seed.now
+> ap.kb04 <- krige.bayes(ap, loc=locs, model = model.kb, prior=prior.kb, output=output.kb)
+> ap.sk04[1:2]
+$predict
+[1] 2.838 0.822 0.292 3.000 0.741 0.607 3.327 2.279 1.450
+
+$krige.var
+[1] 2.8253 0.3916 0.0568 3.4104 0.2837 0.2155 3.8592 2.2708 1.0367
+
+> ap.kb04$pred[1:2]
+$mean
+[1] 2.838 0.822 0.292 3.000 0.741 0.607 3.327 2.279 1.450
+
+$variance
+[1] 2.8253 0.3916 0.0568 3.4104 0.2837 0.2155 3.8592 2.2708 1.0367
+
+> ##
+> dm <- round(ap.sk04[[1]] - ap.kb04$pred[[1]], dig=8)
+> dv <- round(ap.sk04[[2]] - ap.kb04$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm4 sk mean not ok\n"), "dm4 sk mean OK\n"))
+dm4 sk mean OK
+> cat(ifelse(any(dv) > 0, stop("dv4 sk var not ok\n"), "dv4 sk var OK\n"))
+dv4 sk var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ##
+> cat("=============================\n")
+=============================
+> ##
+> ## Ordinary kriging
+> ##
+> cat("===========================\n")
+===========================
+> cat("Ordinary kriging with trend\n")
+Ordinary kriging with trend
+> cat("===========================\n")
+===========================
+> ##
+> ap$data <- log(ap$data)
+> ##
+> ##
+> model.kb <- model.control(trend.d = "1st", trend.l = "1st")
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.216  -2.499   2.068   0.001   0.720   0.066 
+
+likfit: maximised log-likelihood = -79.8
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok01 <- krige.conv(ap, loc=locs, krige=krige.ok, output=output.ok)
+> ap.kb01 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output=output.kb)
+> ap.ok01[1:2]
+$predict
+[1]  0.74256 -0.66633 -1.57069  0.78328 -0.64827 -0.87150  1.03210  0.50012
+[9] -0.00224
+
+$krige.var
+[1] 0.584 0.716 0.806 0.663 0.541 0.652 0.643 0.739 0.758
+
+> ap.kb01$pred[1:2]
+$mean
+[1]  0.74256 -0.66633 -1.57069  0.78328 -0.64827 -0.87150  1.03210  0.50012
+[9] -0.00224
+
+$variance
+[1] 0.584 0.716 0.806 0.663 0.541 0.652 0.643 0.739 0.758
+
+> ##
+> dm <- round(ap.ok01[[1]] - ap.kb01$pred[[1]], dig=8)
+> dv <- round(ap.ok01[[2]] - ap.kb01$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm1 ok mean not ok\n"), "dm1 ok mean OK\n"))
+dm1 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv1 ok var not ok\n"), "dv1 ok var OK\n"))
+dv1 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap$data <- exp(ap$data)
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.216  -2.499   2.068   0.001   0.720   0.066 
+
+likfit: maximised log-likelihood = -85.8
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml,trend.d = "1st", trend.l = "1st")
+> model.kb$lambda  <- 0
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok02 <- krige.conv(ap, loc=locs, krige= krige.ok, output=output.ok)
+> ap.kb02 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.ok02[1:2]
+$predict
+[1] 2.814 0.735 0.311 3.048 0.685 0.580 3.871 2.386 1.457
+
+$krige.var
+[1]  6.282  0.565  0.120  8.736  0.337  0.309 13.516  6.224  2.408
+
+> ap.kb02$pred[1:2]
+$mean
+[1] 2.814 0.735 0.311 3.048 0.685 0.580 3.871 2.386 1.457
+
+$variance
+[1]  6.282  0.565  0.120  8.736  0.337  0.309 13.516  6.224  2.408
+
+> ##
+> dm <- round(ap.ok02[[1]] - ap.kb02$pred[[1]], dig=8)
+> dv <- round(ap.ok02[[2]] - ap.kb02$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm2 ok mean not ok\n"), "dm2 ok mean OK\n"))
+dm2 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv2 ok var not ok\n"), "dv2 ok var OK\n"))
+dv2 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.5, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  1.028  -3.557   2.493   0.000   1.833   0.073 
+
+likfit: maximised log-likelihood = -114
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml,trend.d = "1st", trend.l = "1st")
+> model.kb$lambda <- 0.5
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> ap.ok03 <- krige.conv(ap, loc=locs, krige=krige.ok, output=output.ok)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.ok, output = output.ok) 
+> ap.kb03 <- krige.bayes(ap, loc=locs, prior=prior.kb, model = model.kb, output = output.kb)
+> ap.ok03[1:2]
+$predict
+[1] 2.977 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
+
+$krige.var
+[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.027 4.198 2.668
+
+> ap.kb03$pred[1:2]
+$mean
+[1] 2.977 1.035 0.547 3.237 0.906 0.761 3.384 2.505 1.645
+
+$variance
+[1] 3.959 1.454 0.596 4.946 0.969 0.898 5.027 4.198 2.668
+
+> ##
+> dm <- round(ap.ok03[[1]] - ap.kb03$pred[[1]], dig=8)
+> dv <- round(ap.ok03[[2]] - ap.kb03$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm3 ok mean not ok\n"), "dm3 ok mean OK\n"))
+dm3 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv3 ok var not ok\n"), "dv3 ok var OK\n"))
+dv3 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ap.ml <- likfit(ap, ini=c(1, .3), lambda=0.25, mes=F, trend = "1st")
+> ap.ml
+likfit: estimated model parameters:
+  beta0   beta1   beta2   tausq sigmasq     phi 
+  0.566  -2.828   2.142   0.000   0.975   0.070 
+
+likfit: maximised log-likelihood = -94.1
+> krige.ok <- krige.control(type="ok", obj.model=ap.ml, trend.d = "1st", trend.l = "1st")
+> model.kb$lambda <- 0.25
+> prior.kb <- prior.control(beta.prior="flat",sigmasq.prior="fixed",phi.prior="fixed", tausq.rel = ap.ml$nug/ap.ml$cov.pars[1], sigmasq=ap.ml$cov.pars[1], phi=ap.ml$cov.pars[2])
+> ##
+> seed.now <- .Random.seed
+> ap.ok04 <- krige.conv(ap, loc=locs, krige=krige.ok, output=output.ok)
+Warning message: 
+Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale. in: krige.conv(ap, loc = locs, krige = krige.ok, output = output.ok) 
+> .Random.seed <- seed.now
+> ap.kb04 <- krige.bayes(ap, loc=locs, model = model.kb, prior=prior.kb, output=output.kb)
+> ap.ok04[1:2]
+$predict
+[1] 2.840 0.830 0.310 3.004 0.741 0.616 3.347 2.306 1.493
+
+$krige.var
+[1] 2.8361 0.4023 0.0638 3.4379 0.2846 0.2258 4.0073 2.4016 1.1616
+
+> ap.kb04$pred[1:2]
+$mean
+[1] 2.840 0.830 0.310 3.004 0.741 0.616 3.347 2.306 1.493
+
+$variance
+[1] 2.8361 0.4023 0.0638 3.4379 0.2846 0.2258 4.0073 2.4016 1.1616
+
+> ##
+> dm <- round(ap.ok04[[1]] - ap.kb04$pred[[1]], dig=8)
+> dv <- round(ap.ok04[[2]] - ap.kb04$pred[[2]], dig=8)
+> cat("-----------------------------\n")
+-----------------------------
+> cat(ifelse(any(dm) > 0, stop("dm4 ok mean not ok\n"), "dm4 ok mean OK\n"))
+dm4 ok mean OK
+> cat(ifelse(any(dv) > 0, stop("dv4 ok var not ok\n"), "dv4 ok var OK\n"))
+dv4 ok var OK
+> cat("-----------------------------\n")
+-----------------------------
+> ##
+> ##
+> ##
+> ## Other options 
+> ##
+> output.kb <- output.control(n.pred=500, mess=F, quant=T, thres=c(.5, 1.5))
+> ##
+> ## fixed phi
+> ##
+> cat("=====================================\n")
+=====================================
+> cat("examples with fixed phi\n")
+examples with fixed phi
+> cat("-------------------------------------\n")
+-------------------------------------
+> prior.kb <- prior.control(phi.prior="fixed", phi=0.3)
+> ap.kb05 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 1 run ok\n")
+example 1 run ok
+> ap.kb05$pred[1:2]
+$mean
+[1] 3.165 0.768 1.083 3.331 0.441 0.900 1.806 1.588 2.262
+
+$variance
+[1]  8.46 15.06 22.98 10.99  7.58 11.47 10.99 15.02 16.44
+
+> ##
+> prior.kb <- prior.control(phi.prior="fixed", phi=0.3, beta.prior="normal", beta=-1, beta.var=0.2, sigmasq.prior="sc.inv.chisq", sigmasq=1.5, df.sig=12)
+> ap.kb06 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 2 run ok\n")
+example 2 run ok
+> ap.kb06$pred[1:2]
+$mean
+[1] 3.161 0.699 0.620 3.314 0.437 0.684 1.678 1.399 1.750
+
+$variance
+[1]  7.31 13.01 19.73  9.49  6.55  9.88  9.48 12.96 14.05
+
+> ##
+> cat("=====================================\n")
+=====================================
+> ##
+> ## All random
+> ##
+> cat("\n", "\n")
+
+ 
+> cat("=====================================\n")
+=====================================
+> cat("examples with fixed phi and/or tausq.rel\n")
+examples with fixed phi and/or tausq.rel
+> cat("-------------------------------------\n")
+-------------------------------------
+> prior.kb <- prior.control(phi.discrete=seq(0,1,l=11), tausq.rel.discrete= seq(0,.2, l=5))
+> ap.kb07 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 1 run ok\n")
+example 1 run ok
+> ap.kb07$pred[1:2]
+$mean
+[1] 3.161 0.750 0.902 3.321 0.445 0.841 1.844 1.617 2.242
+
+$variance
+[1]  8.31 14.86 23.58 10.78  7.45 11.43 10.82 14.85 16.93
+
+> ##
+> prior.kb <- prior.control(phi.discrete=seq(0,1,l=11))
+> ap.kb08 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 2 run ok\n")
+example 2 run ok
+> ap.kb08$pred[1:2]
+$mean
+[1] 3.161 0.750 0.902 3.321 0.445 0.841 1.844 1.617 2.242
+
+$variance
+[1]  8.31 14.86 23.58 10.78  7.45 11.43 10.82 14.85 16.93
+
+> ##
+> prior.kb <- prior.control(phi.discrete=seq(0,1,l=11), tausq.rel.discrete= seq(0,.2, l=5), beta.prior="normal", beta=-1, beta.var=0.2, sigmasq.prior="sc.inv.chisq", sigmasq=1.5, df.sig=12)
+> ap.kb09 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 3 run ok\n")
+example 3 run ok
+> ap.kb09$pred[1:2]
+$mean
+[1] 3.041 1.068 1.301 3.151 0.537 0.945 1.735 1.520 1.843
+
+$variance
+[1]  8.91 13.50 16.74 11.01  8.07 10.77 10.58 13.39 13.36
+
+> ##
+> prior.kb <- prior.control(phi.discrete=seq(0,1,l=11), beta.prior="normal", beta=-1, beta.var=0.2, sigmasq.prior="sc.inv.chisq", sigmasq=1.5, df.sig=12)
+> ap.kb10 <- krige.bayes(ap, loc=locs, prior=prior.kb, output = output.kb)
+> cat("example 4 run ok\n")
+example 4 run ok
+> ap.kb10$pred[1:2]
+$mean
+[1] 3.041 1.068 1.301 3.151 0.537 0.945 1.735 1.520 1.843
+
+$variance
+[1]  8.91 13.50 16.74 11.01  8.07 10.77 10.58 13.39 13.36
+
+> ##
+> cat("=====================================\n")
+=====================================
+> 
+> 
+> 

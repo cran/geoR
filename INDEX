@@ -1,7 +1,9 @@
-BoxCox                  Box-Cox transformation related functions
+boxcox                  The Box-Cox Transformed Normal Distribution
 InvChisquare            The (Scaled) Inverse Chi-Squared Distribution
 SIC                     Spatial Interpolation Comparison data
 as.geodata              Converts an Object to the Class "geodata"
+boxcox.fit              Parameter Estimation for the Box-Cox
+                        transformation
 coords.aniso            Geometric Anisotropy Correction
 cov.spatial             Computes Value of the Covariance Function
 geoR-defunct            Defunct Functions in the Package geoR

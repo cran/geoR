@@ -113,8 +113,10 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     function. For further details see 
     documentation for \code{\link{cov.spatial}}.
     Defaults are equivalent to the \emph{exponential} model.  }
-  \item{realisations}{optional. A vector indicating replication number
-    for each data. For more details see \code{\link{as.geodata}}. }
+  \item{realisations}{optional. 
+    A vector indicating the number of replication
+    for each datum. For further information see \code{DETAILS} below and
+    documentation for \code{\link{as.geodata}}. }
   \item{method.lik}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
@@ -191,7 +193,16 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   In this case the log-likelihood is computed for all combinations of
   model parameters. The set with results in the maximum value of the
   log-likelihood is then used to start the minimisation algorithm.
-  
+
+  The argument \bold{realisations} allows replicated data to be used.
+  For instance, data collected at different times at least partially
+  the same locations
+  can be pooled toghether in the parameter estimation if independence is
+  assumed between time points.
+  The argument \code{realisations} takes a vector indicating the
+  replication number (e.g. the times). The log-likelihoods are computed
+  for each replication and added toghether.\cr
+  \emph{Notice that this assumes independence among the replications}.
 }
 
 
@@ -268,7 +279,20 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \examples{
-if(is.R()) data(s100)
+\dontrun{
+data(s100)
+ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE)
+ml
+summary(ml)
+reml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE, met = "REML")
+summary(reml)
+plot(variog(s100))
+lines(ml)
+lines(reml, lty = 2)
+}
+
+\testonly{
+data(s100)
 ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE)
 ml
 summary(ml)
@@ -278,7 +302,6 @@ plot(variog(s100))
 lines(ml)
 lines(reml, lty = 2)
 
-\testonly{
 ap <- grf(50, cov.pars=c(1, .3), nug=.3)
 ml <- likfit(ap, ini=c(0.5, 0.5), nug=0.2)
 ml <- likfit(ap, ini=c(0.5, 0.5), fix.nug=TRUE, nug=0.2)
@@ -291,15 +314,14 @@ ml <- likfit(ap, ini=expand.grid(c(.5,1,1.5),c(.1,.2,.3)))
 ml <- likfit(ap, ini=expand.grid(c(.5,1),c(.1,.2)), nug=c(.2,.3))
 
 ## Multiple realizations
-ap1 <- grf(30, cov.pars=c(1, .3))
-ap2 <- grf(20, cov.pars=c(1, .3))
-ap3 <- grf(40, cov.pars=c(1, .3))
+ap1 <- grf(40, cov.pars=c(1, .3))
+ap2 <- grf(grid=ap1$coords[sample(1:40, 20),], cov.pars=c(1, .3))
+ap3 <- grf(grid=ap1$coords[sample(1:40, 30),], cov.pars=c(1, .3))
 ap <- list(coords = rbind(ap1$coords, ap2$coords, ap3$coords), data = c(ap1$data, ap2$data, ap3$data))
-ap$realisations <- c(rep(1,30), rep(2,20), rep(3,40))
+ap$realisations <- c(rep(1,40), rep(2,20), rep(3,30))
 ap.fit <- likfit(ap, ini=c(.5, .5), reali=ap$real)
 }
 
 }
-
 \keyword{spatial}
 \keyword{models}%-- one or more ...

@@ -116,7 +116,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
 
 
 \examples{
-if(is.R()) data(s100)
+data(s100)
 #
 # Maximum likelihood estimation
 #
@@ -127,7 +127,7 @@ s100.ml <- likfit(s100, ini = c(.5, .5), fix.nug = TRUE)
 s100.var <- variog(s100, max.dist = 1)
 s100.wls <- variofit(s100.var, ini = c(.5, .5), fix.nug = TRUE)
 #
-# Now, performing cross-validation
+# Now, performing cross-validation without reestimating the model
 #
 s100.xv.ml <- xvalid(s100, model = s100.ml)
 s100.xv.wls <- xvalid(s100, model = s100.wls)
@@ -144,7 +144,7 @@ plot(s100.xv.wls)
 par(par.ori)
 #
 \testonly{
-if(is.R()) data(s100)
+data(s100)
   vr <- variog(s100, max.dist=1)
   ## OLS#
   o1 <- variofit(vr, ini=c(.5, .5), fix.nug=TRUE, wei="equal")

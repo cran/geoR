@@ -40,8 +40,8 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   \item{covar.names}{a string or vector of strings with the name(s) of
     the covariates. By default, the names in the original object are used.  }
   \item{realisations}{optional. A vector indicating the realisation
-    number of a number indicating a column in \code{obj} with the
-    realisation indicatior.
+    number or a number indicating a column in \code{obj} with the
+    realisation indicator variable.
     See \code{DETAILS} below.  }
   \item{na.action}{string defining action to be taken in the presence of
     \code{NA}'s. The default option \code{"ifany"} excludes all points
@@ -71,12 +71,15 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   to carry out the analysis.
 
   \bold{Realisations}\cr
-  Tipically geostatistical data correspond to a unique realization of
+  Tipically geostatistical data correspond to a unique realisation of
   the spatial process.
-  However, sometimes "realisations" are possible.
+  However, sometimes different "realisations" are possible.
   For instance, if data are collected in the same area at different
-  points in time, and the independence between times is assumed,
-  each time is considered a "replicate".
+  points in time and independence between time points is assumed,
+  each time can be considered a different "replicate" or "realisation"
+  of the same process. The argument \code{realisations} takes a vector
+  indication the replication number and can be passed to other \code{geoR}
+  functions as, for instance, \code{\link{likfit}}.
 
   The data format is similar to the usual \code{geodata} format in
   \code{geoR}.

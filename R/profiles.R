@@ -134,7 +134,7 @@
   ##
   ## 2. data preparation
   ##
-  trend <- trend.spatial(trend=obj.likfit$trend, geodata = geodata)
+  trend <- unclass(trend.spatial(trend=obj.likfit$trend, geodata = geodata))
   data <- as.vector(data)
   dimnames(trend) <- list(NULL, NULL)
   if(obj.likfit$transform.info$fix.lambda == TRUE) {

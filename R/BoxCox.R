@@ -1,9 +1,9 @@
 "boxcox.fit" <-
-  function(data, xmat, lambda, lambda2 = FALSE, add.to.data = 0,...)
+  function(data, xmat, lambda, lambda2 = NULL, add.to.data = 0,...)
 {
   call.fc <- match.call()
   data <- data + add.to.data
-  if((lambda2 == FALSE) && any(data <= 0))
+  if(is.null(lambda2) && any(data <= 0))
     stop("Transformation requires positive data")
   ##
   data <- as.vector(data)
@@ -20,7 +20,7 @@
   if(missing(lambda)) lambda.ini <- seq(-2, 2, by=0.2)
   else lambda.ini <- lambda
   absmin <- 1.001 * abs(min(data))
-  if(lambda2){
+  if(!is.null(lambda2)){
     if(lambda2 == TRUE) lambda2.ini <- abs(min(data))
     if(is.numeric(lambda2)) lambda2.ini <- lambda2
   }
@@ -34,15 +34,15 @@
   }
   names(lambdas.ini) <- NULL
   ##
-  if(lambda2)
+  if(is.null(lambda2))
+    lik.lambda <- optim(par=lambdas.ini[1], fn = boxcox.negloglik,
+                        data = data, xmat = xmat, hessian = TRUE,
+                        lik.method = lik.method)
+  else
     lik.lambda <- optim(par=lambdas.ini, fn = boxcox.negloglik,
                         method="L-BFGS-B", hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
-  else
-    lik.lambda <- optim(par=lambdas.ini[1], fn = boxcox.negloglik,
-                        data = data, xmat = xmat, hessian = TRUE,
-                        lik.method = lik.method)
   ##
   hess <- sqrt(diag(solve(as.matrix(lik.lambda$hessian))))
   lambda.fit <- lik.lambda$par

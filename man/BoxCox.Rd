@@ -1,31 +1,19 @@
-\name{BoxCox}
+\name{boxcox}
 
-\alias{boxcox.fit}
-\alias{boxcox.negloglik}
 \alias{rboxcox}
 \alias{dboxcox}
-\alias{plot.boxcox.fit}
-\alias{lines.boxcox.fit}
-\alias{print.boxcox.fit}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
-\title{Box-Cox transformation related functions}
+\title{The Box-Cox Transformed Normal Distribution}
 
-\description{
-  Estimate parameters and plot results , computes density and
-  random generation for the Box-Cox normal transformed distribution.
+\description{Functions related with the Box-Cox family of transformations.
+  Density and random generation for the Box-Cox transformed normal
+  distribution with mean
+  equal to \code{mean} and standard deviation equal to \code{sd}, \emph{in the normal scale}.
 }
 
 \usage{
-boxcox.fit(data, xmat, lambda, lambda2 = FALSE, add.to.data = 0,\dots)
-
-print.boxcox.fit(x, \dots)
-
-plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$data), \dots)
-
-lines.boxcox.fit(x, data = eval(x$call$data), \dots)
-
 rboxcox(n, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
@@ -34,37 +22,20 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{data}{a vector with data.  }
-  \item{xmat}{a matrix of covariates. Defaults to \code{rep(1,
-      length(y))}.  } 
-  \item{lambda}{numerical value(s) of the transformation parameter
-    \eqn{\lambda}{lambda}. 
-    Used as initial value for the parameter estimation function.
-    If not provided default values are assumed. If multiple values are passed
-    the one with highest likelihood is used as initial value. }
-  \item{lambda2}{numerical value(s) of the additional transformation
-    (see DETAILS below). Defaults to \code{FALSE}.
-    If \code{TRUE} this parameter is also estimated and the initial
-    value is set to the absolute value of the minimum data.
-    A numerical value provided is used as initial
-    value. As for \code{lambda} multiple values are allowed.  }
-  \item{add.to.data}{a constant to be added to the data.  }
+  \item{lambda}{numerical value(s) for the transformation parameter
+    \eqn{\lambda}{lambda}.  }
+  \item{lambda2}{logical or numerical value(s) of the additional transformation
+    (see DETAILS below). Defaults to \code{NULL}.  }
   \item{n}{number of observations to be generated.  }
   \item{x}{a vector of quantiles (\code{dboxcox}) or an output of
     \code{boxcox.fit} (\code{print}, \code{plot}, \code{lines}).  }
-  \item{mean}{a vector of means at for the normal scale.  }
+  \item{mean}{a vector of mean values at the normal scale.  }
   \item{sd}{a vector of standard deviations at the normal scale.  }
-  \item{hist}{logical indicating whether histograms are to be plotted.  }
-  \item{\dots}{extra parameters to be passed to the minimization
-    function \code{\link{optim}} (\code{boxcox.fit}), \code{\link{hist}}
-    (\code{plot}) or \code{\link{curve}} (\code{lines}).  }
-  
 }
 
 \details{
   Denote \eqn{Y} the variable at the original scale and \eqn{Y'} the
-  transformed variable.
-  The Box-Cox transformation is defined by:
+  transformed variable. The Box-Cox transformation is defined by:
   
   \deqn{Y' = \left\{ \begin{array}{ll}
     log(Y)
@@ -84,27 +55,17 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
     Y' = (((Y + lambda2) ^ lambda) - 1)/lambda otherwise }.
 
  The function \code{rboxcox} samples \eqn{Y'}{Y'} from the normal distribution using
- \code{\link{rnorm}} and backtransform the values according to the
- equations above. If necessary the back-transformation truncates the values such that
- \eqn{Y' \geq \frac{1}{\lambda}}{Y' >= -1/lambda}. This results in
- values of \eqn{Y = 0} in the original scale.
- Increasing the mean and/or reducing the variance might help to avoid truncation.
-    
+ the function \code{\link{rnorm}} and backtransform the values according to the
+ equations above to obtain values of \eqn{Y}{Y}.
+ If necessary the back-transformation truncates the values such that
+ \eqn{Y' \geq \frac{1}{\lambda}}{Y' >= -1/lambda} results in
+ \eqn{Y = 0}{Y = 0} in the original scale.
+ Increasing the value of the mean and/or reducing the variance might help to avoid truncation.
 }
 
 \value{
   The functions returns the following results:
-  \item{boxcox.fit}{a list with estimated  parameters and results on
-    the numerical minimization.  }
-  \item{print.boxcox.fit}{print estimated parameters. No values
-    returned.  }
-  \item{plot.boxcox.fit}{plots histogram of the data (optional) and
-    the model.  No values returned.  This function is only valid if
-    covariates are not included in \code{boxcox.fit}. }
-  \item{lines.boxcox.fit}{adds a line with the fitted model to the
-    current plot. No values returned.  This function is only valid if
-    covariates are not included in \code{boxcox.fit}.  }
-  \item{rboxcox}{a vector of generated random deviates.  }
+  \item{rboxcox}{a vector of random deviates.  }
   \item{dboxcox}{a vector of densities.  }
 }
 
@@ -122,40 +83,19 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{The minimization function \code{\link{optim}},
-  \code{\link[MASS]{boxcox}} in the package \code{MASS} and
-  \code{\link[car]{boxcox}} in the package \code{car}.
+\seealso{The parameter estimation function \code{\link{boxcox.fit}},
+  the function \code{\link[MASS]{boxcox}} in the package \code{MASS} and
+  the function \code{\link[car]{boxcox}} in the package \code{car}.
 }
 
 \examples{
 ## Simulating data
 simul <- rboxcox(100, lambda=0.5, mean=10, sd=2)
-## Finding the ML estimates
-ml <- boxcox.fit(simul)
-ml
-## Ploting histogram and fitted model
-plot(ml)
 ##
 ## Comparing models with different lambdas,
 ## zero  means and unit variances
 curve(dboxcox(x, lambda=-1), 0, 8)
 for(lambda in seq(-.5, 1.5, by=0.5))
   curve(dboxcox(x, lambda), 0, 8, add = TRUE)
-##
-## Another example, now estimating lambda2
-##
-simul <- rboxcox(100, lambda=0.5, mean=10, sd=2)
-ml <- boxcox.fit(simul, lambda2 = TRUE)
-ml
-plot(ml)
-##
-## An example with a regression model
-##
-if(require(MASS)){
-  data(trees)
-  boxcox.fit(data = trees[,3], xmat = trees[,1:2])
-  }
-
 }
-
 \keyword{distribution}

@@ -224,6 +224,7 @@
   return(results)
 }
 
+
 "grf.aux1" <-
   function (nst, nugget, sigmasq, phi, kappa, cov.model) 
 {
@@ -386,4 +387,10 @@
     lines.variomodel(var.model, lwd = 3)
   }
   return(invisible())
+}
+
+"print.grf" <-
+  function(x, ...)
+{
+  print.default(x, ...)
 }
