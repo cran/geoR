@@ -35,8 +35,9 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "powered.exponential", "stable", "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
+  if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "power") stop("parameter estimation for power model is not implemented")
   if(cov.model == "gneiting.matern") stop("parameter estimation for gneiting.matern model is not yet implemented")
   if(fix.kappa & !is.null(kappa))
@@ -1159,57 +1160,6 @@
   if(temp.list$print.pars)
     cat(paste("log-likelihood = ", -sumnegloglik, "\n"))
   return(sumnegloglik) 
-}
-
-"pars.limits" <-
-  function(phi = c(lower=0, upper=+Inf),
-           sigmasq = c(lower=0, upper=+Inf),
-           nugget.rel = c(lower=0, upper=+Inf),
-           kappa = c(lower=0, upper=+Inf),
-           lambda = c(lower=-3, upper=3),
-           psiR = c(lower=1, upper=+Inf),
-           psiA = c(lower=0, upper=2*pi),
-           tausq.rel = nugget.rel
-           )
-{
-  if(length(phi) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(length(sigmasq) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(length(tausq.rel) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(length(kappa) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(length(lambda) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi")
-  if(length(psiR) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(length(psiA) != 2)
-    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
-  if(phi[1] >= phi[2])
-    stop("parameter phi: lower limit greater or equal upper limit")
-  if(sigmasq[1] >= sigmasq[2])
-    stop("parameter sigmasq: lower limit greater or equal upper limit")
-  if(tausq.rel[1] >= tausq.rel[2])
-    stop("parameter tausq.rel: lower limit greater or equal upper limit")
-  if(kappa[1] >= kappa[2])
-    stop("parameter kappa: lower limit greater or equal upper limit")
-  if(lambda[1] >= lambda[2])
-    stop("parameter lambda: lower limit greater or equal upper limit")
-  if(psiR[1] >= psiR[2])
-    stop("parameter psiR: lower limit greater or equal upper limit")
-  if(psiA[1] >= psiA[2])
-    stop("parameter psiA: lower limit greater or equal upper limit")
-  names(phi) <- c("lower", "upper")
-  names(sigmasq) <- c("lower", "upper")
-  names(tausq.rel) <- c("lower", "upper")
-  names(kappa) <- c("lower", "upper")
-  names(lambda) <- c("lower", "upper")
-  names(psiR) <- c("lower", "upper")
-  names(psiA) <- c("lower", "upper")
-  return(list(phi = phi, sigmasq = sigmasq,
-              tausq.rel = tausq.rel, kappa = kappa,
-              lambda = lambda, psiR = psiR, psiA = psiA))
 }
 
 "likfit.limits" <- pars.limits

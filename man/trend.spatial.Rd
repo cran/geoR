@@ -11,7 +11,7 @@
 }
 
 \usage{
-trend.spatial(trend, geodata)
+trend.spatial(trend, geodata, add.to.trend)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -20,6 +20,8 @@ trend.spatial(trend, geodata)
     See \code{DETAILS} below.  }
   \item{geodata}{optional. An object of the class \code{geodata} as described in
     \code{\link{as.geodata}}. }
+  \item{add.to.trend}{optional. Specifies aditional terms to the mean
+    part of the model. See details below.}
 }
 
 \details{
@@ -67,11 +69,18 @@ trend.spatial(trend, geodata)
   the terms included in the model will be searched for in the following
   path sequence (in this order):
   \enumerate{
+    \item in the users/session Global environment
+    \item in the session search path
     \item as elements of the list \code{geodata}
     \item as columns in a data-frame \code{geodata$covariates}
     \item as columns in a data-frame \code{geodata$data}
-    \item in the session search path
+    \item in remainder of the session search path
   }
+
+  The argument \code{add.to.trend} adds terms to what is specified in
+  the argument \code{trend}. This seems redundant but allow
+  specifications of the type: \code{trend="2nd", add.trend=~other.covariates}.
+  
 }
 
 \value{
@@ -110,6 +119,10 @@ trend.spatial("2nd", sic.100)[1:5,]
 trend.spatial(~altitude, sic.100)[1:5,]
 # a first degree trend plus a covariate
 trend.spatial(~coords+altitude, sic.100)[1:5,]
+# with produces the same as
+trend.spatial("1st", sic.100, add=~altitude)[1:5,]
+# and yet another exemple
+trend.spatial("2nd", sic.100, add=~altitude)[1:5,]
 }
 
 \keyword{spatial}%-- one or more ...

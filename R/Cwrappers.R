@@ -2,6 +2,18 @@
 ## "wrappers" for pieces of C code in geoR package
 ## -----------------------------------------------
 ##
+"Ccor.spatial" <- function(x, phi, kappa, cov.model)
+{
+  res <- rep(0.0, length(x))
+  .C("veccorrval",
+     as.double(phi),
+     as.double(kappa),
+     as.double(x),
+     as.integer(length(x)),
+     cornr = as.integer(cor.number(cov.model)),
+     out = as.double(res), PACKAGE = "geoR")$out
+}
+
 "bilinearformXAY" <-
   function(X, lowerA, diagA, Y)
   {
@@ -10,15 +22,6 @@
     nY <- length(Y)/nA
     if(length(lowerA) != (nA * (nA -1)/2))
       stop("lowerA and diagA have incompatible dimensions")
-#    cat("---------------------------------\n")
-   # print(summary(as.vector(lowerA)))
-   # print(summary(as.vector(diagA)))
-   # print(summary(as.vector(X)))
-   # print(summary(as.vector(Y)))
-   # print(nX)
-   # print(nY)
-   # print(nA)
-   # print(summary(rep(0,(nX*nY))))
     out <- .C("bilinearform_XAY",
               as.double(as.vector(lowerA)),
               as.double(as.vector(diagA)),
@@ -29,9 +32,6 @@
               as.integer(nA),
               res=as.double(rep(0,(nX*nY))),
               PACKAGE = "geoR")$res
-    #print(111)
-    #print(summary(out))
-    #cat("---------------------------------\n")
     attr(out, "dim") <- c(nX, nY)
     return(out)
   }
@@ -175,54 +175,36 @@
     }      
     else
       diff.mean <- as.integer(0)
-    ##
-    normalsc <- rnorm(NTOT)
-##    if(is.null(loc.coincide))
-##      locations <- get("locations", envir=env.loc)
-##    else
-##      locations <- get("locations", envir=env.loc)[-loc.coincide,,drop=FALSE]
-    ##
-    ##
-##    R0 <- varcov.spatial(coords = locations,
-##                         cov.pars=c(mod$Dval, mod$phi))[[1]]
-##    iR <- matrix(0, mod$n,mod$n)
-##    iR[lower.tri(iR)] <- Rinv$lower
-##    iR <- iR  + t(iR)
-##    diag(iR) <- Rinv$diag
-##    v0iRv0 <- crossprod(get("v0", envir=env.iter), iR) %*%
-##      get("v0", envir=env.iter)
-##    V <- vbetai
-##    bVb <- t(get("b", envir=env.iter)) %*% V %*% get("b", envir=env.iter)
-##    Vmat <- R0 - v0iRv0  + bVb
-##    Vchol <- try(chol(Vmat))
-##    if(!is.numeric(Vchol)) print(try(chol(Vmat)))
-    ##
-    ##
     if(coincide.cond) loccoin <- -loc.coincide
     else loccoin <- TRUE
-    normalsc <- .C("kb_sim_new",
-                   as.double(as.vector(tmean)),
-                   out = as.double(normalsc),
-                   as.double(as.vector(Rinv$lower)),
-                   as.double(as.vector(Rinv$diag)),
-                   as.double(as.vector(get("v0", envir=env.iter))),
-                   as.integer(mod$nloc),
-                   as.integer(mod$n),
-                   as.double(mod$Dval),
-                   as.integer(mod$Nsims),
-                   as.double(invchisc),
-                   as.double(mod$s2),
-                   as.double(Blower),
-                   as.double(Bdiag),
-                   as.double(as.vector(get("b", envir=env.iter))),
-                   as.integer(mod$beta.size),
-                   as.double(get("locations", envir=env.loc)[loccoin,1]),
-                   as.double(get("locations", envir=env.loc)[loccoin,2]),
-                   as.integer(mod$cov.model.number),
-                   as.double(mod$phi),
-                   as.double(mod$kappa),
-                   as.integer(diff.mean),
-                   PACKAGE = "geoR")$out      
+    if(mod$phi < 1e-24 && mod$s2 < 1e-24)
+      normalsc <- rnorm(NTOT, mean=tmean, sd=sqrt(mod$nugget+mod$s2))
+    else{
+      normalsc <- rnorm(NTOT)
+      normalsc <- .C("kb_sim_new",
+                     as.double(as.vector(tmean)),
+                     out = as.double(normalsc),
+                     as.double(as.vector(Rinv$lower)),
+                     as.double(as.vector(Rinv$diag)),
+                     as.double(as.vector(get("v0", envir=env.iter))),
+                     as.integer(mod$nloc),
+                     as.integer(mod$n),
+                     as.double(mod$Dval),
+                     as.integer(mod$Nsims),
+                     as.double(invchisc),
+                     as.double(mod$s2),
+                     as.double(Blower),
+                     as.double(Bdiag),
+                     as.double(as.vector(get("b", envir=env.iter))),
+                     as.integer(mod$beta.size),
+                     as.double(get("locations", envir=env.loc)[loccoin,1]),
+                     as.double(get("locations", envir=env.loc)[loccoin,2]),
+                     as.integer(mod$cov.model.number),
+                     as.double(mod$phi),
+                     as.double(mod$kappa),
+                     as.integer(diff.mean),
+                     PACKAGE = "geoR")$out
+    }
     attr(normalsc, "dim") <- c(mod$nloc, mod$Nsims)
     return(normalsc)
   }

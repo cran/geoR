@@ -23,12 +23,13 @@
 "cor.number" <- 
   function(cov.model= c("exponential", "matern", "gaussian",
              "spherical", "circular", "linear", "cubic", "wave", "power",
-             "powered.exponential", "cauchy", "gneiting",
+             "powered.exponential", "stable", "cauchy", "gneiting",
              "gneiting.matern", "pure.nugget"))
 {
-###	WARNING: codes below MUST be the same as in the C code
-###              "cor_diag"
+###	WARNING: codes for covariance functions below
+###              MUST be the same as in the C code "cor_diag"
   cov.model <- match.arg(cov.model)
+  if(cov.model == "stable") cov.model <- "powered.exponential"
   cornumber <- switch(cov.model,
                       pure.nugget = as.integer(1),
                       exponential = as.integer(2),
@@ -68,9 +69,10 @@
   ##
   cov.model <- sapply(cov.model, match.arg, c("matern", "exponential", "gaussian",
                                               "spherical", "circular", "cubic", "wave",
-                                              "linear", "power", "powered.exponential", "cauchy",
+                                              "linear", "power", "powered.exponential", "stable", "cauchy",
                                               "gneiting", "gneiting.matern", "pure.nugget"))
-  if(any(cov.model == 'gneiting.matern')){
+  if(cov.model == "stable") cov.model <- "powered.exponential"
+  if(any(cov.model == "gneiting.matern")){
     if(length(kappa) != 2*ns) stop('wrong length for kappa')
   }
   else
@@ -154,7 +156,7 @@
                          powered.exponential = exp( - ((obj/phi[i])^kappa[i])),
                          cauchy = (1 + (obj/phi[i])^2)^(-kappa[i]),
                          gneiting = {
-                           obj.sc <- obj/phi[i];
+                           obj.sc <- 0.301187465825 * obj/phi[i];   
                            t2 <- (1 - obj.sc);
                            t2 <- ifelse(t2 > 0, (t2^8), 0);
                            (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^
@@ -169,11 +171,19 @@
                   },
                   stop("wrong or no specification of cov.model")
                   )
-    cov.values <- sigmasq[i] * cov.values
+    if(cov.model[i] == "power"){
+      A <- (max(cov.values)/sqrt(pi))*gamma((1+phi[i])/2)*gamma(1-(phi[i]/2))
+      ## 1:2 below ensures valid results for 1 and 2D
+      A <- A * max(gamma(phi[i]+(1+(1:2))/2)/(gamma(1+phi[i])*gamma((1+(1:2))/2)))
+      cov.values <- A - cov.values
+      cov.values <- cov.values/max(cov.values)
+    }
+    cov.values <- ifelse(obj < 1e-16, sigmasq[i], sigmasq[i] * cov.values)
     covs <- covs + cov.values
   }
-  if(all(cov.model == "power")) covs <- max(covs) - covs
-  else covs[obj < 1e-16] <- sum(sigmasq)
+#  if(all(cov.model == "power"))
+#    covs <- max(covs) - covs
+#  else covs[obj < 1e-16] <- sum(sigmasq)
   if(sum(sigmasq) < 1e-16) covs[obj < 1e-16] <- 1
   return(covs)
 }

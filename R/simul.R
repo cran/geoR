@@ -1,11 +1,43 @@
+"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa){
+  cov.model <- match.arg(cov.model,
+                         choices = c("exponential", "matern", "gaussian",
+                           "spherical", "circular", "cubic", "wave",
+                           "power", "powered.exponential", "cauchy",
+                           "gneiting", "pure.nugget", "gneiting.matern"))
+  if(length(cov.pars) != 2)
+    stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
+  RFmodel <- switch(cov.model,
+                    matern = "whittlematern",
+                    exponential = "exponential",
+                    gaussian = "gauss",
+                    spherical = "spherical",
+                    circular = "circular",
+                    cubic = "cubic",
+                    wave = "wave",
+                    power = "not compatible",
+                    powered.exponential = "stable",
+                    cauchy = "cauchy",
+                    gneiting = "gneiting",
+                    gneiting.matern = "not compatible",
+                    pure.nugget = "nugget")
+  RFpars <- c(0, cov.pars[1], nugget, cov.pars[2])
+  if(any(cov.model == c("matern","powered.exponential","cauchy")))
+    RFpars <- c(RFpars, kappa)
+  if(RFmodel == "not compatible"){
+    warning("geoR cov.model not compatible with RandomFields model")
+    return(RFmodel)
+  }
+  else
+    return(list(model=RFmodel, param = RFpars))
+}
+
 "grf" <-
   function(n, grid = "irreg", 
            nx, ny, xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
            cov.model = "matern",
-           cov.pars = stop("covariance parameters (sigmasq and phi) needed"),
+           cov.pars=stop("missing covariance parameters sigmasq and phi"),
            kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
-           method = c("cholesky", "svd", "eigen"),
-           messages)
+           method, RF=TRUE, messages)
 {
   ##
   ## reading and checking input
@@ -14,19 +46,16 @@
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
-  method <- match.arg(method)
-  if((method == "circular.embedding") & messages.screen)
-    error("method  \"circular.embedding\" is no longer available in geoR. Use the package
-RandomFields")
-##    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
   ##
   ## defining the model to simulate from
   ##
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+                           "spherical", "circular", "cubic", "wave",
+                           "power", "powered.exponential", "stable",
+                           "cauchy", "gneiting", "gneiting.matern",
+                           "pure.nugget"))
+  if(cov.model == "stable") cov.model <- "powered.exponential"
   if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
   tausq <- nugget
   if (is.vector(cov.pars)) {
@@ -41,17 +70,12 @@ RandomFields")
   }
   sill.total <- tausq + sum(sigmasq)
   messa <- grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
-  if (messages.screen) {
-    cat(messa$nst)
-    cat(messa$nugget)
-    cat(messa$cov.structures)
-    cat(paste("grf: decomposition algorithm used is: ", method, "\n"))
-  }
+
   ##
-  ##
+  ## setting seed
   ##
   if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
-    warning(".Random.seed not initialised. Creating it with runif(1)")
+    warning(".Random.seed not initialised. Creating it with by calling runif(1)")
     runif(1)
   }
   rseed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
@@ -59,7 +83,8 @@ RandomFields")
   ##
   ## defining the locations for the simulated data
   ##
-  if(is.character(grid)) grid <- match.arg(grid, choices=c("irreg", "reg"))
+  if(is.character(grid))
+    grid <- match.arg(grid, choices=c("irreg", "reg"))
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
     if (messages.screen) 
@@ -136,22 +161,63 @@ RandomFields")
                                    aniso.pars = aniso.pars)
   }
   ##
+  ## Defining the simulation method
+  ##
+  if(missing(method)){
+    method <- "cholesky"
+    if(n > 500 && RF && require(RandomFields)) method <- "RF"
+  }
+  method <- match.arg(method, choices=c("cholesky", "svd", "eigen", "RF", "circular.embedding"))
+  if(method == "circular.embedding"){
+    if(require(RandomFields)){
+      method <- "RF"
+      if(messages.screen)
+        warning("method \"circular.embedding\" now uses algorithm from the package RandomFields")
+    }
+    else
+      error("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
+  }
+  ##
+  ## 
+  ##
+  if (messages.screen) {
+    cat(messa$nst)
+    cat(messa$nugget)
+    cat(messa$cov.structures)
+    if(method == "RF")
+      cat("grf: simulation using the function GaussRF from package RandomFields \n")
+    else
+      cat(paste("grf: decomposition algorithm used is: ", method, "\n"))
+  }
+  ##    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
+  ##
   ## simulating data at locations defined by the matrix results$coords
   ##
   if (all(phi) == 0) {
-    results$data <- matrix(rnorm((n * nsim), mean = 0, sd = sqrt(sill.total)), 
+    results$data <- matrix(rnorm((n * nsim), mean = 0,
+                                 sd = sqrt(sill.total)), 
                            nrow = n, ncol = nsim)
   }
-  else {
-    results$data <- matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)
-    cov.decomp <- t(varcov.spatial(coords = results$coords, 
-                                   cov.model = cov.model, kappa = kappa,
-                                   nugget = nugget, cov.pars = cov.pars, 
-                                   only.decomposition = TRUE,
-                                   func.inv = method)$sqrt.varcov)
-    results$data <- cov.decomp %*% results$data
-    if (nsim == 1) 
-      results$data <- as.vector(results$data)
+  else{
+    if(method == "RF"){
+      require(RandomFields)
+      setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
+                       nugget = nugget, kappa = kappa)
+      results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
+                              model = setRF$model,
+                              param = setRF$param, grid = FALSE)
+      
+    }
+    else
+      results$data <-
+        drop(crossprod(varcov.spatial(coords=results$coords, 
+                                      cov.model = cov.model,
+                                      kappa = kappa,
+                                      nugget = nugget,
+                                      cov.pars = cov.pars, 
+                                      only.decomposition = TRUE,
+                                      func.in=method)$sqrt.varcov,
+                       matrix(rnorm((n*nsim)), nrow=n, ncol=nsim)))
   }
   ##
   ## transforming data (Box - Cox)
@@ -195,7 +261,7 @@ RandomFields")
       attr(results, "yspacing") <- yspacing
     }
   }
-  attr(results, 'sp.dim') <- ifelse(sim1d, "1d", "2d")
+  attr(results, "sp.dim") <- ifelse(sim1d, "1d", "2d")
   class(results) <- c("grf", "geodata", "variomodel")
   return(results)
 }

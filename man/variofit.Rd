@@ -76,6 +76,25 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
 }
 
 \details{
+
+  \bold{Numerical minimization}
+
+  The parameter values are found by numerical optimization using one of
+  the functions: \code{\link{optim}}, \code{\link{nlm}} and \code{\link{nls}}.
+  In given circunstances the algorithm may not converge to correct
+  parameter values when called with default options and the user may
+  need to pass extra options for the optimizers. For instance the
+  function \code{optim} takes a \code{control} argument.
+  The user should try different initial values and if the parameters have
+  different orders of magnitude may need to use options to scale the parameters.
+  Some possible workarounds in case of problems include:
+  \itemize{
+  \item rescale you data values (dividing by a constant, say)
+  \item rescale your coordinates (subtracting values and/or dividing by constants)
+  \item Use the  mechanism to pass \code{control()} options for the
+  optimiser internally
+  }
+  
   \bold{Initial values}
   
   The algorithms for minimization functions require initial values of

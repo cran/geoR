@@ -387,7 +387,7 @@
                      Nsims = n.predictive, n = n, Dval = Dval,
                      df.model = df.model, s2 = sill.partial,
                      cov.model.number = cor.number(cov.model),
-                     phi = phi, kappa = kappa),
+                     phi = phi, kappa = kappa, nugget=nugget),
                    vbetai = vbetai,
                    fixed.sigmasq = TRUE)
       remove("v0", "b", "locations", "invcov")

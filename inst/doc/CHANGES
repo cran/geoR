@@ -1,5 +1,62 @@
 
       		==============================
+ 		CHANGES IN geoR VERSION 1.5-4
+		==============================
+
+NEW FEATURES
+
+        o the function grf() has now new argument "RF"
+          and new option "RF" for the argument "method",
+	  and accepts again "circular.embbeding".
+          The changes basically allows grf() to internally call
+          the function GaussRF() from the packages RandomFields.
+
+        o the name "stable" can also be used to specify a 
+          correlation model and it is internally
+          changed to "powered.exponential"
+
+        o new argument "permute" in points.geodata()
+
+        o new argument "add.to.trend" in trend.spatial
+
+        o backtransform.moments() now returns also the modes of the 
+          backtransformed distribution
+
+	o variog.model.env() now check com compatible trend sizes in
+          the objects passed to the arguments "obj.vario" and "model.pars" 
+
+        o bits in the code of the type apply(x,1,mean) and similar replaced 
+          by the faster functions: colSums(), rowSums(), colMeans(), rowMeans()
+
+
+
+BUGS
+
+        o fixes and changes in the computation of the "power" 
+          correlation model
+
+        o fix in the computation of the "wave" correlation model 
+          in the C code
+
+        o fix in computation of the Gneiting correlation model which 
+          now return the same values as in the package RandomFields
+
+        o fix in variofit() for cov.model="powered" and fix.kappa=F
+
+        o fix in reported loss function value for the best initial fit values
+
+        o summary.geodata() no lenger list "units.m"
+          as "other" element in the geodata object
+
+	o documentation for as.geodata() now call the data(topo)
+          from MASS 
+
+        o yet another bug fix to prevent error in krige.conv()
+          when kriging with a model object with sigmasq=0 and phi=0
+
+
+
+      		==============================
  		CHANGES IN geoR VERSION 1.5-3
 		==============================
 
@@ -35,7 +92,7 @@ NEW FEATURES
 
 BUGS
 
-        o bug fix in cov.spatial() to prevent error in kriging.conv()
+        o bug fix in cov.spatial() to prevent error in krige.conv()
           when kriging with a model object with sigmasq=0 and phi=0
 
         o fix in calls in backtranform.moments() to BCtransform()

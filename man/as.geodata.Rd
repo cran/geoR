@@ -141,9 +141,9 @@ is.geodata(x)
 
 \examples{
 \dontrun{
-## converting the data-set "topo" from the package spatial (VR's bundle)
+## converting the data-set "topo" from the package MASS (VR's bundle)
 ## to the geodata format:
-require(spatial)
+require(MASS)
 data(topo)
 topo
 topogeo <- as.geodata(topo)

@@ -115,7 +115,9 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     model without spatial component are included in the output.  }
   \item{limits}{values defining lower and upper limits for the model
     parameters used in the numerical minimisation.
-    The auxiliary function \code{\link{pars.limits}} is called to set the limits.  }
+    The auxiliary function \code{\link{pars.limits}} is called to set
+    the limits.
+    See also \bold{Limits} in DETAILS below.}
   \item{print.pars}{logical. If \code{TRUE} the parameters and the value
   of the negative log-likelihood (up to a constant) are printed each
   time the function to be minimised is called.  }
@@ -160,6 +162,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   which indicates no transformation and \eqn{\lambda = 0}{lambda = 0}
   indicating the log-transformation.
   
+  \bold{Numerical minimization}
+
   In general parameter estimation is performed numerically using the \R
   function \code{\link{optim}} to minimise the
   negative log-likelihood computed by the function \code{negloglik.GRF}.
@@ -168,6 +172,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   are held fixed then the numerical minimisation can be reduced to
   one-dimension and the function \code{\link{optimize}} is used instead
   of \code{optim}. In this case initial values are irrelevant.
+
+  \bold{Limits}
   
   Lower and upper limits for parameter values can be
   individually specified using the function \code{link{pars.limits}}.
@@ -175,7 +181,35 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \code{limits = pars.limits(phi=c(0, 10), lambda=c(-2.5, 2.5))}, \cr
   will change the limits for the parameters \eqn{\phi}{phi} and \eqn{\lambda}{lambda}.
   Default values are used if the argument \code{limits} is not provided.  
-  
+
+  There are internal reparametrisation depending on the options for
+  parameters to be estimated.
+  Foir instance for the common situation when \code{fix.nugget=FALSE} the
+  minimisation is performed in a reduced
+  parameter space using
+  \eqn{\tau^2_{rel} = \frac{\tau^2}{\sigma^2}}{tau^2_{rel} = tau^2/sigma^2}.
+  In this case values of \eqn{\sigma^2}{sigma^2} and \eqn{\beta}{beta}
+  are then given by
+  analytical expressions which are function of the two parameters
+  remaining parameters and limits for these two parameters will be ignored.
+
+  Since parameter values are found by numerical optimization using 
+  the function  \code{\link{optim}}, 
+  in given circunstances the algorithm may not converge to correct
+  parameter values when called with default options and the user may
+  need to pass extra options for the optimizer. For instance the
+  function \code{optim} takes a \code{control} argument.
+  The user should try different initial values and if the parameters have
+  different orders of magnitude may need to use options to scale the parameters.
+  Some possible workarounds in case of problems include:
+  \itemize{
+  \item rescale you data values (dividing by a constant, say)
+  \item rescale your coordinates (subtracting values and/or dividing by constants)
+  \item Use the  mechanism to pass \code{control()} options for the
+  optimiser internally
+  }
+
+  \bold{Transformation}  
   If the \code{fix.lambda = FALSE} and \code{nospatial = FALSE} the
   Box-Cox parameter for the model without the spatial component is
   obtained numerically, with log-likelihood computed by the function

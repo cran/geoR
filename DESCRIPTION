@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.5-3
-Date: 2004-12-20
+Version: 1.5-4
+Date: 2004-01-17
 Title: Functions for geostatistical data analysis
 Author: Paulo J. Ribeiro Jr <paulojus@est.ufpr.br> and
         Peter J. Diggle <p.diggle@lancaster.ac.uk> 
@@ -10,4 +10,4 @@ Suggests: MASS,splancs,scatterplot3d,RandomFields
 Description: Geostatistical analysis including likelihood-based and Bayesian methods.
 License: GPL Version 2 or later
 URL: http://www.est.ufpr.br/geoR
-Packaged: Mon Dec 20 13:32:17 2004; paulojus
+Packaged: Wed Jan 19 01:18:41 2005; paulojus

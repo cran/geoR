@@ -698,10 +698,10 @@
     kb$posterior$sigmasq <- list(conditional.distribution = "sc.inv.chisq",
                                  pars = list(df = df.model,
                                    S2 = drop(phidist$s2))) 
-    kb$posterior$phi$distribution <- drop(apply(phidist$probphitausq, 1, sum))
+    kb$posterior$phi$distribution <- drop(rowSums(phidist$probphitausq))
     names(kb$posterior$phi$distribution) <- prior$phi.discrete
     if(prior$tausq.rel.prior != "fixed"){
-      kb$posterior$tausq.rel$distribution <- drop(apply(phidist$probphitausq, 2, sum))
+      kb$posterior$tausq.rel$distribution <- drop(colSums(phidist$probphitausq))
       names(kb$posterior$tausq.rel$distribution) <- tausq.rel.discrete
     }
     else{
@@ -776,17 +776,17 @@
         trend.median <- median(beta.sam)
       }
       else {
-        trend.mean <- apply(beta.sam, 2, mean)
+        trend.mean <- colMeans(beta.sam)
         trend.median <- apply(beta.sam, 2, median)
       }
       S2.mean <- mean(sigmasq.sam)
       S2.median <- median(sigmasq.sam)
-      phi.marg <- apply(phidist$probphitausq, 1, sum)
+      phi.marg <- rowSums(phidist$probphitausq)
       .marg <- phi.marg/(sum(phi.marg))
       phi.mean <- phi.discrete %*% phi.marg
       phi.median <- median(phi.sam[, 1])
       phi.mode <- phi.discrete[which.min(abs(phi.marg - max(phi.marg)))]
-      tausq.rel.marg <- apply(phidist$probphitausq, 2, sum)
+      tausq.rel.marg <- colSums(phidist$probphitausq)
       tausq.rel.marg <- tausq.rel.marg/(sum(tausq.rel.marg))
       tausq.rel.mean <- tausq.rel.discrete %*% tausq.rel.marg
       tausq.rel.median <- median(phi.sam[, 2])
@@ -845,13 +845,13 @@
       kb$posterior$sample$tausq.rel <- phi.sam[,2]
       phi.lev <- unique(phidist$phitausq[, 1])
       kb$posterior$phi$phi.marginal <-
-        data.frame(phi = phi.lev, expected = apply(phidist$probphitausq, 1, sum),
+        data.frame(phi = phi.lev, expected = rowSums(phidist$probphitausq),
                    sampled = as.vector(table(factor(phi.sam[, 1],
                      levels = phi.lev)))/n.posterior)
       tausq.rel.lev <- unique(phidist$phitausq[, 2])
       if(prior$tausq.rel.prior != "fixed")
         kb$posterior$tausq.rel$tausq.rel.marginal <-
-          data.frame(tausq.rel = tausq.rel.lev, expected = apply(phidist$probphitausq, 2, sum),
+          data.frame(tausq.rel = tausq.rel.lev, expected = colSums(phidist$probphitausq),
                      sampled = as.vector(table(factor(phi.sam[, 2],
                        levels = tausq.rel.lev)))/n.posterior)
     }
@@ -992,7 +992,7 @@
                      df.model = df.model,
                      s2 = phidist$s2[phi.ind, nug.ind],
                      cov.model.number = cov.model.number,
-                     phi = phi, kappa = kappa),
+                     phi = phi, kappa = kappa, nugget=tausq.rel),
                    vbetai = vbetai,
                    fixed.sigmasq = (sigmasq.info$df.sigmasq == Inf))
       ## (**) this made previous bit redundant
@@ -1067,13 +1067,13 @@
         phi.lev <- unique(phidist$phitausq[, 1])
         kb$predictive$phi.marginal <-
           data.frame(phi = phi.lev,
-                     expected = apply(phidist$probphitausq, 1, sum),
+                     expected = rowSums(phidist$probphitausq),
                      sampled = as.vector(table(factor(phi.sam[, 1],
                        levels = phi.lev)))/n.predictive)
         tausq.rel.lev <- unique(phidist$phitausq[, 2])
         if(prior$tausq.rel.prior != "fixed")
           data.frame(tausq.rel = tausq.rel.lev,
-                     expected = apply(phidist$probphitausq, 2, sum),
+                     expected = colSums(phidist$probphitausq),
                      sampled = as.vector(table(factor(phi.sam[, 2],
                        levels = tausq.rel.lev)))/n.predictive)
         else
@@ -1081,7 +1081,7 @@
             paste("fixed tausq.rel with value =", tausq.rel)
         kb$predictive$tausq.rel.marginal <-
           data.frame(tausq.rel = tausq.rel.lev,
-                     expected = apply(phidist$probphitausq, 2, sum),
+                     expected = colSums(phidist$probphitausq),
                      sampled = as.vector(table(factor(phi.sam[, 2],
                        levels = tausq.rel.lev)))/n.predictive)
       }
@@ -2189,7 +2189,7 @@
   else probability.estimator <- threshold
   ##
   if(!is.null(mean.var) && mean.var){
-    results$mean.simulations <- drop(apply(simuls, 1, mean))
+    results$mean.simulations <- drop(rowMeans(simuls))
     results$variance.simulations <- drop(apply(simuls, 1, var))
   }
   if(!is.null(quantile.estimator)) {
@@ -2218,7 +2218,7 @@
     }
   }
   if(!is.null(sim.means) && sim.means){
-    results$sim.means <- drop(apply(simuls, 2, mean))
+    results$sim.means <- drop(colMeans(simuls))
     results$variance.simulations <- drop(apply(simuls, 1, var))
   }
   if(!is.null(sim.vars) && sim.vars){

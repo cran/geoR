@@ -1,9 +1,11 @@
 \name{grf}
 
 \alias{grf}
+\alias{geoR2RF}
 \alias{grf.aux1}
 \alias{grfclass}
 \alias{lines.grf}
+
 
 \concept{simulation of Gaussian random fields}
 
@@ -14,16 +16,18 @@
 \description{
   Generates simulations of Gaussian random fields for
   given covariance parameters.
+  Can be also used as a wrapper for the function
+  \code{GaussRF} from the package \pkg{RandomFields}.
 }
 
 
 \usage{
 grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     nsim = 1, cov.model = "matern",
-    cov.pars = stop("covariance parameters (sigmasq and phi) needed"), 
+    cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
-    method = c("cholesky", "svd", "eigen"),
-    messages)
+    method, RF=TRUE, messages)
+geoR2RF(cov.model, cov.pars, nugget = 0, kappa)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -71,8 +75,15 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     and then the coordinates are back-transformed such that the resulting
     field is anisotropic. Coordinates transformation is performed 
     by the function \code{\link{coords.aniso}}.  }
-  \item{method}{simulation method. Defaults to the \emph{Cholesky}
+  \item{method}{simulation method with options for
+    \code{"cholesky"}, \code{"svd"}, \code{"eigen"}, \code{"RF"}.
+    Defaults to the \emph{Cholesky}
     decomposition.  See section \code{DETAILS} below.  }
+  \item{RF}{logical, with defaults to TRUE, indicating whether
+    the algorithm should try no use the function
+    \code{\link[RandomFields]{GaussRF}} from the package
+    \pkg{RandomFields} in case of missing \code{method} and the
+    number of points being greater than 500. }
   \item{messages}{logical,  indicating
     whether or not status messages are printed on the screen (or output device)
     while the function is running. Defaults to \code{TRUE}.  } 
@@ -83,19 +94,22 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   For the methods \code{"cholesky"}, \code{"svd"} and \code{"eigen"} the
   simulation consists of multiplying a vector of standardized
   normal deviates by a square root of the covariance matrix.
-  The square root of a matrix is not uniquely defined. The 
-  three available methods differs in the way they compute the
+  The square root of a matrix is not uniquely defined. These 
+  three methods differs in the way they compute the
   square root of the (positive definite) covariance matrix.
 
-  The previouly available
+  The previously available
   method \code{method = "circular.embedding"} is no longer available
   in \pkg{geoR}. For simulations in a fine grid and/or with a large number
   of points use the package \pkg{RandomFields}
+
+  The option \code{"RF"} is  makes \code{grf} just a wrapper to the function
+  \code{GaussRF} from the package \pkg{RandomFields}
 }
 
 
 \value{
-  A list with the components:
+  \code{grf} returns a list with the components:
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix with the coordinates of the
     simulated data.  }
   \item{data}{a vector (if \code{nsim = 1}) or a matrix with the
@@ -118,6 +132,10 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   \item{messages}{messages produced by the function describing the
     simulation.  }
   \item{call}{the function call.  }
+
+  \code{geoR2grf} returns a list with the components:
+  \item{model}{\pkg{RandomFields} name of the correlation model}
+  \item{param}{\pkg{RandomFields} parameter vector}
 }
 
 
@@ -129,6 +147,12 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
   Schlather, M. (1999) \emph{Introduction to positive definite functions
     and to unconditional simulation of random fields}. Tech. Report
   ST--99--10, Dept Maths and Stats, Lancaster University.
+
+  Schlather, M. \pkg{RandomFields}: \emph{Simulation and Analysis of Random
+  Fields}. R package. \url{http://www.cu.lu/~schlathe}.
+
+
+ Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
   
   Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.

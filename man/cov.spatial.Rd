@@ -34,8 +34,7 @@ cov.spatial(obj, cov.model= "matern",
     functions.  }
   \item{cov.pars}{a vector with 2 elements or an \eqn{ns \times 2}{ns x 2} matrix with
     the covariance parameters. The first element (if a vector) or first
-    column (if a matrix) corresponds to the variance parameter \eqn{\sigma^2}{sigma^2}. The
-    second element or column corresponds to the range parameter
+    column (if a matrix) corresponds to the variance parameter \eqn{\sigma^2}{sigma^2}. The second element or column corresponds to the range parameter
     \eqn{\phi}{phi} of the correlation function.
     If a matrix is provided, each row corresponds to
     the parameters of one \emph{spatial structure} (see DETAILS below).
@@ -71,31 +70,10 @@ cov.spatial(obj, cov.model= "matern",
   In the equations below the functions are valid for  \eqn{\phi>0}{phi >
     0} and \eqn{\kappa>0}{kappa > 0}, unless stated otherwise.
   
-  \bold{exponential}\cr
-  \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{exp(-h/phi)}
+  \bold{cauchy} \cr
+  \deqn{\rho(h) = [1+(\frac{h}{\phi})^2]^{-\kappa}}{rho(h) = [1+(h/phi)^2]^(-kappa)}
 
-  \bold{wave}\cr
-  \deqn{\rho(h) = \frac{\phi}{h}\sin(\frac{h}{\phi})}{(phi/h) *
-    sin(h/phi)} 
-
-  \bold{matern}\cr
-  \deqn{\rho(h) =
-    \frac{1}{2^{\kappa-1}\Gamma(\kappa)}(\frac{h}{\phi})^\kappa
-    K_{\kappa}(\frac{h}{\phi})}{rho(h) =
-    (1/(2^(kappa-1) * \Gamma(kappa))) * ((h/phi)^kappa) * K_{kappa}(h/phi)} 
   
-  \bold{gaussian}\cr
-  \deqn{\rho(h) = \exp[(-\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
-
-  \bold{spherical}\cr
-  \deqn{\rho(h) = \left\{ \begin{array}{ll}
-    1 - 1.5\frac{h}{\phi} + 0.5(\frac{h}{\phi})^3
-    \mbox{ , if $h$ < $\phi$} \cr
-    0    \mbox{ ,  otherwise}
-    \end{array} \right.}{rho(h) = 
-    1 - 1.5 * (h/phi) + 0.5(h/phi)^3   if h < $phi$ , 
-    0   otherwise}
-    
   \bold{circular}\cr
   Let \eqn{\theta = \min(\frac{h}{\phi},1)}{theta = min(h/phi,1)} and
   \deqn{g(h)= 2\frac{(\theta\sqrt{1-\theta^2}+
@@ -107,7 +85,6 @@ cov.spatial(obj, cov.model= "matern",
     0    \mbox{ , otherwise}
     \end{array} \right.}{rho(h) =
     1 - gamma(h)  if h < phi , 0 otherwise}
-
   
   \bold{cubic}\cr
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
@@ -119,6 +96,27 @@ cov.spatial(obj, cov.model= "matern",
     3.5 * ((h/phi)^5) - 0.75 * ((h/phi)^7) if h < phi
     , 0  otherwise.}
   
+  \bold{gaussian}\cr
+  \deqn{\rho(h) = \exp[(-\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
+
+  \bold{exponential}\cr
+  \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{exp(-h/phi)}
+
+  \bold{matern}\cr
+  \deqn{\rho(h) =
+    \frac{1}{2^{\kappa-1}\Gamma(\kappa)}(\frac{h}{\phi})^\kappa
+    K_{\kappa}(\frac{h}{\phi})}{rho(h) =
+    (1/(2^(kappa-1) * \Gamma(kappa))) * ((h/phi)^kappa) * K_{kappa}(h/phi)} 
+
+  \bold{spherical}\cr
+  \deqn{\rho(h) = \left\{ \begin{array}{ll}
+    1 - 1.5\frac{h}{\phi} + 0.5(\frac{h}{\phi})^3
+    \mbox{ , if $h$ < $\phi$} \cr
+    0    \mbox{ ,  otherwise}
+    \end{array} \right.}{rho(h) = 
+    1 - 1.5 * (h/phi) + 0.5(h/phi)^3   if h < $phi$ , 
+    0   otherwise}
+    
   \bold{power (and linear)}\cr
   The parameters of the this model
   \eqn{\sigma^2}{sigma^2} and \eqn{\phi}{phi} can not be  
@@ -134,40 +132,51 @@ cov.spatial(obj, cov.model= "matern",
 
   Since the corresponding process is not second order stationary the
   covariance and correlation functions are not defined.
-  For internal calculations the \emph{geoR} functions uses "working" covariance and correlation
-  functions computed as:
-  \deqn{\rho_w(h) = \frac{C_w(h)}{max(\gamma(h))} =
-    \frac{max(\gamma(h)) - \gamma(h)}{max(\gamma(h))}.}{rho_w(h) =
-    C_w(h)/max(gamma(h)) = (max(gamma(h)) - gamma(h))/max(gamma(h)).}
+  For internal calculations the \emph{geoR}
+  functions uses the fact the this model possesses locally
+  stationary representations with covariance functions of the form:
+  \deqn{C_(h) = \sigma^2 (A - h^\phi),}{C_(h) = sigma^2 (A - h^phi),}
+  where \eqn{A}{A} is a suitable constant as given in
+  Chilès \& Delfiner (pag. 511, eq. 7.35).
   
-  The \emph{linear} model corresponds to the particular case where
+  The \emph{linear} model corresponds a particular case with
   \eqn{\phi = 1}{phi = 1}.
   
-  \bold{powered.exponential}\cr
+  \bold{powered.exponential (or stable)}\cr
   \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^\kappa] \mbox{ , } 0 < \kappa
     \leq 2}{rho(h) = exp[-(h/phi)^kappa] if  0 < kappa <= 2}
 
   
-  \bold{cauchy} \cr
-  \deqn{\rho(h) = [1+(\frac{h}{\phi})^2]^{-\kappa}}{rho(h) = [1+(h/phi)^2]^(-kappa)}
-
-  
   \bold{gneiting}\cr
-  Let \eqn{\theta = \min(\frac{h}{\phi},1)}{theta = min((h/phi),1)}.
-  The Gneiting model is given by:
-  \deqn{\rho(h) = (1+8\theta+25\theta^2+32\theta^3)(1-\theta)^8}{rho(h)
-    = (1 + 8 * theta + 25 * (theta^2) + 32 * (theta^3)) * ((1 - theta)^8)}
+  \deqn{C(h)=\left(1 + 8 sh + 25 (sh)^2 + 32
+    (sh)^3\right)(1-sh)^8 1_{[0,1]}(sh)}{C(x)=
+    (1 + 8 s h + 25 s^2 h^2 + 32
+    s^3 h^3)*(1-s h)^8   if 0<=s h<=1, 0 otherwise}
+  where
+  \eqn{s=0.301187465825}{}.
+  For further details see documentation of the function
+  \code{\link[RandomFields]{CovarianceFct}} in the package
+  \code{RandomFields} from where we extract the following :\cr
+  \emph{It is an alternative to the \code{gaussian} model since
+  its graph is visually hardly distinguishable from the graph of
+  the Gaussian model, but possesses neither the mathematical and nor the
+  numerical disadvantages of the Gaussian model.}\\
 
-  
+
   \bold{gneiting.matern}\cr
   Let \eqn{\alpha=\phi\kappa_2}{alpha=phi * kappa_2}, \eqn{\rho_m(\cdot)}{rho_m(.)} denotes the \eqn{\mbox{Mat\'{e}rn}}{Matern} model
   and \eqn{\rho_g(\cdot)}{rho_g(.)} the Gneiting model. Then the
   \eqn{\mbox{Gneiting-Mat\'{e}rn}}{Gneiting-Matern} is given by
   \deqn{\rho(h) = \rho_g(h|\phi=\alpha) \,
     \rho_m(h|\phi=\phi,\kappa=\kappa_1)}{rho(h) = rho_g(h | phi=alpha) *
-    rho_m(h | phi=phi, kappa = kappa_1)}
+    rho_m(h | phi=phi, kappa = kappa_1)}\\
+
+  \bold{wave}\cr
+  \deqn{\rho(h) = \frac{\phi}{h}\sin(\frac{h}{\phi})}{(phi/h) *
+    sin(h/phi)} \\
 
 
+  \bold{Nested models}
   Models with several structures
   usually called \emph{nested models}
   in the geostatistical literature are also allowed.
@@ -192,7 +201,10 @@ cov.spatial(obj, cov.model= "matern",
   For a review on correlation functions:\cr
   Schlather, M. (1999) \emph{An introduction to positive definite functions and to unconditional
     simulation of random fields}. Technical report ST 99-10, Dept. of Maths and Statistics,
-    Lancaster University. 
+  Lancaster University.
+
+  Chilès, J.P. and Delfiner, P. (1999)
+  \bold{Geostatistics: Modelling Spatial Uncertainty}, Wiley.
 
 %    For \pkg{geoR} implementation: \cr   
 %    Ribeiro, P.J. Jr. and Diggle, P.J. (1999) \emph{geoR: a geostatistical package/library for R/S-PLUS}. Tech. Report ST-99-09, Dept

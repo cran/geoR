@@ -20,7 +20,8 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
                lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
                cex.max, cex.var, pch.seq, col.seq, add.to.plot = FALSE,
                x.leg, y.leg, dig.leg = 2, 
-               round.quantiles = FALSE, graph.pars = FALSE, \dots)
+               round.quantiles = FALSE, graph.pars = FALSE,
+               permute = FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -80,6 +81,8 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   \item{graph.pars}{logical. If \code{TRUE} the graphics
     parameters used to produce the plots are returned.
     Defaults to \code{FALSE}.  }
+  \item{permute}{logical indication whether the data values should be
+    randomly re-alocatted to the coordinates. See \code{DETAILS} below.}
   \item{\dots}{further arguments to be passed to the function
     \code{\link{plot}}, if \code{add.to.plot = FALSE}; or to the function
     \code{\link{points}}, if \code{add.to.plot = TRUE}.  }
@@ -118,6 +121,14 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   gray tones (or a color sequence) can be used
   for point sizes proportional to the data or their ranks.
   For more details see the section \code{EXAMPLES}.
+
+  The argument \code{permute} if set to \code{TRUE}
+  randomly realocates the data in the coordinates.
+  This may be used to
+  contrast the spatial pattern of original data against another
+  situation where there is no spatial dependence (when setting
+  \code{permute = TRUE}). If a \code{trend} is provided the residuals
+  (and not the original data) are permuted.
 }
 
 \value{
@@ -168,6 +179,10 @@ par(op)
 
 data(ca20)
 points(ca20, pt.div='quartile', x.leg=4900, y.leg=5850, bor=borders)
+
+par(mfrow=c(1,2), mar=c(3,3,1,1), mgp = c(2,1,0))
+points(s100, main="Original data")
+points(s100, permute=TRUE, main="Permuting locations")
 }
 
 \keyword{spatial}

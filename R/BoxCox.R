@@ -298,12 +298,12 @@
   ##
   ## This function is called by krige.bayes and krige.conv functions 
   ## in the package geoR to backtransform predictions when the original variable
-  ## was transformed by the Box-Cox transformation.
+  ## was transformed by using the Box-Cox transformation.
   ##
   ## WARNING: The Box-Cox transformation internal to the functions are:
   ##    Z = ((Y^lambda) -1)/lambda  for Y != 0 and Y != 1
   ##    Z = log(Y) for Y = 0
-  ##    NO TRANSFORMATION is performed when lambda = 1
+  ##    NO TRANSFORMATION (i.e. Z = Y) is performed when lambda = 1
   ##
   ## The transformations can be done:
   ##    - by analytical approximation (setting simul.back = FALSE)
@@ -334,7 +334,7 @@
         res$variance  <-  "resulting distribution has no variance for negative lambda"
       }
       else{
-        res$mean <- as.vector(apply(temp.data, 1, mean))
+        res$mean <- as.vector(rowMeans(temp.data))
         res$variance <- as.vector(apply(temp.data, 1, var))
         quants <- apply(temp.data, 1, quantile, prob=c(.025,.5, .975))
         res$median <- drop(quants[2,])
@@ -348,6 +348,7 @@
         res$mean <- exp(mean + 0.5 * (variance))
         res$variance <- (exp(2 * temp + variance)) * (exp(variance) - 1)
         res$median <- exp(mean)
+        res$mode <- exp(mean - variance)
       }
       else{
         temp <- 1 + (lambda * mean)
@@ -358,6 +359,7 @@
         else
           res$variance <- temp^((2/lambda)-2) *  variance
         res$median <- temp^(1/lambda)
+        res$mode <- ((temp+sqrt(1+4*lambda*variance*(lambda-1)+(temp-1)*(1+temp)))/2)^(1/lambda)
       }
       res$uncertainty <- (qnorm(.975, mean = mean, sd = sqrt(variance)) -
                           qnorm(.025, mean = mean, sd = sqrt(variance)))/4

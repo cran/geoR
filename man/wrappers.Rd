@@ -7,6 +7,7 @@
 \alias{diagquadraticformXAX}
 \alias{bilinearformXAY}
 \alias{corr.diaglowertri}
+\alias{Ccor.spatial}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -26,6 +27,7 @@ loccoords(coords, locations)
 diagquadraticformXAX(X, lowerA, diagA) 
 bilinearformXAY(X, lowerA, diagA, Y) 
 corr.diaglowertri(coords, cov.model, phi, kappa)
+Ccor.spatial(x, phi, kappa, cov.model)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -44,7 +46,9 @@ corr.diaglowertri(coords, cov.model, phi, kappa)
   \item{cov.model}{covariance model, see \code{\link{cov.spatial}} for options and
     more details.  }
   \item{phi}{numerical value of the correlation function parameter phi.}
-  \item{kappa}{numerical value of the correlation function parameter kappa.}
+  \item{kappa}{numerical value of the correlation function parameter
+    kappa.}
+  \item{x}{a vector of distances.  }
 }
 %\details{
 %}
@@ -61,6 +65,8 @@ corr.diaglowertri(coords, cov.model, phi, kappa)
       quadratic form \eqn{X' A Y}{t(X) \%*\% A \%*\% Y}.  }
     \item{corr.diaglowertri}{returns the lower triangle of the
       correlation matrix, including the diagonal.  }
+    \item{Ccor.spatial}{returns a vector of values of spatial
+      correlations.  }
 }
 
 \references{

@@ -20,8 +20,9 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
-                           "linear", "power", "powered.exponential", "cauchy",
+                           "linear", "power", "powered.exponential", "stable", "cauchy",
                            "gneiting", "gneiting.matern", "pure.nugget"))
+  if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
   ##  if(cov.model == "matern" | cov.model == "    powered.exponential" | 
@@ -164,7 +165,7 @@
       if(messages.screen){
         cat(" selected values:\n")
         print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
-        cat(paste("loss value:", max(grid.loss), "\n"))
+        cat(paste("loss value:", min(grid.loss), "\n"))
       }
       names(ini.temp) <- NULL
       ini.cov.pars <- ini.temp[1:2]
@@ -261,7 +262,8 @@
         cov.pars <- coef(res)[c(".lin2", "Tphi")]
         names(cov.pars) <- NULL
       }
-      if(cov.model == "power") cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
+      if(cov.model == "power")
+        cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
       else cov.pars[2] <- exp(cov.pars[2])
       if(nugget < 0 | cov.pars[1] < 0){
         warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
@@ -291,9 +293,9 @@
       if(cov.model == "power") ini[2] <- log(ini[2]/(2-ini[2])) 
       if(cov.model == "linear") ini <- ini[1] 
       if(fix.nugget == FALSE) ini <- c(ini, nugget)
-      if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
-      names(ini) <- NULL
       if(minimisation.function == "nlm"){
+        if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
+        names(ini) <- NULL
         result <- nlm(loss.vario, ini, g.l = .global.list, ...)
         result$par <- result$estimate
         result$value <- result$minimum
@@ -308,20 +310,22 @@
         }
       }
       else{
+        if(fix.kappa == FALSE) ini <- c(ini, kappa)
+        names(ini) <- NULL
         lower.l <- sapply(limits, function(x) x[1])
         upper.l <- sapply(limits, function(x) x[2])
         if(fix.kappa == FALSE){
-            if(fix.nugget){
-              lower <- lower.l[c("sigmasq.lower", "phi.lower","kappa.lower")]
-              upper <- upper.l[c("sigmasq.upper", "phi.upper","kappa.upper")]
-            }
-            else{
-              lower <- lower.l[c("sigmasq.lower", "phi.lower",
-                               "tausq.rel.lower", "kappa.lower")]
-              upper <- upper.l[c("sigmasq.upper", "phi.upper",
-                               "tausq.rel.upper", "kappa.upper")]
-            }
+          if(fix.nugget){
+            lower <- lower.l[c("sigmasq.lower", "phi.lower","kappa.lower")]
+            upper <- upper.l[c("sigmasq.upper", "phi.upper","kappa.upper")]
           }
+          else{
+            lower <- lower.l[c("sigmasq.lower", "phi.lower",
+                               "tausq.rel.lower", "kappa.lower")]
+            upper <- upper.l[c("sigmasq.upper", "phi.upper",
+                               "tausq.rel.upper", "kappa.upper")]
+          }
+        }
         else{
           if(cov.model == "power"){
             if(fix.nugget){
@@ -358,17 +362,20 @@
       if(cov.model == "linear")
         result$par <- c(result$par[1],1,result$par[-1])
       cov.pars <- as.vector(result$par[1:2])
-      if(cov.model == "power") cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
+      if(cov.model == "power")
+        cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
       if(fix.kappa == FALSE){
         if (fix.nugget)
-          Tkappa <- result$par[3]
+          kappa <- result$par[3]
         else{
           nugget <- result$par[3]
-          Tkappa <- result$par[4]
+          kappa <- result$par[4]
         }
-        if(.global.list$cov.model == "powered.exponential")
-          kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
-        else kappa <- exp(Tkappa)
+        if(minimisation.function == "nlm"){
+          if(.global.list$cov.model == "powered.exponential")
+            kappa <- 2*(exp(kappa))/(1+exp(kappa))
+          else kappa <- exp(kappa)
+        }
       }
       else
         if(fix.nugget == FALSE)
@@ -403,7 +410,8 @@
 "loss.vario" <-
   function (theta, g.l) 
 {
-  if(g.l$cov.model == "linear") theta <- c(theta[1], 1, theta[-1])
+  if(g.l$cov.model == "linear")
+    theta <- c(theta[1], 1, theta[-1])
   ##
   ## Imposing constraints for nlm
   ##
@@ -446,9 +454,12 @@
       tausq <- theta[3]
       Tkappa <- theta[4]
     }
-    if(g.l$cov.model == "powered.exponential")
-      kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
-    else kappa <- exp(Tkappa)
+    if(g.l$m.f == "nlm"){
+      if(g.l$cov.model == "powered.exponential")
+        kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
+      else kappa <- exp(Tkappa)
+    }
+    else kappa <- Tkappa
   }
   else{
     kappa <- g.l$kappa
@@ -485,7 +496,8 @@
 "print.variofit" <-
   function(x, digits = "default", ...)
 {
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
+  if(is.R() & digits == "default")
+    digits <- max(3, getOption("digits") - 3)
   else digits <- options()$digits
   if(x$fix.nugget){
     est.pars <- c(sigmasq = x$cov.pars[1], phi=x$cov.pars[2])

@@ -371,7 +371,7 @@
       temp.data[temp.data < -1/lambda] <- -1/lambda     
       temp.data <- ((temp.data * lambda) + 1)^(1/lambda)
 ###      temp.data[is.na(temp.data)] <- Inf
-      results$predict <- as.vector(apply(temp.data, 1, mean))
+      results$predict <- as.vector(rowMeans(temp.data))
       results$krige.var <- as.vector(apply(temp.data, 1, var))
     }
     if(lambda < -0.001) {

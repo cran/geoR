@@ -154,35 +154,38 @@
   if(!is.function(rep.covar.action))
     rep.covar.action <- match.arg(rep.covar.action, choices = c("none", "first")) 
   if(! "package:stats" %in% search()) require(mva)
-  op.dig <- options()$digits
-  options(digits=16)
-  rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
-  options(digits=op.dig)
-  rep.dup <- duplicated(rep.lev)
-  if(sum(rep.dup) > 0)
+  ## check also whether this should be checked within each realisation 
+  ##  if(sum(rep.dup) > 0){
+  if(any(duplicated(res$coords, MAR=1))){
+    op.dig <- options()$digits
+    options(digits=12)
+    rep.lev <- as.character(paste("x",res$coords[,1],"y",res$coords[,2], sep=""))
+    options(digits=op.dig)
+    rep.dup <- duplicated(rep.lev)
     cat(paste("as.geodata:", sum(rep.dup), "redundant locations found\n"))
-  if(is.function(rep.data.action) || rep.data.action == "first"){
-    res$coords <- res$coords[!rep.dup,]
-    measure.var.f <- function(x) return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
-    res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
-    rep.action.f <- function(x, rep.action){ 
-      if(!is.function(rep.action) && rep.action == "first")
-        return(x[!rep.dup])
-      else
-        return((as.vector(by(x, rep.lev, rep.action))[unclass(factor(rep.lev))])[!rep.dup])
+    if(is.function(rep.data.action) || rep.data.action == "first"){
+      res$coords <- res$coords[!rep.dup,]
+      measure.var.f <- function(x) return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
+      res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
+      rep.action.f <- function(x, rep.action){ 
+        if(!is.function(rep.action) && rep.action == "first")
+          return(x[!rep.dup])
+        else
+          return((as.vector(by(x, rep.lev, rep.action))[unclass(factor(rep.lev))])[!rep.dup])
+      }
+      res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
+      if(!is.null(covar.col))
+        res[[3]] <- drop(apply(res[[3]], 2, rep.action.f, rep.action=rep.covar.action))
+      if(!is.null(res$realisations))
+        res$realisations <- res$realisations[!rep.dup]
     }
-    res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
-    if(!is.null(covar.col))
-      res[[3]] <- drop(apply(res[[3]], 2, rep.action.f, rep.action=rep.covar.action))
-    if(!is.null(res$realisations))
-      res$realisations <- res$realisations[!rep.dup]
-  }
-  else{
-    check.coincide <- function(x){sum(dist(x) < 1e-16) > 0}
-    any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
-    any.coincide <- as.vector(unlist(any.coincide))
-    if(sum(any.coincide) > 0)
-      cat("WARNING: there are data at coincident locations, some of the geoR's functions will not work.\n")
+    else{
+      check.coincide <- function(x){sum(dist(x) < 1e-16) > 0}
+      any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
+      any.coincide <- as.vector(unlist(any.coincide))
+      if(sum(any.coincide) > 0)
+        cat("WARNING: there are data at coincident or very closed locations, some of the geoR's functions may not work.\n")
+    }
   }
   ##
   if(!is.null(covar.col)){
@@ -280,7 +283,7 @@
     res$borders.summary <- apply(object$borders, 2, range)
     rownames(res$borders.summary) <- c("min", "max")
   }
-  others.ind <- is.na(match(names(object), c("coords","data","covariate","borders","realisations")))
+  others.ind <- is.na(match(names(object), c("coords","data","covariate","borders","realisations", "units.m")))
   if(sum(others.ind) > 0)
     res$others <- names(object[others.ind])
   class(res) <- "summary.geodata"
@@ -332,7 +335,8 @@
             cex.min, cex.max, cex.var,
             pch.seq, col.seq, add.to.plot = FALSE,
             x.leg, y.leg, dig.leg = 2, 
-            round.quantiles = FALSE, graph.pars = FALSE, ...) 
+            round.quantiles = FALSE, graph.pars = FALSE,
+            permute = FALSE, ...) 
 {
   ##
   ## Checking input
@@ -367,6 +371,11 @@
     data <- lm(data ~ xmat + 0)$residuals
     names(data) <- NULL
   }
+  ##
+  ## permuting data locations
+  ##
+  if(permute)
+    data <- sample(data)
   ##
   ## proportional to data or to external variable
   ##

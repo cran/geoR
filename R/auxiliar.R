@@ -226,7 +226,7 @@
 }
 
 "trend.spatial" <-
-  function (trend, geodata) 
+  function (trend, geodata, add.to.trend) 
 {
   if(!missing(geodata)){
     attach(geodata, pos=2)
@@ -236,7 +236,7 @@
     }
     on.exit(detach("geodata"), add=TRUE)
   }
-  if (inherits(trend, "formula")) {
+  if(inherits(trend, "formula")) {
     require(methods)
     if(exists("trySilent")){
       trend.mat <- trySilent(model.matrix(trend))
@@ -274,6 +274,12 @@
     else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are the strings \"cte\", \"1st\", \"2nd\" or  a model formula")
   }
   trend.mat <- as.matrix(trend.mat)
+  if(!missing(add.to.trend)){
+    if(missing(geodata))
+      trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend)[,-1])
+    else
+      trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend, geodata = geodata)[,-1])
+  }
   dimnames(trend.mat) <- list(NULL, NULL)
   class(trend.mat) <- "trend.spatial"
   return(trend.mat)
@@ -397,4 +403,55 @@
 }
 
 
+
+"pars.limits" <-
+  function(phi = c(lower=0, upper=+Inf),
+           sigmasq = c(lower=0, upper=+Inf),
+           nugget.rel = c(lower=0, upper=+Inf),
+           kappa = c(lower=0, upper=+Inf),
+           lambda = c(lower=-3, upper=3),
+           psiR = c(lower=1, upper=+Inf),
+           psiA = c(lower=0, upper=2*pi),
+           tausq.rel = nugget.rel
+           )
+{
+  if(length(phi) != 2)
+    stop("phi must be a 2 components vector with lower and upper limits for the parameter phi") 
+  if(length(sigmasq) != 2)
+    stop("sigmasq must be a 2 components vector with lower and upper limits for the parameter sigmasq") 
+  if(length(tausq.rel) != 2)
+    stop("tausq.rel must be a 2 components vector with lower and upper limits for the parameter tausq.rel") 
+  if(length(kappa) != 2)
+    stop("kappa must be a 2 components vector with lower and upper limits for the parameter kappa") 
+  if(length(lambda) != 2)
+    stop("lambda must be a 2 components vector with lower and upper limits for the parameter lambda")
+  if(length(psiR) != 2)
+    stop("psiR must be a 2 components vector with lower and upper limits for the parameter psiR") 
+  if(length(psiA) != 2)
+    stop("psiA must be a 2 components vector with lower and upper limits for the parameter psiA") 
+  if(phi[1] >= phi[2])
+    stop("parameter phi: lower limit greater or equal upper limit")
+  if(sigmasq[1] >= sigmasq[2])
+    stop("parameter sigmasq: lower limit greater or equal upper limit")
+  if(tausq.rel[1] >= tausq.rel[2])
+    stop("parameter tausq.rel: lower limit greater or equal upper limit")
+  if(kappa[1] >= kappa[2])
+    stop("parameter kappa: lower limit greater or equal upper limit")
+  if(lambda[1] >= lambda[2])
+    stop("parameter lambda: lower limit greater or equal upper limit")
+  if(psiR[1] >= psiR[2])
+    stop("parameter psiR: lower limit greater or equal upper limit")
+  if(psiA[1] >= psiA[2])
+    stop("parameter psiA: lower limit greater or equal upper limit")
+  names(phi) <- c("lower", "upper")
+  names(sigmasq) <- c("lower", "upper")
+  names(tausq.rel) <- c("lower", "upper")
+  names(kappa) <- c("lower", "upper")
+  names(lambda) <- c("lower", "upper")
+  names(psiR) <- c("lower", "upper")
+  names(psiA) <- c("lower", "upper")
+  return(list(phi = phi, sigmasq = sigmasq,
+              tausq.rel = tausq.rel, kappa = kappa,
+              lambda = lambda, psiR = psiR, psiA = psiA))
+}
 

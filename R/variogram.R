@@ -98,7 +98,7 @@
       beta.ols <- apply(data, 2, only.beta, x = xmat)
     }
   }
-  else beta.ols <- apply(as.matrix(data), 2, mean)
+  else beta.ols <- colMeans(as.matrix(data))
   ##
   ## Defining bins
   ##
@@ -912,6 +912,8 @@
   if(messages.screen)
     cat("variog.env: adding the mean or trend\n")
   x.mat <- unclass(trend.spatial(trend=obj.variog$trend, geodata = geodata))
+  if(ncol(x.mat) != length(beta))
+    stop("incompatible sizes of trend matrix and beta parameter vector. Check whether the trend specification are the same in the objects passed to the arguments \"obj.vario\" and \"model.pars\"")
   simula$data <- as.vector(x.mat %*% beta) + simula$data
   ##
   ## computing empirical variograms for the simulations
