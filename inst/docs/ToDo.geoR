@@ -1,34 +1,31 @@
 Things to be done and/or checked in the package geoR
 ======================================================
 
-1) Create summary functions for:
+- Create summary functions for:
 	proflik??
 	krige.bayes
 	others ???
 
-2) kappa estimation in  wlsfit and olsfit
+- kappa estimation in  wlsfit and olsfit
 
-3) Initial search grid for  "wlsfit" and "olsfit"
+- A nicer and shorter version for "proflik" 
 
-4) A nicer and shorter version for "proflik" 
+- Incorporate "kappa", "anR" and "anA" in proflik
 
-5) Incorporate "kappa", "anR" and "anA" in proflik
+- Un-equally spaced grid for "phi" in krige.bayes
 
-6) Un-equally spaced grid for "phi" in krige.bayes
+- Implement the robust variogram estimator as described in Genton, 1998
 
-7) Implement the robust variogram estimator as described in Genton, 1998
+- Implement "glsfit"
 
-8) Implement "glsfit"
-
-9) Check whether is possible to make a more extensive use of the QR 
+- Check whether is possible to make a more extensive use of the QR 
 decomposition throughout the package, in particular in "varcov.spatial" and 
 the "likfit" functions.
 
-10) power model ?
+- generalized covariances
 
-11) generalized covariances
+- use function matplot for multiple plots in plot.variogram, plot.grf
 
-12) use function matplot for multiple plots in plot.variogram, plot.grf
+- Pocket plots including moving windows 
 
-13) Pocket plots including moving windows 
-
+- OLS/WLS/GLS fit of anisotropic variograms

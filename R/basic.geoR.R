@@ -69,6 +69,8 @@
   ## transforming to the isotropic space 
   ##
   if(!is.null(aniso.pars)) {
+    if(method == "circular.embedding")
+      stop("anisotropic models not implemented for the circular embedding method. \nConsider using the package \"RandomFields")
     if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if(messages.screen)
@@ -796,18 +798,18 @@ function(pars)
     data.order <- data[order(data)]
     if (pt.sizes == "rank.proportional") {
       data.quantile <- range(data.order)
-      pt.size <- seq(cex.min, cex.max, l = n)
-      graph.list$cex <- range(pt.size)
+      size <- seq(cex.min, cex.max, l = n)
+      graph.list$cex <- range(size)
       graph.list$pch <- unique(range(pch.seq))
       graph.list$col <- col.seq
       if (length(col.seq) == 1) 
         col.seq <- rep(col.seq, n)
       for (i in 1:n) {
         if (add.to.plot) 
-          points(coords.order[i, , drop = FALSE], cex = pt.size[i], 
+          points(coords.order[i, , drop = FALSE], cex = size[i], 
                  pch = pch.seq, bg = col.seq[i], ...)
         else points(coords.order[i, , drop = FALSE], 
-                    cex = pt.size[i], pch = pch.seq, bg = col.seq[i])
+                    cex = size[i], pch = pch.seq, bg = col.seq[i])
       }
     }
     if (pt.sizes == "data.proportional") {
@@ -821,7 +823,7 @@ function(pars)
         col.seq <- rep(col.seq, n)
       for (i in 1:n) {
         if (add.to.plot) 
-          points(coords.order[i, , drop = FALSE], cex = pt.size[i], 
+          points(coords.order[i, , drop = FALSE], cex = size[i], 
                  pch = pch.seq, bg = col.seq[i], ...)
         else points(coords.order[i, , drop = FALSE], 
                     cex = size[i], pch = pch.seq, bg = col.seq[i])

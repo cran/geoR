@@ -22,14 +22,14 @@
 }
 
 \usage{
-likfit(geodata, coords=geodata$coords, data=geodata$data,
-       trend = "cte", ini, fix.nugget = FALSE, nugget = 0, 
-       cov.model = "matern", kappa = 0.5, fix.lambda = TRUE,
-       lambda = 1, method = "ML", 
-       predicted = FALSE, residuals = FALSE, 
-       minimisation.function = c("optim","nlmP", "nlm"),
-       automatic.refit = FALSE, range.limits,
-       messages.screen = TRUE, ...) 
+likfit.old(geodata, coords=geodata$coords, data=geodata$data,
+           trend = "cte", ini, fix.nugget = FALSE, nugget = 0, 
+           cov.model = "matern", kappa = 0.5, fix.lambda = TRUE,
+           lambda = 1, method = "ML", 
+           predicted = FALSE, residuals = FALSE, 
+           minimisation.function = c("optim","nlmP", "nlm"),
+           automatic.refit = FALSE, range.limits,
+           messages.screen = TRUE, ...) 
 }
 
 %- maybe also `usage' for other objects documented here.
