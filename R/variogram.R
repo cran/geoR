@@ -118,7 +118,8 @@
                 as.double(as.vector(coords[,1])),
                 as.double(as.vector(coords[,2])),
                 as.integer(dim(coords)[1]),
-                res = as.double(rep(0, length(u))))$res
+                res = as.double(rep(0, length(u))),
+                PACKAGE = "geoR")$res
     u.ang <- atan(u.ang)
     u.ang[u.ang < 0] <- u.ang[u.ang < 0] + pi
   }
@@ -153,7 +154,8 @@
                    as.integer(nbins), as.double(as.vector(bins.lim)), 
                    as.integer(estimator.type == "modulus"), as.double(max.dist), 
                    cbin = as.integer(cbin), vbin = as.double(vbin), 
-                   as.integer(TRUE), sdbin = as.double(sdbin))[c("vbin", 
+                   as.integer(TRUE), sdbin = as.double(sdbin),
+                   PACKAGE = "geoR")[c("vbin", 
                                        "cbin", "sdbin")]
     }
     result <- array(unlist(lapply(as.data.frame(data), bin.f)), 
@@ -966,8 +968,8 @@
                  as.double(cbin),
                  vbin = as.double(vbin),
                  as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
       return(temp)
     }
     simula.bins <- apply(simula$data, 2, bin.f)
@@ -988,8 +990,8 @@
                  as.double(cbin),
                  vbin = as.double(vbin),
                  as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
       return(temp)
     }
     simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))
@@ -1075,8 +1077,8 @@
                  as.double(cbin),
                  vbin = as.double(vbin),
                  as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
       return(temp)
     }
     simula.bins <- apply(simula$data, 2, bin.f)
@@ -1097,8 +1099,8 @@
                  as.double(cbin),
                  vbin = as.double(vbin),
                  as.integer(FALSE),
-                 as.double(sdbin)
-                 )$vbin
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
       return(temp)
     }
     simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins, n.data=obj.variog$n.data, coords=coords, bins.lim=obj.variog$bins.lim, estimator.type=estimator.type, max.u=max(obj.variog$u))

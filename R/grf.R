@@ -264,7 +264,7 @@
           as.double(phi),
           as.double(kappa), 
           res = res,
-          m = mm)$res
+          m = mm, PACKAGE = "geoR")$res
   cat("\n")
   return(x)
 }

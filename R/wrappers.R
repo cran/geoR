@@ -17,7 +17,8 @@
               as.integer(nX),
               as.integer(nY),
               as.integer(nA),
-              res=as.double(rep(0,(nX*nY))))$res
+              res=as.double(rep(0,(nX*nY))),
+              PACKAGE = "geoR")$res
     attr(out, "dim") <- c(nX, nY)
     return(out)
   }
@@ -35,7 +36,8 @@
               as.double(as.vector(X)),
               as.integer(nX),
               as.integer(nA),
-              res = as.double(rep(0,nX)))$res
+              res = as.double(rep(0,nX)),
+              PACKAGE = "geoR")$res
     return(out)
   }
 
@@ -60,7 +62,8 @@
        as.double(as.vector(coords[,2])),
        as.integer(nl),
        as.integer(nc),
-       out, DUP=FALSE)
+       out, DUP=FALSE,
+       PACKAGE = "geoR")
     attr(out, "dim") <- c(nc, nl)
     return(out)
   }
@@ -84,7 +87,8 @@
          as.double(coords[,1]),
          as.double(coords[,2]),
          as.integer(nc),
-         out, DUP = FALSE)
+         out, DUP = FALSE,
+         PACKAGE = "geoR")
       return(out)
     }
   }
@@ -118,7 +122,8 @@
        as.integer(cor.number(cov.model)),
        as.double(phi),
        as.double(kappa),
-       out, DUP = FALSE)
+       out, DUP = FALSE,
+       PACKAGE = "geoR")
     return(out)
   }
 }
@@ -201,7 +206,8 @@
                    as.integer(mod$cov.model.number),
                    as.double(mod$phi),
                    as.double(mod$kappa),
-                   as.integer(diff.mean))$out      
+                   as.integer(diff.mean),
+                   PACKAGE = "geoR")$out      
     attr(normalsc, "dim") <- c(mod$nloc, mod$Nsims)
     return(normalsc)
   }

@@ -1635,7 +1635,7 @@ function(phi.lambda, ...)
             as.integer(beta.size),
             as.integer(beta.size),
             as.integer(n),
-            res = xix)$res
+            res = xix,PACKAGE = "geoR")$res
   attr(xix, "dim") <- c(beta.size, beta.size)
   if(length(as.vector(xix)) == 1) {
     ixix <- 1/xix
@@ -1655,7 +1655,7 @@ function(phi.lambda, ...)
             as.integer(beta.size),
             as.integer(1),
             as.integer(n),
-            res = xiy)$res
+            res = xiy, PACKAGE = "geoR")$res
   beta.hat <- as.vector(ixix %*% xiy)
   yiy <- as.double(0.0)
   yiy <- .C("bilinearform_XAY",
@@ -1666,7 +1666,7 @@ function(phi.lambda, ...)
             as.integer(1),
             as.integer(1),
             as.integer(n),
-            res = yiy)$res
+            res = yiy, PACKAGE = "geoR")$res
   ssresmat <- as.vector(yiy - crossprod(beta.hat,xiy))
   return(list(log.det.to.half = covinf$log.det.to.half,
               ssresmat = ssresmat,

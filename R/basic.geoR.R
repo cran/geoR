@@ -181,7 +181,7 @@
             as.integer(beta.size),
             as.integer(beta.size),
             as.integer(n),
-            res = xix)$res
+            res = xix, PACKAGE = "geoR")$res
   attr(xix, "dim") <- c(beta.size, beta.size)
   if(length(as.vector(xix)) == 1) {
     ixix <- 1/xix
@@ -201,7 +201,7 @@
             as.integer(beta.size),
             as.integer(1),
             as.integer(n),
-            res = xiy)$res
+            res = xiy, PACKAGE = "geoR")$res
   beta.hat <- as.vector(ixix %*% xiy)
   yiy <- as.double(0.0)
   yiy <- .C("bilinearform_XAY",
@@ -212,7 +212,7 @@
             as.integer(1),
             as.integer(1),
             as.integer(n),
-            res = yiy)$res
+            res = yiy, PACKAGE = "geoR")$res
   ssresmat <- as.vector(yiy - 2*crossprod(beta.hat,xiy) +  beta.hat %*% xix %*% beta.hat)
   if(.temp.list$method == "ML") {
     loglik <- ( - (n/2) * log(2 * pi) -
