@@ -34,16 +34,17 @@
   }
   names(lambdas.ini) <- NULL
   ##
-  if(lambda2){
+  if(lambda2)
     lik.lambda <- optim(par=lambdas.ini, fn = boxcox.negloglik,
-                        method="L-BFGS-B",
+                        method="L-BFGS-B", hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
-  }
   else
     lik.lambda <- optim(par=lambdas.ini[1], fn = boxcox.negloglik,
-                        data = data, xmat = xmat, lik.method = lik.method)
+                        data = data, xmat = xmat, hessian = TRUE,
+                        lik.method = lik.method)
   ##
+  hess <- sqrt(diag(solve(as.matrix(lik.lambda$hessian))))
   lambda.fit <- lik.lambda$par
   if(length(lambda.fit) == 1) lambda.fit <- c(lambda.fit, 0)
   data <- data + lambda.fit[2]
@@ -73,7 +74,7 @@
   if(length(lik.lambda$par) == 1) lambda.fit <- lambda.fit[1]
   if(length(lik.lambda$par) == 2) names(lambda.fit) <- c("lambda", "lambda2")
   res <- list(lambda = lambda.fit, beta.normal = drop(beta),
-              sigmasq.normal = sigmasq,
+              sigmasq.normal = sigmasq, hessian = c(lambda = hess), 
               loglik = loglik, optim.results = lik.lambda)
   res$call <- call.fc
   class(res) <- "boxcox.fit"
@@ -96,9 +97,10 @@
   ss <- sum((drop(yt) - drop(xmat %*% beta))^2)
   if(lik.method == "ML")
     neglik <- (n/2) * log(ss) - ((lambda - 1) * sum(log(data)))
-  if(lik.method == "RML")
-    neglik <- ((n-beta.size)/2) * log(ss.ns) - log.jacobian
+  ##if(lik.method == "RML")
+  ##  neglik <- ((n-beta.size)/2) * log(ss.ns) - log.jacobian
   ##
+  if(!is.numeric(neglik)) neglik <- Inf
   return(drop(neglik))
 }
 

@@ -11,7 +11,7 @@
 }
 
 \usage{
-plot.variog4(x, omnidirectional=FALSE, same.plot=TRUE, legend = TRUE, ...)
+\method{plot}{variog4}(x, omnidirectional=FALSE, same.plot=TRUE, legend = TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

@@ -310,17 +310,50 @@
   return(result)
 }
 
+
+
+"dinvchisq" <-
+  function(x, df, scale=1/df, log = FALSE)
+{
+  if(df <= 0)
+    stop("df must be greater than zero")
+  if(scale <= 0)
+    stop("scale must be greater than zero")
+  nu <- df/2
+  if(log)
+    return(ifelse(x > 0, nu*log(nu) - log(gamma(nu)) + nu*log(scale) -
+                  (nu+1)*log(x) - (nu*scale/x), NA))
+  else
+    return(ifelse(x > 0,
+                  (((nu)^(nu))/gamma(nu)) * (scale^nu) *
+                  (x^(-(nu+1))) * exp(-nu*scale/x), NA))
+}
+
+"rinvchisq" <- 
+  function (n, df, scale = 1/df)
+{
+  if(df <= 0)
+    stop("df must be greater than zero")
+  if(scale <= 0)
+    stop("scale must be greater than zero")
+  return((df*scale)/rchisq(n, df=df)) 
+}
+
 "points.geodata" <-
   function (x, coords = x$coords, data = x$data, 
             data.col = 1, borders = NULL,
-            pt.sizes = c("data.proportional",
+            pt.divide = c("data.proportional",
               "rank.proportional", "quintiles",
               "quartiles", "deciles", "equal"),
             lambda=1, trend="cte", weights.divide=NULL,
             cex.min, cex.max, pch.seq, col.seq, add.to.plot = FALSE,
             round.quantiles = FALSE, graph.pars = FALSE, ...) 
 {
-  pt.sizes <- match.arg(pt.sizes)
+  # This is for compatibility with previously used argument pt.sizes
+  if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
+  #
+  if(!is.numeric(pt.divide))
+    pt.divide <- match.arg(pt.divide)
   if(!is.vector(data))
        data <- (as.data.frame(data))[,data.col]
   if(nrow(coords) != length(data))
@@ -363,27 +396,31 @@
   if (missing(cex.max)) 
     cex.max <- 1.5
   graph.list <- list()
-  if (pt.sizes == "quintiles" | pt.sizes == "quartiles" | pt.sizes == 
-      "deciles") {
-    if (pt.sizes == "quintiles") {
+  if(is.numeric(pt.divide)|pt.divide == "quintiles"|pt.divide == "quartiles"|pt.divide == "deciles") {
+    if (pt.divide == "quintiles") {
       n.quant <- 5
       if (missing(col.seq)) 
         col.seq <- c("blue", "green", "yellow", "orange3", "red2") 
     }
-    if (pt.sizes == "quartiles") {
+    if (pt.divide == "quartiles") {
       n.quant <- 4
       if (missing(col.seq)) 
         col.seq <- c("blue", "green", "yellow", "red") 
     }
-    if (pt.sizes == "deciles") {
+    if (pt.divide == "deciles") {
       n.quant <- 10
       if (missing(col.seq)) 
         col.seq <- rainbow(13)[10:1]
     }
+    if(is.numeric(pt.divide)){
+      data.quantile <- pt.divide
+      n.quant <- length(pt.divide) - 1
+    }
+    else
+      data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
     if (missing(pch.seq)) 
       pch.seq <- rep(21, n.quant)
     cex.pt <- seq(cex.min, cex.max, l = n.quant)
-    data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
     if (round.quantiles == TRUE) {
       data.quantile[1] <- floor(data.quantile[1])
       data.quantile[n.quant + 1] <- ceiling(data.quantile[n.quant + 1])
@@ -393,7 +430,7 @@
     graph.list$cex <- cex.pt
     graph.list$col <- col.seq
     graph.list$pch <- pch.seq
-    graph.list$data.group <- cut(data, breaks=data.quantile, include.l=T)
+    graph.list$data.group <- cut(data, breaks=data.quantile, include.l=TRUE)
     if (add.to.plot) 
       points(coords, pch = pch.seq, cex = cex.pt[as.numeric(graph.list$data.group)], bg = col.seq[as.numeric(graph.list$data.group)], ...)
     else
@@ -407,7 +444,7 @@
     n <- length(data)
     coords.order <- coords[order(data), ]
     data.order <- data[order(data)]
-    if (pt.sizes == "rank.proportional") {
+    if (pt.divide == "rank.proportional") {
       data.quantile <- range(data.order)
       size <- seq(cex.min, cex.max, l = n)
       graph.list$cex <- range(size)
@@ -423,7 +460,7 @@
                     cex = size[i], pch = pch.seq, bg = col.seq[i])
       }
     }
-    if (pt.sizes == "data.proportional") {
+    if (pt.divide == "data.proportional") {
       r.y <- range(data.order)
       size <- cex.min + ((data.order - r.y[1]) * (cex.max - 
                                                   cex.min))/(r.y[2] - r.y[1])
@@ -440,7 +477,7 @@
                     cex = size[i], pch = pch.seq, bg = col.seq[i])
       }
     }
-    if (pt.sizes == "equal") {
+    if (pt.divide == "equal") {
       if (add.to.plot) 
         points(coords, pch = pch.seq, bg = col.seq, cex = cex.max, 
                ...)
@@ -451,32 +488,5 @@
   if (graph.pars == TRUE) 
     return(graph.list)
   else return(invisible())
-}
-
-"dinvchisq" <-
-  function(x, df, scale=1/df, log = FALSE)
-{
-  if(df <= 0)
-    stop("df must be greater than zero")
-  if(scale <= 0)
-    stop("scale must be greater than zero")
-  nu <- df/2
-  if(log)
-    return(ifelse(x > 0, nu*log(nu) - log(gamma(nu)) + nu*log(scale) -
-                  (nu+1)*log(x) - (nu*scale/x), NA))
-  else
-    return(ifelse(x > 0,
-                  (((nu)^(nu))/gamma(nu)) * (scale^nu) *
-                  (x^(-(nu+1))) * exp(-nu*scale/x), NA))
-}
-
-"rinvchisq" <- 
-  function (n, df, scale = 1/df)
-{
-  if(df <= 0)
-    stop("df must be greater than zero")
-  if(scale <= 0)
-    stop("scale must be greater than zero")
-  return((df*scale)/rchisq(n, df=df)) 
 }
 

@@ -15,8 +15,8 @@
 
 \usage{
 points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
-               pt.sizes=c("data.proportional","rank.proportional",
-                          "quintiles", "quartiles", "deciles", "equal"),
+               pt.divide=c("data.proportional","rank.proportional",
+                           "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", weights.divide = NULL, cex.min,
                cex.max, pch.seq, col.seq, add.to.plot = FALSE,
                round.quantiles = FALSE, graph.pars = FALSE, ...)
@@ -39,9 +39,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   \item{borders}{If an \eqn{n \times 2}{nx2}
     matrix or data-frame with the coordinates of the borders of the
     regions is provided, the borders are added to the plot.  }
-  \item{pt.sizes}{defines the point sizes. See 
-    \code{DETAILS} below for the available options.
-    Defaults to \code{pt.sizes = "data.proportional"}.   }
+  \item{pt.divide}{defines the division of the points in categories.
+    See \code{DETAILS} below for the available options.
+    Defaults to \code{pt.divide = "data.proportional"}.   }
   \item{trend}{specifies the mean part of the model. The options are:
     \code{"cte"} (constant mean - default option), \code{"1st"} (a first degree polynomial
     on the coordinates), \code{"2nd"} (a second degree polynomial
@@ -62,7 +62,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     of the data. Defaults to 0.5.  }
   \item{cex.max}{maximum value for the graphical parameter
     \code{cex}. This value defines the size of the point corresponding the maximum
-    of the data. If \code{pt.sizes = "equal"} it is used to set
+    of the data. If \code{pt.divide = "equal"} it is used to set
     the value for the
     graphical parameter \code{cex}. Defaults to 1.5.  }
   \item{pch.seq}{number(s) defining the graphical parameter \code{pch}.  }
@@ -82,8 +82,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
 }
 
 \details{
-  The points can have different sizes according to the argument
-  \code{pt.sizes}. The options are:
+  The points can be devided in categories and have different sizes
+  and/or colours according to the argument
+  \code{pt.divide}. The options are:
   
   \describe{
     \item{"data.proportional"}{sizes proportional to the data values.  }
@@ -96,6 +97,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     \item{"deciles"}{ten different sizes according to the
       deciles of the data. }
     \item{"equal"}{all points with the same size.  }
+    \item{a numerical vector with quantiles}{the values in the
+      vector will be used by the function \code{\link{cut}} as break
+      points to divide the data in classes. }
   }
 
   For cases where points have different sizes the arguments
@@ -152,11 +156,11 @@ par(mfrow=c(2,2))
 par(mar=c(3,3,1,1))
 par(mgp = c(2,1,0))
 points(s100, xlab="Coord X", ylab="Coord Y")
-points(s100, xlab="Coord X", ylab="Coord Y", pt.size="rank.prop")
+points(s100, xlab="Coord X", ylab="Coord Y", pt.divide="rank.prop")
 points(s100, xlab="Coord X", ylab="Coord Y", cex.max=1.7,
-               col=gray(seq(1, 0.1, l=100)), pt.siz="equal")
+               col=gray(seq(1, 0.1, l=100)), pt.divide="equal")
                # the function gray() works only for R
-points(s100, pt.sizes="quintile", xlab="Coord X",
+points(s100, pt.divide="quintile", xlab="Coord X",
                ylab="Coord Y")
 par(op)
 }

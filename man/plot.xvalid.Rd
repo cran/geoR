@@ -12,8 +12,10 @@
 }
 
 \usage{
-plot.xvalid(x, coords, error.plots = TRUE, std.error.plots = TRUE,
-            borders = NULL, ask = TRUE, ...)
+\method{plot}{xvalid}(x, coords, borders = NULL, ask = TRUE,
+            error = TRUE, std.error = TRUE, data.predicted = TRUE,
+            pp = TRUE, map = TRUE, histogram = TRUE,
+            error.predicted = TRUE, error.data = TRUE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -23,17 +25,28 @@ plot.xvalid(x, coords, error.plots = TRUE, std.error.plots = TRUE,
     from the function \code{\link{xvalid}}.  }
   \item{coords}{an \eqn{n \times 2}{n x 2} object containing
     coordinates of the (cross-)validation locations.  }
-  \item{error.plots}{logical. Defines whether the plots for the errors
-    (\eqn{error = data - predicted}) will
-    be produced.  }
-  \item{std.error.plots}{logical. Defines whether the plots for the
-    standardised errors will
-    be produced.  }
   \item{borders}{optional. Takes a two column matrix or data-frame with
     coordinates of the borders. If provided the borders are included in
     the errors maps.  }
   \item{ask}{logical. Defines whether or not the user is prompted before
     each plot is produced.}
+  \item{error}{logical. Defines whether the plots for the errors
+    (\eqn{error = data - predicted}) will
+    be produced.  }
+  \item{std.error}{logical. Defines whether the plots for the
+    standardised errors will be produced.  }
+  \item{data.predicted}{logical defining whether a plot of data versus
+    predicted should be displayed. Defaults to \code{TRUE}.  }
+  \item{pp}{logical defining whether a \emph{pp} plot
+    should be displayed. Defaults to \code{TRUE}.  }
+  \item{map}{logical defining whether a map of the errors
+    should be displayed. Defaults to \code{TRUE}.  }
+  \item{histogram}{logical defining whether a histogram of the errors
+    should be displayed. Defaults to \code{TRUE}.  }
+  \item{error.predicted}{logical defining whether a plot of errors versus
+    predicted should be displayed. Defaults to \code{TRUE}.  }
+  \item{error.data}{logical defining whether a plot of errors versus
+    data should be displayed. Defaults to \code{TRUE}.  }
   \item{\dots}{other arguments to be passed to the function
     \code{\link{plot}}.  }
 

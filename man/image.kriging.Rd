@@ -13,7 +13,7 @@
 }
 
 \usage{
-image.kriging(x, locations, borders, values = obj$predict,
+\method{image}{kriging}(x, locations, borders, values = obj$predict,
               coords.data, x.leg, y.leg, cex.leg = 0.75,
               vertical = FALSE, ...)
 

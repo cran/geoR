@@ -1,7 +1,39 @@
 
 
 		=============================
-		CHANGES IN geoR VERSION 1.1-1
+		CHANGES IN geoR VERSION 1.1-4
+		=============================
+
+NEW FEATURES
+
+     o function points.geodata(): argument 'pt.sizes' changed to 'pt.divide' 
+       internal back compatibility included
+ 
+     o argument 'pt.divide' can now also take a numerical vector of quantiles
+       to divide the data points in classes	
+ 
+     o plot.xvalid has more options for selecting plots
+
+     o plot.variogram passes more arguments to the plotting function
+       when ploting multiple variograms
+
+
+BUG FIXES
+
+    o  fix in variog() to allow computation with points at coincident locations
+    
+    o  as.geodata now returns covariates as matrix instead of data-frame
+       to prevent problems in formulas
+
+    o  variog() now checks for incompatible dimentions of coords 
+       and data
+
+    o  fixes in the documentation following checks for R-1.4.0
+
+
+
+		=============================
+		CHANGES IN geoR VERSION 1.1-2
 		=============================
 
 

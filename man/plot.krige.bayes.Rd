@@ -13,7 +13,7 @@
 }
 
 \usage{
-plot.krige.bayes(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
+\method{plot}{krige.bayes}(x, phi.dist = TRUE, tausq.rel.dist = TRUE, add = FALSE,
                  type=c("bars", "h", "l", "b", "o", "p"), thin, ...)
 
 }

@@ -11,7 +11,7 @@
 }
 
 \usage{
-lines.variogram(x, max.dist, type = "o",  scaled = FALSE, ...)
+\method{lines}{variogram}(x, max.dist, type = "o",  scaled = FALSE, ...)
 }
 
 \arguments{

@@ -55,11 +55,6 @@ as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL,
   \item{data}{a vector of length \eqn{n}, for the univariate case or,
   an \eqn{n \times v} matrix or data-frame for the multivariate case,
   where \eqn{v} is the number of variables.}
-
-%  and an optional one:
-% \item{}{and an optional one:}
-%  \item and an optional one:
-
   \item{covariate}{a vector of length \eqn{n} or
     an \eqn{n \times p} matrix with covariate(s) values,
     where \eqn{p} is the number of covariates.}

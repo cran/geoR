@@ -151,12 +151,10 @@
   res$coords <- as.matrix(obj[,coords.col])
   res$data <- as.matrix(obj[,data.col])
   if(length(data.col) == 1) res$data <- as.vector(res$data)
-  else{
-    res$data <- as.data.frame(res$data)
-    if(!is.null(data.names)) names(res$data) <- data.names
-  }
+  else
+    if(!is.null(data.names)) colnames(res$data) <- data.names
   if(!is.null(covar.col)){
-    res[[3]] <- as.data.frame(as.matrix(obj[,covar.col]))
+    res[[3]] <- as.matrix(obj[,covar.col])
     if(covar.names == "obj.names"){
       if(is.matrix(obj))      
         col.names <- dimnames(obj)[2]
@@ -172,9 +170,9 @@
     else{
       names(res)[3] <- "covariates"
       if(covar.names == "obj.names")
-        names(res[[3]]) <- col.names[covar.col]
+        colnames(res[[3]]) <- col.names[covar.col]
       else
-        names(res[[3]]) <- covar.names
+        colnames(res[[3]]) <- covar.names
     }
     res[[3]] <- as.matrix(res[[3]])
   }

@@ -13,7 +13,7 @@
 }
 
 \usage{
-lines.krige.bayes(x, max.dist,
+\method{lines}{krige.bayes}(x, max.dist,
                   summary.posterior = c("mode", "median", "mean"), ...)
 }
 

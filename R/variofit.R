@@ -210,7 +210,8 @@
       }
       else lower <- 0
       result <- optim(ini, loss.vario, method = "L-BFGS-B",
-                      lower = lower, g.l = .global.list, ...)
+                      hessian = TRUE, lower = lower, g.l = .global.list, ...)
+      hess <- sqrt(diag(solve(as.matrix(result$hessian))))
     }
     value <- result$value
     message <- paste(minimisation.function, "convergence code:", result$convergence)
@@ -240,8 +241,8 @@
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
                      trend = vario$trend, max.dist = max(vario$u),
-                     minimisation.function = minimisation.function,
-                     message = message)
+                     minimisation.function = minimisation.function)
+  if(exists("hess")) estimation$hessian <- hess
   estimation$weights <- weights
   if(weights == "equal") estimation$method <- "OLS"
   else estimation$method <- "WLS"
@@ -249,6 +250,7 @@
   estimation$fix.kappa <- fix.kappa
   estimation$lambda <- vario$lambda
   estimation$call <- call.fc
+  estimation$message <- message
   class(estimation) <- "variomodel"
   return(estimation)
 }

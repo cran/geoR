@@ -14,7 +14,7 @@
 }
 
 \usage{
-image.krige.bayes(x, locations, borders,
+\method{image}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                             "mean.simulations", "variance.simulations",
                             "quantiles", "probabilities", "simulation"),
@@ -23,7 +23,7 @@ image.krige.bayes(x, locations, borders,
 
 
 
-persp.krige.bayes(x, locations, borders,
+\method{persp}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
                        "quantiles", "probabilities", "simulation"),

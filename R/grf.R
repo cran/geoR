@@ -283,7 +283,7 @@ function(x, sim.number = 1, ...)
 {
   nsim <- ncol(x$data)
   if (plot.grid) 
-    points.geodata(x, pt.siz="equal", xlab = "Coord X", ylab = "Coord Y")
+    points.geodata(x, pt.divide="equal", xlab = "Coord X", ylab = "Coord Y")
   if (is.vector(x$cov.pars)) 
     sill.total <- x$nugget + x$cov.pars[1]
   else sill.total <- x$nugget + sum(x$cov.pars[, 1])

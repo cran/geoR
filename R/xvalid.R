@@ -210,8 +210,10 @@
 }
 
 "plot.xvalid" <-
-  function (x, coords, error.plots = TRUE,
-            std.error.plots = TRUE, borders = NULL, ask = TRUE, ...)
+  function (x, coords, borders = NULL, ask = TRUE,
+            error = TRUE, std.error = TRUE, data.predicted = TRUE,
+            pp = TRUE, map = TRUE, histogram = TRUE,
+            error.predicted = TRUE, error.data = TRUE, ...)
 {
   ##
   ## Saving original par() parameters
@@ -257,30 +259,33 @@
   }
   stdlim <- max(c(3, abs(range(x$std.error))))
   stdlim <- c(-stdlim, stdlim)
-  # indicator for negative and positive errors
+  ## indicator for negative and positive errors
   error.cut <- cut(x$error, breaks=c(errlim[1], 0, errlim[2]), include.l=TRUE, labels=FALSE)
   ##
   ## Data vs predicted
   ##
-  par(pty = "s")
-  plot(x$data, x$pred, type = "n", xlim = xylim, ylim = xylim,
-       xlab = "data", ylab = "predicted")
-  points(x$data, x$pred, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
-  abline(0,1)
-  ##
-  ##
+  if(data.predicted){
+    par(pty = "s")
+    plot(x$pred, x$data, type = "n", xlim = xylim, ylim = xylim,
+         ylab = "data", xlab = "predicted")
+    points(x$pred, x$data, ...)
+    ##    points(x$pred, x$data, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+    abline(0,1)
+  }
   ##
   par(ask = ask)
   ##
-  if(!error.plots | !std.error.plots){
+  if(!error | !std.error){
     ##
     ## P-P plot
     ##
-    par(pty = "s")  
-    plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
-    abline(0,1)
+    if(pp){
+      par(pty = "s")  
+      plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
+      abline(0,1)
+    }
   }
-  if(error.plots){
+  if(error){
     ##
     ## Plotting errors
     ##
@@ -300,51 +305,64 @@
       coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
                                                            coords.diff.diff)/2
     }
-    par(pty = "s")
     ##
-    plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
-         xlim = coords.lims[, 1], ylim = coords.lims[, 2])
-    if (is.R()) {
-      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
+    if(map){
+      par(pty = "s")
+      ##
+      plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
+           xlim = coords.lims[, 1], ylim = coords.lims[, 2])
+      if (is.R()) {
+        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
+      }
+      else
+        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+      if(!is.null(borders))
+        lines(borders)
     }
-    else
-      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
-    if(!is.null(borders))
-      lines(borders)
     ##
     ## errors histogram
     ##
-    par(pty = "m")
-    if(min(x$error) < min(seqerr)) seqerr <- c(min(x$error), seqerr)
-    if(max(x$error) > max(seqerr)) seqerr <- c(seqerr, max(x$error))
-    hist(x$error, prob=T, main="", breaks=seqerr, xlab="data - predicted")
+    if(histogram){
+      par(pty = "m")
+      if(min(x$error) < min(seqerr)) seqerr <- c(min(x$error), seqerr)
+      if(max(x$error) > max(seqerr)) seqerr <- c(seqerr, max(x$error))
+      hist(x$error, prob=T, main="", breaks=seqerr, xlab="data - predicted")
+    }
     ##
     ## errors vs predicted
     ##
-    par(pty = "m")
-    plot(x$pred, x$error, type = "n", xlim = prelim, ylim = errlim,
-         xlab = "predicted", ylab = "data - predicted")
-    points(x$pred, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
-    abline(h=0)
+    if(error.predicted){
+      par(pty = "m")
+      plot(x$pred, x$error, type = "n", xlim = prelim, ylim = errlim,
+           xlab = "predicted", ylab = "data - predicted")
+    ##  points(x$pred, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+      points(x$pred, x$error, ...)
+      abline(h=0)
+    }
     ##
     ## errors vs data
     ##
-    par(pty = "m")
-    plot(x$data, x$error, type = "n", xlim = datlim, ylim = errlim,
-         xlab = "data", ylab = "data - predicted")
-    points(x$data, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
-    abline(h=0)
-    ##
+    if(error.data){
+      par(pty = "m")
+      plot(x$data, x$error, type = "n", xlim = datlim, ylim = errlim,
+           xlab = "data", ylab = "data - predicted")
+      ##      points(x$data, x$error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+      points(x$data, x$error, ...)
+      abline(h=0)
+      ##
+    }
   }
-  if(error.plots & std.error.plots){
+  if(error & std.error){
     ##
     ## P-P plot
     ##
-    par(pty = "s")  
-    plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
-    abline(0,1)
+    if(pp){
+      par(pty = "s")  
+      plot(ppoints(n), x$prob[order(x$prob)], xlim=c(0,1), ylim=c(0,1), xlab="theoretical prob", ylab="observed prob")
+      abline(0,1)
+    }
   }
-  if(std.error.plots){
+  if(std.error){
     ##
     ## Plotting std residuals
     ##
@@ -364,41 +382,52 @@
       coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, 
                                                            coords.diff.diff)/2
     }
-    par(pty = "s")
     ##
-    plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
-         xlim = coords.lims[, 1], ylim = coords.lims[, 2])
-    if (is.R()) {
-      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
+    if(map){
+      par(pty = "s")
+      ##
+      plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
+           xlim = coords.lims[, 1], ylim = coords.lims[, 2])
+      if (is.R()) {
+        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
+      }
+      else
+        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+      if(!is.null(borders))
+        lines(borders)
     }
-    else
-      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
-    if(!is.null(borders))
-      lines(borders)
     ##
     ## std. errors histogram
     ##
-    par(pty = "m")
-    if(min(x$std.error) < min(seqstd)) seqstd <- c(min(x$std.error), seqstd)
-    if(max(x$std.error) > max(seqstd)) seqstd <- c(seqstd, max(x$std.error))
-    hist(x$std.error, prob=T, main="", breaks = seqstd, xlab="std residuals")
+    if(histogram){
+      par(pty = "m")
+      if(min(x$std.error) < min(seqstd)) seqstd <- c(min(x$std.error), seqstd)
+      if(max(x$std.error) > max(seqstd)) seqstd <- c(seqstd, max(x$std.error))
+      hist(x$std.error, prob=T, main="", breaks = seqstd, xlab="std residuals")
+    }
     ##
     ## std. errors vs predicted
     ##
-    par(pty = "m")
-    plot(x$pred, x$std.error, type = "n", xlim = prelim, ylim = stdlim,
-         xlab = "predicted", ylab = "std residuals")
-    points(x$pred, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
-    abline(h=0)
+    if(error.predicted){
+      par(pty = "m")
+      plot(x$pred, x$std.error, type = "n", xlim = prelim, ylim = stdlim,
+           xlab = "predicted", ylab = "std residuals")
+      ##      points(x$pred, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+      points(x$pred, x$std.error, ...)
+      abline(h=0)
+    }
     ##
     ## std. errors vs data
     ##
-    par(pty = "m")
-    plot(x$data, x$std.error, type = "n", xlim = datlim, ylim = stdlim,
-         xlab = "data", ylab = "std residuals")
-    points(x$data, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
-    abline(h=0)
-    ##
+    if(error.data){
+      par(pty = "m")
+      plot(x$data, x$std.error, type = "n", xlim = datlim, ylim = stdlim,
+           xlab = "data", ylab = "std residuals")
+      ##      points(x$data, x$std.error, pch = (c("x", "+"))[error.cut], col=(c("red", "blue"))[error.cut])
+      points(x$data, x$std.error,  ...)
+      abline(h=0)
+      ##
+    }
   }
   ##
   return(invisible())

@@ -13,7 +13,7 @@
 }
 
 \usage{
-lines.grf(x, max.dist = max(dist(obj$coords)), length = 100,
+\method{lines}{grf}(x, max.dist = max(dist(obj$coords)), length = 100,
           lwd = 2, ...)
 }
 %- maybe also `usage' for other objects documented here.

@@ -131,7 +131,18 @@ s100.wls <- variofit(s100.var, ini = c(.5, .5), fix.nug = TRUE)
 #
 s100.xv.ml <- xvalid(s100, model = s100.ml)
 s100.xv.wls <- xvalid(s100, model = s100.wls)
-
+##
+## Plotting results
+##
+par.ori <- par(no.readonly = TRUE)
+##
+par(mfcol=c(5,2), mar=c(2.3,2.3,.5,.5), mgp=c(1.3, .6, 0))
+plot(s100.xv.ml)
+par(mfcol=c(5,2))
+plot(s100.xv.wls)
+##
+par(par.ori)
+#
 \testonly{
 if(is.R()) data(s100)
   vr <- variog(s100, max.dist=1)

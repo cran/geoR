@@ -16,7 +16,7 @@
 }
 
 \usage{
-summary.likGRF(object, ...)
+\method{summary}{likGRF}(object, ...)
 }
 
 %- maybe also `usage' for other objects documented here.

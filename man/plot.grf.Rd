@@ -10,7 +10,7 @@
 }
 
 \usage{
-plot.grf(x, model.line = TRUE, plot.grid = FALSE, ylim = "default", ...)
+\method{plot}{grf}(x, model.line = TRUE, plot.grid = FALSE, ylim = "default", ...)
 }
 
 

@@ -11,7 +11,7 @@
 }
 
 \usage{
-plot.variogram(x, max.dist, vario.col = "all", scaled = FALSE,
+\method{plot}{variogram}(x, max.dist, vario.col = "all", scaled = FALSE,
                var.lines = FALSE, envelope.obj = NULL,
                bin.cloud = FALSE,  ...)
 }

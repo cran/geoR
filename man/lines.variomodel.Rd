@@ -14,7 +14,7 @@
 
 
 \usage{
-lines.variomodel(x, max.dist, scaled = FALSE,...)
+\method{lines}{variomodel}(x, max.dist, scaled = FALSE,...)
 }
 
 %- maybe also `usage' for other objects documented here.

@@ -16,7 +16,7 @@
 }
 
 \usage{
-plot.geodata(x, coords=x$coords, data = x$data,
+\method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders = NULL, trend="cte", lambda = 1, col.data = 1,
              weights.divide = FALSE, window.new = FALSE, ...)
 }

@@ -12,9 +12,9 @@
 }
 
 \usage{
-image.grf(x, sim.number = 1, ...)
+\method{image}{grf}(x, sim.number = 1, ...)
 
-persp.grf(x, sim.number = 1, ...)
+\method{persp}{grf}(x, sim.number = 1, ...)
 }
 
 %- maybe also `usage' for other objects documented here.

@@ -11,7 +11,7 @@
 }
 
 \usage{
-lines.variogram.envelope(x, lty = 3, ...)
+\method{lines}{variogram.envelope}(x, lty = 3, ...)
 }
 
 \arguments{

@@ -13,7 +13,7 @@
 }
 
 \usage{
-summary.variomodel(object, ...)
+\method{summary}{variomodel}(object, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
