@@ -600,7 +600,7 @@
   }
   else {
     if (bin.cloud == TRUE) 
-      stop("option bins.cloud=T allowed only for 1 variable")
+      stop("option bins.cloud=TRUE allowed only for 1 variable")
     nvcols <- ncol(cloud$v)
     vbin <- matrix(0, nrow = nc, ncol = nvcols)
     nbin <- rep(0, nc)
@@ -694,9 +694,9 @@
   if(is.null(Ldots$cex)) Ldots$cex <- NULL
   if(is.null(Ldots$add)) Ldots$add <- FALSE
 # if (bin.cloud == TRUE &&  Ldots$type != "b") 
-#    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
+#    stop("plot.variogram: object must be a binned variogram with option bin.cloud=TRUE")
   if (bin.cloud == TRUE && all(is.na(x$bin.cloud))) 
-    stop("plot.variogram: object must be a binned variogram with option bin.cloud=T")
+    stop("plot.variogram: object must be a binned variogram with option bin.cloud=TRUE")
   if (bin.cloud == TRUE && any(!is.na(x$bin.cloud))) 
     boxplot(x$bin.cloud, varwidth = TRUE, 
             xlab = "midpoints of distance class",
@@ -724,7 +724,7 @@
     else
       if(!is.numeric(vario.col) | any(vario.col > ncol(v)))
         stop("argument vario.col must be equals to \"all\" or a vector indicating the column numbers to be plotted")
-    v <- v[, vario.col, drop=F]
+    v <- v[, vario.col, drop=FALSE]
     if (scaled)
       v <- t(t(v)/x$var.mark[vario.col])
     if (is.null(Ldots$ylim)){

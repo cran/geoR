@@ -1,7 +1,7 @@
 
 
 		=============================
-		CHANGES IN geoR VERSION 1.2-2
+		CHANGES IN geoR VERSION 1.2-3
 		=============================
 
 NEW FEATURES
@@ -12,6 +12,11 @@ NEW FEATURES
 BUG FIXES
 
      o fix in the documentation of internal and defunct functions.
+
+     o fix in test for NA's to conform with R-1.5.0
+
+     o replacement of T/F by TRUE/FALSE
+
 
 
 		=============================

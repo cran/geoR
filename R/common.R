@@ -235,10 +235,10 @@
 
 
 "polygrid" <- 
-  function(xgrid, ygrid, poly, vec.inout = F)
+  function(xgrid, ygrid, poly, vec.inout = FALSE)
 {
   if(is.R()){
-    if(require(splancs) == F){
+    if(require(splancs) == FALSE){
       cat("ERROR: cannot run the function\n")
       cat("package \"splancs\" should be installed/loaded")
       return(invisible())
@@ -248,8 +248,8 @@
   if(exists("inout")){
     xygrid <- expand.grid(x = xgrid, y = ygrid)
     ind <- as.vector(inout(pts=xygrid, poly=poly))
-    xypoly <- xygrid[ind == T,  ]
-    if(vec.inout == F)
+    xypoly <- xygrid[ind == TRUE,  ]
+    if(vec.inout == FALSE)
       return(xypoly)
     else return(list(xypoly = xypoly, vec.inout = ind))
   }
@@ -572,7 +572,7 @@
       cat("plot.geodata: a 3d plot would be drawn instead of the histogram if the package \"scatterplot3d\" is available\n")
     }
     else scatterplot3d(x = coords[, 1], y = coords[, 2], 
-                       z = data, box = F, type = "h", pch = 16, xlab = "Coord X", 
+                       z = data, box = FALSE, type = "h", pch = 16, xlab = "Coord X", 
                        ylab = "Coord Y", ...)
   }
   else xyzplot(coords = coords, data = data, ...)

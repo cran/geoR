@@ -184,7 +184,7 @@ plot(prof)
 # a nicer setting and now including 2-D profiles:
 \dontrun{
 prof <- proflik(ml, s100, sill.values=seq(0.45, 2, l=11),
-                range.val=seq(0.1, .55, l=11), uni.only=F)
+                range.val=seq(0.1, .55, l=11), uni.only=FALSE)
 par(mfrow=c(2,2))
 plot(prof, nlevels=16)
 }

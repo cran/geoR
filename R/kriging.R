@@ -514,7 +514,7 @@
     if(sum(inout.vec) != length(values))
       stop("image.kriging: length of the argument values is incompatible with number of elements inside the borders.")
     temp <- rep(NA, nrow(locations))
-    temp[inout.vec == T] <- values
+    temp[inout.vec == TRUE] <- values
     values <- temp
     remove("temp")
   }
@@ -604,11 +604,11 @@
     if(vertical)
       image(x.leg, lags.x(xs=y.leg, nl=nc),
             matrix(seq(v.r[1], v.r[2], l=nc), nrow=1),
-            add=T, col=leg.l$col)    
+            add=TRUE, col=leg.l$col)    
     else
       image(lags.x(xs=x.leg, nl=nc), y.leg,
             matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
-            add=T, col=leg.l$col)    
+            add=TRUE, col=leg.l$col)    
   }
   else{
     nc <- length(breaks) - 1
@@ -617,11 +617,11 @@
     if(vertical)
       image(x.leg, lags.x(xs=y.leg, nl=nc),
           matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
-          add=T, col=leg.l$col, breaks=leg.l$breaks)
+          add=TRUE, col=leg.l$col, breaks=leg.l$breaks)
     else
       image(lags.x(xs=x.leg, nl=nc), y.leg,
             matrix(seq(v.r[1], v.r[2], l=nc), ncol=1),
-            add=T, col=leg.l$col, breaks=leg.l$breaks)
+            add=TRUE, col=leg.l$col, breaks=leg.l$breaks)
   }
   leg.poly <- rbind(c(x.leg[1], y.leg[1]), c(x.leg[2], y.leg[1]),
                     c(x.leg[2], y.leg[2]), c(x.leg[1], y.leg[2]),

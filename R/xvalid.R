@@ -91,7 +91,7 @@
                           psiA = val.pars["psiA"], fix.lambda = fix.pars["lambda"], 
                           lambda = val.pars["lambda"], cov.model = model$cov.model, 
                           trend = ~cv.xmat + 0, method = model$method, 
-                          messages.screen = F, ...)
+                          messages.screen = FALSE, ...)
           if(output.reestimate){
             CVpars <- (CVmod$parameters.summary[c("tausq", "kappa", "psiA", "psiR", "lambda"), 2])
             CVpars <- c(CVmod$cov.pars, CVpars[fix.pars == FALSE])
@@ -130,7 +130,7 @@
                                                "psiA", "psiR", "lambda"), 2]
       }
       if(model$method == "OLS" | model$method == "WLS"){
-        fix.pars <- c(CVmod$fix.nugget, CVmod$fix.kappa,T,T,T)
+        fix.pars <- c(CVmod$fix.nugget, CVmod$fix.kappa,TRUE,TRUE,TRUE)
         if(is.null(CVmod$kappa)) CVmod$kappa <- 0.5
         val.pars <- c(CVmod$nugget, CVmod$kappa, 0, 1, CVmod$lambda)
       }
@@ -160,7 +160,7 @@
                                              "psiA", "psiR", "lambda"), 2]
     }
     if(model$method == "OLS" | model$method == "WLS"){
-      fix.pars <- c(model$fix.nugget, model$fix.kappa,T,T,T)
+      fix.pars <- c(model$fix.nugget, model$fix.kappa,TRUE,TRUE,TRUE)
       if(is.null(model$kappa)) model$kappa <- 0.5
       val.pars <- c(model$nugget, model$kappa, 0, 1, model$lambda)
     }
@@ -328,7 +328,7 @@
       par(pty = "m")
       if(min(x$error) < min(seqerr)) seqerr <- c(min(x$error), seqerr)
       if(max(x$error) > max(seqerr)) seqerr <- c(seqerr, max(x$error))
-      hist(x$error, prob=T, main="", breaks=seqerr, xlab="data - predicted")
+      hist(x$error, prob=TRUE, main="", breaks=seqerr, xlab="data - predicted")
     }
     ##
     ## errors vs predicted
@@ -405,7 +405,7 @@
       par(pty = "m")
       if(min(x$std.error) < min(seqstd)) seqstd <- c(min(x$std.error), seqstd)
       if(max(x$std.error) > max(seqstd)) seqstd <- c(seqstd, max(x$std.error))
-      hist(x$std.error, prob=T, main="", breaks = seqstd, xlab="std residuals")
+      hist(x$std.error, prob=TRUE, main="", breaks = seqstd, xlab="std residuals")
     }
     ##
     ## std. errors vs predicted

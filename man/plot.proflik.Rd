@@ -13,7 +13,7 @@
 }
 
 \usage{
-\method{plot}{proflik}(x, pages = c("user", "one", "two"), uni.only = FALSE, bi.only = F,
+\method{plot}{proflik}(x, pages = c("user", "one", "two"), uni.only = FALSE, bi.only = FALSE,
              type.bi = c("contour", "persp"), conf.int = c(0.9, 0.95),
              yaxis.lims = c("conf.int", "as.computed"),
              by.col = TRUE, log.scale = FALSE, use.splines = TRUE,

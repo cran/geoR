@@ -337,7 +337,7 @@
           cat("\n")
           reduce.pars <- 1
           .temp.list$ftau <<- 0
-          .temp.list$fixtau <<- T
+          .temp.list$fixtau <<- TRUE
           if(fix.lambda == TRUE) {
             if (minimisation.function=="nlm"){
               assign(".temp.lower.phi", lower.phi, pos=1)

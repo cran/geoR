@@ -182,16 +182,16 @@ lines(ols, lty=2)
 \testonly{
 vr <- variog(s100, max.dist=1)
 ## OLS#
-o1 <- variofit(vr, ini = c(.5, .5), fix.nug=T, wei = "equal")
+o1 <- variofit(vr, ini = c(.5, .5), fix.nug=TRUE, wei = "equal")
 o2 <- variofit(vr, ini = c(.5, .5), wei = "equal")
-o3 <- variofit(vr, ini = c(.5, .5), fix.nug=T,
-      fix.kappa = F, wei = "equal")
-o4 <- variofit(vr, ini = c(.5, .5), fix.kappa = F, wei = "equal")
+o3 <- variofit(vr, ini = c(.5, .5), fix.nug=TRUE,
+      fix.kappa = FALSE, wei = "equal")
+o4 <- variofit(vr, ini = c(.5, .5), fix.kappa = FALSE, wei = "equal")
 ## WLS
-w1 <- variofit(vr, ini = c(.5, .5), fix.nug=T)
+w1 <- variofit(vr, ini = c(.5, .5), fix.nug=TRUE)
 w2 <- variofit(vr, ini = c(.5, .5))
-w3 <- variofit(vr, ini = c(.5, .5), fix.nug=T, fix.kappa = F)
-w4 <- variofit(vr, ini = c(.5, .5), fix.kappa = F)
+w3 <- variofit(vr, ini = c(.5, .5), fix.nug=TRUE, fix.kappa = FALSE)
+w4 <- variofit(vr, ini = c(.5, .5), fix.kappa = FALSE)
 }
 
 }

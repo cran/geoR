@@ -12,7 +12,7 @@
 }
 
 \usage{
-\method{hist}{krige.bayes}(x, pars, density.est = TRUE, histogram = T, ...)
+\method{hist}{krige.bayes}(x, pars, density.est = TRUE, histogram = TRUE, ...)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -62,7 +62,7 @@
 }
 
 \examples{
-## See documentation for krige.bayes
+## See documentation for krige.bayes()
 }
 
 \keyword{spatial}

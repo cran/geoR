@@ -62,7 +62,7 @@ plot(s100.v4, lty=1, lwd=2)
 # including the omnidirectional variogram
 plot(s100.v4, omni=TRUE)
 # variograms on different plots
-plot(s100.v4, omni=TRUE, same=F)
+plot(s100.v4, omni=TRUE, same=FALSE)
 }
 \keyword{spatial}
 \keyword{dplot}

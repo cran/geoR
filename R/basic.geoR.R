@@ -48,7 +48,7 @@
   borders <- as.matrix(borders)
   if(ncol(borders) != 2)
     stop("borders must be a matrix or data-frame with two columns")
-  if (require(splancs) == F)
+  if (require(splancs) == FALSE)
     cat("package splancs in required to select points inside the borders\n")
   locations <- locations[as.vector(inout(pts = locations,
                                          poly = borders)),]
@@ -344,9 +344,9 @@
   result <- nlm(newobjfunc, startmadparams, ...)
   result$madestimate <- result$estimate
   result$estimate <- madtonormalQQ(result$madestimate)
-  remove(".bounds.list", pos=1, inherits=T)
-  remove(".objfuncQQ", pos=1, inherits=T)
-  remove("madtonormalQQ", pos=1, inherits=T)
+  remove(".bounds.list", pos=1, inherits=TRUE)
+  remove(".objfuncQQ", pos=1, inherits=TRUE)
+  remove("madtonormalQQ", pos=1, inherits=TRUE)
   
 ###  return(result, madtonormalQQ(normaltomad(params)),params)
   return(result)

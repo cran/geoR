@@ -315,7 +315,7 @@
             )
       if(n.cov.pars == 2) {
         if(tausq == 0) {
-          .temp.temp.list$fixtau <<- T
+          .temp.temp.list$fixtau <<- TRUE
           .temp.temp.list$ini <<- c(sigmasq,phi)
           pl.lambda <- apply(as.matrix(lambda.values), 1,
                              proflik.aux23, ...)
@@ -736,7 +736,7 @@
   .temp.list$sigmasqtausq <<- as.vector(sigmasqtausq)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux16))
-  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   if(.temp.list$fix.lambda == TRUE) {
     phi.res <- optim(ini, proflik.aux16, method="L-BFGS-B", lower = 
                      .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$value
@@ -783,7 +783,7 @@
   if(.temp.list$fix.lambda == TRUE) {
     ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                         proflik.aux18))
-    ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+    ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
     sigmasq.res <- optim(ini, proflik.aux18, method="L-BFGS-B", 
                          lower = .temp.list$lower.sigmasq, ...)$value
   }
@@ -850,7 +850,7 @@
   .temp.list$sigmasq <<- as.vector(sigmasq)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux3))
-  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   if(.temp.list$fix.lambda == TRUE) {
     phi.res <- optim(ini , proflik.aux3, method="L-BFGS-B",
                      lower = .temp.list$lower.phi,
@@ -1035,7 +1035,7 @@ function(phitausq.rel, ...)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux3))
-  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   phi.res <- optim(ini, proflik.aux3, method="L-BFGS-B", lower = .temp.list$
                    lower.phi, upper = .temp.list$upper.phi, ...)$value
   .temp.list$log.jacobian <<- NULL
@@ -1057,7 +1057,7 @@ function(phitausq.rel, ...)
     .temp.list$log.jacobian <<- 0
   }
   else {
-    .temp.list$fix.lambda <<- T
+    .temp.list$fix.lambda <<- TRUE
     if(any(.temp.list$z^(lambda - 1) <= 0))
       .temp.list$log.jacobian <<- log(prod(.temp.list$z^(lambda -
                                                          1)))
@@ -1069,7 +1069,7 @@ function(phitausq.rel, ...)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux10))
-  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
                             lower = c(.temp.list$lower.phi,
                               0), upper=c(.temp.list$upper.phi, 100), ...)$value
@@ -1351,7 +1351,7 @@ function(phi.lambda, ...)
   .temp.list$sigmasq <<- as.vector(sigmasq)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       proflik.aux10))
-  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=F][1,])
+  ini <- as.vector(.temp.list$ini.grid[which(ini.lik == min(ini.lik, na.rm = TRUE)),,drop=FALSE][1,])
   if(.temp.list$fix.lambda == TRUE) {
     phitausq.rel.res <- optim(ini, proflik.aux10, method="L-BFGS-B",
                               lower = c(.temp.list$
@@ -1399,15 +1399,15 @@ function(phi.lambda, ...)
   n.uni <- x$n.uni
   n.bi <- x$n.bi
   if(n.bi == 0)
-    uni.only <- T
+    uni.only <- TRUE
   if((uni.only == FALSE) & (bi.only == FALSE))
     np <- n.uni + n.bi
   if((uni.only == TRUE) & (bi.only == FALSE))
     np <- n.uni
   if((uni.only == FALSE) & (bi.only == TRUE))
     np <- n.bi
-  if(n.uni==0 & np > 0) bi.only <- T
-  if(n.bi==0 & np > 0) uni.only <- T
+  if(n.uni==0 & np > 0) bi.only <- TRUE
+  if(n.bi==0 & np > 0) uni.only <- TRUE
   if(pages == "one") {
     if(np >= 1 & np < 4)
       par(mfrow = c(np, 1))
@@ -1539,7 +1539,7 @@ function(phi.lambda, ...)
                        ncol = length(x[[(n.uni + i)]][[2]])),
                 xlab = proflik.plot.aux1(paste("log-", names(x[[(n.uni + i)]][1]))),
                 ylab = paste("log-", proflik.plot.aux1(names(x[[(n.uni + i)]][2]))),
-                zlab = zlabm, box = T, ...)
+                zlab = zlabm, box = TRUE, ...)
                                         #          pp1 <- perspp(x = log(c(x[[(n.uni + i)]][[4]][1],
                                         #                          min( x[[(n.uni + i)]][[1]]))[c(1, 1, 1, 2)]),
                                         #                        y = log(c(x[[(n.uni + i)]][[4]][2],

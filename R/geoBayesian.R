@@ -2106,7 +2106,7 @@
 
 "hist.krige.bayes" <-
   function(x, pars, density.est = TRUE,
-           histogram = T, ...)
+           histogram = TRUE, ...)
 {
   Ldots <- list(...)
   if(missing(pars)){
