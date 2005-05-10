@@ -646,7 +646,7 @@
   results$max.dist <- max.dist
   results$trend.matrix <- xmat
   results$call <- call.fc
-  class(results) <- "variomodel"
+  oldClass(results) <- "variomodel"
   if(messages.screen == TRUE){
     cat("likfit: estimated model parameters are:\n")
     cat(paste("covariance model:", cov.model))

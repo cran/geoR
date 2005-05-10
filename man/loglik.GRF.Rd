@@ -3,16 +3,18 @@
 \alias{loglik.GRF}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
+\concept{Likelihood function for a Gaussian Random Field}
+
 \title{Log-Likelihood for a Gaussian Random Field}
 
 \description{
   This function computes the value of the log-likelihood for a
-  realisation of a Gaussian random field.
+  Gaussian random field.
 }
 
 \usage{
 loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
-           obj.model = NULL cov.model = "exp", cov.pars, nugget = 0,
+           obj.model = NULL, cov.model = "exp", cov.pars, nugget = 0,
            kappa = 0.5, lambda = 1, psiR = 1, psiA = 0,
            trend = "cte", method.lik = "ML", compute.dists = TRUE,
            realisations = NULL)
@@ -58,7 +60,7 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
     restricted likelihood. Defaults to \code{"ML"}.  }
   \item{compute.dists}{for internal use with other function. Don't
     change the default unless you know what you are doing.  }
-    \item{realisations}{optional. A vector indicating replication number
+  \item{realisations}{optional. A vector indicating replication number
     for each data. For more details see \code{\link{as.geodata}}. }
 }
 

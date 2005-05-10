@@ -158,7 +158,7 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
     \item{\code{"equal"}}{equal values for the weights. For this case
       the estimation corresponds to the ordinary least squares variogram
       fitting.
-      \deqn{LOSS(\theta) = \sum_k [(\hat{\gamma_k}) -
+      \deqn{LOSS(\theta) = \sum_k [(\hat{\gamma}_k) -
 	\gamma_k(\theta)]^2}{LOSS(\theta) = \sum_k (\hat(\gamma) -
 	\gamma(\theta))^2}
     }

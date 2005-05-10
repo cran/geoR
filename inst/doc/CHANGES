@@ -1,4 +1,36 @@
       		==============================
+ 		CHANGES IN geoR VERSION 1.5-6
+		==============================
+
+NEW FEATURES
+
+        o classes assignments changed from class<- 
+	  to oldClass<-
+
+        o internal changes in the methods for image(), persp()
+          and contour() for better handling of the ... mechanism 
+          including a new geoR-internal function ldots.set()
+
+        o new method contour.grf()
+
+        o new data sets "head" and "tce" from Kitanidis' book
+
+
+
+BUGS
+
+        o fixes in locations.inside() 
+
+        o changes in eyefit() and xvalid() such that xvalid()
+          can take an model provided by eyefit()
+
+
+        o fix in summary.geodata() when lambda != 1
+
+
+
+
+      		==============================
  		CHANGES IN geoR VERSION 1.5-5
 		==============================
 

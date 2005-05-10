@@ -21,7 +21,7 @@
             limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
 {
-  if(is.R()) if(! "package:stats" %in% search()) require(mva)
+  if(! "package:stats" %in% search()) require(mva)
   ##
   ## Checking input
   ##
@@ -168,8 +168,7 @@
     psiR <- ini.temp[6]
     psiA <- ini.temp[7]
     grid.ini <- NULL
-    if(is.R()) remove(".likGRF.dists.vec", pos=1)
-    else remove(".likGRF.dists.vec", where=1)    
+    remove(".likGRF.dists.vec", pos=1)
   }
   ##
   tausq <- nugget
@@ -204,10 +203,7 @@
   if(fix.psiR & fix.psiA){
     if(psiR != 1 | psiA != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    if(is.R())
       assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
-    else
-      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), where=1)
     range.dist <- range(.likGRF.dists.vec)
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
@@ -769,10 +765,10 @@
   ##
   ## Assigning classes
   ##
-  if(is.R()) class(lik.results) <- c("likGRF", "variomodel")
+  if(is.R()) oldClass(lik.results) <- c("likGRF", "variomodel")
   else{
-    if(version$major <= 4) class(lik.results) <- c("likGRF", "variomodel")
-    else oldClass(lik.results) <- c("likGRF", "variomodel")
+    if(version$major <= 4) oldClass(lik.results) <- c("likGRF", "variomodel")
+    else oldOldClass(lik.results) <- c("likGRF", "variomodel")
   }
   ##
   ## Some warning messages about particular possible results
@@ -1201,7 +1197,7 @@
   summ.lik$ns.likelihood <- list(log.L = object$nospatial$loglik.ns, n.params = object$nospatial$npars.ns, AIC=object$nospatial$AIC.ns, BIC=object$nospatial$BIC.ns)
   summ.lik$estimated.pars <- dimnames(object$parameters.summary[object$parameters.summary[,1] == "estimated",])[[1]]
   summ.lik$call <- object$call
-  class(summ.lik) <- "summary.likGRF"
+  oldClass(summ.lik) <- "summary.likGRF"
   return(summ.lik)
 }
 

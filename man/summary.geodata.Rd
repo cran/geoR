@@ -8,7 +8,8 @@
   Sumarises each of the main elements of an object of the class \code{geodata}.
 }
 \usage{
-summary.geodata(object, lambda =1, by.realisations=TRUE, ...)
+summary.geodata(object, lambda =1, add.to.data = 0,
+                by.realisations=TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -17,6 +18,9 @@ summary.geodata(object, lambda =1, by.realisations=TRUE, ...)
     are \eqn{\lambda = 1}{lambda = 1} which corresponds to no
     transformation and  \eqn{\lambda = 0}{lambda = 0} corresponding to
     the log-transformation.  }
+  \item{add.to.data}{scalar, Constant value to be added to the data
+    values.
+    Only used if a value different from 1 is passed to the argument \code{lambda}.}
   \item{by.realisations}{logical. Indicates whether the summary must be performed separatly for each realisation, if the \code{geodata} object contains the element \code{realisations}. Defaults to \code{TRUE}.  }
 \item{\dots}{further arguments to be passed to the function
     \code{\link{summary.default}}.  }

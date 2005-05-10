@@ -184,7 +184,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 
   There are internal reparametrisation depending on the options for
   parameters to be estimated.
-  Foir instance for the common situation when \code{fix.nugget=FALSE} the
+  For instance for the common situation when \code{fix.nugget=FALSE} the
   minimisation is performed in a reduced
   parameter space using
   \eqn{\tau^2_{rel} = \frac{\tau^2}{\sigma^2}}{tau^2_{rel} = tau^2/sigma^2}.

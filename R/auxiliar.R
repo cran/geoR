@@ -72,15 +72,17 @@
     }
     t.ei <- eigen(a, symmetric = TRUE)
     if(exists("trySilent")){
-      if (is.null(b)) res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
-      else res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
+      if (is.null(b))
+        res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
+      else
+        res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
     }
     else{
       if (is.null(b)) res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
       else res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
     }
     if (any(is.na(res)) | any(is.nan(res)) | any(is.infinite(res))) 
-      class(res) <- "try-error"
+      oldClass(res) <- "try-error"
   }
   if (inherits(res, "try-error")) 
     stop("Singular matrix. Covariates may have different orders of magnitude.")
@@ -101,9 +103,7 @@
     if(psiR < 1)
       stop("anisotropy ratio must be greater than 1")
   }
-  rm <- matrix(c(cos(psiA), -sin(psiA),
-                 sin(psiA), cos(psiA)),
-               ncol = 2)
+  rm <- matrix(c(cos(psiA), -sin(psiA), sin(psiA), cos(psiA)), ncol = 2)
   tm <- diag(c(1, 1/psiR))
   if(reverse)
     coords.mod <- coords %*% solve(rm %*% tm)
@@ -127,8 +127,10 @@
   function(coords, xlim, ylim)
 {
   coords.lims <- apply(coords, 2, range, na.rm=TRUE)
-  if(!missing(xlim) && is.numeric(xlim)) coords.lims[,1] <- xlim[order(xlim)]
-  if(!missing(ylim) && is.numeric(ylim)) coords.lims[,2] <- ylim[order(ylim)]
+  if(!missing(xlim) && mode(xlim) == "numeric")
+    coords.lims[,1] <- xlim[order(xlim)]
+  if(!missing(ylim) && mode(ylim) == "numeric")
+    coords.lims[,2] <- ylim[order(ylim)]
   coords.diff <- diff(coords.lims)
   if (coords.diff[1] != coords.diff[2]) {
     coords.diff.diff <- abs(diff(as.vector(coords.diff)))
@@ -171,24 +173,56 @@
   return((df*scale)/rchisq(n, df=df)) 
 }
 
-"locations.inside" <-
-  function(locations, borders)
+"check.coords" <-
+  function(x)
 {
-  if(is.list(borders))
-    borders <- matrix(unlist(borders[1:2]), ncol=2)
-  borders <- as.matrix(borders)
-  if(ncol(borders) != 2)
-    stop("borders must be a matrix or data-frame with two columns")
-  if (!require(splancs))
-    cat("package splancs in required to select points inside the borders\n")
-  locations <- locations[as.vector(inout(pts = locations,
-                                         poly = borders, bound=TRUE)),]
-  return(locations)
+  xname <- deparse(substitute(x))
+  if(is.matrix(x)){
+    locnames <- colnames(x)[1:2]
+    x <- x[,1:2]
+    attr(x, "type") <- "matrix"
+  }
+  else{
+    if(is.data.frame(x)){
+      locnames <- names(x)[1:2]
+      x <- as.matrix(x[,1:2])
+      attr(x, "type") <- "dataframe"
+    }
+    else
+      if(is.list(x)){ 
+        locnames <- names(x)[1:2]
+        x <- matrix(unlist(x[1:2]), ncol=2)
+        attr(x, "type") <- "list"
+      } 
+  }
+  if(is.vector(x))
+    stop(paste(xname, "must be a matrix, data-frame or list with 2D coordinates"))
+  colnames(x) <- locnames
+  if(ncol(x) != 2)
+    stop(paste(xname, "must be a matrix, data-frame or a list with 2D coordinates"))
+  return(x)
 }
 
+  
+"locations.inside" <-
+  function(locations, borders, as.is = TRUE, ...)
+{
+  if (!require(splancs))
+    cat("package splancs in required to select points inside the borders\n")
+  locations <- check.coords(locations)
+  borders <- check.coords(borders)
+  res <- pip(pts = locations, poly = borders, ...)
+  if(as.is){
+    if(attr(locations, "type") == "dataframe")
+      res <- as.data.frame(res)
+    if(attr(locations, "type") == "list")
+      res <- as.list(as.data.frame(res))
+  }
+  return(res)
+}
 
 "polygrid" <- 
-  function(xgrid, ygrid, borders, vec.inout = FALSE)
+  function(xgrid, ygrid, borders, vec.inout = FALSE, ...)
 {
   ## checking for splancs
   if(!require(splancs))
@@ -196,24 +230,27 @@
   else library(splancs)
   ## checking input
   if(!is.list(xgrid) && is.vector(drop(xgrid))){
-    if(missing(ygrid)) stop("xgrid must have x and y coordinates or a vector must be provided for ygrid")
+    if(missing(ygrid))
+      stop("xgrid must have x and y coordinates or a vector must be provided for ygrid")
     if(!is.vector(ygrid)) stop("ygrid must be a vector")
     xygrid <- expand.grid(x = xgrid, y = ygrid)
   }
   if(is.matrix(xgrid) || is.data.frame(xgrid)){
-    if(ncol(xgrid) != 2) stop("xgrid must be a vector or a 2 column matrix or data-frame")
+    if(ncol(xgrid) != 2)
+      stop("xgrid must be a vector or a 2 column matrix or data-frame")
     xygrid <- xgrid
     if(!missing(ygrid)) warning("xgrid has 2 column, ygrid was ignored")
   }
   else
     if(is.list(xgrid)){
-      if(length(xgrid) != 2) stop("if xgrid is a list it must have 2 elements")
+      if(length(xgrid) != 2)
+        stop("if xgrid is a list it must have 2 elements")
       xygrid <- expand.grid(x = xgrid[[1]], y = xgrid[[2]])
       if(!missing(ygrid)) warning("xgrid is a list, ygrid was ignored")
     }
   if(nrow(borders) < 3) stop("borders must have at least 3 points")
   if(exists("inout")){
-    ind <- as.vector(inout(pts=xygrid, poly=borders, bound=TRUE))
+    ind <- as.vector(inout(pts=xygrid, poly=borders, ...))
     xypoly <- xygrid[ind == TRUE,  ]
     if(vec.inout == FALSE)
       return(xypoly)
@@ -252,7 +289,7 @@
       stop("\ntrend elements not found")
   }
   else {
-    if(is.numeric(trend))
+    if(mode(trend) == "numeric")
       trend.mat <- unclass(trend)
     else if (trend == "cte"){
       if(missing(geodata))
@@ -281,7 +318,7 @@
       trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend, geodata = geodata)[,-1])
   }
   dimnames(trend.mat) <- list(NULL, NULL)
-  class(trend.mat) <- "trend.spatial"
+  oldClass(trend.mat) <- "trend.spatial"
   return(trend.mat)
 }
 
@@ -301,7 +338,7 @@
   ##
   Nparams <- length(params)
   if(length(lower) != Nparams)
-    stop(" lower boundry different length than params")
+    stop(" length of lower boundaries differs from length of params")
   if(length(upper) != Nparams)
     stop(" upper boundry different length than params")
   checklimits <- upper - lower
@@ -403,7 +440,6 @@
 }
 
 
-
 "pars.limits" <-
   function(phi = c(lower=0, upper=+Inf),
            sigmasq = c(lower=0, upper=+Inf),
@@ -455,3 +491,197 @@
               lambda = lambda, psiR = psiR, psiA = psiA))
 }
 
+
+"legend.krige" <-
+  function(x.leg, y.leg, values, scale.vals, vertical = FALSE,
+           offset.leg = 1, ...)
+{
+  values <- values[!is.na(values)]
+  if(length(x.leg) != 2 | length(y.leg) != 2)
+    stop("x.leg and y.leg require a vector with 2 elements")
+  v.r <- range(values[is.finite(values)], na.rm = TRUE)
+  lags.x <- function(xs, nl){
+    xs.r <- 0.5 * diff(xs/(nl-1))
+    return(seq(xs[1]+xs.r, xs[2]-xs.r, l=nl))
+  }
+  leg.l <- list(...)
+  if(is.null(leg.l$br))
+    nc <- ifelse(is.null(leg.l$col), 12, length(leg.l$col))
+  else
+    nc <- length(leg.l$breaks) - 1
+  if(is.null(leg.l$col)) leg.l$col <- heat.colors(nc)
+  if(is.null(leg.l$zl)) leg.l$zlim <- c(v.r[1], v.r[2])
+  if(vertical){
+    xy <- list(x=x.leg, y=lags.x(xs=y.leg, nl=nc))
+    if(is.null(leg.l$br))
+      image(x=xy$x, y=xy$y,
+            z=matrix(seq(leg.l$zlim[1], leg.l$zlim[2], l=nc), nrow=1),
+            add=TRUE, xaxs = "i", yaxs = "i", xlab="", ylab="",
+            zlim = leg.l$zlim, col=leg.l$col)
+    else
+      image(x=xy$x, y=xy$y,
+            z=matrix(seq(leg.l$zlim[1], leg.l$zlim[2], l=nc), nrow=1),
+            add=TRUE, xaxs = "i", yaxs = "i", xlab="", ylab="",
+            zlim = leg.l$zlim, col=leg.l$col, breaks = leg.l$br)
+  }
+  else{
+    xy <- list(x=lags.x(xs=x.leg, nl=nc), y=y.leg)
+    if(is.null(leg.l$br))
+      image(x=xy$x, y=xy$y,
+            z=matrix(seq(leg.l$zlim[1], leg.l$zlim[2], l=nc), ncol=1),
+            add=TRUE, xaxs = "i", yaxs = "i", xlab="", ylab="",
+            zlim = leg.l$zlim, col=leg.l$col)
+    else
+      image(x=xy$x, y=xy$y,
+            z=matrix(seq(leg.l$zlim[1], leg.l$zlim[2], l=nc), ncol=1),
+            add=TRUE, xaxs = "i", yaxs = "i", xlab="", ylab="",
+            zlim = leg.l$zlim, col=leg.l$col, breaks = leg.l$br)
+  }
+  leg.poly <- rbind(c(x.leg[1], y.leg[1]), c(x.leg[2], y.leg[1]),
+                    c(x.leg[2], y.leg[2]), c(x.leg[1], y.leg[2]),
+                    c(x.leg[1], y.leg[1]))
+  polygon(leg.poly)
+#  if(is.null(leg.l$cex)) leg.l$cex <- par()$cex
+  if(is.null(leg.l$cex)) leg.l$cex <- 0.8
+  if(missing(scale.vals))
+    scale.vals <- pretty(c(values,leg.l$zlim), n=5, min.n=4)
+  scale.vals <- scale.vals[scale.vals > leg.l$zlim[1] &
+                           scale.vals < leg.l$zlim[2]]
+  if(vertical){
+    y.r <- range(lags.x(xs=y.leg,nl=nc))
+    y.text <- y.r[1] + ((scale.vals - leg.l$zlim[1]) * diff(y.r))/diff(leg.l$zlim)
+    text((max(x.leg)+ offset.leg * diff(x.leg)), y.text,
+         lab=scale.vals, col=1, cex=leg.l$cex)
+  }
+  else{
+    x.r <- range(lags.x(xs=x.leg,nl=nc))
+    x.text <- x.r[1] + ((scale.vals - leg.l$zlim[1]) * diff(x.r))/diff(leg.l$zlim)
+    text(x.text, (max(y.leg)+ offset.leg * (diff(y.leg)/2)), lab=scale.vals, col=1, cex=leg.l$cex)
+  }
+  return(invisible())
+}
+
+"plot.1d" <-
+  function(x, x1vals, ...)
+{
+  #cat("data in 1-D\n")
+  if(length(x1vals) == 1) col.ind <- 2
+  else col.ind <- 1
+  order.it <- order(x$coords[,col.ind])
+  pty.prev <- par()$pty
+  par(pty="m")
+  plot(x$coords[order.it,col.ind], x$data[order.it], ...)
+  par(pty=pty.prev)
+  return(invisible())
+}
+
+"ldots.set" <-
+  function(ldots,
+           type=c("persp", "image", "plot.1d", "contour", "filled.contour"),
+           data = c("simulation", "prediction"))
+{
+  type <- match.arg(type)
+  if(!is.null(ldots)){
+#    all.dots <- c(names(formals(plot.default)),
+#                  names(formals(title)),names(par()))
+    fct <- switch(type,
+                  persp = getS3method("persp", "default"),
+                  image = image.default,
+                  plot.1d = plot.default,
+                  contour = contour.default,
+                  filled.contour = filled.contour)
+    ind <- pmatch(names(ldots), names(formals(fct)))
+    ldots[[is.na(ind)]] <- NULL
+    if(!is.null(ldots))
+      names(ldots) <- names(formals(fct))[ind[!is.na(ind)]]
+  }
+  if(data == "simulation"){
+    if(type == "plot.1d"){
+      if(is.null(ldots$xlab)) ldots$xlab <- "x"
+      if(is.null(ldots$ylab)) ldots$ylab <- "Y(x)"
+    }
+    else{
+      if(is.null(ldots$xlab)) ldots$xlab <- "X Coord"
+      if(is.null(ldots$ylab)) ldots$ylab <- "Y Coord"
+      if(type == "persp")
+        if(is.null(ldots$zlab)) ldots$zlab <- "Data"
+    }
+  }
+  if(data == "prediction"){
+    if(type == "plot.1d"){
+      if(is.null(ldots$xlab)) ldots$xlab <- "x"
+      if(is.null(ldots$ylab)) ldots$ylab <- "value"
+    }
+    else{
+      if(is.null(ldots$xlab)) ldots$xlab <- "X Coord"
+      if(is.null(ldots$ylab)) ldots$ylab <- "Y Coord"
+      if(type == "persp")
+        if(is.null(ldots$zlab)) ldots$zlab <- "value"
+    }
+  }
+  if(any(type == c("image","contour","filled.contour")))
+    if(is.null(ldots$asp)) ldots$asp=1
+  return(ldots)
+}
+
+"prepare.graph.kriging" <-
+  function (locations, borders, borders.obj=NULL, values, xlim, ylim, ...) 
+{
+  ind <- order(locations[, 2], locations[, 1])
+  locations <- locations[ind, ]
+##  xx <- as.numeric(levels(as.factor(round(locations[, 1], dig = 8))))
+  xx <- sort(unique(locations[, 1]))
+  nx <- length(xx)
+##  yy <- as.numeric(levels(as.factor(round(locations[, 2], dig = 8))))
+  yy <- sort(unique(locations[, 2]))
+  ny <- length(yy)
+  ##
+  ##  if(is.null(borders) && (nx*ny) > length(values))
+  ##    borders <- locations[chull(locations),]
+  ##
+  values.loc <- rep(NA, nrow(locations))
+  if(length(values.loc) == length(values))
+    values.loc <- values
+##    values.loc <- values[ind]
+  if(!is.null(borders.obj)){
+    borders.obj <- as.matrix(as.data.frame(borders.obj))
+    dimnames(borders.obj) <- list(NULL, NULL)
+    if(require(splancs))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
+    else
+      stop("usage of the argument borders requires the package splancs")
+    values.loc[inout.vec] <- values
+    rm("inout.vec")
+  }
+  if (!is.null(borders)){
+    borders <- as.matrix(as.data.frame(borders))
+    dimnames(borders) <- list(NULL, NULL)
+    if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
+      if(require(splancs))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
+      else
+        stop("usage of argument borders requires the package splancs")
+      if(length(values.loc[inout.vec]) == length(values))
+        values.loc[inout.vec] <- values
+      values.loc[!inout.vec] <- NA
+      rm("inout.vec")
+    }
+  }
+  ##
+  if (missing(xlim) || is.null(xlim))
+    if(is.null(borders)) xlim <- NULL
+    else xlim <- range(borders[,1]) 
+  if (missing(ylim) || is.null(ylim))
+    if(is.null(borders)) ylim <- NULL
+    else ylim <- range(borders[,2])
+  coords.lims <- set.coords.lims(coords = locations,
+                                 xlim = xlim, 
+                                 ylim = ylim)
+  coords.lims[, 1] <- coords.lims[, 1] + c(-0.025, 0.025) * 
+    diff(coords.lims[, 1])
+  coords.lims[, 2] <- coords.lims[, 2] + c(-0.025, 0.025) * 
+    diff(coords.lims[, 2])
+  return(list(x = xx, y = yy,
+              values = matrix(values.loc, ncol = ny), 
+              coords.lims = coords.lims))
+}

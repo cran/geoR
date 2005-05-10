@@ -28,7 +28,7 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
        estimator.type = c("classical", "modulus"), 
        nugget.tolerance, max.dist, pairs.min = 2,
        bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
-       unit.angle = c("radians","degrees"), messages, \dots) 
+       unit.angle = c("radians","degrees"), angles = FALSE, messages, \dots) 
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -96,6 +96,9 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
   \item{unit.angle}{defines the unit for the specification of angles in
     the two previous arguments. Options are \code{"radians"} and
     \code{"degrees"}, with default to \code{"radians"}. }
+  \item{angles}{Logical with default to \code{FALSE}. If \code{TRUE} the
+    function also returns the angles between the pairs of points
+    (unimplemented). }
   \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
@@ -112,8 +115,8 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
   The two estimators currently implemented are:
   \itemize{
     \item \emph{classical} (method of moments) estimator:
-    \deqn{\gamma(h) = \frac{1}{2N_h} \sum_{i=1}^{N_h}[Y(x_{(i+h)}) -
-      Y(x_i)]^2}{gamma(h) = (1/2N_h) sum (Y(x_i+h) - Y(x_i))^2}
+    \deqn{\gamma(h) = \frac{1}{2N_h} \sum_{i=1}^{N_h}[Y(x_{i+h}) -
+      Y(x_i)]^2}{gamma(h) = (1/2N_h) sum [Y(x_i+h) - Y(x_i)]^2}
 
     \item Hawkins and Cressie's \emph{modulus} estimator
     \deqn{\gamma(h) = \frac{[\frac{1}{N_h}\sum_{i=1}^{N_h}|Y(x_{i+h}) -

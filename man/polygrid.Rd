@@ -12,7 +12,7 @@
 }
 
 \usage{
-polygrid(xgrid, ygrid, borders, vec.inout = FALSE)
+polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -24,6 +24,8 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE)
   \item{vec.inout}{logical. If \code{TRUE} a logical vector is included
     in the output indicating whether each point of the grid is inside
     the polygon.  Defaults to \code{FALSE}.  }
+  \item{\ldots}{arguments to be passed to the \pkg{splancs} function
+  \code{\link[splancs]{inout}}.  }
 }
 
 \details{

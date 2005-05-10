@@ -37,8 +37,7 @@ print.eyefit <- function(x, ...){
   return(invisible())
 }
 
-eyefit <- function(vario, silent=FALSE)
-{  
+eyefit <- function(vario, silent=FALSE){  
   require(tcltk) || stop("package tcltk is required")
   ##    require(geoR) || stop("geoR support is absent")    
   
@@ -73,8 +72,9 @@ eyefit <- function(vario, silent=FALSE)
     fit <- get("eyefit.tmp", envir=eyefit.env)
     lapply(fit,
            function(x)
-           lines.variomodel(seq(0, maxdist, l=100), cov.model=x$cov.model, kappa=x$kappa, 
-                            cov.pars=x$cov.pars, nug=x$nug, max.dist=x$max.dist))
+           lines.variomodel(seq(0, maxdist, l=100), cov.model=x$cov.model,
+                            kappa=x$kappa, cov.pars=x$cov.pars,
+                            nug=x$nug, max.dist=x$max.dist))
 
     if (k == "gneiting.matern")
       {
@@ -197,41 +197,38 @@ eyefit <- function(vario, silent=FALSE)
     tkpack(tmp, anchor="w")        
   }
   
-  OnOK <- function()
-    {
-      replot()	
-    }    
+  OnOK <- function(){
+    replot()	
+  }    
   
-  OnQuit <- function()
-    {			
-      tclvalue(done)<-2
-    }
+  OnQuit <- function(){			
+    tclvalue(done)<-2
+  }
   
-  OnClear <- function(aux=vario)
-    {
-      assign("eyefit.tmp", list(), envir=eyefit.env)	
-      plot(aux)
-    }
+  OnClear <- function(aux=vario){
+    assign("eyefit.tmp", list(), envir=eyefit.env)	
+    plot(aux)
+  }
   
-  OnSave <- function()
-    {
-      k <- as.character(tclObj(kernel))
-      kp1 <- as.numeric(tclObj(kappa1))
-      if(k == "gneiting.matern")
-        kp2 <-  as.numeric(tclObj(kappa2))
-      else kp2 <- NULL
-      maxdist <- as.numeric(tclObj(mdist))
-      sigmasq <- as.numeric(tclObj(sill))	
-      phi <- as.numeric(tclObj(range))
-      tausq <- as.numeric(tclObj(nugget))
-      aux <- list(cov.model=k, cov.pars=c(sigmasq, phi), 
-                  nugget=tausq, kappa=c(kp1,kp2), max.dist=maxdist)				
-      
-      class(aux) <- "variomodel"
-      assign("eyefit.tmp", c(get("eyefit.tmp", env=eyefit.env),list(aux)), envir=eyefit.env)
-      
-      replot()
-    }
+  OnSave <- function(){
+    k <- as.character(tclObj(kernel))
+    kp1 <- as.numeric(tclObj(kappa1))
+    if(k == "gneiting.matern")
+      kp2 <-  as.numeric(tclObj(kappa2))
+    else kp2 <- NULL
+    maxdist <- as.numeric(tclObj(mdist))
+    sigmasq <- as.numeric(tclObj(sill))	
+    phi <- as.numeric(tclObj(range))
+    tausq <- as.numeric(tclObj(nugget))
+    aux <- list(cov.model=k, cov.pars=c(sigmasq, phi), 
+                nugget=tausq, kappa=c(kp1,kp2),
+                lambda = vario$lambda,
+                trend = vario$trend, max.dist=maxdist)      
+    oldClass(aux) <- "variomodel"
+    assign("eyefit.tmp", c(get("eyefit.tmp", env=eyefit.env),list(aux)), envir=eyefit.env)
+    
+    replot()
+  }
   
   tkpack(frame1, frame3, frame4, frame5, frame6, frame7, fill="x")
   tkpack(frame2, fill="x")
@@ -240,34 +237,29 @@ eyefit <- function(vario, silent=FALSE)
   c.but <- tkbutton(base,text="Clear",
                     command=function(){OnClear(vario)})
 
-  q.but <- tkbutton(base,text="Quit",
-                    command=OnQuit)
+  q.but <- tkbutton(base, text="Quit", command=OnQuit)
   
-  save.but <- tkbutton(base,text="Save",
-                       command=OnSave)		      
-  
+  save.but <- tkbutton(base, text="Save", command=OnSave)		      
   tkpack(spec.frm)
-  tkpack(q.but,side="right")
-  tkpack(c.but,side="left")        
-  tkpack(save.but,side="right")
+  tkpack(q.but, side="right")
+  tkpack(c.but, side="left")        
+  tkpack(save.but, side="right")
   
   replot()
   
-  tkbind(entry.kappa1, "<Return>",function(){replot()})
-  tkbind(entry.kappa2, "<Return>",function(){replot()})
-  tkbind(base,"<Destroy>",function() tclvalue(done)<-2)
+  tkbind(entry.kappa1, "<Return>", function(){replot()})
+  tkbind(entry.kappa2, "<Return>", function(){replot()})
+  tkbind(base, "<Destroy>", function() tclvalue(done)<-2)
   
   tkwait.variable(done)
-  
-  
+    
   tkdestroy(base)
   
   if (!silent){
     fit <- get("eyefit.tmp", envir=eyefit.env)
-    class(fit) <- "eyefit"
+    oldClass(fit) <- "eyefit"
     return(fit)
   }
   else
     return(invisible())
 }
-

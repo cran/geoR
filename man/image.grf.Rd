@@ -1,20 +1,21 @@
 \name{image.grf}
 
 \alias{image.grf}
+\alias{contour.grf}
 \alias{persp.grf}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
-\title{Image or Perspective Plot of Simulated Gaussian Random Field}
+\title{Image, Contour or Perspective Plot of Simulated Gaussian Random Field}
 
 \description{
-  Plots an image or perspective plot with a realization of a Gaussian
+  Methods for image, contour or perspective plot of a
+  realisation of a Gaussian
   random field, simulated using the function \code{\link{grf}}.  
 }
 
 \usage{
-\method{image}{grf}(x, sim.number = 1, xlim, ylim, x.leg, y.leg, \dots)
-\dots)
-
+\method{image}{grf}(x, sim.number = 1, x.leg, y.leg, \dots)
+\method{contour}{grf}(x, sim.number = 1, filled = FALSE, \dots)
 \method{persp}{grf}(x, sim.number = 1, \dots)
 }
 
@@ -26,13 +27,12 @@
     Indicates the number of the simulation top be plotted.
     Only valid if the object contains more than one simulation.
     Defaults to 1.  }
-  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
-%  \item{cex.leg}{controls the size of the numerical values in the legend.  }
-%  \item{vertical}{logical, defining whether the legend is drawn in
-%    horizontal (default) or vertical position.  }
+  \item{filled}{logical. If \code{FALSE} the function
+    \code{\link{contour}} is used otherwise
+    \code{\link{filled.contour}}. Defaults to \code{FALSE}.  }
   \item{\dots}{further arguments to be passed to the functions
-    \code{\link{image}} or \code{\link{persp}}.  }
+    \code{\link{image}}, \code{\link{contour}} or \code{\link{persp}}.  }
 }
 
 %\details{
@@ -58,7 +58,9 @@
 %\note{ ~~further notes~~ }
 
 \seealso{\code{\link{grf}} for simulation of Gaussian random fields,
-  \code{\link{image}} and \code{\link{persp}} for the generic plotting functions.}
+  \code{\link{image}} and \code{\link{persp}} for the generic plotting
+  functions.
+}
 
 \examples{
 # generating 4 simulations of a Gaussian random field

@@ -47,7 +47,7 @@
   ##
   ## Setting maximum distance
   ##
-  if(!is.numeric(max.dist) || length(max.dist) > 1)
+  if(mode(max.dist) != "numeric" || length(max.dist) > 1)
     stop("a single numerical value must be provided in the argument max.dist") 
   if (max.dist == vario$max.dist) 
     XY <- list(u = vario$u, v = vario$v, n=vario$n)
@@ -403,7 +403,7 @@
   estimation$lambda <- vario$lambda
   estimation$message <- message
   estimation$call <- call.fc
-  class(estimation) <- c("variomodel", "variofit")
+  oldClass(estimation) <- c("variomodel", "variofit")
   return(estimation)
 }
 
@@ -560,7 +560,7 @@
   }
   summ.lik$weights <- object$weights
   summ.lik$call <- object$call
-  class(summ.lik) <- "summary.variomodel"
+  oldClass(summ.lik) <- "summary.variomodel"
   return(summ.lik)
 }
 

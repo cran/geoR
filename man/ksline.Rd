@@ -184,10 +184,8 @@ data(s100)
 loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- ksline(s100, loc=loci, cov.pars=c(1, .25))
 par(mfrow=c(1,2))
-image(kc, loc=loci, main="kriging estimates")
-image(kc, loc=loci, val=sqrt(kc$krige.var),
-              main="kriging std. errors")
-
+image(kc, main="kriging estimates")
+image(kc, val=sqrt(kc$krige.var), main="kriging std. errors")
 }
 
 \keyword{spatial}%-- one or more ...

@@ -70,7 +70,6 @@
   }
   sill.total <- tausq + sum(sigmasq)
   messa <- grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
-
   ##
   ## setting seed
   ##
@@ -81,9 +80,19 @@
   rseed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   results <- list()
   ##
+  ## checking whether it is a 1D simulation
+  ##
+  if((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) |
+     diff(xlims) == 0 | diff(ylims) == 0){
+    sim1d <- TRUE
+    if (messages.screen) 
+      cat("simulations in 1D\n")
+  }
+  else sim1d <- FALSE
+  ##
   ## defining the locations for the simulated data
   ##
-  if(is.character(grid))
+  if(mode(grid) == "character")
     grid <- match.arg(grid, choices=c("irreg", "reg"))
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
@@ -92,16 +101,6 @@
   }
   else {
     ##
-    ## checking whether it is a 1D simulation
-    ##
-    if((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) |
-       diff(xlims) == 0 | diff(ylims) == 0){
-      sim1d <- TRUE
-      if (messages.screen) 
-        cat("simulations in 1D\n")
-    }
-    else sim1d <- FALSE
-    ##
     ## defining number of points in each direction
     ##
     if(missing(nx)){
@@ -109,7 +108,7 @@
         if(diff(xlims) == 0) nx <- 1
         else nx <- n
       else
-        if(is.character(grid) && grid == "reg") nx <- round(sqrt(n))
+        if(mode(grid) == "character" && grid == "reg") nx <- round(sqrt(n))
         else nx <- n
     }
     if(missing(ny)){
@@ -117,13 +116,13 @@
         if(diff(ylims) == 0) ny <- 1
         else ny <- n
       else
-        if(is.character(grid) && grid == "reg") ny <- round(sqrt(n))
+        if(mode(grid) == "character" && grid == "reg") ny <- round(sqrt(n))
         else ny <- n
     }
     ##
     ## defining the grid
     ##
-    if (is.character(grid) && grid == "irreg") {
+    if (mode(grid) == "character" && grid == "irreg") {
       results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]),
                               y = runif(ny, ylims[1], ylims[2]))
       if (messages.screen) 
@@ -145,15 +144,15 @@
     }
   }
   n <- nrow(results$coords)
-  if(length(unique(results$coords[,1])) == 1 |
-     length(unique(results$coords[,2])) == 1)
+  if(length(unique(round(results$coords[,1], dig=12))) == 1 |
+     length(unique(round(results$coords[,2], dig=12))) == 1)
     sim1d <- TRUE
   else sim1d <- FALSE
   ##
   ## transforming to the isotropic space 
   ##
   if(!is.null(aniso.pars)) {
-    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
+    if(length(aniso.pars) != 2 | mode(aniso.pars) != "numeric")
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if(messages.screen)
       cat("grf: transforming to the isotropic space \n")
@@ -260,7 +259,7 @@
 #                              sim.dim = ifelse(sim1d, "1d", "2d"),
                               .Random.seed = rseed, messages = messa,
                               call = call.fc))
-  if(is.character(grid) && grid == "reg"){
+  if(mode(grid) == "character" && grid == "reg"){
     if(equal.spacing) attr(results, "spacing") <- xspacing
     else{
       attr(results, "xspacing") <- xspacing
@@ -268,7 +267,7 @@
     }
   }
   attr(results, "sp.dim") <- ifelse(sim1d, "1d", "2d")
-  class(results) <- c("grf", "geodata", "variomodel")
+  oldClass(results) <- c("grf", "geodata", "variomodel")
   return(results)
 }
 
@@ -315,55 +314,34 @@
   return(invisible())
 }
 
-"plot.1d" <-
-  function(x, xlim, ylim, x1vals, ...)
-{
-  #cat("data in 1-D\n")
-  if(length(x1vals) == 1) col.ind <- 2
-  else col.ind <- 1
-  order.it <- order(x$coords[,col.ind])
-  if(is.null(list(...)$xla)) xlabel <- "locations"
-  else xlabel <- list(...)$xla
-  if(is.null(list(...)$yla)) ylabel <- "data"
-  else ylabel <- list(...)$yla
-  pty.prev <- par()$pty
-  par(pty="m")
-  plot(x$coords[order.it,col.ind], x$data[order.it],
-       xlab = xlabel, ylab = ylabel, xlim = xlim,
-       ylim = ylim, ...)
-  par(pty=pty.prev)
-  return(invisible())
-}
-
 "image.grf" <-
-  function (x, sim.number = 1, xlim, ylim,
-            x.leg, y.leg, ...) 
+  function (x, sim.number = 1, x.leg, y.leg, ...) 
 {
-  pty.prev <- par()$pty
+  ##
+  ## this seems to cause problems overlapping maps
+  ##op <- par(no.readonly=TRUE)
+  ##on.exit(par(op))
+  ##
   x1vals <- unique(round(x$coords[,1], dig=12))
   x2vals <- unique(round(x$coords[,2], dig=12))
-  if(missing(xlim)) xlim <- NULL
-  if(missing(ylim)) ylim <- NULL
+  nx <- length(x1vals)
+  ny <- length(x2vals)
+  ldots <- match.call(expand.dots = FALSE)$...
   ##
   ## Plotting simulations in 1-D
   ##
-  if(attr(x, 'sp.dim') == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
-    plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
+    do.call("plot.1d", c(list(x = x,
+                              x1vals = x1vals),
+                         ldots.set(ldots, type="plot.1d",
+                                   data="simulation")))
+  }
   else{
     ##
     ## Plotting simulations in 2-D
     ##
-    ldots <- match.call(expand.dots = FALSE)$...
-    ldots[[match(names(ldots), "offset.leg")]] <- NULL
-    if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
-      ldots$xlab <- "X Coord"
-    if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
-      ldots$ylab <- "Y Coord"
-    ##
     ## Checking for retangular grid
     ##
-    nx <- length(as.numeric(levels(as.factor(round(x$coords[, 1], dig=12)))))
-    ny <- length(as.numeric(levels(as.factor(round(x$coords[, 2], dig=12)))))
     x$data <- as.matrix(x$data)
     n <- nrow(x$data)
     if (nx * ny != n) 
@@ -371,84 +349,94 @@
     ##
     ## Preparing image plot elements
     ##
-    locations <- prepare.graph.kriging(locations=x$coords,
-                                       values=x$data[, sim.number],
-                                       borders =  NULL,
-                                       borders.obj = eval(attr(x, "borders")),
-                                       xlim = xlim, ylim = ylim) 
-    ##
-    par(pty = "s")
-    do.call("image", c(list(x=locations$x, y=locations$y,
-                            z=locations$values,
-                            xlim = locations$coords.lims[,1],
-                            ylim = locations$coords.lims[,2]),
-                       ldots))
+    do.call("image", c(list(x=x1vals, y=x2vals,
+                            z=matrix(x$data[, sim.number], nc=ny)),
+                       ldots.set(ldots, type="image",
+                                 data="simulation")))
     ##
     ## Adding the legend (if the case)
     ##
     if(!missing(x.leg) && !missing(y.leg)){
       if(is.null(ldots$col)) ldots$col <- heat.colors(12)
-      legend.krige(x.leg=x.leg, y.leg=y.leg,
-                   values=locations$values[!is.na(locations$values)],
-                   vertical = vertical, cex=cex.leg,
-                   col=ldots$col, ...)
+      do.call("legend.krige", c(list(x.leg=x.leg,
+                                     y.leg=y.leg,
+                                     values = x$data[, sim.number]),
+                                     ldots))
     }
   }
-  par(pty = pty.prev)
   return(invisible())
 }
-
-#"image.grf" <-
-#  function (x, sim.number = 1, ...) 
-#{
-#  x1vals <- unique(x$coords[,1])
-#  x2vals <- unique(x$coords[,2])
-#  if(x$sim.dim == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
-#    plot.1d(x, ...)
-#  else{
-#    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
-#    nx <- length(xl)
- #   yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
-#    ny <- length(yl)
- #   x$data <- as.matrix(x$data)
- #   n <- nrow(x$data)
- #   if (nx * ny != n) 
- #     stop("cannot produce image plot probably due to data on irregular grid")
- ##   m <- matrix(x$data[, sim.number], ncol = ny)
- #   coords.lims <- set.coords.lims(coords=x$coords)
- #   x.ex <- diff(range(coords.lims[,1]))/(2*(nx-1))
- #   y.ex <- diff(range(coords.lims[,2]))/(2*(ny-1))
- #   xlim.ex <- coords.lims[,1] + c(-x.ex, x.ex)
- #   ylim.ex <- coords.lims[,2] + c(-y.ex, y.ex)
- #   pty.prev <- par()$pty
- #   par(pty = "s")
- #   image(xl, yl, m, xlim= xlim.ex, ylim=ylim.ex,...)
- #   par(pty=pty.prev)
- # }
- # return(invisible())
-#}
 
 "persp.grf" <- 
   function(x, sim.number = 1, ...)
 {
   x1vals <- unique(round(x$coords[,1], dig=12))
   x2vals <- unique(round(x$coords[,2], dig=12))
-  ldots <- list(...)
-  if(is.null(ldots$xlim)) xlim <- NULL
-  if(is.null(ldots$ylim)) ylim <- NULL
-  if(attr(x, 'sp.dim') == "1d" | length(x1vals) == 1 | length(x2vals) == 1)
-    plot.1d(x, xlim=xlim, ylim = ylim, x1vals = x1vals, ...)
+  nx <- length(x1vals)
+  ny <- length(x2vals)
+  ldots <- match.call(expand.dots = FALSE)$...
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
+    do.call("plot.1d", c(list(x = x,
+                              x1vals = x1vals),
+                       ldots.set(ldots, type="plot.1d",
+                                 data="simulation")))
+  }
   else{
-    xl <- as.numeric(levels(as.factor(round(x$coords[, 1], dig=12))))
-    nx <- length(xl)
-    yl <- as.numeric(levels(as.factor(round(x$coords[, 2], dig=12))))
-    ny <- length(yl)
     x$data <- as.matrix(x$data)
     n <- nrow(x$data)
     if(nx * ny != n)
       stop("cannot produce perspective plot, probably irregular grid")
-    m <- matrix(x$data[, sim.number], ncol = ny)
-    persp(xl, yl, m, ...)
+    do.call("persp", c(list(x=x1vals, y=x2vals,
+                            z=matrix(x$data[, sim.number], ncol = ny)),
+                       ldots.set(ldots, type="persp",
+                                 data="simulation")))
+  }
+  return(invisible())
+}
+
+"contour.grf" <- 
+  function(x, sim.number = 1, filled = FALSE, ...)
+{
+  x1vals <- unique(round(x$coords[,1], dig=12))
+  x2vals <- unique(round(x$coords[,2], dig=12))
+  nx <- length(x1vals)
+  ny <- length(x2vals)
+  ldots <- match.call(expand.dots = FALSE)$...
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
+    do.call("plot.1d", c(list(x = x,
+                              x1vals = x1vals),
+                       ldots.set(ldots, type="plot.1d",
+                                 data="simulation")))
+  }
+  else{
+    x$data <- as.matrix(x$data)
+    n <- nrow(x$data)
+    if(nx * ny != n)
+      stop("cannot produce the countour plot, probably irregular grid")
+    if(filled)
+      ldots.contour <- ldots.set(ldots, type="filled.contour",
+                                 data="prediction")
+    else
+      ldots.contour <- ldots.set(ldots, type="contour",
+                                 data="prediction")
+    if(filled){
+      if(is.null(ldots.contour$plot.axes)){
+        ldots.contour$plot.axes <- quote({
+          axis(1)
+          axis(2)
+          if(!is.null(coords.data)) points(coords.data, pch=20)
+          if(!is.null(borders)) polygon(borders, lwd=2)
+        })
+      }
+      do.call("filled.contour", c(list(x=x1vals, y=x2vals,
+                                       z=matrix(x$data[, sim.number], ncol = ny)),
+                                  ldots.contour))
+    }
+    else{
+      do.call("contour", c(list(x=x1vals, y=x2vals,
+                                z=matrix(x$data[, sim.number], ncol = ny)),
+                           ldots.contour))
+    }
   }
   return(invisible())
 }

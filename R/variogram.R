@@ -6,7 +6,7 @@
        estimator.type = c("classical", "modulus"), 
        nugget.tolerance, max.dist, pairs.min = 2,
        bin.cloud = FALSE, direction = "omnidirectional", tolerance = pi/8,
-       unit.angle = c("radians","degrees"), 
+       unit.angle = c("radians","degrees"), angles = FALSE, 
        messages, ...) 
 {
   if(missing(geodata)) geodata <- list(coords=coords, data = data)
@@ -23,7 +23,7 @@
   ## Directional variogram - setting angles
   ##
   unit.angle <- match.arg(unit.angle)
-  if(is.numeric(direction)){
+  if(mode(direction) == "numeric"){
     if(length(direction) > 1) stop("only one direction is allowed")
     if(length(tolerance) > 1) stop("only one tolerance value is allowed")
     if(unit.angle == "degrees"){
@@ -108,7 +108,7 @@
     nt.ind <- FALSE
   }
   else{
-    if(!is.numeric(nugget.tolerance)) stop("nugget.tolerance must be numeric")
+    if(mode(nugget.tolerance) != "numeric") stop("nugget.tolerance must be numeric")
     nt.ind <- TRUE
   }
   min.dist <- min(u)
@@ -116,13 +116,15 @@
   ##
   ## directional
   ##
-  if(direction != "omnidirectional"){
+  if(direction != "omnidirectional" | angles){
     u.ang <- .C("tgangle",
                 as.double(as.vector(coords[,1])),
                 as.double(as.vector(coords[,2])),
                 as.integer(dim(coords)[1]),
                 res = as.double(rep(0, length(u))),
                 PACKAGE = "geoR")$res
+    if(any(is.na(u.ang)))
+      stop("NA returned in angle calculations maybe due to co-located data")
     u.ang <- atan(u.ang)
     u.ang[u.ang < 0] <- u.ang[u.ang < 0] + pi
   }
@@ -197,7 +199,10 @@
     }
     data <- drop(data)
     v <- drop(v)
-    if (option == "cloud") result <- list(u = u, v = v)
+    if (option == "cloud"){
+      result <- list(u = u, v = v)
+      if(angles) result$angles <- u.ang
+    }
     if (option == "bin") {
       if (missing(max.dist)) umax <- max(u)
       else umax <- max(u[u < max.dist])
@@ -268,7 +273,7 @@
   else result$tolerance <- "none" 
   result$uvec <- uvec
   result$call <- call.fc
-  class(result) <- "variogram"
+  oldClass(result) <- "variogram"
   return(result)
 }
 
@@ -331,7 +336,7 @@
                                 messages = messages.screen,
                                 keep.NA = TRUE 
                                 )
-  class(res) <- "variog4"
+  oldClass(res) <- "variog4"
   return(res) 
 }
 
@@ -624,7 +629,7 @@
     result$bin.cloud <- bins.clouds
   ##  if (!is.null(class(cloud))) 
   if (length(class(cloud)) > 0) 
-  class(result) <- class(cloud)
+  oldClass(result) <- class(cloud)
   return(result)
 }
 
@@ -676,7 +681,7 @@
     if(vario.col == "all")
       vario.col <- 1:dim(v)[2]
     else
-      if(!is.numeric(vario.col) | any(vario.col > ncol(v)))
+      if(mode(vario.col) != "numeric" | any(vario.col > ncol(v)))
         stop("argument vario.col must be equals to \"all\" or a vector indicating the column numbers to be plotted")
     v <- v[, vario.col, drop=FALSE]
     if (scaled)
@@ -733,7 +738,7 @@
   if(missing(x)) x <- seq(0, max.dist, l=100)
   if(is.list(x))
     for(i in names(x)) assign(i, x[[i]])
-  if(is.numeric(x) && missing(max.dist)) max.dist <- max(x, na.rm=TRUE)
+  if(mode(x) == "numeric" && missing(max.dist)) max.dist <- max(x, na.rm=TRUE)
   ## reading and checking model/other components
   fn.env <- sys.frame(sys.nframe())
   check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
@@ -977,7 +982,7 @@
                   v.upper = limits[2,])
   if(save.sim) res.env$simulated <- simula$data
   res.env$call <- call.fc
-  class(res.env) <- "variogram.envelope"
+  oldClass(res.env) <- "variogram.envelope"
   return(res.env)
 }
 
@@ -1087,7 +1092,7 @@
                   v.upper = limits[2,])
   if(save.sim) res.env$simulations <- simula$data
   res.env$call <- call.fc
-  class(res.env) <- "variogram.envelope"
+  oldClass(res.env) <- "variogram.envelope"
   return(res.env)
 }
 
@@ -1104,7 +1109,7 @@ define.bins <-
 {
   if(all(breaks ==  "default")){
     if (all(uvec == "default")) uvec <- 13
-    if (all(is.numeric(uvec))){
+    if (mode(uvec) == "numeric"){
       if(length(uvec) == 1){
         bins.lim <- seq(0, max.dist, l = uvec+1)
         bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
@@ -1121,7 +1126,7 @@ define.bins <-
     else stop("argument uvec can only take a numeric vector")
   }
   else{
-    if(any(!is.numeric(breaks))) stop("argument breaks can only take a numeric vector")
+    if(mode(breaks) != "numeric") stop("argument breaks can only take a numeric vector")
     else bins.lim <- breaks
     bins.lim <- c(0, nugget.tolerance, bins.lim[bins.lim >  nugget.tolerance])
     uvec <- 0.5 * (bins.lim[-1] + bins.lim[-length(bins.lim)])

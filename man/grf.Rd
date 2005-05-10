@@ -14,10 +14,9 @@
 \title{Simulation of Gaussian Random Fields}
 
 \description{
-  Generates simulations of Gaussian random fields for
+  Generates (unconditional)
+  simulations of Gaussian random fields for
   given covariance parameters.
-  Can be also used as a wrapper for the function
-  \code{GaussRF} from the package \pkg{RandomFields}.
 }
 
 
@@ -82,10 +81,10 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
     Defaults to the \emph{Cholesky}
     decomposition.  See section \code{DETAILS} below.  }
   \item{RF}{logical, with defaults to TRUE, indicating whether
-    the algorithm should try no use the function
+    the algorithm should try to use the function
     \code{\link[RandomFields]{GaussRF}} from the package
-    \pkg{RandomFields} in case of missing \code{method} and the
-    number of points being greater than 500. }
+    \pkg{RandomFields} in case of \code{method} is missing
+    and the number of points is greater than 500. }
   \item{messages}{logical,  indicating
     whether or not status messages are printed on the screen (or output device)
     while the function is running. Defaults to \code{TRUE}.  } 
@@ -103,10 +102,10 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
   The previously available
   method \code{method = "circular.embedding"} is no longer available
   in \pkg{geoR}. For simulations in a fine grid and/or with a large number
-  of points use the package \pkg{RandomFields}
+  of points use the package \pkg{RandomFields}.
 
-  The option \code{"RF"} is  makes \code{grf} just a wrapper to the function
-  \code{GaussRF} from the package \pkg{RandomFields}
+  The option \code{"RF"} calls internally  the function
+  \code{\link[RandomFields]{GaussRF}} from the package \pkg{RandomFields}.
 }
 
 
@@ -153,8 +152,7 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
   Schlather, M. \pkg{RandomFields}: \emph{Simulation and Analysis of Random
   Fields}. R package. \url{http://www.cu.lu/~schlathe}.
 
-
- Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
+  Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
   
   Further information on the package \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.
@@ -171,11 +169,12 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
   graphical output,
   \code{\link{coords.aniso}} for anisotropy coordinates transformation
   and, \code{\link{chol}},
-  \code{\link{svd}} and \code{\link{eigen}} for methods of matrix decomposition.
+  \code{\link{svd}} and \code{\link{eigen}} for methods of matrix
+  decomposition and \code{\link[RandomFields]{GaussRF}} function
+  in the package \pkg{RandomFields}.
 }
 
 \examples{
-#
 sim1 <- grf(100, cov.pars = c(1, .25))
 # a display of simulated locations and values
 points(sim1)   
@@ -184,7 +183,7 @@ plot(sim1)
 #
 # a "smallish" simulation
 sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 
-image(sim2, xlab="X Coord", ylab="Y Coord")
+image(sim2)
 ##
 ## 1-D simulations using the same seed and different noise/signal ratios
 ##

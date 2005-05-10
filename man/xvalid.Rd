@@ -43,7 +43,9 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
     Defaults to \code{geodata$data}, if provided.}
   \item{model}{an object containing information on a fitted
     model. Typically an output of \code{\link{likfit}},
-    \code{\link{variofit}}.  }
+    \code{\link{variofit}}. If an object of the class
+    \code{eyefit} is passed it takes the first model
+    specified in the object.  }
   \item{reestimate}{logical. Indicates whether or not the model
     parameters should be re-estimated for each point removed from the data-set. }
   \item{variog.obj}{on object with the empirical variogram, typically an

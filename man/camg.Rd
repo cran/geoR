@@ -42,11 +42,12 @@
   de Janeiro, Brasil
   and provided by Dra. Maria Cristina Neves de Oliveira.
 
-  Capeche, C.L. \emph{et al.} (1997) Caracterização pedológica da
-  fazenda Angra - PESAGRO/RIO - Estação experimental de Campos (RJ).
-  CD-ROM In: \emph{Congresso BRASILEIRO de Ciência do Solo} 26,
-  Informação, globalização, uso do solo; Rio de Janeiro,
-  1997. trabalhos. Rio de Janeiro: Embrapa/SBCS, 1997.
+  Capeche, C.L.; Macedo, J.R.; Manzatto, H.R.H.; Silva, E.F. (1997)
+  Caracterização pedológica da fazenda Angra - PESAGRO/RIO -
+  Estação experimental de Campos (RJ). (compact disc).
+  In: Congresso BRASILEIRO de Ciência do Solo. 26.,
+  Informação, globalização, uso do solo; Rio de Janeiro, 1997.
+  trabalhos. Rio de Janeiro: Embrapa/SBCS.
 }
 %\references{
 %  ~~ possibly secondary sources and usages ~~

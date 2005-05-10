@@ -19,14 +19,12 @@
                   values.to.plot=c("mean", "variance",
                             "mean.simulations", "variance.simulations",
                             "quantiles", "probabilities", "simulation"),
-                  number.col, coords.data, xlim, ylim, x.leg, y.leg,
-                  messages, \dots)
+                  number.col, coords.data, x.leg, y.leg, messages, \dots)
 \method{contour}{krige.bayes}(x, locations, borders, 
                   values.to.plot = c("mean", "variance",
                        "mean.simulations", "variance.simulations",
                        "quantiles", "probabilities", "simulation"),
-                  number.col, coords.data, xlim, ylim,
-                  x.leg, y.leg, messages, ...)
+                  number.col, coords.data, x.leg, y.leg, messages, \dots)
 \method{persp}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
@@ -57,7 +55,6 @@
     matrix with the data coordinates is
     provided, points indicating the data locations are included in the
     plot.  }
-  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
 %  \item{cex.leg}{controls the size of the numerical values in the legend.  }
 %  \item{vertical}{logical, defining whether the legend is drawn in

@@ -42,7 +42,7 @@
     else lambda.ini <- lambda
     lambda2.ini <- 0
     if(lambda2 == TRUE) lambda2.ini <- absmin
-    if(is.numeric(lambda2)) lambda2.ini <- lambda2
+    if(mode(lambda2) == "numeric") lambda2.ini <- lambda2
     lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
     ##
     if(length(as.matrix(lambdas.ini)) > 2){
@@ -95,7 +95,7 @@
               loglik = loglik, optim.results = lik.lambda)
   ## res$hessian <- c(lambda = hess) 
   res$call <- call.fc
-  class(res) <- "boxcox.fit"
+  oldClass(res) <- "boxcox.fit"
   return(res)
 }
 
@@ -125,7 +125,7 @@
     neglik <- ((n-beta.size)/2) * log(ss) + choldet -
       ((lambda - 1) * sum(log(data)))
   }  
-  if(!is.numeric(neglik)) neglik <- Inf
+  if(mode(neglik) != "numeric") neglik <- Inf
   return(drop(neglik))
 }
 
@@ -248,7 +248,7 @@
 "BCtransform" <-
   function(x, lambda, add.to.data = 0,
            inverse = FALSE, log.jacobian = FALSE)
-{ 
+{
   x <- x + add.to.data
   if(inverse){
     if(log.jacobian) stop("options log.jacobian not allowed with inverse = TRUE")

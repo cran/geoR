@@ -11,6 +11,10 @@
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
+  if(any(class(model) == "eyefit")){
+    model <- model[[1]]
+    model$method <- "eyefit"
+  }
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   n <- nrow(coords)
   data <- as.vector(data)
@@ -28,7 +32,7 @@
     if(all(locations.xvalid == "all"))
       locations.xvalid <- 1:n
     else
-      if(any(locations.xvalid > n) | !is.numeric(locations.xvalid))
+      if(any(locations.xvalid > n) | mode(locations.xvalid) != "numeric")
         stop("\nxvalid: vector indicating locations to be validated is not a numeric vector and/or has element(s) with value greater than the number of data loccations")
     crossvalid <- TRUE
   }
@@ -51,7 +55,7 @@
         }
       }
       else
-        if(!is.vector(locations.xvalid) | !is.numeric(locations.xvalid))
+        if(!is.vector(locations.xvalid) | mode(locations.xvalid) != "numeric")
           stop("\nargument locations.xvalid must be either:\n a numeric vector with numbers indicating the locations to be cross-validated\n a matrix with coordinates for the locations to be cross-validated.")
         else
           if(any(locations.xvalid) > n | length(locations.xvalid) > n)
@@ -82,7 +86,11 @@
       cv.xmat <- xmat[-ndata, , drop = FALSE]
       ## re-estimating the model
       if (reestimate) {
-        if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
+        if(model$method == "eyefit")
+          stop("option reestimate = TRUE not allowed for
+                a model of the class eyefit")
+        if(model$method == "ML" | model$method == "REML" |
+           model$method == "RML"){
           fix.pars <- (model$parameters.summary[c("tausq", "kappa", "psiA",
                                                   "psiR", "lambda"), 1] == "fixed")
           val.pars <- model$parameters.summary[c("tausq", "kappa", 
@@ -131,7 +139,7 @@
         }
       }
       else CVmod <- model
-      if(is.null(model$method)){
+      if(is.null(model$method) || model$method == "eyefit"){
         fix.pars <- rep(TRUE, 5)
         val.pars <- c(CVmod$nugget, CVmod$kappa, CVmod$aniso.pars, CVmod$lambda)
       }
@@ -152,9 +160,11 @@
       names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
       kr <- krige.conv(coords = cv.coords, data = cv.data, loc = coords.out,
                        krige = krige.control(trend.d = ~cv.xmat + 0,
-                         trend.l = ~xmat.out + 0, cov.model = CVmod$cov.model, 
+                         trend.l = ~xmat.out + 0,
+                         cov.model = CVmod$cov.model, 
                          cov.pars = CVmod$cov.pars, nugget = CVmod$nugget, 
-                         kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
+                         kappa = val.pars["kappa"],
+                         lambda = val.pars["lambda"], 
                          aniso.pars = val.pars[c("psiA", "psiR")]),
                        output = output.control(mess = FALSE))
       res <- c(data.out, kr$pred, kr$krige.var)
@@ -261,7 +271,7 @@
         coords <- eval(attr(x,"locations.xvalid"))       
     }
     else{
-      if(class(coords) == "geodata")
+      if(any(class(coords) == "geodata"))
         coords <- coords$coords
     }
     if(!is.matrix(coords) & !is.data.frame(coords))
@@ -472,7 +482,7 @@
   res <- list()
   res$error <- c(summary(object$error), sd=sd(object$error))
   res$std.error <- c(summary(object$std.error), sd=sd(object$std.error))
-  class(res) <- "summary.xvalid"
+  oldClass(res) <- "summary.xvalid"
   return(res)
 }
 

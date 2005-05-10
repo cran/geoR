@@ -9,6 +9,7 @@
 \alias{solve.geoR}
 \alias{print.grf}
 \alias{check.locations}
+\alias{ldots.set}
 
 \title{geoR internal functions}
 

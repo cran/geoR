@@ -3,8 +3,9 @@
 \docType{data}
 \title{Kriging example data from Webster and Oliver}
 \description{
-  Data used in Chapter 8, page 156 of Webster and Oliver (2001) to illustrate
-  properties of the kriging predictor  
+  Data used in Chapter 8,
+  page 156 of Webster and Oliver (2001) to illustrate
+  properties of the kriging predictor.  
 }
 \usage{data(wo)}
 \format{
@@ -20,7 +21,8 @@
 %  ~~ If necessary, more details than the __description__ above ~~
 %}
 \source{
-  Webster, R. and Oliver, M.A. Geostatistics for Environmental Scientists.
+  Webster, R. and Oliver, M.A. (2001). Geostatistics for Environmental
+  Scientists. Wiley.
 }
 %\references{
 %  ~~ possibly secondary sources and usages ~~

@@ -34,8 +34,8 @@
   kb <- list(posterior = list(beta=list(), sigmasq=list(),
                phi=list(), tausq.rel=list()),
              predictive=list(mean = NULL, variance = NULL, distribution = NULL))
-  class(kb$posterior) <- c("posterior.krige.bayes", "variomodel")
-  class(kb$predictive) <- "predictive.krige.bayes"
+  oldClass(kb$posterior) <- c("posterior.krige.bayes", "variomodel")
+  oldClass(kb$predictive) <- "predictive.krige.bayes"
   pred.env <- new.env()
   ##
   ## reading model input
@@ -134,7 +134,7 @@
   }
   kb$prior <- prior$priors.info
   kb$model <- model
-  class(kb$prior) <- "prior.geoR"
+  oldClass(kb$prior) <- "prior.geoR"
   ##
   if(prior$dep.prior){
     npr <- length(prior$sigmasq)
@@ -311,7 +311,7 @@
     ## selecting locations inside the borders 
     ##
     if(!is.null(borders)){
-      locations <- locations.inside(locations, borders)
+      locations <- locations.inside(locations, borders, bound=TRUE)
       if(nrow(locations) == 0){
         warning("\nkrige.bayes: no prediction to be performed.\n             There are no prediction locations inside the borders")
         do.prediction <- FALSE
@@ -529,7 +529,8 @@
       if(messages.screen)
         cat("krige.bayes: argument `phi.discrete` not provided, using default values\n")
     } 
-    if(!is.numeric(phi.discrete)) stop("non-numerical value provided in phi.discrete")
+    if(mode(phi.discrete) != "numeric")
+      stop("non-numerical value provided in phi.discrete")
     if(length(phi.discrete) == 1)
       stop("only one value provided in phi.discrete. Use prior.phi=`fixed`")
     n.phi.discrete <- length(phi.discrete)
@@ -1100,19 +1101,19 @@
   if(do.prediction) attr(kb, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
   if(!is.null(call.fc$borders))
     attr(kb, "borders") <- call.fc$borders
-  class(kb) <- c("krige.bayes", "variomodel")
+  oldClass(kb) <- c("krige.bayes", "variomodel")
   if(messages.screen) cat("krige.bayes: done!\n")
   return(kb)
 }
 
 "prepare.graph.krige.bayes" <-
   function (obj, locations, borders, borders.obj=NULL,
-            values.to.plot, number.col, xlim, ylim, messages) 
+            values.to.plot, number.col, xlim, ylim, messages, ...) 
 {
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
-  if (!is.numeric(values.to.plot)){
+  if (mode(values.to.plot) != "numeric"){
     switch(values.to.plot,
            mean = {
              values <- obj$predictive$mean
@@ -1183,7 +1184,7 @@
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, bound=TRUE))
+      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
     else
       stop("argument borders requires the package splancs - please install it")
     values.loc[inout.vec] <- values
@@ -1194,7 +1195,7 @@
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       if(require(splancs))
-        inout.vec <- as.vector(inout(pts = locations, poly = borders, bound=TRUE))
+        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
       else
         stop("argument borders requires the package splancs - please install it")
       if(length(values.loc[inout.vec]) == length(values))
@@ -1221,16 +1222,10 @@
             values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
-            number.col, coords.data, xlim, ylim,
+            number.col, coords.data,
             x.leg, y.leg, messages, ...) 
 {
-  pty.prev <- par()$pty
   ldots <- match.call(expand.dots = FALSE)$...
-  ldots[[match(names(ldots), "offset.leg")]] <- NULL
-  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
-    ldots$xlab <- "X Coord"
-  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
-    ldots$ylab <- "Y Coord"
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
@@ -1239,7 +1234,7 @@
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
-  if(!is.numeric(values.to.plot))
+  if(mode(values.to.plot) != "numeric")
     values.to.plot <-
       match.arg(values.to.plot,
                 choices = c("mean", "variance",
@@ -1255,45 +1250,37 @@
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
-  if(missing(xlim)) xlim <- NULL
-  if(missing(ylim)) ylim <- NULL
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   ##
   ## Plotting 1D or 2D
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    plot.1d(values, xlim=xlim, ylim = ylim,
-            x1vals = unique(round(locations[,1], dig=12)), ...)
+    do.call("plot.1d", c(list(x = values,
+                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                                   data="prediction")))
   else{
+    ldots.image <- ldots.set(ldots, type="image", data="prediction")
     locations <- prepare.graph.krige.bayes(obj=x,
                                            locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
-                                           xlim = xlim, ylim = ylim, messages=messages)
-    par(pty = "s")
+                                           xlim= ldots.image$xlim,
+                                           ylim= ldots.image$ylim,
+                                           messages=messages, bound=TRUE)
     do.call("image", c(list(x=locations$x, y=locations$y,
-                          z=locations$values,
-                          xlim = locations$coords.lims[,1],
-                          ylim = locations$coords.lims[,2]),
-                     ldots))
-#    image(locations$x, locations$y, locations$values,
-#          xlim= locations$coords.lims[,1], ylim=locations$coords.lims[,2], ...)
-    if(!is.null(coords.data))
-      points(coords.data)
+                            z=locations$values), ldots.image))
+    if(!is.null(coords.data)) points(coords.data)
     if(!is.null(borders.arg)) polygon(borders, lwd=2)
-    dots.l <- list(...)
-    if(is.null(dots.l$col)) dots.l$col <- heat.colors(12)
+    if(is.null(ldots$col)) ldots$col <- heat.colors(12)
     if(!is.null(x.leg) & !is.null(y.leg)){
-      legend.krige(x.leg=x.leg, y.leg=y.leg,
-                   values=locations$values,
-                   vertical = vertical, cex=cex.leg,
-                   col=dots.l$col, ...)
+      do.call("legend.krige", c(list(x.leg=x.leg, y.leg=y.leg,
+                                     values=locations$values),
+                                     ldots))
     }
   }
-  par(pty=pty.prev)
   return(invisible())
 }
 
@@ -1302,16 +1289,10 @@
             values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
-            number.col, coords.data, xlim, ylim,
+            number.col, coords.data,
             x.leg, y.leg, messages, ...) 
 {
-  pty.prev <- par()$pty
   ldots <- match.call(expand.dots = FALSE)$...
-  ldots[[match(names(ldots), "offset.leg")]] <- NULL
-  if(length(ldots[!is.na(match(names(ldots), "xlab"))])==0)
-    ldots$xlab <- "X Coord"
-  if(length(ldots[!is.na(match(names(ldots), "ylab"))])==0)
-    ldots$ylab <- "Y Coord"
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
@@ -1320,7 +1301,7 @@
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
-  if(!is.numeric(values.to.plot))
+  if(mode(values.to.plot) != "numeric")
     values.to.plot <-
       match.arg(values.to.plot,
                 choices = c("mean", "variance",
@@ -1334,52 +1315,56 @@
     borders.arg <- borders
     if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
-  if(missing(xlim)) xlim <- NULL
-  if(missing(ylim)) ylim <- NULL
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   ##
   ## Plotting 1D or 2D
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    plot.1d(values, xlim=xlim, ylim = ylim,
-            x1vals = unique(round(locations[,1], dig=12)), ...)
+    do.call("plot.1d", c(list(x = values,
+                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                                    data="prediction")))
   else{
+    if(filled)
+      ldots.contour <- ldots.set(ldots, type="filled.contour",
+                                 data="prediction")
+    else
+      ldots.contour <- ldots.set(ldots, type="filled.contour",
+                                 data="prediction")
     locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
-                                           xlim = xlim, ylim = ylim, messages=messages)
-    par(pty = "s")
+                                           xlim = ldots.contour$xlim,
+                                           ylim = ldots.contour$ylim,
+                                           messages=messages, bound=TRUE)
     if(filled){
-      temp.contour <- function(){
-        axis(1)
-        axis(2)
-        if(!is.null(coords.data)) points(coords.data, pch=20)
-        if(!is.null(borders)) polygon(borders, lwd=2)
+      if(is.null(ldots.contour$plot.axes)){
+        ldots.contour$plot.axes <- quote({
+          axis(1)
+          axis(2)
+          if(!is.null(coords.data)) points(coords.data, pch=20)
+          if(!is.null(borders)) polygon(borders, lwd=2)
+        })
       }
       do.call("filled.contour", c(list(x=locations$x,
                                        y=locations$y,
                                        z=locations$values,
-                                       xlim = locations$coords.lims[,1],
-                                       ylim = locations$coords.lims[,2],
                                        plot.axes={temp.contour()}),
-                                  ldots))
+                                  ldots.contour))
     }
     else{
       do.call("contour", c(list(x=locations$x, y=locations$y,
-                                z=locations$values,
-                                xlim = locations$coords.lims[,1],
-                                ylim = locations$coords.lims[,2]),
-                           ldots))
+                                z=locations$values),
+                           ldots.contour))
       ##
       ## adding borders
       ##
       if(!is.null(borders.arg)) polygon(borders, lwd=2)
+      if(!is.null(coords.data)) points(coords.data, pch=20)
     }
   }
-  par(pty=pty.prev)
   return(invisible())
 }
 
@@ -1389,13 +1374,14 @@
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"), number.col, messages, ...) 
 {
+  ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
   attach(x)
   on.exit(detach(x))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2) stop("locations must be a matrix or data-frame with two columns")
-  if(!is.numeric(values.to.plot)){
+  if(mode(values.to.plot) != "numeric"){
     values.to.plot <- match.arg(values.to.plot,
                                 choices = c("mean", "variance",
                                   "mean.simulations",
@@ -1409,15 +1395,21 @@
   ## Plotting 1D or 2D
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    plot.1d(values, xlim=xlim, ylim = ylim,
-            x1vals = unique(round(locations[,1], dig=12)), ...)
+    do.call("plot.1d", c(list(x = values,
+                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                                    data="prediction")))
   else{
+    ldots.persp <- ldots.set(ldots, type="persp", data="prediction")
     locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
-                                           number.col = number.col, messages=messages)
-    persp(locations$x, locations$y, locations$values, ...)
+                                           xlim= ldots.persp$xlim,
+                                           ylim= ldots.persp$ylim,
+                                           number.col = number.col,
+                                           messages=messages, bound=TRUE)
+    do.call("persp", c(list(x=locations$x, y=locations$y,
+                            z=locations$values), ldots.persp))
   }
   return(invisible())
 }
@@ -1439,12 +1431,12 @@
   ##           "cauchy", "gneiting", "pure.nugget")))
   ##    kappa <- NULL
   if(!is.null(aniso.pars)) 
-    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
+    if(length(aniso.pars) != 2 | mode(aniso.pars) != "numeric")
       stop("model.control: anisotropy parameters must be a vector with two elements: rotation angle (in radians) and anisotropy ratio (a number > 1)")
   res <- list(trend.d = trend.d, trend.l = trend.l,
               cov.model = cov.model,
               kappa=kappa, aniso.pars=aniso.pars, lambda=lambda)
-  class(res) <- "model.geoR"
+  oldClass(res) <- "model.geoR"
   return(res)
 }
 
@@ -1567,7 +1559,7 @@
   ##
   if(!is.null(phi) && length(phi) > 1)
     stop("prior.control: length of phi must be one. Use phi.prior and phi.discrete to specify the prior for phi or enter a single fixed value for phi")
-  if(is.numeric(phi.prior)){
+  if(mode(phi.prior) == "numeric"){
     phi.prior.probs <- phi.prior
     phi.prior <- "user"
     if(is.null(phi.discrete))
@@ -1609,7 +1601,7 @@
   ##
   if(length(tausq.rel) > 1)
     stop("prior.control: length of tausq.rel must be one. Use tausq.rel.prior and tausq.rel.discrete to specify the prior for tausq.rel or enter a single fixed value for tausq.rel")
-  if(is.numeric(tausq.rel.prior)){
+  if(mode(tausq.rel.prior) == "numeric"){
     tausq.rel.prior.probs <- tausq.rel.prior
     tausq.rel.prior <- "user"
     if(is.null(tausq.rel.discrete))
@@ -1622,7 +1614,7 @@
   else
     tausq.rel.prior <- match.arg(tausq.rel.prior, choices = c("fixed", "uniform", "reciprocal"))
   if(tausq.rel.prior == "fixed"){
-    if(is.null(tausq.rel) | !is.numeric(tausq.rel))
+    if(is.null(tausq.rel) | mode(tausq.rel) != "numeric")
       stop("prior.control: argument `tausq.rel` must be provided with fixed prior for the parameter tausq.rel")
     tausq.rel.discrete <- tausq.rel
   }
@@ -1639,7 +1631,7 @@
   ## Further checks on dimensions
   ##
   if(phi.prior != "fixed"){
-    if(is.numeric(phi.discrete)){
+    if(mode(phi.discrete) == "numeric"){
       if(is.null(tausq.rel.discrete)) nsets <- length(phi.discrete)
       else nsets <- length(phi.discrete) * length(tausq.rel.discrete)
     }
@@ -1785,7 +1777,7 @@
               tausq.rel = tausq.rel,
               tausq.rel.discrete = tausq.rel.discrete, 
               priors.info = ip, dep.prior = dep.prior)
-  class(res) <- "prior.geoR"
+  oldClass(res) <- "prior.geoR"
   return(res)
 }
 
@@ -1829,14 +1821,14 @@
   else keep.simulations <- NULL
   ##
   if(!is.null(quantile.estimator)){
-    if(is.numeric(quantile.estimator))
+    if(mode(quantile.estimator) == "numeric")
       if(any(quantile.estimator) < 0 | any(quantile.estimator) > 1)
         stop("output.control: quantiles indicators must be numbers in the interval [0,1]\n")
     if(all(quantile.estimator == TRUE))
       quantile.estimator <- c(0.025, 0.5, 0.975)
   }
   if(!is.null(probability.estimator)){
-    if(!is.numeric(probability.estimator))
+    if(mode(probability.estimator) != "numeric")
       stop("output.control: probability.estimator must be a numeric value (or vector) of cut-off value(s)\n")
   }
   res <- list(n.posterior = n.posterior, n.predictive = n.predictive,
@@ -1848,7 +1840,7 @@
               probability.estimator = probability.estimator,
               sim.means = sim.means, sim.vars = sim.vars,
               signal = signal, messages.screen = messages.screen)
-  class(res) <- "output.geoR"
+  oldClass(res) <- "output.geoR"
   return(res)
 }
 
@@ -2418,7 +2410,7 @@
   ##
   if(missing(max.dist)){
     my.l$max.dist <- x$max.dist
-    if (is.null(my.l$max.dist) | !is.numeric(my.l$max.dist)) 
+    if (is.null(my.l$max.dist) | mode(my.l$max.dist) != "numeric") 
       stop("a numerical value must be provided to the argument max.dist")
   }
   else my.l$max.dist <- max.dist
@@ -2463,7 +2455,7 @@
     my.l$cov.pars <- c(x$posterior$sigmasq$summary[spost1],
                        x$posterior$phi$summary[spost])
     names(my.l$cov.pars) <- NULL
-    if(is.numeric(x$posterior$tausq.rel$summary))
+    if(mode(x$posterior$tausq.rel$summary) == "numeric")
       nugget <- x$posterior$tausq.rel$summary[spost] * my.l$cov.pars[1]
     else nugget <- 0
     names(nugget) <- NULL

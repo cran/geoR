@@ -17,8 +17,12 @@
   ## selecting locations inside the borders 
   ##
   locations <- check.locations(locations)
+  ## Checking for 1D prediction 
+  if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
+    krige1d <- TRUE
+  else krige1d <- FALSE
   if(!is.null(borders)){
-    locations <- locations.inside(locations, borders)
+    locations <- locations.inside(locations, borders, bound=TRUE)
     if(messages.screen)
       cat("ksline: results will be returned only for prediction locations inside the borders\n")
   }
@@ -48,7 +52,7 @@
   ## anisotropy correction
   ##
   if(!is.null(aniso.pars)) {
-    if(length(aniso.pars) != 2 | !is.numeric(aniso.pars))
+    if(length(aniso.pars) != 2 | mode(aniso.pars) != "numeric")
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if(messages.screen)
       cat("ksline: anisotropy correction performed\n")
@@ -175,7 +179,7 @@
       ##
       ## 4.2.1 Simple kriging with known mean
       ##
-      if(is.numeric(m0) == TRUE) {
+      if(mode(m0) == "numeric") {
         dif[i] <- skw %*% (data - m0)
         est[i] <- m0 + dif[i]
         if(signal == TRUE) 
@@ -382,7 +386,11 @@
   results$locations <- locations
   results$message <- message
   results$call <- call.fc
-  class(results) <- c("kriging")
+  attr(results, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
+  attr(results, "prediction.locations") <- call.fc$locations
+  if(!is.null(call.fc$borders))
+    attr(results, "borders") <- call.fc$borders
+  oldClass(results) <- c("kriging")
   return(invisible(results))
 }
 
@@ -468,7 +476,7 @@
   ##
   ##  Simple kriging with know mean
   ##
-  if(is.numeric(m0)) {
+  if(mode(m0) == "numeric") {
     difwin <- skwwin %*% (data - m0)
     estwin <- m0win + difwin
     if(signal)

@@ -570,7 +570,7 @@
   result$n.bi <- n.bi
   result$method.lik <- obj.likfit$method.lik
   result$call <- call.fc
-  class(result) <- "proflik"
+  oldClass(result) <- "proflik"
   return(result)
 }
 
@@ -1462,7 +1462,7 @@ function(phi.lambda, ...)
   ##
   ##
   ##
-  if(all(is.character(yaxis.lims)))
+  if(mode(yaxis.lims) == "character")
     yaxis.lims <- match.arg(yaxis.lims)
   type.bi <- match.arg(type.bi)
   ##
@@ -1493,7 +1493,7 @@ function(phi.lambda, ...)
         ylabm <- "profile log-likelihood"
       else ylabm <- "profile log-(restricted) likelihood"
       if(all(conf.int) != FALSE) {
-        if(!is.numeric(conf.int) | any(conf.int > 1))
+        if(mode(conf.int) != "numeric"| any(conf.int > 1))
           stop("argument conf.int must be numerical (scalar or vector) with values between 0 and 1")
         conf.int.drop <- x[[i]][[3]][2] - 0.5 * qchisq(conf.int,1)
       }

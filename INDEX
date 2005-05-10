@@ -15,10 +15,12 @@ eyefit                  Interactive Variogram Estimation
 gambia                  Gambia Malaria Data
 geoRdefunct             Defunct Functions in the Package geoR
 grf                     Simulation of Gaussian Random Fields
+head                    Head observations in a regional confined
+                        aquifer
 hist.krige.bayes        Plots Sample from Posterior Distributions
 hoef                    Data for spatial analysis of experiments
-image.grf               Image or Perspective Plot of Simulated
-                        Gaussian Random Field
+image.grf               Image, Contour or Perspective Plot of
+                        Simulated Gaussian Random Field
 image.krige.bayes       Plots Results of the Predictive Distribution
 image.kriging           Image or Perspective Plot with Kriging Results
 isaaks                  Data from Isaaks and Srisvastava's book
@@ -45,7 +47,7 @@ lines.variomodel.likGRF
 lines.variomodel.variofit
                         Adds a Line with a Fitted Variogram Model to a
                         Variogram Plot
-locations.inside        select prediction locations inside borders
+locations.inside        Select prediction locations inside borders
 loglik.GRF              Log-Likelihood for a Gaussian Random Field
 matern                  Computer Values of the Matern Correlation
                         Function
@@ -84,6 +86,8 @@ summary.geodata         Summaries for geodata object
 summary.likGRF          Summarizes Parameter Estimation Results for
                         Gaussian Random Fields
 summary.variofit        Summarize Results of Variogram Estimation
+tce                     TCE concentrations in groundwater in a
+                        vertical cross section
 trend.spatial           Builds the Trend Matrix
 varcov.spatial          Computes Covariance Matrix and Related Results
 variofit                Variogram Based Parameter Estimation
