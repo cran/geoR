@@ -296,7 +296,7 @@
       if(minimisation.function == "nlm"){
         if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
         names(ini) <- NULL
-        result <- nlm(loss.vario, ini, g.l = .global.list, ...)
+        result <- nlm(.loss.vario, ini, g.l = .global.list, ...)
         result$par <- result$estimate
         result$value <- result$minimum
         result$convergence <- result$code
@@ -342,7 +342,7 @@
             upper <- upper.l["phi.upper"]
           }
         }
-        result <- optim(ini, loss.vario, method = "L-BFGS-B",
+        result <- optim(ini, .loss.vario, method = "L-BFGS-B",
                         hessian = TRUE, lower = lower,
                         upper = upper, g.l = .global.list, ...)
 #        require(methods)
@@ -407,7 +407,7 @@
   return(estimation)
 }
 
-"loss.vario" <-
+".loss.vario" <-
   function (theta, g.l) 
 {
   if(g.l$cov.model == "linear")

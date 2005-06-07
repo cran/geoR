@@ -132,7 +132,7 @@
   if (option == "bin" && bin.cloud == FALSE && direction == "omnidirectional") {
     if (missing(max.dist)) umax <- max(u)  
     else umax <- max(u[u < max.dist])
-    dbins <- define.bins(max.dist = umax, uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
+    dbins <- .define.bins(max.dist = umax, uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
     uvec <- dbins$uvec ; bins.lim <- dbins$bins.lim
     nbins <- length(bins.lim) - 1
     if (missing(max.dist)) max.dist <- max(bins.lim)
@@ -208,7 +208,7 @@
       else umax <- max(u[u < max.dist])
       if(bin.cloud == 'diff') dd <- diffpairs(coords,data)$diff
       else dd <- 0
-      result <- rfm.bin(cloud = list(u = u, v = v, d = dd),
+      result <- .rfm.bin(cloud = list(u = u, v = v, d = dd),
                         estimator.type = estimator.type, 
                         uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance, 
                         bin.cloud = bin.cloud, max.dist = umax, keep.NA = keep.NA)
@@ -494,13 +494,13 @@
   return(invisible())
 }
 
-"rfm.bin" <-
+".rfm.bin" <-
   function (cloud, l = 13, uvec = "default", breaks = "default", nugget.tolerance, 
             estimator.type = c("classical", "modulus"), bin.cloud = FALSE,
             max.dist, keep.NA = FALSE)
 {
   estimator.type <- match.arg(estimator.type)
-  dbins <- define.bins(max.dist = max(cloud$u), uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
+  dbins <- .define.bins(max.dist = max(cloud$u), uvec = uvec, breaks = breaks, nugget.tolerance = nugget.tolerance)
   uvec <- dbins$uvec ; bins.lim <- dbins$bins.lim
   nbins <- nc <- length(bins.lim) - 1
   if(is.null(max.dist)) max.dist <- max(bins.lim)
@@ -741,7 +741,7 @@
   if(mode(x) == "numeric" && missing(max.dist)) max.dist <- max(x, na.rm=TRUE)
   ## reading and checking model/other components
   fn.env <- sys.frame(sys.nframe())
-  check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+  .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                   env=fn.env, output=FALSE)
   if(missing(nugget)){
     if(missing(x) || is.null(x$nugget)) 
@@ -1104,7 +1104,7 @@
   return(invisible())
 }
 
-define.bins <-
+".define.bins" <-
   function(max.dist, uvec = "default", breaks = "default", nugget.tolerance)
 {
   if(all(breaks ==  "default")){

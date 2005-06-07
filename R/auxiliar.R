@@ -6,7 +6,7 @@
 ## to perform internal calculations
 ##
 
-"check.locations" <-
+".check.locations" <-
   function(locations)
 {
   if(all(locations == "no")) return("no")
@@ -46,7 +46,7 @@
   return(as.matrix(locations))
 }
 
-"solve.geoR" <-
+".solve.geoR" <-
   function (a, b = NULL, ...) 
 {
   require(methods)
@@ -173,7 +173,7 @@
   return((df*scale)/rchisq(n, df=df)) 
 }
 
-"check.coords" <-
+".check.coords" <-
   function(x)
 {
   xname <- deparse(substitute(x))
@@ -209,8 +209,8 @@
 {
   if (!require(splancs))
     cat("package splancs in required to select points inside the borders\n")
-  locations <- check.coords(locations)
-  borders <- check.coords(borders)
+  locations <- .check.coords(locations)
+  borders <- .check.coords(borders)
   res <- pip(pts = locations, poly = borders, ...)
   if(as.is){
     if(attr(locations, "type") == "dataframe")
@@ -322,7 +322,7 @@
   return(trend.mat)
 }
 
-"nlmP" <- function(objfunc, params, lower = rep( -Inf, length(params)),
+".nlmP" <- function(objfunc, params, lower = rep( -Inf, length(params)),
                    upper = rep(+Inf, length(params)), ... )
 {
   ## minimizer, using nlm with transformation of variables
@@ -575,7 +575,7 @@
   return(invisible())
 }
 
-"ldots.set" <-
+".ldots.set" <-
   function(ldots,
            type=c("persp", "image", "plot.1d", "contour", "filled.contour"),
            data = c("simulation", "prediction"))
@@ -624,7 +624,7 @@
   return(ldots)
 }
 
-"prepare.graph.kriging" <-
+".prepare.graph.kriging" <-
   function (locations, borders, borders.obj=NULL, values, xlim, ylim, ...) 
 {
   ind <- order(locations[, 2], locations[, 1])

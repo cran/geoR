@@ -16,7 +16,7 @@
   ##
   ## selecting locations inside the borders 
   ##
-  locations <- check.locations(locations)
+  locations <- .check.locations(locations)
   ## Checking for 1D prediction 
   if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
     krige1d <- TRUE
@@ -301,7 +301,7 @@
                                          1) * ni), ncol = (ncol(ktedata) + 1))
     }
     for (i in 1:ni) {
-      temp.win <- ksline.aux.1(coords = coords, coords.c = coords.c,
+      temp.win <- .ksline.aux.1(coords = coords, coords.c = coords.c,
                                data = data, n = n,
                                locations = locations[i,  ],
                                locations.c = locations.c[i,  ],
@@ -394,7 +394,7 @@
   return(invisible(results))
 }
 
-"ksline.aux.1" <-
+".ksline.aux.1" <-
   function (coords, coords.c, data, n, locations, locations.c, cov.pars,
             nugget, cov.model, kappa, 
             m0, nwin, trend, d, ktedata, ktelocations, mbased,

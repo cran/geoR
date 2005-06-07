@@ -8,9 +8,9 @@
 \alias{likfit.old}
 \alias{likfit.nospatial}
 \alias{loglik.spatial}
-\alias{proflik.nug}
-\alias{proflik.phi}
-\alias{proflik.ftau}
+\alias{.proflik.nug}
+\alias{.proflik.phi}
+\alias{.proflik.ftau}
 \alias{distdiag}
 
 \usage{

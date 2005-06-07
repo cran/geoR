@@ -4,42 +4,42 @@
 
 \alias{proflik}
 
-\alias{proflik.aux0}
-\alias{proflik.aux1}
-\alias{proflik.aux10}
-\alias{proflik.aux11}
-\alias{proflik.aux1.1}
-\alias{proflik.aux12}
-\alias{proflik.aux13}
-\alias{proflik.aux14}
-\alias{proflik.aux15}
-\alias{proflik.aux16}
-\alias{proflik.aux17}
-\alias{proflik.aux18}
-\alias{proflik.aux19}
-\alias{proflik.aux2}
-\alias{proflik.aux20}
-\alias{proflik.aux21}
-\alias{proflik.aux21.1}
-\alias{proflik.aux22}
-\alias{proflik.aux23}
-\alias{proflik.aux24}
-\alias{proflik.aux27}
-\alias{proflik.aux28}
-\alias{proflik.aux30}
-\alias{proflik.aux3}
-\alias{proflik.aux31}
-\alias{proflik.aux32}
-\alias{proflik.aux33}
-\alias{proflik.aux4}
-\alias{proflik.aux5}
-\alias{proflik.aux6}
-\alias{proflik.aux7}
-\alias{proflik.aux8}
-\alias{proflik.aux9}
-\alias{proflik.cov}
-\alias{proflik.lambda}
-\alias{proflik.main}
+\alias{.proflik.aux0}
+\alias{.proflik.aux1}
+\alias{.proflik.aux10}
+\alias{.proflik.aux11}
+\alias{.proflik.aux1.1}
+\alias{.proflik.aux12}
+\alias{.proflik.aux13}
+\alias{.proflik.aux14}
+\alias{.proflik.aux15}
+\alias{.proflik.aux16}
+\alias{.proflik.aux17}
+\alias{.proflik.aux18}
+\alias{.proflik.aux19}
+\alias{.proflik.aux2}
+\alias{.proflik.aux20}
+\alias{.proflik.aux21}
+\alias{.proflik.aux21.1}
+\alias{.proflik.aux22}
+\alias{.proflik.aux23}
+\alias{.proflik.aux24}
+\alias{.proflik.aux27}
+\alias{.proflik.aux28}
+\alias{.proflik.aux30}
+\alias{.proflik.aux3}
+\alias{.proflik.aux31}
+\alias{.proflik.aux32}
+\alias{.proflik.aux33}
+\alias{.proflik.aux4}
+\alias{.proflik.aux5}
+\alias{.proflik.aux6}
+\alias{.proflik.aux7}
+\alias{.proflik.aux8}
+\alias{.proflik.aux9}
+\alias{.proflik.cov}
+\alias{.proflik.lambda}
+\alias{.proflik.main}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -117,7 +117,7 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
 }
 
 \details{
-  The functions \code{proflik.*} are auxiliary functions used to
+  The functions \code{.proflik.*} are auxiliary functions used to
   compute the profile likelihoods. These functions are
   internally called by the
   minimization functions when estimating the model parameters.

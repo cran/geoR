@@ -1,7 +1,7 @@
 \name{plot.proflik}
 
 \alias{plot.proflik}
-\alias{proflik.plot.aux1}
+\alias{.proflik.plot.aux1}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 

@@ -1,15 +1,15 @@
 \name{geoR-internal}
 
 \alias{beta.sigmasq.post}
-\alias{cond.sim}
+\alias{.cond.sim}
 \alias{print.betavar}
 \alias{backtransform.moments}
 \alias{BCtransform}
 \alias{rMVnorm}
-\alias{solve.geoR}
+\alias{.solve.geoR}
 \alias{print.grf}
-\alias{check.locations}
-\alias{ldots.set}
+\alias{.check.locations}
+\alias{.ldots.set}
 
 \title{geoR internal functions}
 

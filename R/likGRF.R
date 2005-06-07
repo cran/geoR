@@ -68,7 +68,7 @@
   xmat <- unclass(xmat)
   if(nrow(xmat) != n)
     stop("trend matrix has dimension incompatible with the data")
-  test.xmat <- solve.geoR(crossprod(xmat))
+  test.xmat <- .solve.geoR(crossprod(xmat))
   test.xmat <- NULL
   beta.size <- temp.list$beta.size <- dim(xmat)[2]
   ##
@@ -325,16 +325,16 @@
   if(is.R()){
     if(length(ini) == 1){
       if(upper.optim == Inf) upper.optim <- 1000*max.dist
-      lik.minim <- optimize(negloglik.GRF,lower=lower.optim,upper=upper.optim,fp=fixed.values, ip=ip,temp.list = temp.list, ...)
+      lik.minim <- optimize(.negloglik.GRF,lower=lower.optim,upper=upper.optim,fp=fixed.values, ip=ip,temp.list = temp.list, ...)
       lik.minim <- list(par = lik.minim$minimum, value = lik.minim$objective, convergence = 0, message = "function optimize used")      
     }
     else
-      lik.minim <- optim(par = ini, fn = negloglik.GRF, method="L-BFGS-B",
+      lik.minim <- optim(par = ini, fn = .negloglik.GRF, method="L-BFGS-B",
                          lower=lower.optim, upper=upper.optim,
                          fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
   else{
-    lik.minim <- nlminb(ini, negloglik.GRF,
+    lik.minim <- nlminb(ini, .negloglik.GRF,
                         lower=lower.optim, upper=upper.optim,
                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
@@ -579,7 +579,7 @@
     xivy <- xivy + crossprod(sivx, sivy)
     yivy <- yivy + crossprod(sivy)
   }
-  betahat <- solve.geoR(xivx, xivy)
+  betahat <- .solve.geoR(xivx, xivy)
   res <- as.vector(temp.list$z - xmat %*% betahat)
   if(!fix.nugget | (nugget < 1e-12)){
     ssres <- as.vector(yivy - 2*crossprod(betahat,xivy) +
@@ -594,7 +594,7 @@
       tausq <- nugget
   }
   else tausq <- tausq * sigmasq
-  betahat.var <- solve.geoR(xivx)
+  betahat.var <- .solve.geoR(xivx)
   if(sigmasq > 1e-12) betahat.var <- sigmasq * betahat.var
 #  if(!fix.nugget & phi < 1e-16){
 #    tausq <- sigmasq + tausq
@@ -649,7 +649,7 @@
   ##
   if(nospatial){
     if(fix.lambda){
-      beta.ns <- solve.geoR(crossprod(xmat), crossprod(xmat, temp.list$z))
+      beta.ns <- .solve.geoR(crossprod(xmat), crossprod(xmat, temp.list$z))
       ss.ns <- sum((as.vector(temp.list$z - xmat %*% beta.ns))^2)
       if(method.lik == "ML"){
         nugget.ns <- ss.ns/n
@@ -665,14 +665,14 @@
     }
     else{
       if(is.R())
-        lik.lambda.ns <- optim(par=1, fn = negloglik.boxcox,
+        lik.lambda.ns <- optim(par=1, fn = .negloglik.boxcox,
                                method = "L-BFGS-B",
                                lower = limits$lambda["lower"],
                                upper = limits$lambda["upper"],
                                data = data, xmat = xmat,
                                lik.method = method.lik)
       else
-        lik.lambda.ns <- nlminb(par=1, fn = negloglik.boxcox,
+        lik.lambda.ns <- nlminb(par=1, fn = .negloglik.boxcox,
                                 lower=limits$lambda["lower"],
                                 upper=limits$lambda["upper"],
                                 data = data, xmat = xmat,
@@ -680,7 +680,7 @@
       lambda.ns <- lik.lambda.ns$par
       if(abs(lambda) < 0.0001) tdata.ns <- log(data)
       else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
-      beta.ns <- solve.geoR(crossprod(xmat),crossprod(xmat,tdata.ns))
+      beta.ns <- .solve.geoR(crossprod(xmat),crossprod(xmat,tdata.ns))
       ss.ns <- sum((as.vector(tdata.ns - xmat %*% beta.ns))^2)
       if(is.R())
         value.min.ns <- lik.lambda.ns$value
@@ -785,7 +785,7 @@
   return(lik.results)
 }
 
-"negloglik.GRF" <-
+".negloglik.GRF" <-
   function(pars, fp, ip, temp.list)
 ### pars : values for the parameters to be estimated
   ## sequence is c(phi, tausq, kappa, lambda, psiR, psiA, sigmasq)
@@ -1111,7 +1111,7 @@
     xivx <- crossprod(sivx)
     sivy <- crossprod(iv$sqrt.inverse, z)
     xivy <- crossprod(sivx, sivy)
-    betahat <- solve.geoR(xivx, xivy)
+    betahat <- .solve.geoR(xivx, xivy)
     if(inherits(betahat, "try-error")){
       t.ei <- eigen(xivx, symmetric = TRUE)
       require(methods)
@@ -1394,7 +1394,7 @@
     xivx <- crossprod(sivx)
     sivy <- crossprod(iv$sqrt.inverse, data[[i]])
     xivy <- crossprod(sivx, sivy)  
-    betahat <- solve.geoR(xivx, xivy)
+    betahat <- .solve.geoR(xivx, xivy)
     res <- data[[i]] - xmat[[i]] %*% betahat
     ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
     if(method.lik == "ML"){

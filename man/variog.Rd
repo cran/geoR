@@ -1,8 +1,8 @@
 \name{variog}
 
 \alias{variog}
-\alias{rfm.bin}
-\alias{define.bins}
+\alias{.rfm.bin}
+\alias{.define.bins}
 
 \concept{variogram}
 

@@ -2,7 +2,7 @@
 
 \alias{likfit}
 \alias{likfit.limits}
-\alias{negloglik.GRF}
+\alias{.negloglik.GRF}
 
 \concept{variogram parameter estimation}
 

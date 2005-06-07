@@ -2,7 +2,7 @@
 
 \alias{grf}
 \alias{geoR2RF}
-\alias{grf.aux1}
+\alias{.grf.aux1}
 \alias{grfclass}
 \alias{lines.grf}
 

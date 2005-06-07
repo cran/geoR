@@ -1,7 +1,7 @@
 \name{variofit}
 
 \alias{variofit}
-\alias{loss.vario}
+\alias{.loss.vario}
 
 \concept{variogram parameter estimation}
 

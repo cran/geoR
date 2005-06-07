@@ -3,7 +3,7 @@
 \alias{image.krige.bayes}
 \alias{contour.krige.bayes}
 \alias{persp.krige.bayes}
-\alias{prepare.graph.krige.bayes}
+\alias{.prepare.graph.krige.bayes}
 
 \title{Plots Results of the Predictive Distribution}
 

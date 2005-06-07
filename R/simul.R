@@ -69,7 +69,7 @@
     nst <- nrow(cov.pars)
   }
   sill.total <- tausq + sum(sigmasq)
-  messa <- grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
+  messa <- .grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
   ##
   ## setting seed
   ##
@@ -204,7 +204,7 @@
                        nugget = nugget, kappa = kappa, mean=mean)
       results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
                               model = setRF$model,
-                              param = setRF$param, grid = FALSE)
+                              param = setRF$param, grid = FALSE, n=nsim)
       
     }
     else
@@ -272,7 +272,7 @@
 }
 
 
-"grf.aux1" <-
+".grf.aux1" <-
   function (nst, nugget, sigmasq, phi, kappa, cov.model) 
 {
   cov.nst <- paste("grf: process with ", nst, " covariance structure(s)\n")
@@ -333,7 +333,7 @@
   if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
     do.call("plot.1d", c(list(x = x,
                               x1vals = x1vals),
-                         ldots.set(ldots, type="plot.1d",
+                         .ldots.set(ldots, type="plot.1d",
                                    data="simulation")))
   }
   else{
@@ -351,7 +351,7 @@
     ##
     do.call("image", c(list(x=x1vals, y=x2vals,
                             z=matrix(x$data[, sim.number], nc=ny)),
-                       ldots.set(ldots, type="image",
+                       .ldots.set(ldots, type="image",
                                  data="simulation")))
     ##
     ## Adding the legend (if the case)
@@ -378,7 +378,7 @@
   if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
     do.call("plot.1d", c(list(x = x,
                               x1vals = x1vals),
-                       ldots.set(ldots, type="plot.1d",
+                       .ldots.set(ldots, type="plot.1d",
                                  data="simulation")))
   }
   else{
@@ -388,7 +388,7 @@
       stop("cannot produce perspective plot, probably irregular grid")
     do.call("persp", c(list(x=x1vals, y=x2vals,
                             z=matrix(x$data[, sim.number], ncol = ny)),
-                       ldots.set(ldots, type="persp",
+                       .ldots.set(ldots, type="persp",
                                  data="simulation")))
   }
   return(invisible())
@@ -405,7 +405,7 @@
   if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
     do.call("plot.1d", c(list(x = x,
                               x1vals = x1vals),
-                       ldots.set(ldots, type="plot.1d",
+                       .ldots.set(ldots, type="plot.1d",
                                  data="simulation")))
   }
   else{
@@ -414,10 +414,10 @@
     if(nx * ny != n)
       stop("cannot produce the countour plot, probably irregular grid")
     if(filled)
-      ldots.contour <- ldots.set(ldots, type="filled.contour",
+      ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
     else
-      ldots.contour <- ldots.set(ldots, type="contour",
+      ldots.contour <- .ldots.set(ldots, type="contour",
                                  data="prediction")
     if(filled){
       if(is.null(ldots.contour$plot.axes)){

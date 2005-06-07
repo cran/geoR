@@ -3,7 +3,7 @@
 \alias{image.kriging}
 \alias{contour.kriging}
 \alias{persp.kriging}
-\alias{prepare.graph.kriging}
+\alias{.prepare.graph.kriging}
 \alias{plot.1d}
 
 %- Also NEED an `\alias' for EACH other topic documented here.

@@ -2,7 +2,7 @@
 
 
 \alias{locations.inside}
-\alias{check.coords}
+\alias{.check.coords}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Select prediction locations inside borders}

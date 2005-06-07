@@ -4,7 +4,7 @@
 {
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
-  locations <- check.locations(locations)
+  locations <- .check.locations(locations)
   ## Checking for 1D prediction 
   if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
     krige1d <- TRUE
@@ -257,12 +257,12 @@
                            kappa = kappa, nugget = tausq.rel,
                            cov.pars = cpars, inv = TRUE,
                            only.inv.lower.diag = TRUE)
-  ittivtt <- solve.geoR(bilinearformXAY(X = as.vector(trend.d),
+  ittivtt <- .solve.geoR(.bilinearformXAY(X = as.vector(trend.d),
                                         lowerA = as.vector(invcov$lower.inverse),
                                         diagA = as.vector(invcov$diag.inverse), 
                                         Y = as.vector(trend.d)))
   if(beta.prior == "flat"){
-    beta.flat <- drop(ittivtt %*% bilinearformXAY(X = as.vector(trend.d),
+    beta.flat <- drop(ittivtt %*% .bilinearformXAY(X = as.vector(trend.d),
                                                   lowerA = as.vector(invcov$lower.inverse),
                                                   diagA = as.vector(invcov$diag.inverse), 
                                                   Y = as.vector(data)))
@@ -287,10 +287,10 @@
   v0 <- ifelse(v0 < krige$dist.epsilon, 1+nug.factor,
                cov.spatial(obj = v0, cov.model = cov.model, 
                            kappa = kappa, cov.pars = cpars))
-  tv0ivv0 <- diagquadraticformXAX(X = as.vector(v0),
+  tv0ivv0 <- .diagquadraticformXAX(X = as.vector(v0),
                                   lowerA = invcov$lower.inverse,
                                   diagA = invcov$diag.inverse)
-  b <- bilinearformXAY(X = as.vector(cbind(data,trend.d)),
+  b <- .bilinearformXAY(X = as.vector(cbind(data,trend.d)),
                        lowerA = as.vector(invcov$lower.inverse),
                        diagA = as.vector(invcov$diag.inverse), 
                        Y = as.vector(v0))
@@ -307,7 +307,7 @@
     if(beta.size == 1)
       bitb <- drop(b^2) * drop(ittivtt)
     else
-      bitb <- diagquadraticformXAX(X = b,
+      bitb <- .diagquadraticformXAX(X = b,
                                    lowerA = (ittivtt[lower.tri(ittivtt)]),
                                    diagA = diag(ittivtt))
     kc$krige.var <- sill.partial * drop(1+nug.factor - tv0ivv0 + bitb)
@@ -333,7 +333,7 @@
       cat("krige.conv: sampling from the predictive distribution (conditional simulations)\n")
     if(length(cov.pars) > 2){
       reduce.var <-
-        bilinearformXAY(X = as.vector(v0),
+        .bilinearformXAY(X = as.vector(v0),
                         lowerA = as.vector(invcov$lower.inverse),
                         diagA = as.vector(invcov$diag.inverse), 
                         Y = as.vector(v0))
@@ -344,7 +344,7 @@
           ok.add.var <- outer(as.vector(b),as.vector(b)) * as.vector(ittivtt)
         else
           ok.add.var <-
-            bilinearformXAY(X = as.vector(b),
+            .bilinearformXAY(X = as.vector(b),
                             lowerA = as.vector(ittivtt[lower.tri(ittivtt)]),
                             diagA = as.vector(diag(ittivtt)), 
                             Y = as.vector(b))
@@ -382,7 +382,7 @@
       kc$simulations <- matrix(NA, nrow=ni, ncol=n.predictive)
       if(nloc > 0)
         kc$simulations[ind.not.coincide,] <- 
-          cond.sim(env.loc = base.env, env.iter = base.env,
+          .cond.sim(env.loc = base.env, env.iter = base.env,
                    loc.coincide = loc.coincide,
                    coincide.cond = coincide.cond, 
                    tmean = kc$predict[ind.not.coincide],
@@ -390,7 +390,7 @@
                    mod = list(beta.size = beta.size, nloc = nloc,
                      Nsims = n.predictive, n = n, Dval = Dval,
                      df.model = df.model, s2 = sill.partial,
-                     cov.model.number = cor.number(cov.model),
+                     cov.model.number = .cor.number(cov.model),
                      phi = phi, kappa = kappa, nugget=nugget),
                    vbetai = vbetai,
                    fixed.sigmasq = TRUE)
@@ -571,12 +571,12 @@
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
     do.call("plot.1d", c(list(x = values,
                               x1vals = unique(round(locations[,1], dig=12))),
-                         ldots.set(ldots, type="plot.1d",
+                         .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   }
   else{
-    ldots.image <- ldots.set(ldots, type="image", data="prediction")
-    locations <- prepare.graph.kriging(locations=locations,
+    ldots.image <- .ldots.set(ldots, type="image", data="prediction")
+    locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,
@@ -633,18 +633,18 @@
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
     do.call("plot.1d", c(list(x = values,
                               x1vals = unique(round(locations[,1], dig=12))),
-                         ldots.set(ldots, type="plot.1d",
+                         .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   }
   else{
     if(filled)
-      ldots.contour <- ldots.set(ldots, type="filled.contour",
+      ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
     else
-      ldots.contour <- ldots.set(ldots, type="contour",
+      ldots.contour <- .ldots.set(ldots, type="contour",
                                  data="prediction")
     if(is.null(ldots.contour$asp)) ldots.contour$asp=1
-    locations <- prepare.graph.kriging(locations=locations,
+    locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,
@@ -695,11 +695,11 @@
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
     do.call("plot.1d", c(list(x= values,
                               x1vals = unique(round(locations[,1], dig=12))),
-                         ldots.set(ldots, type="plot.1d",
+                         .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   else{
-    ldots.persp <- ldots.set(ldots, type="persp", data="prediction")
-    locations <- prepare.graph.kriging(locations=locations,
+    ldots.persp <- .ldots.set(ldots, type="persp", data="prediction")
+    locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,

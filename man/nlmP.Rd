@@ -1,6 +1,6 @@
-\name{nlmP}
+\name{.nlmP}
 
-\alias{nlmP}
+\alias{.nlmP}
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Adapts nlm for Constraints in the Parameter Values}
 
@@ -9,8 +9,8 @@
 constraints (upper and/or lower bounds) in the values of the parameters. 
 }
 \usage{
-nlmP(objfunc, params, lower=rep(-Inf, length(params)),
-     upper=rep(+Inf, length(params)), \dots)
+.nlmP(objfunc, params, lower=rep(-Inf, length(params)),
+      upper=rep(+Inf, length(params)), \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

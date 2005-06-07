@@ -73,7 +73,7 @@
     }
   }
   cov.model <- model$cov.model
-  cov.model.number <- cor.number(cov.model)
+  cov.model.number <- .cor.number(cov.model)
   kappa <- model$kappa
   lambda <- model$lambda
   ##
@@ -155,9 +155,9 @@
         beta.var.std <- matrix(beta.var.std, nbeta, nbeta)
         ind.pos <- (j-1)*nphipr + i
         betares[[ind.pos]] <-
-          list(iv = solve.geoR(beta.var.std),
-               ivm = drop(solve.geoR(beta.var.std, beta)),
-               mivm = drop(crossprod(beta, solve.geoR(beta.var.std, beta))))
+          list(iv = .solve.geoR(beta.var.std),
+               ivm = drop(.solve.geoR(beta.var.std, beta)),
+               mivm = drop(crossprod(beta, .solve.geoR(beta.var.std, beta))))
       }
     }
   }
@@ -306,7 +306,7 @@
       stop("size of beta incompatible with the trend model (covariates)")
   }
   if(do.prediction) {
-    locations <- check.locations(locations)    
+    locations <- .check.locations(locations)    
     ##
     ## selecting locations inside the borders 
     ##
@@ -947,7 +947,7 @@
                         cov.model = cov.model, kappa = kappa,
                         cov.pars = c(1, phi))
       ## care here, reusing object b
-      b <- bilinearformXAY(X = as.vector(cbind(data, trend.data)),
+      b <- .bilinearformXAY(X = as.vector(cbind(data, trend.data)),
                            lowerA = as.vector(inv.lower[phi.ind, nug.ind,,drop=TRUE]),
                            diagA = as.vector(inv.diag[phi.ind, nug.ind,,drop=TRUE]), 
                            Y = as.vector(v0))
@@ -987,7 +987,7 @@
       simul <- matrix(NA, nrow=ni, ncol=Nsims)
       if(nloc > 0)
         simul[ind.not.coincide,] <-
-          cond.sim(env.loc = base.env, env.iter = iter.env,
+          .cond.sim(env.loc = base.env, env.iter = iter.env,
                    loc.coincide = get("loc.coincide", envir=pred.env),
                    coincide.cond = coincide.cond,
                    tmean = tmean,
@@ -1106,7 +1106,7 @@
   return(kb)
 }
 
-"prepare.graph.krige.bayes" <-
+".prepare.graph.krige.bayes" <-
   function (obj, locations, borders, borders.obj=NULL,
             values.to.plot, number.col, xlim, ylim, messages, ...) 
 {
@@ -1257,11 +1257,11 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
     do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   else{
-    ldots.image <- ldots.set(ldots, type="image", data="prediction")
-    locations <- prepare.graph.krige.bayes(obj=x,
+    ldots.image <- .ldots.set(ldots, type="image", data="prediction")
+    locations <- .prepare.graph.krige.bayes(obj=x,
                                            locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
@@ -1322,16 +1322,16 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
     do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
                                     data="prediction")))
   else{
     if(filled)
-      ldots.contour <- ldots.set(ldots, type="filled.contour",
+      ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
     else
-      ldots.contour <- ldots.set(ldots, type="filled.contour",
+      ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
-    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+    locations <- .prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
@@ -1396,11 +1396,11 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
     do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         ldots.set(ldots, type="plot.1d",
+                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
                                     data="prediction")))
   else{
-    ldots.persp <- ldots.set(ldots, type="persp", data="prediction")
-    locations <- prepare.graph.krige.bayes(obj=x, locations=locations,
+    ldots.persp <- .ldots.set(ldots, type="persp", data="prediction")
+    locations <- .prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
                                            values.to.plot=values.to.plot,
@@ -1651,7 +1651,7 @@
           stop("prior.control: beta and beta.var.std have incompatible dimensions")
         require(methods)
         if(exists("trySilent")){
-          if(inherits(trySilent(solve.geoR(beta.var.std)), "try-error"))
+          if(inherits(trySilent(.solve.geoR(beta.var.std)), "try-error"))
             stop("prior.control: singular matrix in beta.var.std")
           if(inherits(trySilent(chol(beta.var.std)), "try-error"))
             stop("prior.control: no Cholesky decomposition for beta.var.std")
@@ -1661,7 +1661,7 @@
           if (is.null(error.now) | error.now) 
             on.exit(options(show.error.messages = TRUE))
           options(show.error.messages = FALSE)
-          if(inherits(try(solve.geoR(beta.var.std)), "try-error"))
+          if(inherits(try(.solve.geoR(beta.var.std)), "try-error"))
             stop("prior.control: singular matrix in beta.var.std")
           if(inherits(try(chol(beta.var.std)), "try-error"))
             stop("prior.control: no Cholesky decomposition for beta.var.std")
@@ -1874,16 +1874,16 @@
   ##        sigmasq.fixed
   ##-----------------------------------------------------------------
   ##
-  ## Using C code to compute bilinear forms (faster)
+  ## Using C code to compute .bilinear forms (faster)
   ##
   iR <- varcov.spatial(dists.lowertri = get("data.dist", envir=env.dists),
                        cov.model = model$cov.model,
                        kappa = model$kappa, nugget = tausq.rel,
                        cov.pars = c(1, phi), inv = TRUE,
                        only.inv.lower.diag = TRUE, det = dets)
-  yiRy <- bilinearformXAY(X = y, lowerA = iR$lower.inverse,
+  yiRy <- .bilinearformXAY(X = y, lowerA = iR$lower.inverse,
                           diagA = iR$diag.inverse, Y = y)
-  xiRy.x <- bilinearformXAY(X = xmat, lowerA = iR$lower.inverse,
+  xiRy.x <- .bilinearformXAY(X = xmat, lowerA = iR$lower.inverse,
                           diagA = iR$diag.inverse, Y = cbind(y, xmat))
   ##
   ## Using R alone (not convenient if det = TRUE !!!) 
@@ -1891,7 +1891,7 @@
 ###    R <- varcov.spatial(dists.lowertri=dists.lowertri, cov.model = model$cov.model,
 ###             kappa = model$kappa, nugget = tausq.rel,
 ###                        cov.pars = c(1, phi))$varcov
-###    iRy.x <- solve.geoR(R, cbind(y,xmat))
+###    iRy.x <- .solve.geoR(R, cbind(y,xmat))
 ###    xiRy.x <- crossprod(xmat, iRy.x)
 ###    yiRy <- crossprod(y, iRy.x[,1])
 ###    iRy.x <- NULL
@@ -1905,7 +1905,7 @@
   }
   else{
     inv.beta.var.std.post <- drop(beta.info$iv + xiRy.x[,-1])
-    beta.var.std.post <- solve.geoR(inv.beta.var.std.post)
+    beta.var.std.post <- .solve.geoR(inv.beta.var.std.post)
     beta.post <- drop(beta.var.std.post %*% (beta.info$ivm + xiRy.x[,1]))
   }
   ##
@@ -1944,7 +1944,7 @@
                             kappa = model$kappa, cov.pars = c(1, phi)),
            envir=env.r0)
     ## care here, reusing b
-    b <- bilinearformXAY(X = get("r0", envir=env.r0),
+    b <- .bilinearformXAY(X = get("r0", envir=env.r0),
                          lowerA = iR$lower.inverse,
                          diagA = iR$diag.inverse, Y = cbind(y, xmat))
     riRy <- b[,1, drop=FALSE]
@@ -1954,13 +1954,13 @@
     if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=env.pred))))
       res$pred.mean[get("loc.coincide", envir=env.pred)] <- get("data.coincide", envir=env.pred)
     ##
-    R.riRr.bVb <- 1 - diagquadraticformXAX(X = get("r0", envir=env.r0),
+    R.riRr.bVb <- 1 - .diagquadraticformXAX(X = get("r0", envir=env.r0),
                                            lowerA = iR$lower.inverse,
                                            diagA = iR$diag.inverse)
     remove("env.r0")
      if(all(beta.info$iv != Inf))
        R.riRr.bVb <- R.riRr.bVb +
-         diagquadraticformXAX(X = t(b),
+         .diagquadraticformXAX(X = t(b),
                               lowerA=beta.var.std.post[lower.tri(beta.var.std.post)],
                               diagA = diag(beta.var.std.post))
     ##

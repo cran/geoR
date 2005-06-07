@@ -204,7 +204,7 @@
         if(fix.lambda == TRUE) {
           assign(".temp.lower", c(0, lower.phi), pos=1)
           if(minimisation.function == "nlm"){
-            lik.results <- nlm(proflik.ftau, ini, ...)
+            lik.results <- nlm(.proflik.ftau, ini, ...)
             if(exists(".temp.sill")){
               lik.results$estimate[1] <- .temp.sill
               remove(".temp.sill", pos=1)
@@ -217,10 +217,10 @@
           }
           if(minimisation.function == "nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
-            lik.results <- nlmP(proflik.ftau, ini, lower=c(0, lower.phi), upper=c(10000*var.z, upper.phi), ...)
+            lik.results <- .nlmP(.proflik.ftau, ini, lower=c(0, lower.phi), upper=c(10000*var.z, upper.phi), ...)
           }            
           if(minimisation.function == "optim"){
-            lik.results <- optim(ini, proflik.ftau, method="L-BFGS-B", lower=c(0, lower.phi), upper=c(10000*var.z, upper.phi), ...)
+            lik.results <- optim(ini, .proflik.ftau, method="L-BFGS-B", lower=c(0, lower.phi), upper=c(10000*var.z, upper.phi), ...)
             lik.results$estimate <- lik.results$par
           }            
         }
@@ -229,7 +229,7 @@
             assign(".temp.lower", c(0, lower.phi), pos=1)
             assign(".temp.lower.lambda", -2, pos=1)
             assign(".temp.upper.lambda", 2, pos=1)
-            lik.results <- nlm(proflik.ftau, c(ini,lambda), ...)
+            lik.results <- nlm(.proflik.ftau, c(ini,lambda), ...)
             if(exists(".temp.sill")){
               lik.results$estimate[1] <- .temp.sill
               remove(".temp.sill", pos=1)
@@ -249,11 +249,11 @@
           }
           if(minimisation.function == "nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
-            lik.results <- nlmP(proflik.ftau, c(ini,lambda), lower = c(0, lower.phi, -2), upper = c(10000*var.z, upper.phi, 2), ...)
+            lik.results <- .nlmP(.proflik.ftau, c(ini,lambda), lower = c(0, lower.phi, -2), upper = c(10000*var.z, upper.phi, 2), ...)
             lambda <- lik.results$estimate[3]
           }
           if(minimisation.function == "optim"){
-            lik.results <- optim(c(ini,lambda), proflik.ftau, method="L-BFGS-B", lower = c(0, lower.phi, -2), upper = c(10000*var.z, upper.phi, 2), ...)
+            lik.results <- optim(c(ini,lambda), .proflik.ftau, method="L-BFGS-B", lower = c(0, lower.phi, -2), upper = c(10000*var.z, upper.phi, 2), ...)
             lik.results$estimate <- lik.results$par              
             lambda <- lik.results$estimate[3]
           }
@@ -272,7 +272,7 @@
         if(fix.lambda == TRUE) {
           if (minimisation.function=="nlm"){
             assign(".temp.lower", c(0, lower.phi), pos=1)
-            lik.results <- nlm(proflik.nug, ini.m, ...) 
+            lik.results <- nlm(.proflik.nug, ini.m, ...) 
             if(exists(".temp.nugget")){
               lik.results$estimate[1] <- .temp.nugget
               remove(".temp.nugget", pos=1)
@@ -286,10 +286,10 @@
           if (minimisation.function=="nlmP"){
             if(ini.m[1] == 0) ini.m[1] <- 0.05
             assign(".ind.prof.phi", 2, pos=1)
-            lik.results <- nlmP(proflik.nug, ini.m, lower=c(0, lower.phi), upper=c(100, upper.phi),...) 
+            lik.results <- .nlmP(.proflik.nug, ini.m, lower=c(0, lower.phi), upper=c(100, upper.phi),...) 
           }
           if (minimisation.function=="optim"){
-            lik.results <- optim(ini.m, proflik.nug, method="L-BFGS-B", lower=c(0, lower.phi), upper=c(100, upper.phi),...) 
+            lik.results <- optim(ini.m, .proflik.nug, method="L-BFGS-B", lower=c(0, lower.phi), upper=c(100, upper.phi),...) 
             lik.results$estimate <- lik.results$par              
           }
         }
@@ -298,7 +298,7 @@
             assign(".temp.lower", c(0, lower.phi), pos=1)
             assign(".temp.lower.lambda", -2, pos=1)
             assign(".temp.upper.lambda", 2, pos=1)
-            lik.results <- nlm(proflik.nug, c(ini.m, lambda), ...)
+            lik.results <- nlm(.proflik.nug, c(ini.m, lambda), ...)
             if(exists(".temp.nugget")){
               lik.results$estimate[1] <- .temp.nugget
               remove(".temp.nugget", pos=1)
@@ -318,11 +318,11 @@
           }
           if (minimisation.function=="nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
-            lik.results <- nlmP(proflik.nug, c(ini.m, lambda), lower=c(0, lower.phi, -2), upper=c(100, upper.phi, 2),...)
+            lik.results <- .nlmP(.proflik.nug, c(ini.m, lambda), lower=c(0, lower.phi, -2), upper=c(100, upper.phi, 2),...)
             lambda <- lik.results$estimate[3]
           }
           if (minimisation.function=="optim"){
-            lik.results <- optim(c(ini.m, lambda), proflik.nug, method="L-BFGS-B", lower=c(0, lower.phi, -2), upper=c(100, upper.phi, 2),...)
+            lik.results <- optim(c(ini.m, lambda), .proflik.nug, method="L-BFGS-B", lower=c(0, lower.phi, -2), upper=c(100, upper.phi, 2),...)
             lik.results$estimate <- lik.results$par              
             lambda <- lik.results$estimate[3]
           }            
@@ -346,7 +346,7 @@
           if(fix.lambda == TRUE) {
             if (minimisation.function=="nlm"){
               assign(".temp.lower.phi", lower.phi, pos=1)
-              lik.results <- nlm(proflik.phi, ini[3],  ...)
+              lik.results <- nlm(.proflik.phi, ini[3],  ...)
               if(exists(".temp.phi")){
                 lik.results$estimate <- .temp.phi
                 remove(".temp.phi", pos=1)
@@ -355,10 +355,10 @@
             }
             if (minimisation.function=="nlmP"){
               assign(".ind.prof.phi", 1, pos=1)
-              lik.results <- nlmP(proflik.phi, ini[3],  lower=lower.phi, upper=upper.phi,...)
+              lik.results <- .nlmP(.proflik.phi, ini[3],  lower=lower.phi, upper=upper.phi,...)
             }
             if (minimisation.function=="optim"){
-              lik.results <- optim(ini[3], proflik.phi, method="L-BFGS-B",  lower=lower.phi, upper=upper.phi,...)
+              lik.results <- optim(ini[3], .proflik.phi, method="L-BFGS-B",  lower=lower.phi, upper=upper.phi,...)
               lik.results$estimate <- lik.results$par  
             }
           }
@@ -367,7 +367,7 @@
               assign(".temp.lower.phi", lower.phi, pos=1)
               assign(".temp.lower.lambda", -2, pos=1)
               assign(".temp.upper.lambda", 2, pos=1)
-              lik.results <- nlm(proflik.phi, c(ini[3], lambda), ...)
+              lik.results <- nlm(.proflik.phi, c(ini[3], lambda), ...)
               if(exists(".temp.lambda")){
                 lambda <- .temp.lambda
                 remove(".temp.lambda", pos=1)
@@ -385,12 +385,12 @@
               rm(.temp.lower.phi, .temp.lower.lambda, .temp.upper.lambda, inherits = TRUE, pos=1)
             }
             if (minimisation.function=="nlmP"){
-              lik.results <- nlmP(proflik.phi, c(ini[3], lambda), lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
+              lik.results <- .nlmP(.proflik.phi, c(ini[3], lambda), lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
               lambda <- lik.results$estimate[2]
               lik.results$estimate <- lik.results$estimate[1]
             }
             if (minimisation.function=="optim"){
-              lik.results <- optim(c(ini[3], lambda), proflik.phi, method="L-BFGS-B", lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
+              lik.results <- optim(c(ini[3], lambda), .proflik.phi, method="L-BFGS-B", lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
               lik.results$estimate <- lik.results$par  
               lambda <- lik.results$estimate[2]
               lik.results$estimate <- lik.results$estimate[1]
@@ -447,7 +447,7 @@
       if(fix.lambda == TRUE) {
         if (minimisation.function=="nlm"){
           assign(".temp.lower.phi", lower.phi, pos=1)
-          lik.results <- nlm(proflik.phi,ini.m,   ...)
+          lik.results <- nlm(.proflik.phi,ini.m,   ...)
           if(exists(".temp.phi")){
             lik.results$estimate <- .temp.phi
             remove(".temp.phi", pos=1)
@@ -456,10 +456,10 @@
         }
         if (minimisation.function=="nlmP"){
           assign(".ind.prof.phi", 1, pos=1)
-          lik.results <- nlmP(proflik.phi,ini.m, lower=lower.phi, upper=upper.phi,...)
+          lik.results <- .nlmP(.proflik.phi,ini.m, lower=lower.phi, upper=upper.phi,...)
         }
         if (minimisation.function=="optim"){
-          lik.results <- optim(ini.m, proflik.phi, method="L-BFGS-B", lower=lower.phi, upper=upper.phi,...)
+          lik.results <- optim(ini.m, .proflik.phi, method="L-BFGS-B", lower=lower.phi, upper=upper.phi,...)
           lik.results$estimate <- lik.results$par
         }
       }
@@ -468,7 +468,7 @@
           assign(".temp.lower.phi", lower.phi, pos=1)
           assign(".temp.lower.lambda", -2, pos=1)
           assign(".temp.upper.lambda", 2, pos=1)
-          lik.results <- nlm(proflik.phi, c(ini.m, lambda), ...)
+          lik.results <- nlm(.proflik.phi, c(ini.m, lambda), ...)
           if(exists(".temp.lambda")){
             lambda <- .temp.lambda
             remove(".temp.lambda", pos=1)
@@ -487,12 +487,12 @@
         }
         if (minimisation.function=="nlmP"){
           assign(".ind.prof.phi", 1, pos=1)
-          lik.results <- nlmP(proflik.phi, c(ini.m, lambda), lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
+          lik.results <- .nlmP(.proflik.phi, c(ini.m, lambda), lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
           lambda <- as.vector(lik.results$estimate[2])
           lik.results$estimate <- as.vector(lik.results$estimate[1])
         }
         if (minimisation.function=="optim"){
-          lik.results <- optim(c(ini.m, lambda), proflik.phi, method="L-BFGS-B", lower=c(lower.phi, -2.5), upper=c(upper.phi, 2.5),...)
+          lik.results <- optim(c(ini.m, lambda), .proflik.phi, method="L-BFGS-B", lower=c(lower.phi, -2.5), upper=c(upper.phi, 2.5),...)
           lik.results$estimate <- lik.results$par        
           lambda <- as.vector(lik.results$estimate[2])
           lik.results$estimate <- as.vector(lik.results$estimate[1])
@@ -671,7 +671,7 @@
   return(results)
 }
 
-"proflik.ftau" <-
+".proflik.ftau" <-
   function (theta) 
 {
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))
@@ -798,7 +798,7 @@
   else
     return(as.vector(neglik))
 }
-"proflik.lambda" <-
+".proflik.lambda" <-
 function(lambda)
 {
   if (any(is.na(lambda)) | any(lambda==Inf) | any(is.nan(lambda)))
@@ -860,7 +860,7 @@ function(lambda)
     return(as.vector(neglik))
 }
 
-"proflik.nug" <-
+".proflik.nug" <-
   function (theta) 
 {
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))
@@ -988,7 +988,7 @@ function(lambda)
     return(as.vector(neglik))
 }
 
-"proflik.phi" <-
+".proflik.phi" <-
   function (theta) 
 {
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))

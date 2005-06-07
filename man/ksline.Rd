@@ -1,7 +1,7 @@
 \name{ksline}
 
 \alias{ksline}
-\alias{ksline.aux.1}
+\alias{.ksline.aux.1}
 
 \title{Spatial Prediction -- Conventional Kriging}
 

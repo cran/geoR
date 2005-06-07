@@ -20,7 +20,7 @@
   return(uphi)
 }
 
-"cor.number" <- 
+".cor.number" <- 
   function(cov.model= c("exponential", "matern", "gaussian",
              "spherical", "circular", "linear", "cubic", "wave", "power",
              "powered.exponential", "stable", "cauchy", "gneiting",
@@ -49,7 +49,7 @@
   return(cornumber)
 }
 
-"check.cov.model" <-
+".check.cov.model" <-
   function(cov.model, cov.pars, kappa, env=NULL, output=TRUE)
 {  
   ## extracting covariance parameters
@@ -121,7 +121,7 @@
            kappa = 0.5)
 {
   fn.env <- sys.frame(sys.nframe())
-  check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+  .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                   env=fn.env, output=FALSE)
   ##
   ## computing correlations/covariances

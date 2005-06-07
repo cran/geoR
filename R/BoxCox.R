@@ -46,18 +46,18 @@
     lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
     ##
     if(length(as.matrix(lambdas.ini)) > 2){
-      lamlik <- apply(lambdas.ini, 1, negloglik.boxcox, data=data + absmin,
+      lamlik <- apply(lambdas.ini, 1, .negloglik.boxcox, data=data + absmin,
                       xmat=xmat, lik.method=lik.method)
       lambdas.ini <- drop(lambdas.ini[which(lamlik == min(lamlik)),])
     }
     names(lambdas.ini) <- NULL
-    lik.lambda <- optim(par=lambdas.ini, fn = negloglik.boxcox,
+    lik.lambda <- optim(par=lambdas.ini, fn = .negloglik.boxcox,
                         method="L-BFGS-B", hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
   }
   else{
-    lik.lambda <- optimize(negloglik.boxcox, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
+    lik.lambda <- optimize(.negloglik.boxcox, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
     lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective, convergence = 0, message = "function optimize used")
   }
   ##
@@ -99,7 +99,7 @@
   return(res)
 }
 
-"negloglik.boxcox" <-
+".negloglik.boxcox" <-
   function(lambda.val, data, xmat, lik.method = "ML")
 {
   if(length(lambda.val) == 2){

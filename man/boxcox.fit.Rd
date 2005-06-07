@@ -4,7 +4,7 @@
 \alias{print.boxcox.fit}
 \alias{plot.boxcox.fit}
 \alias{lines.boxcox.fit}
-\alias{negloglik.boxcox}
+\alias{.negloglik.boxcox}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 

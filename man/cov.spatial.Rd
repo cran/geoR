@@ -1,8 +1,8 @@
 \name{cov.spatial}
 
 \alias{cov.spatial}
-\alias{cor.number}
-\alias{check.cov.model}
+\alias{.cor.number}
+\alias{.check.cov.model}
 
 \encoding{latin1}
 

@@ -2,7 +2,7 @@
 ## "wrappers" for pieces of C code in geoR package
 ## -----------------------------------------------
 ##
-"Ccor.spatial" <- function(x, phi, kappa, cov.model)
+".Ccor.spatial" <- function(x, phi, kappa, cov.model)
 {
   res <- rep(0.0, length(x))
   .C("veccorrval",
@@ -10,11 +10,11 @@
      as.double(kappa),
      as.double(x),
      as.integer(length(x)),
-     cornr = as.integer(cor.number(cov.model)),
+     cornr = as.integer(.cor.number(cov.model)),
      out = as.double(res), PACKAGE = "geoR")$out
 }
 
-"bilinearformXAY" <-
+".bilinearformXAY" <-
   function(X, lowerA, diagA, Y)
   {
     nA <- length(diagA)
@@ -36,7 +36,7 @@
     return(out)
   }
 
-"diagquadraticformXAX" <-
+".diagquadraticformXAX" <-
   function(X, lowerA, diagA)
   {
     nA <- length(diagA)
@@ -105,12 +105,12 @@
                 as.double(data),
                 as.integer(nc),
                 dist = out, diff = out,
-                PACKAGE = "geoR")[c('dist','diff')]
+                PACKAGE = "geoR")[c("dist","diff")]
       return(res)
     }
   }
 
-"corr.diaglowertri" <-
+".corr.diaglowertri" <-
   function(coords, cov.model, phi, kappa)
 {
   cov.model <- match.arg(cov.model,
@@ -136,7 +136,7 @@
        as.double(coords[,1]),
        as.double(coords[,2]),
        as.integer(nc),
-       as.integer(cor.number(cov.model)),
+       as.integer(.cor.number(cov.model)),
        as.double(phi),
        as.double(kappa),
        out, DUP = FALSE,
@@ -145,7 +145,7 @@
   }
 }
 
-"cond.sim" <-
+".cond.sim" <-
   function(env.loc, env.iter, loc.coincide, coincide.cond, tmean, Rinv, mod, vbetai,
            fixed.sigmasq)
   {
@@ -165,12 +165,12 @@
     }
     ##
     if((length(tmean) %% mod$nloc) > 0)
-      stop("cond.sim: wrong size of tmean")
+      stop(".cond.sim: wrong size of tmean")
     tmean <- matrix(tmean, nrow = mod$nloc)
     ncol.tmean <- ncol(tmean)
     if(ncol(tmean) > 1){
       if(ncol.tmean != mod$Nsims)
-        stop("cond.sim: size of tmean does not matches with Nsims")
+        stop(".cond.sim: size of tmean does not matches with Nsims")
       diff.mean <- as.integer(1)
     }      
     else
