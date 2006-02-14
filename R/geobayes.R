@@ -575,8 +575,6 @@
     ## for each parameter sets (phi, tausq.rel)
     ## 
     phi.tausq.rel.post <- function(phinug){
-#      print("phinug")
-#      print(phinug)
       par.set <- get("parset", envir=counter.env)
       if(messages.screen)
         krige.bayes.counter(.temp.ap = par.set, n.points = ntocount)
@@ -595,16 +593,15 @@
                                do.prediction.moments = (do.prediction && moments),
                                do.prediction.simulations = (do.prediction && simulations.predictive),
                                env.pred = pred.env, signal = signal)
-      logprobphitausq <-  (-0.5) * log(bsp$det.XiRX) - (bsp$log.det.to.half) -
-        (bsp$df.post/2) * log(bsp$S2.post)
-#      print("termos")
-#      print(log(bsp$det.XiRX))
-#      print(bsp$log.det.to.half) 
-#      print(bsp$df.post/2)
-#      print(log(bsp$S2.post))
+      logprobphitausq <-  (-0.5) * log(bsp$det.XiRX) -
+        (bsp$log.det.to.half) - (bsp$df.post/2) * log(bsp$S2.post)
+      ##print("termos")
+      ##print(c(log(bsp$det.XiRX),bsp$log.det.to.half, bsp$df.post/2,
+      ##        log(bsp$S2.post),logprobphitausq))
       ##
       if(prior$phi.prior == "user"){
-        if(phinug[3] > 0) logprobphitausq <- logprobphitausq + log(phinug[3])
+        if(phinug[3] > 0)
+          logprobphitausq <- logprobphitausq + log(phinug[3])
         else logprobphitausq <- -Inf
       }
       if(prior$phi.prior == "reciprocal"){
@@ -619,29 +616,33 @@
         logprobphitausq <- logprobphitausq - log(exponential.par) - (phi/exponential.par)
        }
       if(prior$tausq.rel.prior == "user"){
-        if(phinug[4] > 0) logprobphitausq <- logprobphitausq + log(phinug[4])
+        if(phinug[4] > 0)
+          logprobphitausq <- logprobphitausq + log(phinug[4])
         else logprobphitausq <- -Inf
       }
       if(prior$tausq.rel.prior == "reciprocal"){
-        if(tausq.rel > 0) logprobphitausq <- logprobphitausq - log(tausq.rel)
+        if(tausq.rel > 0)
+          logprobphitausq <- logprobphitausq - log(tausq.rel)
         else logprobphitausq <- -Inf
       }
-#      logprobphitausq <- logprobphitausq + 4*bsp$df.post
-#      logprobphitausq <- logprobphitausq - 2*n - (bsp$df.post/2)
-#      logprobphitausq <- logprobphitausq - n^2 - (bsp$df.post/2)
 #      print(c(par.set,logprobphitausq))
+      ##
+      ## The following is a trick to go aroud a numerical problem:
+      ## the value of logprobphitausq can be too small (highly negative)
+      ## such that the exponential of it can be numerically
+      ## equal to zero
       if(get("add.cte", envir=counter.env) && is.finite(logprobphitausq)){
         assign("cte", logprobphitausq, envir=counter.env)
         assign("add.cte", FALSE, envir=counter.env)
       }
-      if(get("cte", envir=counter.env) > 0)
-        logprobphitausq <- logprobphitausq - get("cte", envir=counter.env)
-      else
-        logprobphitausq <- logprobphitausq + get("cte", envir=counter.env)
-#      print(logprobphitausq)
+      ##      if(get("cte", envir=counter.env) > 0)
+      ##       logprobphitausq <- logprobphitausq + get("cte", envir=counter.env)
+      ##    else
+      logprobphitausq <- logprobphitausq - get("cte", envir=counter.env)
+      ##print(logprobphitausq)
       bsp$probphitausq <- drop(exp(logprobphitausq))
-#      print(logprobphitausq)
-#      print(bsp$probphitausq)
+      ##print(logprobphitausq)
+      ##print(bsp$probphitausq)
 #      print(format(c(par.set,phi,tausq.rel,logprobphitausq,bsp$probphitausq)))
       ##
       if(do.prediction && moments){
