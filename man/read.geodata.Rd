@@ -12,10 +12,10 @@
 
 \usage{
 read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
-             data.names = NULL, covar.col = NULL,
-             covar.names = "header", realisations = NULL,
+             data.names = NULL, covar.col = NULL, covar.names = "header",
+             units.m.col = NULL, realisations = NULL,
              na.action = c("ifany", "ifdata", "ifcovar", "none"),
-             rep.data.action, rep.covar.action, \dots)
+             rep.data.action, rep.covar.action, rep.units.action, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -36,6 +36,11 @@ read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
   \item{covar.names}{optional. A vector with the names of the
     the covariates. By default the names in the original object are
     used.  }
+  \item{units.m.col}{optional. A scalar 
+    with the column number corresponding to the offset variable.
+    Alternativelly can be a character vector with the name of the
+    offset. This option is particularly relevant when using the package
+    \pkg{geoRglm}. }
   \item{realisations}{optional. A vector indicating the replication
     number. For more details see documentation for
     \code{\link{as.geodata}}.  }
@@ -48,6 +53,11 @@ read.geodata(file, header = FALSE, coords.col = 1:2, data.col = 3,
   \item{rep.covar.action}{a string or a function. Defines action to be taken when there is more than
     one covariate at the same location. For more details see documentation for
     \code{\link{as.geodata}}.  }
+  \item{rep.units.action}{a string or a function.
+    Defines action to be taken on the element \code{units.m}, if present
+    when there is more than
+    one data at the same location. The default option is the same
+    value set for \code{rep.data.action}.  }
   \item{\dots}{further arguments to be passed to the function \code{\link{read.table}}.  }
 }
 

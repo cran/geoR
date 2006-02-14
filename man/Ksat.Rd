@@ -9,7 +9,7 @@
 }
 \usage{data(Ksat)}
 \format{
-  The object \code{ca20} is a list of the class \code{geodata}
+  The object \code{Ksat} is a list of the class \code{geodata}
   with the following elements:
   \describe{    
     \item{\code{coords}}{a matrix with the coordinates of the soil samples.  }

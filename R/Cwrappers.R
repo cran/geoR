@@ -22,6 +22,21 @@
     nY <- length(Y)/nA
     if(length(lowerA) != (nA * (nA -1)/2))
       stop("lowerA and diagA have incompatible dimensions")
+    #temp.na <- c(any(is.na(lowerA)),any(is.na(diagA)),any(is.na(X)),
+    #          any(is.na(Y)),any(is.na(nX)),any(is.na(nY)),
+    #          any(is.na(nA)))
+    #names(temp.na) <- c("lowerA","diagA","X","Y","nX","nY","nA")
+    #print(temp.na)
+    #temp.nan <- c(any(is.nan(lowerA)),any(is.nan(diagA)),any(is.nan(X)),
+    #          any(is.nan(Y)),any(is.nan(nX)),any(is.nan(nY)),
+    #          any(is.nan(nA)))
+    #names(temp.nan) <- c("lowerA","diagA","X","Y","nX","nY","nA")
+    #print(temp.nan)
+    #temp.inf <- c(any(!is.finite(lowerA)),any(!is.finite(diagA)),any(!is.finite(X)),
+    #          any(!is.finite(Y)),any(!is.finite(nX)),any(!is.finite(nY)),
+    #          any(!is.finite(nA)))
+    #names(temp.inf) <- c("lowerA","diagA","X","Y","nX","nY","nA")
+    #print(temp.inf)
     out <- .C("bilinearform_XAY",
               as.double(as.vector(lowerA)),
               as.double(as.vector(diagA)),
@@ -148,64 +163,64 @@
 ".cond.sim" <-
   function(env.loc, env.iter, loc.coincide, coincide.cond, tmean, Rinv, mod, vbetai,
            fixed.sigmasq)
-  {
-    NTOT <- mod$nloc * mod$Nsims
-    if(fixed.sigmasq)
-      invchisc <- rep(1, NTOT)
-    else
-      invchisc <- sqrt(mod$df.model/rchisq(mod$Nsims, df=mod$df.model))
-    ##
-    if(mod$beta.size == 1){
-      Blower <- 0
-      Bdiag <- vbetai
-    }
-    else{
-      Blower <- vbetai[lower.tri(vbetai)]
-      Bdiag <- diag(vbetai)
-    }
-    ##
-    if((length(tmean) %% mod$nloc) > 0)
-      stop(".cond.sim: wrong size of tmean")
-    tmean <- matrix(tmean, nrow = mod$nloc)
-    ncol.tmean <- ncol(tmean)
-    if(ncol(tmean) > 1){
-      if(ncol.tmean != mod$Nsims)
-        stop(".cond.sim: size of tmean does not matches with Nsims")
-      diff.mean <- as.integer(1)
-    }      
-    else
-      diff.mean <- as.integer(0)
-    if(coincide.cond) loccoin <- -loc.coincide
-    else loccoin <- TRUE
-    if(mod$phi < 1e-24 && mod$s2 < 1e-24)
-      normalsc <- rnorm(NTOT, mean=tmean, sd=sqrt(mod$nugget+mod$s2))
-    else{
-      normalsc <- rnorm(NTOT)
-      normalsc <- .C("kb_sim_new",
-                     as.double(as.vector(tmean)),
-                     out = as.double(normalsc),
-                     as.double(as.vector(Rinv$lower)),
-                     as.double(as.vector(Rinv$diag)),
-                     as.double(as.vector(get("v0", envir=env.iter))),
-                     as.integer(mod$nloc),
-                     as.integer(mod$n),
-                     as.double(mod$Dval),
-                     as.integer(mod$Nsims),
-                     as.double(invchisc),
-                     as.double(mod$s2),
-                     as.double(Blower),
-                     as.double(Bdiag),
-                     as.double(as.vector(get("b", envir=env.iter))),
-                     as.integer(mod$beta.size),
-                     as.double(get("locations", envir=env.loc)[loccoin,1]),
-                     as.double(get("locations", envir=env.loc)[loccoin,2]),
-                     as.integer(mod$cov.model.number),
-                     as.double(mod$phi),
-                     as.double(mod$kappa),
-                     as.integer(diff.mean),
-                     PACKAGE = "geoR")$out
-    }
-    attr(normalsc, "dim") <- c(mod$nloc, mod$Nsims)
-    return(normalsc)
+{
+  NTOT <- mod$nloc * mod$Nsims
+  if(fixed.sigmasq)
+    invchisc <- rep(1, NTOT)
+  else
+    invchisc <- sqrt(mod$df.model/rchisq(mod$Nsims, df=mod$df.model))
+  ##
+  if(mod$beta.size == 1){
+    Blower <- 0
+    Bdiag <- vbetai
   }
+  else{
+    Blower <- vbetai[lower.tri(vbetai)]
+    Bdiag <- diag(vbetai)
+  }
+  ##
+  if((length(tmean) %% mod$nloc) > 0)
+    stop(".cond.sim: wrong size of tmean")
+  tmean <- matrix(tmean, nrow = mod$nloc)
+  ncol.tmean <- ncol(tmean)
+  if(ncol(tmean) > 1){
+    if(ncol.tmean != mod$Nsims)
+      stop(".cond.sim: size of tmean does not matches with Nsims")
+    diff.mean <- as.integer(1)
+  }      
+  else
+    diff.mean <- as.integer(0)
+  if(coincide.cond) loccoin <- -loc.coincide
+  else loccoin <- TRUE
+  if(mod$phi < 1e-24 && mod$s2 < 1e-24)
+    normalsc <- rnorm(NTOT, mean=tmean, sd=sqrt(mod$nugget+mod$s2))
+  else{
+    normalsc <- rnorm(NTOT)
+    normalsc <- .C("kb_sim_new",
+                   as.double(as.vector(tmean)),
+                   out = as.double(normalsc),
+                   as.double(as.vector(Rinv$lower)),
+                   as.double(as.vector(Rinv$diag)),
+                   as.double(as.vector(get("v0", envir=env.iter))),
+                   as.integer(mod$nloc),
+                   as.integer(mod$n),
+                   as.double(mod$Dval),
+                   as.integer(mod$Nsims),
+                   as.double(invchisc),
+                   as.double(mod$s2),
+                   as.double(Blower),
+                   as.double(Bdiag),
+                   as.double(as.vector(get("b", envir=env.iter))),
+                   as.integer(mod$beta.size),
+                   as.double(get("locations", envir=env.loc)[loccoin,1]),
+                   as.double(get("locations", envir=env.loc)[loccoin,2]),
+                   as.integer(mod$cov.model.number),
+                   as.double(mod$phi),
+                   as.double(mod$kappa),
+                   as.integer(diff.mean),
+                   PACKAGE = "geoR")$out
+  }
+  attr(normalsc, "dim") <- c(mod$nloc, mod$Nsims)
+  return(normalsc)
+}
 

@@ -14,13 +14,14 @@ elevation               Surface Elevations
 eyefit                  Interactive Variogram Estimation
 gambia                  Gambia Malaria Data
 geoRdefunct             Defunct Functions in the Package geoR
+globalvar               ~~function to do ... ~~
 grf                     Simulation of Gaussian Random Fields
 head                    Head observations in a regional confined
                         aquifer
 hist.krige.bayes        Plots Sample from Posterior Distributions
 hoef                    Data for spatial analysis of experiments
-image.grf               Image, Contour or Perspective Plot of
-                        Simulated Gaussian Random Field
+image.grf               Image, Contour or Perspective Plot of Simulated
+                        Gaussian Random Field
 image.krige.bayes       Plots Results of the Predictive Distribution
 image.kriging           Image or Perspective Plot with Kriging Results
 isaaks                  Data from Isaaks and Srisvastava's book
@@ -33,6 +34,8 @@ ksline                  Spatial Prediction -- Conventional Kriging
 legend.krige            Add a legend to a image with kriging results
 likfit                  Likelihood Based Parameter Estimation for
                         Gaussian Random Fields
+likfitBGCCM             Fits the bivariate Gaussian common component
+                        geostatistical model
 lines.variogram         Line with a Empirical Variogram
 lines.variogram.envelope
                         Adds Envelopes Lines to a Variogram Plot
@@ -51,11 +54,12 @@ locations.inside        Select prediction locations inside borders
 loglik.GRF              Log-Likelihood for a Gaussian Random Field
 matern                  Computer Values of the Matern Correlation
                         Function
+names.geodata           Lists names of the key elements of a geodata
+                        object
 nearloc                 Near location to a point
 .nlmP                   Adapts nlm for Constraints in the Parameter
                         Values
-output.control          Defines output options for prediction
-                        functions
+output.control          Defines output options for prediction functions
 parana                  Rainfall Data from Parana State, Brasil
 pars.limits             Set limits for the parameter values
 plot.geodata            Exploratory Geostatistical Plots
@@ -67,6 +71,11 @@ plot.variogram          Plot Empirical Variogram
 plot.xvalid             Plot Cross-Validation Results
 points.geodata          Plots Spatial Locations and Data Values
 polygrid                Coordinates of Points Inside a Polygon
+pred_grid               Generates a 2D Prediction Grid
+predict.BGCCM           Prediction for the bivariate Gaussian common
+                        component geostatistical model
+print.BGCCM             Prints an summary of of the output from
+                        likfitBGCCM.
 proflik                 Computes Profile Likelihoods
 rboxcox                 The Box-Cox Transformed Normal Distribution
 read.geodata            Reads and Converts Data to geoR Format
@@ -74,6 +83,7 @@ s100                    Simulated Data-Sets which Illustrate the Usage
                         of the Package geoR
 s256i                   Simulated Data-Set which Illustrate the Usage
                         of krige.bayes
+sample.geodata          Sampling from geodata objects
 sample.posterior        Samples from the posterior distribution
 sample.prior            Sample the prior distribution
 set.coords.lims         Sets Limits to Scale Plots
@@ -82,13 +92,16 @@ soil                    Soil chemistry properties data set
 statistics.predictive   Summary statistics from predictive
                         distributions
 subarea                 Selects a Subarea from a Geodata Object
+subset.geodata          Method for subsetting geodata objects
 summary.geodata         Summaries for geodata object
 summary.likGRF          Summarizes Parameter Estimation Results for
                         Gaussian Random Fields
 summary.variofit        Summarize Results of Variogram Estimation
-tce                     TCE concentrations in groundwater in a
-                        vertical cross section
+tce                     TCE concentrations in groundwater in a vertical
+                        cross section
 trend.spatial           Builds the Trend Matrix
+varcovBGCCM             Covariance matrix for the bivariate Gaussian
+                        common component geostatistical model
 varcov.spatial          Computes Covariance Matrix and Related Results
 variofit                Variogram Based Parameter Estimation
 variog                  Compute Empirical Variograms

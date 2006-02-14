@@ -11,13 +11,13 @@
 \title{Cross-validation using kriging}
 
 \description{
-  This is a function to perform model validation.
+  This is a function to perform model validation
   Options include \emph{leaving-one-out} cross-validation where.
   each data location is removed from the data set and the variable at
   this location is predicted using the remaining locations, for as given
-  model. This can be
-  done for all or some of the locations.
-  Alternativelly, other validation locations which are not the same as the
+  model. This can be done for all or some of the locations.
+  Alternativelly, other validation locations which
+  are not the same as the
   original data locations can be used.   
 }
 

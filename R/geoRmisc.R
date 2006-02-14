@@ -1,6 +1,77 @@
 ##
 ## Miscelaneous geoR functions
 ##
+"globalvar" <- function(geodata, locations, coords = geodata$coords, krige)
+{
+  if(ncol(coords) != 2)
+    stop("function only available for 2-D coordinates")
+  if(ncol(locations) != 2)
+    stop("function only available for 2-D locations")
+  ##
+  ## reading input
+  ##
+  if(missing(krige))
+    krige <- krige.control()
+  else{
+    ##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
+    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+      if(!is.list(krige))
+        stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
+      else{
+        krige.names <- c("type.krige","trend.d","trend.l","obj.model",
+                         "beta","cov.model", "cov.pars",
+                         "kappa","nugget","micro.scale","dist.epsilon",
+                         "lambda","aniso.pars")
+        krige.user <- krige
+        krige <- list()
+        if(length(krige.user) > 0){
+          for(i in 1:length(krige.user)){
+            n.match <- match.arg(names(krige.user)[i], krige.names)
+            krige[[n.match]] <- krige.user[[i]]
+          }
+        }
+        if(is.null(krige$obj.model)) krige$obj.model <-  NULL
+        if(is.null(krige$cov.model)) krige$cov.model <- "matern"  
+        if(is.null(krige$cov.pars))
+          stop("covariance parameters (sigmasq and phi) should be provided in cov.pars")
+        if(is.null(krige$kappa)) krige$kappa <-  0.5
+        if(is.null(krige$nugget)) krige$nugget <-  0
+        if(is.null(krige$micro.scale)) krige$micro.scale <- 0  
+        if(is.null(krige$dist.epsilon)) krige$dist.epsilon <-  1e-10
+        if(is.null(krige$aniso.pars)) krige$aniso.pars <- NULL  
+        if(is.null(krige$lambda)) krige$lambda <- 1 
+        krige <- krige.control(obj.model = krige$obj.model,
+                               cov.model = krige$cov.model,
+                               cov.pars = krige$cov.pars,
+                               kappa = krige$kappa,
+                               nugget = krige$nugget,
+                               micro.scale = krige$micro.scale,
+                               dist.epsilon = krige$dist.epsilon, 
+                               aniso.pars = krige$aniso.pars,
+                               lambda = krige$lambda)   
+      }
+    }
+  }
+  ## mean of the values in the prediction grid covariance matrix
+  krige$coords <- locations
+  CAA <- mean(do.call("varcov.spatial", krige)$varcov)
+  ## \Sigma^{-1/2}
+  krige$coords <- coords
+  krige$inv <- TRUE
+  invS <- do.call("varcov.spatial", krige)$inverse
+  
+  ## mean of the data/location covariance matrix
+  CiA <- rowMeans(cov.spatial(obj = loccoords(coords=coords,
+                             locations=locations),
+                           cov.model = krige$cov.model,
+                           cov.pars=krige$cov.pars,
+                           kappa=krige$kappa))
+  ##
+  oneSinvone <- sum(invS)
+  w <- colSums(invS)/oneSinvone
+  return(CAA + (1/oneSinvone) - 2 * sum(w * CiA))
+}
+
 
 "nearloc" <- function(points, locations, positions=FALSE)
 {
@@ -113,15 +184,14 @@
     return(res)  
 }
 
-# make it generic with a method for geoR
 "dup.coords" <-
-  function(x)
+  function(x, ...)
 {
   UseMethod("dup.coords")
 }
 
 "dup.coords.default" <-
-  function(x)
+  function(x, ...)
 {
   ap1 <- unclass(factor(paste("x",x[,1],"y",x[,2], sep="")))
   ap2 <- table(ap1)
@@ -132,14 +202,22 @@
     }
   res <- sapply(as.numeric(names(ap2)), takecoords)
   if(length(res) == 0) res <- NULL
+  if(!is.null(res)) class(res) <- "duplicated.coords"
   return(res)
 }
 
-"dup.coords.geodata" <-
-  function(x)
+"dup.coords.geodata" <- "duplicated.geodata" <-
+  function(x, incomparables, ...)
 {
-  return(dup.coords.default(x$coords))
+  xdf <- as.data.frame.geodata(x)
+  dc <- dup.coords.default(x$coords)
+  if(is.null(dc)) return(dc)
+  else{
+    return(data.frame(dup=factor(rep(1:length(dc), sapply(dc, length))),
+                      xdf[unlist(dc),]))
+  }
 }
+
 
 "subarea" <-
   function(geodata, xlim, ylim, ...)

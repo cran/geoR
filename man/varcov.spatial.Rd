@@ -22,7 +22,7 @@ varcov.spatial(coords = NULL, dists.lowertri = NULL,
                func.inv = c("cholesky", "eigen", "svd", "solve"),
                scaled = FALSE,  only.decomposition = FALSE,
                sqrt.inv = FALSE, try.another.decomposition = TRUE,
-               only.inv.lower.diag = FALSE)
+               only.inv.lower.diag = FALSE, \dots)
 
 }
 	     
@@ -75,6 +75,7 @@ varcov.spatial(coords = NULL, dists.lowertri = NULL,
   \item{only.inv.lower.diag}{logical. If \code{TRUE} only the lower triangle and
     the diagonal of the inverse of the covariance matrix are
     returned. Defaults to \code{FALSE}.}
+  \item{\dots}{for naw, only for internal usage.}
 }
 
 

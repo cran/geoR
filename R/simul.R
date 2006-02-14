@@ -1,4 +1,5 @@
-"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa, mean = 0){
+"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa){
+  # , mean=0)
   cov.model <- match.arg(cov.model,
                          choices = c("exponential", "matern", "gaussian",
                            "spherical", "circular", "cubic", "wave",
@@ -20,7 +21,7 @@
                     gneiting = "gneiting",
                     gneiting.matern = "not compatible",
                     pure.nugget = "nugget")
-  RFpars <- c(mean, cov.pars[1], nugget, cov.pars[2])
+  RFpars <- c(0, cov.pars[1], nugget, cov.pars[2])
   if(any(cov.model == c("matern","powered.exponential","cauchy")))
     RFpars <- c(RFpars, kappa)
   if(RFmodel == "not compatible"){
@@ -201,7 +202,8 @@
     if(method == "RF"){
       require(RandomFields)
       setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
-                       nugget = nugget, kappa = kappa, mean=mean)
+                       nugget = nugget, kappa = kappa)
+      # , mean=mean)
       results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
                               model = setRF$model,
                               param = setRF$param, grid = FALSE, n=nsim)

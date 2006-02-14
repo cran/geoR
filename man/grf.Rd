@@ -26,7 +26,7 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     mean = 0, method, RF=TRUE, messages)
-geoR2RF(cov.model, cov.pars, nugget = 0, kappa, mean = 0)
+geoR2RF(cov.model, cov.pars, nugget = 0, kappa)
 }
 
 %- maybe also `usage' for other objects documented here.

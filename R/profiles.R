@@ -1663,56 +1663,22 @@ function(phi.lambda, ...)
       z <- log(z)
     else z <- ((z^lambda) - 1)/lambda
   }
-  beta.size <- .temp.list$beta.size
   kappa <- .temp.list$kappa
-  covinf <- varcov.spatial(dists.lowertri = .temp.list$dists.lowertri,
-                           cov.model = .temp.list$cov.model, kappa = kappa,
-                           nugget = tausq, cov.pars = c(sigmasq, phi),
-                           inv = TRUE, det = TRUE, func.inv = "eigen",
-                           only.inv.lower.diag = TRUE)  
-  xix <- as.double(rep(0, beta.size*beta.size))
-  xix <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(.temp.list$xmat)),
-            as.double(as.vector(.temp.list$xmat)),
-            as.integer(beta.size),
-            as.integer(beta.size),
-            as.integer(n),
-            res = xix,PACKAGE = "geoR")$res
-  attr(xix, "dim") <- c(beta.size, beta.size)
-  if(length(as.vector(xix)) == 1) {
-    ixix <- 1/xix
+  V <- varcov.spatial(dists.lowertri = .temp.list$dists.lowertri,
+                      cov.model = .temp.list$cov.model, kappa = kappa,
+                      nugget = tausq, cov.pars = c(sigmasq, phi),
+                      det = TRUE)  
+  xix <- crossprod(.temp.list$xmat,solve(V$varcov,.temp.list$xmat))
+  if(length(as.vector(xix)) == 1)
     choldet <- 0.5 * log(xix)
-  }
-  else {
-    chol.xix <- chol(xix)
-    ixix <- chol2inv(chol.xix)
-    choldet <- sum(log(diag(chol.xix)))
-  }
-  xiy <- as.double(rep(0, beta.size))
-  xiy <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(.temp.list$xmat)),
-            as.double(as.vector(z)),
-            as.integer(beta.size),
-            as.integer(1),
-            as.integer(n),
-            res = xiy, PACKAGE = "geoR")$res
-  beta.hat <- as.vector(ixix %*% xiy)
-  yiy <- as.double(0.0)
-  yiy <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(z)),
-            as.double(as.vector(z)),
-            as.integer(1),
-            as.integer(1),
-            as.integer(n),
-            res = yiy, PACKAGE = "geoR")$res
+  else
+    choldet <- sum(log(diag(chol(xix))))
+  iz <- solve(V$varcov,z)
+  xiy <- crossprod(.temp.list$xmat,iz)
+  beta.hat <- drop(solve(xix,xiy))
+  yiy <- drop(crossprod(z,iz))
   ssresmat <- as.vector(yiy - crossprod(beta.hat,xiy))
-  return(list(log.det.to.half = covinf$log.det.to.half,
+  return(list(log.det.to.half = V$log.det.to.half,
               ssresmat = ssresmat,
-              ixix = ixix, log.jacobian = log.jacobian))
+              ixix = solve(xix), log.jacobian = log.jacobian))
 }

@@ -1,6 +1,7 @@
 \name{variog.model.env}
 
 \alias{variog.model.env}
+\alias{boot.variofit}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -9,11 +10,16 @@
 \description{
   Computes envelopes for a empirical variogram by simulating
   data for given model parameters.
+
+  Computes bootstrap paremeter estimates
 }
 
 \usage{
 variog.model.env(geodata, coords = geodata$coords, obj.variog,
                  model.pars, nsim = 99, save.sim = FALSE, messages)
+
+boot.variofit(geodata, coords = geodata$coords, obj.variog,
+              model.pars, nsim = 99, trace = FALSE, messages)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -52,6 +58,9 @@ variog.model.env(geodata, coords = geodata$coords, obj.variog,
     Defaults to 99.  }
   \item{save.sim}{logical. Indicates whether or not the simulated data
     are included in the output. Defaults to \code{FALSE}.  }
+  \item{trace}{logical. If \code{TRUE} the fitted values for the
+    bootstrap parameter estimation are printend while the function is
+    running.  }
   \item{messages}{logical. If \code{TRUE}, the default, status messages
     are printed while the function is running.  }
 }

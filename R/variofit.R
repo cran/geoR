@@ -536,6 +536,14 @@
 "summary.variofit" <-
   function(object, ...)
 {
+  ## o problema disto eh no reconhecer a classe variofit...
+#  if(all(lapply(lapply(object, class), function(x) any(x ==
+#  "variofit")))){
+#    summa <- lapply(object, summary.variofit)
+#  }
+#  if (length(list(object, ...)) > 1){
+#  }
+  ##
   summ.lik <- list()
   if(object$weights == "equal")
     summ.lik$pmethod <- "OLS (ordinary least squares)"
@@ -621,9 +629,170 @@
   invisible(x)
 }
 
+"variog.model.env" <-
+  function(geodata, coords = geodata$coords, obj.variog,
+           model.pars, nsim = 99, save.sim = FALSE, messages) 
+{
+  call.fc <- match.call()
+  obj.variog$v <- NULL
+  if(missing(messages))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
+  else messages.screen <- messages
+  ##
+  ## reading input
+  ##
+  if(!is.null(model.pars$beta)) beta <- model.pars$beta
+  else beta <- 0
+  if(!is.null(model.pars$cov.model))
+    cov.model <- model.pars$cov.model
+  else cov.model <- "exponential"
+  if(!is.null(model.pars$kappa)) kappa <- model.pars$kappa
+  else kappa <- 0.5
+  if(!is.null(model.pars$nugget)) nugget <- model.pars$nugget
+  else nugget <- 0
+  cov.pars <- model.pars$cov.pars
+  if(!is.null(obj.variog$estimator.type))
+    estimator.type <- obj.variog$estimator.type
+  else estimator.type <- "classical"
+  if (obj.variog$output.type != "bin") 
+    stop("envelops can be computed only for binned variogram")
+  ##
+  ## generating simulations from the model with parameters provided
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: generating", nsim, "simulations (with ",
+              obj.variog$n.data, 
+              "points each) using the function grf\n"))
+  simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
+                cov.model = cov.model, cov.pars = cov.pars,
+                nugget = nugget, kappa = kappa, nsim = nsim,
+                messages = FALSE, lambda = obj.variog$lambda)
+  if(messages.screen)
+    cat("variog.env: adding the mean or trend\n")
+  x.mat <- unclass(trend.spatial(trend=obj.variog$trend, geodata = geodata))
+  if(ncol(x.mat) != length(beta))
+    stop("incompatible sizes of trend matrix and beta parameter vector. Check whether the trend specification are the same in the objects passed to the arguments \"obj.vario\" and \"model.pars\"")
+  simula$data <- as.vector(x.mat %*% beta) + simula$data
+  ##
+  ## computing empirical variograms for the simulations
+  ##
+  if (messages.screen) 
+    cat(paste("variog.env: computing the empirical variogram for the", 
+              nsim, "simulations\n"))
+  nbins <- length(obj.variog$bins.lim) - 1
+  if(is.R()){
+    bin.f <- function(sim){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(obj.variog$n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(obj.variog$bins.lim)),
+                 as.integer(estimator.type == "modulus"),
+                 as.double(max(obj.variog$u)),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f)
+  }
+  else{
+    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
+      cbin <- vbin <- sdbin <- rep(0, nbins)  
+      temp <- .C("binit",
+                 as.integer(n.data),
+                 as.double(as.vector(coords[,1])),
+                 as.double(as.vector(coords[,2])),
+                 as.double(as.vector(sim)),
+                 as.integer(nbins),
+                 as.double(as.vector(bins.lim)),
+                 as.integer(estimator.type == "modulus"),
+                 as.double(max.u),
+                 as.double(cbin),
+                 vbin = as.double(vbin),
+                 as.integer(FALSE),
+                 as.double(sdbin),
+                 PACKAGE = "geoR")$vbin
+      return(temp)
+    }
+    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins,
+                         n.data=obj.variog$n.data, coords=coords,
+                         bins.lim=obj.variog$bins.lim,
+                         estimator.type=estimator.type,
+                         max.u=max(obj.variog$u))
+  }
+  simula.bins <- simula.bins[obj.variog$ind.bin,]
+  if(exists(".IND.geoR.variog.model.env", where=1))
+    return(simula.bins)
+  if(save.sim == FALSE) simula$data <- NULL
+  ##
+  ## computing envelops
+  ##
+  if (messages.screen) 
+    cat("variog.env: computing the envelops\n")
+  limits <- apply(simula.bins, 1, range)
+  res.env <- list(u = obj.variog$u, v.lower = limits[1, ],
+                  v.upper = limits[2,])
+  if(save.sim)
+    res.env$simulated.data <- simula$data
+  res.env$call <- call.fc
+  oldClass(res.env) <- "variogram.envelope"
+  return(res.env)
+}
+
+"boot.variofit" <- 
+  function(geodata, coords = geodata$coords, obj.variog,
+           model.pars, nsim = 99, trace = FALSE, messages) 
+{
+  call.fc <- match.call()
+  if(missing(messages))
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
+  else messages.screen <- messages
+  ##
+  if(messages.screen)
+    cat("Computing empirical variograms for simulations\n")
+  .IND.geoR.variog.model.env <<- TRUE
+  vmat <- variog.model.env(geodata=geodata, coords=coords,
+                           obj.variog=obj.variog, model.pars=model.pars,
+                           nsim=nsim, messages = FALSE)
+  rm(".IND.geoR.variog.model.env", pos=1)
+  ##
+  if(messages.screen){
+    cat("Fitting models (variofit) for the simulated variograms\n")
+    cat("be patient - this can take a while to run\n")
+  }
+  geoR.count <- new.env()
+  assign(".geoR.count", 1, env=geoR.count)
+  .vf <- function(v){ 
+    obj.variog$v <- v
+    pars <- summary(variofit(obj.variog, 
+                             messages=F))$estimated.pars
+    ##      pars <- summary(variofit(obj.variog, ini = model.pars$cov.pars,
+    ##                               nugget = model.pars$nugget,
+    ##                               messages=F))$estimated.pars
+    if(trace){
+      cat(paste("simulation", get(".geoR.count", env=geoR.count),
+                "out of", nsim, "\n"))
+      print(pars)
+      assign(".geoR.count", get(".geoR.count", env=geoR.count)+1,
+             env=geoR.count)
+    }
+    return(pars)
+  }
+  res <- as.data.frame(t(apply(vmat, 2, .vf)))
+  class(res) <- "boot.variofit"
+  return(res)
+}
+
 ##"beta.variofit" <-
 ##  function(geodata, coords = geodata$coords, data=geodata$data,
 ##           obj.variofit)
 ##  {
 ##
 ##  }
+

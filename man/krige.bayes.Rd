@@ -24,7 +24,7 @@
 
 \usage{
 krige.bayes(geodata, coords = geodata$coords, data = geodata$data,
-            locations = "no", borders = NULL, model, prior, output)
+            locations = "no", borders, model, prior, output)
 
 model.control(trend.d = "cte", trend.l = "cte", cov.model = "matern",
               kappa = 0.5, aniso.pars = NULL, lambda = 1)
@@ -64,7 +64,11 @@ post2prior(obj)
     Defaults to \code{"no"} in which case
     the function returns only results on the posterior distributions of
     the model parameters.  }
-  \item{borders}{optional. If a two column matrix defining a polygon is
+  \item{borders}{optional. If missing,
+    by default reads the element \code{borders}
+    from the \code{geodata} object, if present.
+    Setting to \code{NULL} preents this behavior.
+    If a two column matrix defining a polygon is
     provided the prediction is performed only at locations inside this polygon. }
   \item{model}{a list defining the fixed components of the model.
     It can take an output to a call to \code{model.control} or

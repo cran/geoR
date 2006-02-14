@@ -21,6 +21,7 @@
             limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
 {
+  name.geodata <- deparse(substitute(geodata))
   if(! "package:stats" %in% search()) require(mva)
   ##
   ## Checking input
@@ -34,12 +35,15 @@
   ##
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "stable", "cauchy", "gneiting",
+                           "spherical", "circular", "cubic", "wave",
+                           "power", "powered.exponential", "stable",
+                           "cauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(cov.model == "stable") cov.model <- "powered.exponential"
-  if(cov.model == "power") stop("parameter estimation for power model is not implemented")
-  if(cov.model == "gneiting.matern") stop("parameter estimation for gneiting.matern model is not yet implemented")
+  if(cov.model == "power")
+    stop("parameter estimation for power model is not implemented")
+  if(cov.model == "gneiting.matern")
+    stop("parameter estimation for gneiting.matern model is not yet implemented")
   if(fix.kappa & !is.null(kappa))
     if(cov.model == "matern" & kappa == 0.5)
       cov.model <- "exponential"
@@ -62,7 +66,8 @@
   n <- length(data)
   if((nrow(coords) != n) | (2*n) != length(coords))
     stop("\nnumber of locations does not match with number of data")
-  if(missing(geodata)) xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
+  if(missing(geodata))
+    xmat <- trend.spatial(trend=trend, geodata=list(coords = coords, data = data))
   else xmat <- unclass(trend.spatial(trend=trend, geodata=geodata))
   xmat.contrasts  <- attr(xmat,"contrasts")
   xmat <- unclass(xmat)
@@ -275,7 +280,8 @@
   if(length(ini) == 1) justone <- TRUE
   else justone <- FALSE
   ##
-  ip <- list(f.tausq = fix.nugget, f.kappa = fix.kappa, f.lambda = fix.lambda,
+  ip <- list(f.tausq = fix.nugget, f.kappa = fix.kappa,
+             f.lambda = fix.lambda,
              f.psiR = fix.psiR, f.psiA = fix.psiA)
   ##
   npars <- beta.size + 2 + sum(unlist(ip)==FALSE)
@@ -504,7 +510,7 @@
   else check.sigmasq <- FALSE
   ##
   ##
-  ## Transforming data acccording to the estimated lambda (Box-Cox) parameter
+  ## Transforming data according to the estimated lambda (Box-Cox) parameter
   ##
   if(!fix.lambda) {
     if(abs(lambda - 1) < 0.0001) {
@@ -550,34 +556,31 @@
     ni <- temp.list$n[i]
     xmati <- temp.list$xmat[[i]]
     if((phi < 1e-12))
-      siv <- diag(x=1/sqrt((1+tausq)), ni)
+      V <- diag(x=(1+tausq), ni)
     else{
       if(check.sigmasq){
         if(sigmasq < 1e-12){
           if(!fix.nugget)
-            siv <- diag(x=1/sqrt((1+tausq)), ni)
+            V <- diag(x=(1+tausq), ni)
           else
-            siv <- diag(x=1/sqrt((tausq)), ni)          
+            V <- diag(x=sqrt(tausq), ni)          
         }
         else
-          siv <- varcov.spatial(coords = coords.rep[[i]], cov.model = cov.model,
-                                kappa = kappa,
-                                nugget = tausq, cov.pars = c(1, phi),
-                                inv=TRUE, sqrt.inv = TRUE,
-                                det = FALSE)$sqrt.inverse
+          V <- varcov.spatial(coords = coords.rep[[i]],
+                              cov.model = cov.model,
+                              kappa = kappa, nugget = tausq,
+                              cov.pars = c(1, phi))$varcov
       }
       else
-        siv <- varcov.spatial(coords = coords.rep[[i]], cov.model = cov.model,
-                              kappa = kappa,
-                              nugget = tausq, cov.pars = c(1, phi),
-                              inv=TRUE, sqrt.inv = TRUE,
-                              det = FALSE)$sqrt.inverse
+        V <- varcov.spatial(coords = coords.rep[[i]],
+                            cov.model = cov.model,
+                            kappa = kappa, nugget = tausq,
+                            cov.pars = c(1, phi))$varcov
     }
-    sivx <- crossprod(siv, temp.list$xmat[[i]])
-    xivx <- xivx + crossprod(sivx)
-    sivy <- crossprod(siv, data.rep[[i]])
-    xivy <- xivy + crossprod(sivx, sivy)
-    yivy <- yivy + crossprod(sivy)
+    ivyx <- solve(V,cbind(data.rep[[i]],temp.list$xmat[[i]]))
+    xivx <- xivx + crossprod(ivyx[,-1],temp.list$xmat[[i]])
+    xivy <- xivy + crossprod(ivyx[,-1],data.rep[[i]])
+    yivy <- yivy + crossprod(data.rep[[i]],ivyx[,1])
   }
   betahat <- .solve.geoR(xivx, xivy)
   res <- as.vector(temp.list$z - xmat %*% betahat)
@@ -631,6 +634,7 @@
                       beta.var = betahat.var,
                       lambda = lambda,
                       aniso.pars = c(psiA = psiA, psiR = psiR),
+                      tausq = tausq,
                       method.lik = method.lik, trend = trend,
                       loglik = loglik.max,
                       npars = npars,
@@ -782,6 +786,7 @@
       cat("\nWARNING: estimated range is less than 1 tenth of the minimum distance between two points. Consider re-examine the model excluding spatial dependence\n" ) 
   }
   ##
+  attr(lik.results, "geodata") <- name.geodata
   return(lik.results)
 }
 
@@ -1045,7 +1050,8 @@
   ## Absurd values
   ##
   if(kappa < 1e-04) return(.Machine$double.xmax^0.5)
-  if((tausq+sigmasq) < (.Machine$double.eps^0.5)) return(.Machine$double.xmax^0.5)
+  if((tausq+sigmasq) < (.Machine$double.eps^0.5))
+    return(.Machine$double.xmax^0.5)
   ##
   ## Anisotropy
   ##
@@ -1094,24 +1100,21 @@
     z <- data[[i]]
     if((phi < 1e-16) | (sigmasq < 1e-16)){
       if(ip$f.tausq)
-        iv <- list(sqrt.inverse = diag(x=1/sqrt((tausq+sigmasq)), n),
-                   log.det.to.half = (n/2) * log(tausq+sigmasq))
+        v <- list(varcov = diag(x=(tausq+sigmasq), n),
+                  log.det.to.half = (n/2) * log(tausq+sigmasq))
       else
-        iv <- list(sqrt.inverse = diag(x=1/sqrt((1+tausq)), n),
-                   log.det.to.half = (n/2) * log(1+tausq))
+        v <- list(varcov = diag(x=(1+tausq), n),
+                  log.det.to.half = (n/2) * log(1+tausq))
     }
-    else{
-      iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
-                           cov.model = temp.list$cov.model, kappa=kappa,
-                           nugget = tausq, cov.pars=c(sigmasq, phi),
-                           sqrt.inv = TRUE, det = TRUE)
-    }
-    if(!is.null(iv$crash.parms)) return(.Machine$double.xmax^0.5)
-    sivx <- crossprod(iv$sqrt.inverse, xmat)
-    xivx <- crossprod(sivx)
-    sivy <- crossprod(iv$sqrt.inverse, z)
-    xivy <- crossprod(sivx, sivy)
-    betahat <- .solve.geoR(xivx, xivy)
+    else
+      v <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
+                          cov.model = temp.list$cov.model, kappa=kappa,
+                          nugget = tausq, cov.pars=c(sigmasq, phi),
+                          det = TRUE)
+    if(!is.null(v$crash.parms)) return(.Machine$double.xmax^0.5)
+    ivx <- solve(v$varcov,xmat)
+    xivx <- crossprod(ivx,xmat)
+    betahat <- .solve.geoR(xivx,crossprod(ivx,z))
     if(inherits(betahat, "try-error")){
       t.ei <- eigen(xivx, symmetric = TRUE)
       require(methods)
@@ -1127,12 +1130,12 @@
     if(inherits(betahat, "try-error"))
       stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude") 
     res <- z - xmat %*% betahat
-    ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
+    ssres <- drop(crossprod(res,solve(v$varcov,res)))
     if(temp.list$method.lik == "ML"){
       if(ip$f.tausq & (tausq > 0))
-        negloglik <- iv$log.det.to.half +  0.5 * ssres
+        negloglik <- v$log.det.to.half +  0.5 * ssres
       else
-        negloglik <- (n/2) * log(ssres) +  iv$log.det.to.half
+        negloglik <- (n/2) * log(ssres) +  v$log.det.to.half
     }
     if(temp.list$method.lik == "RML"){
       if(length(as.vector(xivx)) == 1) {
@@ -1143,9 +1146,9 @@
         choldet <- sum(log(diag(chol.xivx)))
       }
       if(ip$f.tausq & (tausq > 0))
-        negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet
+        negloglik <- v$log.det.to.half +  0.5 * ssres + choldet
       else
-        negloglik <- ((n-p)/2) * log(ssres) +  iv$log.det.to.half + choldet
+        negloglik <- ((n-p)/2) * log(ssres) +  v$log.det.to.half + choldet
     }  
     negloglik <- negloglik - temp.list$loglik.cte[i]
     sumnegloglik <- sumnegloglik + negloglik
@@ -1163,7 +1166,8 @@
 "print.likGRF" <-
   function (x, digits = max(3, getOption("digits") - 3), ...)
 {
-  est.pars <- as.vector(x$parameters.summary[x$parameters.summary[,1] == "estimated",2])
+  est.pars <- as.vector(x$parameters.summary[x$parameters.summary[,1]
+  == "estimated",2])
   names.est.pars <- dimnames(x$parameters.summary[x$parameters.summary[,1] == "estimated",])[[1]]
   names(est.pars) <- names.est.pars
   cat("likfit: estimated model parameters:\n")
@@ -1376,39 +1380,31 @@
     ##
     n <- length(data[[1]])
     if((phi < 1e-16) | (sigmasq < 1e-16)){
-      iv <- list(sqrt.inverse = diag(x=1/sqrt((nugget+sigmasq)), n),
-                 log.det.to.half = (n/2) * log(nugget+sigmasq))
+      V <- list(varcov = diag(x=(nugget+sigmasq), n),
+                log.det.to.half = (n/2) * log(nugget+sigmasq))
     }
     else{
-      iv <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
-                           cov.model = cov.model, kappa=kappa,
-                           nugget = nugget, cov.pars=c(sigmasq, phi),
-                           sqrt.inv = TRUE, det = TRUE)
+      V <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
+                          cov.model = cov.model, kappa=kappa,
+                          nugget = nugget, cov.pars=c(sigmasq, phi),
+                          det = TRUE)
     }
-    if(!is.null(iv$crash.parms)){
+    if(!is.null(V$crash.parms)){
       cat("varcov.spatial: improper matrix for following the given parameters:")
-      print(iv$crash.parms)
+      print(V$crash.parms)
       stop()
     }
-    sivx <- crossprod(iv$sqrt.inverse, xmat[[i]])
-    xivx <- crossprod(sivx)
-    sivy <- crossprod(iv$sqrt.inverse, data[[i]])
-    xivy <- crossprod(sivx, sivy)  
-    betahat <- .solve.geoR(xivx, xivy)
+    ivx <- solve(V$varcov,xmat[[i]])
+    xivx <- crossprod(ivx,xmat[[i]])
+    betahat <- .solve.geoR(xivx, crossprod(ivx,data[[i]]))
     res <- data[[i]] - xmat[[i]] %*% betahat
-    ssres <- as.vector(crossprod(crossprod(iv$sqrt.inverse,res)))
+    ssres <- drop(crossprod(res, solve(V$varcov,res)))
     if(method.lik == "ML"){
-      negloglik <- (n/2)*(log(2*pi)) + iv$log.det.to.half +  0.5 * ssres
+      negloglik <- (n/2)*(log(2*pi)) + V$log.det.to.half +  0.5 * ssres
     }
     if(method.lik == "RML"){
-      if(length(as.vector(xivx)) == 1) {
-        choldet <- 0.5 * log(xivx)
-      }
-      else {
-        chol.xivx <- chol(xivx)
-        choldet <- sum(log(diag(chol.xivx)))
-      }
-      negloglik <- iv$log.det.to.half +  0.5 * ssres + choldet
+      choldet <- sum(log(diag(chol(xivx))))
+      negloglik <- V$log.det.to.half +  0.5 * ssres + choldet
       xx.eigen <- eigen(crossprod(xmat[[i]]), symmetric = TRUE, only.values = TRUE)
       negloglik <- negloglik + ((n-beta.size)/2)*(log(2*pi)) - 0.5 * sum(log(xx.eigen$values))
     }
@@ -1532,57 +1528,44 @@
   }
   beta.size <- .temp.list$beta.size
   kappa <- .temp.list$kappa
-  covinf <- varcov.spatial(dists.lowertri = .temp.list$
-                           dists.lowertri, cov.model = .temp.list$cov.model,
-                           kappa = kappa, nugget = tausq,
-                           cov.pars = c(sigmasq, phi), scaled = FALSE,
-                           inv = TRUE, det = TRUE,
-                           only.inv.lower.diag = TRUE)
-  xix <- as.double(rep(0, beta.size*beta.size))
-  xix <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(.temp.list$xmat)),
-            as.double(as.vector(.temp.list$xmat)),
-            as.integer(beta.size),
-            as.integer(beta.size),
-            as.integer(n),
-            res = xix, PACKAGE = "geoR")$res
-  attr(xix, "dim") <- c(beta.size, beta.size)
+#  covinf <- varcov.spatial(dists.lowertri = .temp.list$
+#                           dists.lowertri, cov.model = .temp.list$cov.model,
+#                           kappa = kappa, nugget = tausq,
+#                           cov.pars = c(sigmasq, phi), scaled = FALSE,
+#                           inv = TRUE, det = TRUE,
+#                           only.inv.lower.diag = TRUE)
+  COV <- varcov.spatial(dists.lowertri = .temp.list$
+                        dists.lowertri, cov.model = .temp.list$cov.model,
+                        kappa = kappa, nugget = tausq,
+                        cov.pars = c(sigmasq, phi), scaled = FALSE,
+                        det = TRUE)
+#  xix <- as.double(rep(0, beta.size*beta.size))
+#  xix <- .C("bilinearform_XAY",
+#            as.double(covinf$lower.inverse),
+#            as.double(covinf$diag.inverse),
+#            as.double(as.vector(.temp.list$xmat)),
+#            as.double(as.vector(.temp.list$xmat)),
+#            as.integer(beta.size),
+#            as.integer(beta.size),
+#            as.integer(n),
+#            res = xix, PACKAGE = "geoR")$res
+#  attr(xix, "dim") <- c(beta.size, beta.size)
+  xix <- crossprod(.temp.list$xmat, solve(COV$varcov,
+                                           .temp.list$xmat))
   if(length(as.vector(xix)) == 1) {
-    ixix <- 1/xix
     choldet <- 0.5 * log(xix)
   }
   else {
-    chol.xix <- chol(xix)
-    ixix <- chol2inv(chol.xix)
-    choldet <- sum(log(diag(chol.xix)))
+    choldet <- sum(log(diag(chol(xix))))
   }
-  xiy <- as.double(rep(0, beta.size))
-  xiy <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(.temp.list$xmat)),
-            as.double(as.vector(z)),
-            as.integer(beta.size),
-            as.integer(1),
-            as.integer(n),
-            res = xiy, PACKAGE = "geoR")$res
-  beta.hat <- as.vector(ixix %*% xiy)
-  yiy <- as.double(0.0)
-  yiy <- .C("bilinearform_XAY",
-            as.double(covinf$lower.inverse),
-            as.double(covinf$diag.inverse),
-            as.double(as.vector(z)),
-            as.double(as.vector(z)),
-            as.integer(1),
-            as.integer(1),
-            as.integer(n),
-            res = yiy, PACKAGE = "geoR")$res
+  iy <- solve(COV$varcov, z)
+  xiy <- crossprod(.temp.list$xmat, iy)
+  beta.hat <- drop(solve(xix,xiy))
+  yiy <- drop(crossprod(z, iy))
   ssresmat <- as.vector(yiy - 2*crossprod(beta.hat,xiy) +  beta.hat %*% xix %*% beta.hat)
   if(.temp.list$method == "ML") {
     loglik <- ( - (n/2) * log(2 * pi) -
-               covinf$log.det.to.half -
+               COV$log.det.to.half -
                0.5 * ssresmat + 
                .temp.list$log.jacobian)
   }
@@ -1590,10 +1573,9 @@
     xx.eigen <- eigen(crossprod(.temp.list$xmat), symmetric = TRUE, only.values = TRUE)
     loglik <- ( - ((n - beta.size)/2) * log(2 * pi) +
                0.5 * sum(log(xx.eigen$values)) -
-               covinf$log.det.to.half -
+               COV$log.det.to.half -
                (0.5) * ssresmat -
-               choldet +
-               .temp.list$log.jacobian)
+               choldet + .temp.list$log.jacobian)
   }
   return(as.vector(loglik))
 }

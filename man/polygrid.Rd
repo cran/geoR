@@ -24,17 +24,17 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
   \item{vec.inout}{logical. If \code{TRUE} a logical vector is included
     in the output indicating whether each point of the grid is inside
     the polygon.  Defaults to \code{FALSE}.  }
-  \item{\ldots}{arguments to be passed to the \pkg{splancs} function
-  \code{\link[splancs]{inout}}.  }
+  \item{\ldots}{currently not used (kept for back compatibility). }
 }
 
 \details{
-  This function requires the package \pkg{splancs}.
-
   The function works as follows:
-  First it creates a grid using the \R function
-  \code{\link[base]{expand.grid}} and then it uses the function
-  \code{\link[splancs]{inout}} from the package \pkg{splancs} to extract the points
+  First it creates a grid using the \R{} function
+  \code{\link[base]{expand.grid}} and then it uses the geoR'
+  internal function
+  \code{.geoR_inout()} which wraps usage of \code{\link[sp]{SpatialPoints}}
+  and \code{\link[sp]{overlay}}
+  from the package \pkg{sp} to extract the points
   of the grid which are inside the polygon.
   
   Within the package \pkg{geoR}
@@ -66,16 +66,15 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{\code{\link{expand.grid}}, \code{\link[splancs]{inout}. }
+\seealso{\code{\link{expand.grid}}, \code{\link[sp]{overlay}},
+    \code{\link[sp]{SpatialPoints}}. 
 }
 
 \examples{
-if(require(splancs)){
  poly <- matrix(c(.2, .8, .7, .1, .2, .1, .2, .7, .7, .1), ncol=2)
  plot(0:1, 0:1, type="n")
  lines(poly)
  poly.in <- polygrid(seq(0,1,l=11), seq(0,1,l=11), poly, vec=TRUE)
  points(poly.in$xy)
-}
 }
 \keyword{spatial}%-- one or more ...

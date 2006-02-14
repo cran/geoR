@@ -177,6 +177,10 @@ cov.spatial(obj, cov.model= "matern",
   \deqn{\rho(h) = \frac{\phi}{h}\sin(\frac{h}{\phi})}{(phi/h) *
     sin(h/phi)} \\
 
+  \bold{pure.nugget} \cr
+  \deqn{\rho(h) = k}{rho(h) = k}\\
+  where k is a constant value. This model corresponds to
+  no spatial correlation.
 
   \bold{Nested models}
   Models with several structures

@@ -1,9 +1,11 @@
 "krige.conv" <-
   function (geodata, coords=geodata$coords, data=geodata$data,
-            locations, borders = NULL, krige, output)
+            locations, borders, krige, output)
 {
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
+  if(missing(borders))
+    borders <- geodata$borders
   locations <- .check.locations(locations)
   ## Checking for 1D prediction 
   if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
@@ -139,7 +141,8 @@
     sim.means <- ifelse(simulations.predictive, TRUE, FALSE)
   sim.vars <- output$sim.vars
   if(is.null(sim.vars)) sim.vars <- FALSE
-  if(is.null(mean.estimator) & simulations.predictive) mean.estimator <- TRUE
+  if(is.null(mean.estimator) & simulations.predictive)
+    mean.estimator <- TRUE
   quantile.estimator <- output$quantile.estimator
   probability.estimator <- output$probability.estimator
   if(!is.null(probability.estimator)){
@@ -161,9 +164,13 @@
   coords <- as.matrix(coords)
   ##
   ## selecting locations inside the borders 
+  ## and also values of trend.l if the case
   ##
   if(!is.null(borders)){
-    locations <- locations.inside(locations, borders, bound=TRUE)
+    nloc0 <- nrow(locations)
+    ind.loc0  <- .geoR_inout(locations, borders)
+#    locations <- locations.inside(locations, borders)
+    locations <- locations[ind.loc0,]
     if(nrow(locations) == 0)
       stop("\nkrige.conv: there are no prediction locations inside the borders")
     if(messages.screen)
@@ -198,7 +205,11 @@
   if(class(krige$trend.l) == "trend.spatial")
     trend.l <- unclass(krige$trend.l)
   else
-    trend.l <- unclass(trend.spatial(trend=krige$trend.l, geodata = list(coords = locations)))
+    trend.l <- unclass(trend.spatial(trend=krige$trend.l,
+                                     geodata = list(coords = locations)))
+  if(!is.null(borders))
+    if(nrow(trend.l) == nloc0)
+      trend.l <- trend.l[ind.loc0,]
   if (nrow(trend.l) != nrow(locations)) 
     stop("locations and trend.l have incompatible sizes")
   if(beta.size > 1)
@@ -253,20 +264,14 @@
   ## starting kriging calculations
   ##
   kc <- list()
-  invcov <- varcov.spatial(coords = coords, cov.model = cov.model, 
-                           kappa = kappa, nugget = tausq.rel,
-                           cov.pars = cpars, inv = TRUE,
-                           only.inv.lower.diag = TRUE)
-  ittivtt <- .solve.geoR(.bilinearformXAY(X = as.vector(trend.d),
-                                        lowerA = as.vector(invcov$lower.inverse),
-                                        diagA = as.vector(invcov$diag.inverse), 
-                                        Y = as.vector(trend.d)))
-  if(beta.prior == "flat"){
-    beta.flat <- drop(ittivtt %*% .bilinearformXAY(X = as.vector(trend.d),
-                                                  lowerA = as.vector(invcov$lower.inverse),
-                                                  diagA = as.vector(invcov$diag.inverse), 
-                                                  Y = as.vector(data)))
-  }
+  Vcov <- varcov.spatial(coords = coords, cov.model = cov.model, 
+                         kappa = kappa, nugget = tausq.rel,
+                         cov.pars = cpars)$varcov
+  ivtt <- solve(Vcov,trend.d)
+  ttivtt <- crossprod(ivtt,trend.d)
+  if(beta.prior == "flat")
+    beta.flat <- drop(solve(ttivtt,crossprod(ivtt,as.vector(data))))
+  remove("ivtt")
   v0 <- loccoords(coords = coords, locations = locations)
   if(n.predictive > 0){
     ## checking if there are data points coincident with prediction locations
@@ -284,17 +289,20 @@
   ## using nugget interpreted as microscale variation or measurement error
   nug.factor <- ifelse(signal, tausq.rel.micro, tausq.rel)
   ## covariances between data and prediction locations
-  v0 <- ifelse(v0 < krige$dist.epsilon, 1+nug.factor,
-               cov.spatial(obj = v0, cov.model = cov.model, 
-                           kappa = kappa, cov.pars = cpars))
-  tv0ivv0 <- .diagquadraticformXAX(X = as.vector(v0),
-                                  lowerA = invcov$lower.inverse,
-                                  diagA = invcov$diag.inverse)
-  b <- .bilinearformXAY(X = as.vector(cbind(data,trend.d)),
-                       lowerA = as.vector(invcov$lower.inverse),
-                       diagA = as.vector(invcov$diag.inverse), 
-                       Y = as.vector(v0))
-  if(n.predictive == 0) remove("v0","invcov")
+  #v0 <- ifelse(v0 < krige$dist.epsilon, 1+nug.factor,
+  #             cov.spatial(obj = v0, cov.model = cov.model, 
+  #                         kappa = kappa, cov.pars = cpars))
+  ind.v0 <- which(v0<krige$dist.epsilon)
+  v0 <- cov.spatial(obj = v0, cov.model = cov.model, 
+                    kappa = kappa, cov.pars = cpars)
+  v0[ind.v0] <- 1+nug.factor
+  ivv0 <- solve(Vcov,v0)
+  ##tv0ivv0 <- diag(crossprod(v0,ivv0))
+  tv0ivv0 <- colSums(v0 * ivv0)
+  remove("Vcov", "ind.v0")
+  b <- crossprod(cbind(data,trend.d),ivv0)
+  if(n.predictive == 0) remove("v0", "ivv0")
+  gc(verbose = FALSE)
   tv0ivdata <- drop(b[1,])
   b <- t(trend.l) -  b[-1,, drop=FALSE]
   if(beta.prior == "deg") {
@@ -304,21 +312,20 @@
   }
   if(beta.prior == "flat"){
     kc$predict <- tv0ivdata + drop(crossprod(b,beta.flat))
-    if(beta.size == 1)
-      bitb <- drop(b^2) * drop(ittivtt)
-    else
-      bitb <- .diagquadraticformXAX(X = b,
-                                   lowerA = (ittivtt[lower.tri(ittivtt)]),
-                                   diagA = diag(ittivtt))
+    #bitb <- drop(diag(crossprod(b,solve(ttivtt,b))))
+    bitb <- colSums(b * solve(ttivtt,b))
     kc$krige.var <- sill.partial * drop(1+nug.factor - tv0ivv0 + bitb)
     kc$beta.est <- beta.flat
     names(kc$beta.est) <- beta.names
-    remove("bitb")
+    if(n.predictive == 0) remove("bitb")
   }
-  remove("tv0ivv0", "tv0ivdata")
-  if(n.predictive == 0) remove("b")
+  if(n.predictive == 0) remove("b","tv0ivv0")
+  remove("tv0ivdata")
+  gc(verbose = FALSE)
   kc$distribution <- "normal"
-  if(any(round(kc$krige.var, dig=12) < 0))
+  kc$krige.var[kc$krige.var < 1e-8] <- 0
+#  if(any(round(kc$krige.var, dig=12) < 0))
+  if(any(kc$krige.var < 0))
     cat("krige.conv: negative kriging variance found! Investigate why this is happening.\n")
   ##
   ## ########### Sampling from the resulting distribution ###
@@ -332,31 +339,18 @@
     if(messages.screen)
       cat("krige.conv: sampling from the predictive distribution (conditional simulations)\n")
     if(length(cov.pars) > 2){
-      reduce.var <-
-        .bilinearformXAY(X = as.vector(v0),
-                        lowerA = as.vector(invcov$lower.inverse),
-                        diagA = as.vector(invcov$diag.inverse), 
-                        Y = as.vector(v0))
-      remove("v0")
-      attr(reduce.var, "dim") <- c(ni, ni)
       if(beta.prior == "flat"){
-        if(beta.size == 1)
-          ok.add.var <- outer(as.vector(b),as.vector(b)) * as.vector(ittivtt)
-        else
-          ok.add.var <-
-            .bilinearformXAY(X = as.vector(b),
-                            lowerA = as.vector(ittivtt[lower.tri(ittivtt)]),
-                            diagA = as.vector(diag(ittivtt)), 
-                            Y = as.vector(b))
-        reduce.var <- reduce.var + ok.add.var
+        ok.add.var <- drop(bitb)
+        tv0ivv0 <- tv0ivv0 + ok.add.var
       }
       varcov <- (varcov.spatial(coords = locations,
                                 cov.model = cov.model,
                                 cov.pars = cov.pars,
                                 kappa = kappa, nugget = nugget)$varcov) -
-                                  reduce.var
-      remove("reduce.var")
-      if(is.R()) gc(verbose=FALSE)
+                                  tv0ivv0
+      remove("tv0ivv0")
+      gc(verbose=FALSE)
+## can this bit be improved in efficiency/robustness ?
       kc$simulations <-  kc$predict +
         crossprod(chol(varcov), matrix(rnorm(ni * n.predictive),
                                        ncol=n.predictive))
@@ -377,10 +371,16 @@
       if(beta.prior == "deg")
         vbetai <- matrix(0, ncol = beta.size, nrow = beta.size)
       else
-        vbetai <- matrix(ittivtt, ncol = beta.size, nrow = beta.size)
+        vbetai <- matrix(.solve.geoR(ttivtt),
+                         ncol = beta.size, nrow = beta.size)
       df.model <- ifelse(beta.prior == "deg", n, n-beta.size)
       kc$simulations <- matrix(NA, nrow=ni, ncol=n.predictive)
-      if(nloc > 0)
+      if(nloc > 0){
+        ## re-write this without inverse!!!
+        invcov <- varcov.spatial(coords = coords, cov.model = cov.model, 
+                                 kappa = kappa, nugget = tausq.rel,
+                                 cov.pars = cpars, inv = TRUE,
+                                 only.inv.lower.diag = TRUE)
         kc$simulations[ind.not.coincide,] <- 
           .cond.sim(env.loc = base.env, env.iter = base.env,
                    loc.coincide = loc.coincide,
@@ -394,8 +394,9 @@
                      phi = phi, kappa = kappa, nugget=nugget),
                    vbetai = vbetai,
                    fixed.sigmasq = TRUE)
-      remove("v0", "b", "locations", "invcov")
-      if(is.R()) gc(verbose = FALSE)
+      }
+      remove("b", "locations", "invcov")
+      gc(verbose = FALSE)
       if(coincide.cond)
         kc$simulations[loc.coincide,] <- rep(data.coincide, n.predictive)
     }
@@ -451,8 +452,9 @@
   ##
   ## Setting classes and attributes 
   ##
-  attr(kc, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
+  attr(kc, "sp.dim") <- ifelse(krige1d, "1d", "2d")
   attr(kc, "prediction.locations") <- call.fc$locations
+  attr(kc, "data.locations") <- call.fc$coords
   if(!is.null(call.fc$borders))
     attr(kc, "borders") <- call.fc$borders
   oldClass(kc) <- "kriging"
@@ -475,6 +477,10 @@
     type.krige <- "sk"
   ##
   if(!is.null(obj.model)){
+    if(any(class(obj.model) == "eyefit")){
+      if(length(obj.model) == 1) obj.model <- obj.model[[1]]
+      else stop("select the eyefit model to be used (with [[ ]])")
+    }
     if(missing(beta)) beta <- obj.model$beta
     if(missing(cov.model)) cov.model <- obj.model$cov.model
     if(missing(cov.pars)) cov.pars <- obj.model$cov.pars
@@ -547,9 +553,10 @@
   on.exit(par(op))
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
-  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
+  if(missing(locations))
+    locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
@@ -563,6 +570,9 @@
     if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
   if(missing(coords.data)) coords.data <- NULL
+  else
+    if(coords.data == TRUE)
+      coords.data <-  eval(attr(x, "data.locations"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   ##
@@ -581,7 +591,7 @@
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,
                                        xlim= ldots.image$xlim,
-                                       ylim= ldots.image$yli, bound=TRUE)
+                                       ylim= ldots.image$yli)
     do.call("image", c(list(x=locations$x, y=locations$y,
                             z=locations$values), ldots.image))
     ##
@@ -612,14 +622,15 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    if(!is.null(attr(x, "borders")))
+      borders.arg <- borders <- eval(attr(x, "borders"))
     else borders.arg <- borders <- NULL
   }
   else{
@@ -627,6 +638,9 @@
     if(is.null(borders)) borders <- eval(attr(x, "borders"))
   }
   if(missing(coords.data)) coords.data <- NULL
+  else
+    if(coords.data == TRUE)
+      coords.data <-  eval(attr(x, "data.locations"))
   ##
   ## Plotting 1D or 2D
   ##
@@ -649,7 +663,7 @@
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,
                                        xlim= ldots.contour$xlim,
-                                       ylim= ldots.contour$ylim, bound=TRUE)
+                                       ylim= ldots.contour$ylim)
     if(filled){
       if(is.null(ldots.contour$plot.axes)){
         ldots.contour$plot.axes  <- quote({
@@ -682,8 +696,8 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
@@ -704,13 +718,10 @@
                                        borders.obj = eval(attr(x, "borders")),
                                        values=values,
                                        xlim= ldots.persp$xlim,
-                                       ylim= ldots.persp$ylim, bound=TRUE)
+                                       ylim= ldots.persp$ylim)
     do.call("persp", c(list(x=locations$x, y=locations$y,
                             z=locations$values), ldots.persp))
   }
   return(invisible())
 }
-
-
-
 

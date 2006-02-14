@@ -1,7 +1,7 @@
 citHeader("To cite the package geoR in publications use:")
 
 citEntry(entry="Article",
-         title = "geoR: a package for geostatistical analysis",
+         title = "geo{R}: a package for geostatistical analysis",
          author = personList(as.person("Paulo J. Ribeiro Jr"), 
                              as.person("Peter J. Diggle")),
 	 journal = "R-NEWS",

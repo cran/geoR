@@ -21,7 +21,7 @@ summary.eyefit <- function(object, ...){
       if (tmp["cov.model"] != "gneiting.matern") tmp["kappa2"] <- NA
       if (all(tmp["cov.model"] != c("powered.exponential","cauchy","matern")))
         tmp["kappa"] <- NA
-      res[i,] <- tmp[which(names(tmp) != "max.dist")]
+      res[i,] <- tmp[c("cov.model","cov.pars1","cov.pars2","nugget", "kappa", "kappa2")]
     }
   }
   return(res)
@@ -53,8 +53,8 @@ eyefit <- function(vario, silent=FALSE){
   kappa1 <- tclVar("0.5")
   kappa2 <- tclVar("1.0")    
   kernel<- tclVar("exponential")
-  mdist <- tclVar((max(vario$u)))
-  nugget <- tclVar(0.2*(max(vario$v)))
+  mdist <- tclVar(max(vario$u))
+  nugget <- tclVar(0.1*(max(vario$v)))
   sill <- tclVar(0.8*(max(vario$v)))	
   range <- tclVar(dmax/3)
   
@@ -97,11 +97,11 @@ eyefit <- function(vario, silent=FALSE){
       var <- as.character(tclObj(kernel))	
       if (var == "gneiting.matern") 
 	{
-          tkconfigure(entry.kappa1,state="normal")
-    	  tkconfigure(ts5,state="normal")
+          tkconfigure(entry.kappa1, state="normal")
+    	  tkconfigure(ts5, state="normal")
           tkfocus(entry.kappa1)
-          tkconfigure(entry.kappa2,state="normal")
-    	  tkconfigure(ts6,state="normal")
+          tkconfigure(entry.kappa2, state="normal")
+    	  tkconfigure(ts6, state="normal")
 	}
       else if (var == "powered.exponential" || var =="cauchy" || var == "matern") 
 	{

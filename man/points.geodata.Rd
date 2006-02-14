@@ -14,11 +14,11 @@
 }
 
 \usage{
-points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
+points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders,
                pt.divide=c("data.proportional","rank.proportional",
                            "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", abs.residuals = FALSE,
-               weights.divide = NULL, cex.min, cex.max, cex.var,
+               weights.divide = "units.m", cex.min, cex.max, cex.var,
                pch.seq, col.seq, add.to.plot = FALSE,
                x.leg, y.leg, dig.leg = 2, 
                round.quantiles = FALSE, graph.pars = FALSE,
@@ -41,7 +41,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     variables or simulations.  }
   \item{borders}{If an \eqn{n \times 2}{nx2}
     matrix or data-frame with the coordinates of the borders of the
-    regions is provided, the borders are added to the plot.  }
+    regions is provided, the borders are added to the plot.
+    By default it searches for a element named "borders" in  the geodata
+    object.  }
   \item{pt.divide}{defines the division of the points in categories.
     See \code{DETAILS} below for the available options.
     Defaults to \code{pt.divide = "data.proportional"}.   }
@@ -63,7 +65,11 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   \item{weights.divide}{if a vector of weights with the same length as
     the data is provided each  data is
     divided by the corresponding element in this vector.
-    Defaults to \code{NULL}.  }
+    Defaults divides the data by the element \code{units.m} in the
+    data object, if present, otherwise no action is taken and original
+    data is used.
+    The usage oc \code{units.m} is common for data objects
+    to be analysed using the package \pkg{geoRglm}. }
   \item{cex.min}{minimum value for the graphical parameter
     \code{cex}. This value defines the size of the point corresponding the minimum
     of the data. Defaults to 0.5.  }
@@ -72,7 +78,9 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
     of the data. If \code{pt.divide = "equal"} it is used to set
     the value for the
     graphical parameter \code{cex}. Defaults to 1.5.  }
-  \item{cex.var}{a numeric vector with the values of a variable defining the size of the points. }
+  \item{cex.var}{a numeric vector with the values of a variable defining
+    the size of the points. Particularly useful for displaying 2
+    variables at once.  }
   \item{pch.seq}{number(s) defining the graphical parameter \code{pch}.  }
   \item{col.seq}{number(s) defining the colors in the graphical parameter
     \code{col}.  }
@@ -127,6 +135,10 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders = NULL,
   for point sizes proportional to the data or their ranks.
   For more details see the section \code{EXAMPLES}.
 
+  The argument \code{cex.var} allows for displaying 2 variables
+  at once. In this case one variable defines the backgroung colour
+  of the points and the other defines the points size.
+  
   The argument \code{permute} if set to \code{TRUE}
   randomly realocates the data in the coordinates.
   This may be used to
@@ -188,12 +200,18 @@ points(ca20, pt.div='quartile', x.leg=4900, y.leg=5850, bor=borders)
 par(mfrow=c(1,2), mar=c(3,3,1,1), mgp = c(2,1,0))
 points(s100, main="Original data")
 points(s100, permute=TRUE, main="Permuting locations")
-}
 
+## Now an example using 2 variable, 1 defining the
+## gray scale and the other the points size
+data(camg)
+points.geodata(coords=camg[,1:2], data=camg[,3], col="gray",
+               cex.var=camg[,5])
+points.geodata(coords=camg[,1:2], data=camg[,3], col="gray",
+               cex.var=camg[,5], pt.div="quint")
+}
 \keyword{spatial}
 \keyword{dplot}
 \keyword{aplot}
-%-- one or more ...
 
 
 

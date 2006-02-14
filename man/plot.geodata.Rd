@@ -9,7 +9,9 @@
 \description{
   This function produces a \eqn{2 \times 2}{2 x 2} display
   with the following plots: 
-  the first indicates the spatial locations,
+  the first indicates the spatial locations assign different
+  colors to data
+  in different quartiles,
   the next two shows data against the \emph{X} and
   \emph{Y} coordinates and the last is an histogram of the data values or optionally,
   a 3-D plot with spatial locations and associated data values.
@@ -17,8 +19,8 @@
 
 \usage{
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
-             borders = NULL, trend="cte", lambda = 1, col.data = 1,
-             weights.divide = NULL, lowess = FALSE, scatter3d = FALSE,
+             borders, trend="cte", lambda = 1, col.data = 1,
+             weights.divide = "units.m", lowess = FALSE, scatter3d = FALSE,
              qt.col, \dots)
 }
 
@@ -36,7 +38,8 @@
     element \code{data} of the argument \code{geodata}.  }
   \item{borders}{If an \eqn{n \times 2}{nx2} matrix or data-frame with
     the borders of the area is provided, the borders are included in the
-    first plot.  }
+    first plot. By default it searches for a element named "borders"
+    in  the geodata object.  }
   \item{trend}{specifies the mean part of the model. The options are:
     \code{"cte"} (constant mean - default option), \code{"1st"} (a first order polynomial
     on the coordinates), \code{"2nd"} (a second order polynomial
@@ -54,7 +57,11 @@
   \item{weights.divide}{if a vector of weights with the same length as
     the data is provided each  data is
     divided by the corresponding element in this vector.
-    Defaults to \code{NULL}.  }
+    Defaults divides the data by the element \code{units.m} in the
+    data object, if present, otherwise no action is taken and original
+    data is used.
+    The usage of \code{units.m} is common for data objects
+    to be analysed using the package \pkg{geoRglm}.  }
   \item{lowess}{logical. Indicates whether the function
     \code{\link{lowess}} should be used in the plots of the data against
   the coordinates.  }

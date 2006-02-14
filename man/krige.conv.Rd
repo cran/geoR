@@ -22,7 +22,7 @@
 
 \usage{
 krige.conv(geodata, coords=geodata$coords, data=geodata$data,
-            locations, borders = NULL, krige, output)
+           locations, borders, krige, output)
 
 krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
             obj.model = NULL, beta, cov.model, cov.pars, kappa,
@@ -48,7 +48,10 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
     coordinates of the \eqn{N} prediction locations, or a list for which
     the first two components are used. Input is internally checked by the
     function \code{check.locations}.  }
-  \item{borders}{optional. If a two column matrix defining a polygon is
+  \item{borders}{optional. By default reads the element \code{borders}
+    from the \code{geodata} object, if present.
+    Setting to \code{NULL} prevents this behavior.
+    If a two column matrix defining a polygon is
     provided the prediction is performed only at locations inside this polygon. }
   \item{krige}{a list defining the model components and the type of
     kriging. It can take an output to a call to \code{krige.control} or

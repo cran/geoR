@@ -10,6 +10,8 @@
   function(locations)
 {
   if(all(locations == "no")) return("no")
+  if(inherits(locations, "SpatialPoints"))
+    locations <- coordinates(locations)
   if(!is.list(locations) && is.vector(locations)) {
     ##
     ## Checking the spatial dimension for prediction
@@ -177,6 +179,7 @@
   function(x)
 {
   xname <- deparse(substitute(x))
+  if(inherits(x, "SpatialPoints")) x <- coordinates(x)
   if(is.matrix(x)){
     locnames <- colnames(x)[1:2]
     x <- x[,1:2]
@@ -203,15 +206,34 @@
   return(x)
 }
 
+".check.borders" <-
+  function(x)
+{
+  xname <- deparse(substitute(x))
+  if(!inherits(x, "SpatialPolygons")) {
+    if (is.matrix(x)) { 
+      x <- x[,1:2]
+    } else if(is.data.frame(x)) { 
+      x <- as.matrix(x[,1:2])
+    } else if(is.list(x)) {
+      x <- matrix(unlist(x[1:2]), ncol=2) 
+    } else stop(paste(xname, "must be a SpatialPolygons object or a matrix"))
+    if(nrow(x) < 3) stop("borders must have at least 3 points")
+    if(!identical(x[1,], x[nrow(x),])) x <- rbind(x, x[1,])
+    x <- SpatialPolygons(list(Polygons(list(Polygon(coords=x)), ID="borders")))
+  }
+  return(x)
+}
+
   
 "locations.inside" <-
   function(locations, borders, as.is = TRUE, ...)
 {
-  if (!require(splancs))
-    cat("package splancs in required to select points inside the borders\n")
+#  if (!require(splancs))
+#    cat("package splancs in required to select points inside the borders\n")
   locations <- .check.coords(locations)
-  borders <- .check.coords(borders)
-  res <- pip(pts = locations, poly = borders, ...)
+  borders <- .check.borders(borders)
+  res <- .geoR_pip(pts = locations, poly = borders, ...)
   if(as.is){
     if(attr(locations, "type") == "dataframe")
       res <- as.data.frame(res)
@@ -225,9 +247,9 @@
   function(xgrid, ygrid, borders, vec.inout = FALSE, ...)
 {
   ## checking for splancs
-  if(!require(splancs))
-    cat("ERROR: function polygrid requires the package \"splancs\"")
-  else library(splancs)
+#  if(!require(splancs))
+#    cat("ERROR: function polygrid requires the package \"splancs\"")
+#  else library(splancs)
   ## checking input
   if(!is.list(xgrid) && is.vector(drop(xgrid))){
     if(missing(ygrid))
@@ -248,27 +270,30 @@
       xygrid <- expand.grid(x = xgrid[[1]], y = xgrid[[2]])
       if(!missing(ygrid)) warning("xgrid is a list, ygrid was ignored")
     }
-  if(nrow(borders) < 3) stop("borders must have at least 3 points")
-  if(exists("inout")){
-    ind <- as.vector(inout(pts=xygrid, poly=borders, ...))
+  borders <- .check.borders(borders)
+#  if(nrow(borders) < 3) stop("borders must have at least 3 points")
+#  if(!identical(borders[1,], borders[nrow(borders),]) 
+#    borders <- rbind(borders, borders[1,])
+#  if(exists("inout")){
+    ind <- as.vector(.geoR_inout(pts=xygrid, poly=borders, ...))
     xypoly <- xygrid[ind == TRUE,  ]
     if(vec.inout == FALSE)
       return(xypoly)
     else return(list(xypoly = xypoly, vec.inout = ind))
-  }
-  else{
-    cat("ERROR: function polygrid requires the package \"splancs\"")
-    return(invisible())
-  }
+#  }
+#  else{
+#    cat("ERROR: function polygrid requires the package \"splancs\"")
+#    return(invisible())
+#  }
 }
 
 "trend.spatial" <-
   function (trend, geodata, add.to.trend) 
 {
   if(!missing(geodata)){
-    attach(geodata, pos=2)
+    attach(geodata, pos=2, warn.conflicts=FALSE)
     if(!is.null(geodata$covariate)){
-      attach(geodata$covariate, pos=3)
+      attach(geodata$covariate, pos=3, warn.conflicts=FALSE)
       on.exit(detach("geodata$covariate"), add=TRUE)
     }
     on.exit(detach("geodata"), add=TRUE)
@@ -646,10 +671,11 @@
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     dimnames(borders.obj) <- list(NULL, NULL)
-    if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
-    else
-      stop("usage of the argument borders requires the package splancs")
+#    if(require(splancs))
+      inout.vec <- as.vector(.geoR_inout(pts = locations,
+                                         poly = borders.obj, ...))
+#    else
+#      stop("usage of the argument borders requires the package splancs")
     values.loc[inout.vec] <- values
     rm("inout.vec")
   }
@@ -657,10 +683,11 @@
     borders <- as.matrix(as.data.frame(borders))
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
-      if(require(splancs))
-        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
-      else
-        stop("usage of argument borders requires the package splancs")
+#      if(require(splancs))
+        inout.vec <- as.vector(.geoR_inout(pts = locations,
+                                           poly = borders, ...))
+#      else
+#        stop("usage of argument borders requires the package splancs")
       if(length(values.loc[inout.vec]) == length(values))
         values.loc[inout.vec] <- values
       values.loc[!inout.vec] <- NA
@@ -685,3 +712,59 @@
               values = matrix(values.loc, ncol = ny), 
               coords.lims = coords.lims))
 }
+
+.geoR_inout <- function(pts, poly, ...) {
+  require(sp)
+  ## inout returns logical vector
+  ## poly <- .check.borders(poly)
+  ## pts <- SpatialPoints(coords=pts)
+  ## res <- overlay(pts, poly)
+  ## !is.na(res)
+  !is.na(overlay(SpatialPoints(coords=pts), .check.borders(poly)))
+}
+
+.geoR_pip <- function(pts, poly, ...) {
+  require(sp)
+  ## pip returns the points matrix
+  poly <- .check.borders(poly)
+  pts <- SpatialPoints(coords=pts)
+  res <- overlay(pts, poly)
+  opts <- coordinates(pts)[!is.na(res),]
+  .check.locations(opts)
+}
+
+"pred_grid" <- function(coords, y.coords = NULL,
+                        ... , y.by = NULL, y.length.out = NULL,
+                        y.along.with = NULL){
+  if(is.list(coords)){
+    x.coords <- range(coords[[1]])
+    y.coords <- range(coords[[2]])
+  }
+  else{
+    if(is.matrix(coords) || is.data.frame(coords)){
+      if(ncol(coords) != 2)
+        stop("coords must be a two column matrix with xy-coordinates
+or a vector with x-coordinates")
+      x.coords <- range(coords[,1])
+      y.coords <- range(coords[,2])
+    }
+    else{
+      if(is.null(y.coords))
+        stop("if a vector is provided in coords, y.coords must also be provided as a vector")
+      x.coords <- range(coords)
+      y.coords <- range(y.coords)
+    }
+  }
+  gx <- seq(x.coords[1], x.coords[2], ...)
+  ldots <- list(...)
+  if(!is.null(ldots))
+    names(ldots) <- match.arg(names(ldots), names(formals(seq.default)))
+  if(is.null(y.length.out)) y.length.out <- ldots$length.out
+  if(is.null(y.along.with)) y.along.with <- ldots$along.with
+  if(is.null(y.by))
+    y.by <- ifelse(is.null(ldots$by), ((y.coords[2] - y.coords[1])/y.length.out - 1), ldots$by)
+  gy <- seq(from=y.coords[1], to=y.coords[2],
+            by = y.by)
+  return(expand.grid(gx,gy))
+}
+

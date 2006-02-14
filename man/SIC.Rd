@@ -46,7 +46,8 @@
 \examples{
 data(SIC)
 points(sic.100, borders=sic.borders)
+points(sic.all, borders=sic.borders)
 }
 
 \keyword{datasets}
-\keywords{spatial}
+\keyword{spatial}

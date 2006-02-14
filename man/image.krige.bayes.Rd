@@ -24,7 +24,8 @@
                   values.to.plot = c("mean", "variance",
                        "mean.simulations", "variance.simulations",
                        "quantiles", "probabilities", "simulation"),
-                  number.col, coords.data, x.leg, y.leg, messages, \dots)
+                  filled=FALSE, number.col, coords.data,
+                  x.leg, y.leg, messages, \dots)
 \method{persp}{krige.bayes}(x, locations, borders,
                   values.to.plot=c("mean", "variance",
                        "mean.simulations", "variance.simulations",
@@ -48,6 +49,9 @@
     borders  and \code{NA}'s to the external ones.  }
   \item{values.to.plot}{select the element of the predictive
     distribution to be plotted. See DETAILS below.}
+  \item{filled}{logical. If \code{FALSE} the function
+    \code{\link{contour}} is used otherwise
+    \code{\link{filled.contour}}. Defaults to \code{FALSE}.  }
   \item{number.col}{Specifies the number of the column to be plotted.
     Only used if previous argument is set to one of \code{"quantiles"}, 
     \code{"probabilities"}  or \code{"simulation"}.  }

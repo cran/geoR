@@ -1,25 +1,39 @@
 \name{as.geodata}
 \alias{as.geodata}
+\alias{as.geodata.default}
+\alias{as.geodata.SpatialPointsDataFrame}
+\alias{as.data.frame.geodata}
+\alias{as.geodata.geodata.frame}
 \alias{is.geodata}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Converts an Object to the Class "geodata"}
 
 \description{
-  Converts a matrix or a data-frame to an object of the
+  The default method converts a matrix or a data-frame
+  to an object of the
   \code{\link{class}}  \code{"geodata"}.\cr
   Objects of the class \code{"geodata"} are lists with two obligatory
   components: \code{coords} and \code{data}.
   Optional components are allowed and a typical example is a vector or
-  matrix with covariate(s) value(s).
+  matrix with covariate(s) values.
 }
 
 \usage{
-as.geodata(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
-           covar.col = NULL, covar.names = "obj.names",
-           realisations = NULL,
-           na.action = c("ifany", "ifdata", "ifcovar", "none"),
-           rep.data.action, rep.covar.action)
+as.geodata(obj, \dots)
+
+as.geodata.default(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
+                   covar.col = NULL, covar.names = "obj.names",
+                   units.m.col = NULL, realisations = NULL,
+                   na.action = c("ifany", "ifdata", "ifcovar", "none"),
+                   rep.data.action, rep.covar.action, rep.units.action,
+                   ...)
+
+as.data.frame.geodata(x, \dots, borders = TRUE)
+
+as.geodata.geodata.frame(obj, \dots)
+
+as.geodata.SpatialPointsDataFrame(obj, data.col = 1, \dots)
 
 is.geodata(x)
 }
@@ -30,6 +44,7 @@ is.geodata(x)
   \item{obj}{a matrix or data-frame where each line corresponds to one
     spatial location. It should contain values of 2D coordinates,
     data and, optionally, covariate(s) value(s) at the locations.
+    A method for \code{\link[sp]{SpatialPointsDataFrame}} is also provided.
     It can also take an output of the function \code{\link{grf}}, see
     DETAILS below. }
   \item{coords.col}{a vector with the column numbers corresponding to the
@@ -45,6 +60,11 @@ is.geodata(x)
     covariates. }
   \item{covar.names}{optional. A string or vector of strings with the name(s) of
     the covariates. By default take the names from the original object.  }
+  \item{units.m.col}{optional. A scalar 
+    with the column number corresponding to the offset variable.
+    Alternativelly can be a character vector with the name of the
+    offset. This option is particularly relevant when using the package
+    \pkg{geoRglm}. }
   \item{realisations}{optional. A vector indicating the realisation
     number or a number indicating a column in \code{obj} with the
     realisation indicator variable.
@@ -67,6 +87,15 @@ is.geodata(x)
     the covariates, if any. Defaults to
     the same option set for \code{rep.data.locations}. }
   \item{x}{an object which is tested for the class \code{geodata}.}
+  \item{rep.units.action}{a string or a function.
+    Defines action to be taken on the element \code{units.m}, if present
+    when there is more than
+    one data at the same location. The default option is the same
+    value set for \code{rep.data.action}.  }
+  \item{borders}{logical. If TRUE the element borders in the
+    \code{geodata}
+  object is set as an attribute of the data-frame.  }
+  \item{\dots}{values to be passed for the methods.  }
 }
 
 \details{

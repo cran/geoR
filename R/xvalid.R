@@ -176,7 +176,8 @@
     res <- as.data.frame(t(apply(matrix(locations.xvalid), 1, cv.f)))
   }
   else{
-    xmat.val.loc <- trend.spatial(trend = model$trend, geodata = list(coords=locations.xvalid))
+    xmat.val.loc <- trend.spatial(trend = model$trend,
+                                  geodata = list(coords=locations.xvalid))
     if(is.null(model$method)){
       fix.pars <- rep(TRUE, 5)
       val.pars <- c(mod$nugget, mod$kappa, mod$aniso.pars, mod$lambda)

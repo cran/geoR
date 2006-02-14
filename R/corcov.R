@@ -67,11 +67,12 @@
   }
   if(length(cov.model) != ns) stop('wrong length for cov.model')
   ##
-  cov.model <- sapply(cov.model, match.arg, c("matern", "exponential", "gaussian",
-                                              "spherical", "circular", "cubic", "wave",
-                                              "linear", "power", "powered.exponential", "stable", "cauchy",
-                                              "gneiting", "gneiting.matern", "pure.nugget"))
-  if(cov.model == "stable") cov.model <- "powered.exponential"
+  cov.model <- sapply(cov.model, match.arg,
+                      c("matern", "exponential", "gaussian", "spherical",
+                        "circular", "cubic", "wave", "linear", "power",
+                        "powered.exponential", "stable", "cauchy",
+                        "gneiting", "gneiting.matern", "pure.nugget"))
+  cov.model[cov.model == "stable"] <- "powered.exponential"
   if(any(cov.model == "gneiting.matern")){
     if(length(kappa) != 2*ns) stop('wrong length for kappa')
   }
@@ -116,13 +117,13 @@
 }
 
 "cov.spatial" <-
-  function(obj, cov.model = 'matern',
+  function(obj, cov.model = "matern",
            cov.pars = stop("no cov.pars argument provided"),
            kappa = 0.5)
 {
   fn.env <- sys.frame(sys.nframe())
   .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
-                  env=fn.env, output=FALSE)
+                   env=fn.env, output=FALSE)
   ##
   ## computing correlations/covariances
   ##
@@ -185,6 +186,9 @@
 #    covs <- max(covs) - covs
 #  else covs[obj < 1e-16] <- sum(sigmasq)
   if(sum(sigmasq) < 1e-16) covs[obj < 1e-16] <- 1
+  if(any(!is.finite(covs))) warning("Infinity value in cov.spatial")
+  if(any(is.na(covs))) warning("NA value in cov.spatial")
+  if(any(is.nan(covs))) warning("NaN value in cov.spatial")
   return(covs)
 }
 
@@ -195,7 +199,7 @@
            func.inv = c("cholesky", "eigen", "svd", "solve"),
            scaled = FALSE, only.decomposition = FALSE, 
            sqrt.inv = FALSE, try.another.decomposition = TRUE,
-           only.inv.lower.diag = FALSE) 
+           only.inv.lower.diag = FALSE, ...) 
 {
   if(! "package:stats" %in% search()) require(mva)
   ##
@@ -211,13 +215,13 @@
   }
   ##
   func.inv <- match.arg(func.inv)
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "linear",
-                           "power", "powered.exponential", "cauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
-  if (only.inv.lower.diag)  inv <- TRUE
-  if (is.null(coords) & is.null(dists.lowertri)) 
+  cov.model <- sapply(cov.model, match.arg,
+                      choices = c("matern", "exponential", "gaussian",
+                        "spherical", "circular", "cubic", "wave", "linear",
+                        "power", "powered.exponential", "cauchy",
+                        "gneiting", "gneiting.matern", "pure.nugget"))
+  if(only.inv.lower.diag)  inv <- TRUE
+  if(is.null(coords) & is.null(dists.lowertri)) 
     stop("one of the arguments, coords or dists.lowertri must be provided")
   if (!is.null(coords) & !is.null(dists.lowertri)) 
     stop("only ONE argument, either coords or dists.lowertri must be provided")

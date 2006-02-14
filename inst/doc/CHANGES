@@ -1,4 +1,106 @@
 
+                =============================
+ 		CHANGES IN geoR VERSION 1.6-4
+		=============================
+
+NEW FEATURES
+
+        o substantial internal changes in several functions 
+          (likfit/krige.bayes/krige.conv families)
+	  to avoid inversion of the covariance matrix 
+          and also avoiding several call to C code
+          (other changes in this direction still to be made)
+
+
+                ==============================================
+ 		CHANGES IN geoR VERSION 1.6-1, 1.6-2 and 1.6-3
+		==============================================
+
+NEW FEATURES
+
+        o krige.conv() and krige.bayes() now by default
+          recognises the element "borders" (if present) in the 
+	  geodata object
+
+        o new method predict.BGCCMfit to predict using the
+          bivariate Gaussian common component model.
+
+        o new function to fit the bivariate Gaussian
+          common component model. See likfitBGCCM()
+          and others related functions. 
+
+        o new method names.geodata()
+
+        o new method subset.geodata() 
+
+        o new function sample.geodata()
+
+        o new argument "units.m" for the functions 
+          read.geodata() and as.geodata() 
+          (relevant to geoRglm)
+
+        o plot.geodata() and points.geodata() now, by default
+          searches for an element "borders" in the geodata object
+          and pass it to the argument borders
+
+        o plot.geodata() and points.geodata() now, by default, divides
+          data object element "data" by "units.m".
+          This is meant to be used with objects to be analysed 
+          using the package geoRglm.
+
+        o new function globalvar()
+
+        o geoR now depends on the package sp and is starting
+	  moving towards sp standards and compatibility
+
+        o as.geodata() is now a generic S3 with previous set as default
+          method and methods for sp's class "SpatialPointsDataFrame"
+          and "geodata.frame"
+
+        o method as.data.frame.geodata() returning an object
+          of the class "geodata.frame"
+
+        o dup.geodata() copied as a method duplicated.geodata()
+ 
+        o dependency from splancs removed
+          (thanks Roger Bivand for the code)
+
+        o new internal functions: .geoR_inout()
+          .geoR_pip(), .check.borders(), .check.coords()
+          (thanks Roger Bivand for the code)
+           
+        o new function boot.variog()
+
+        o image.kriging(), contour.kriging()
+          image.krige.bayes(), contour.krige.bayes()
+	  now accepts `coords.data=TRUE`
+
+
+BUGS	
+
+        o fix in points.geodata() when using argument "cex.var"
+          combinet with pt.divide="data" our "rank"
+
+        o fixes is several internal calls to attach()
+          which were causing warnings messages
+ 
+        o exponential prior for phi in prior.control()
+          and plots nos add to 1
+
+        o geoR now depends on R-2.2.0
+
+        o fix in grf() when calling GaussRF() from RandomFields
+          - the mean was been added twice
+
+        o kriging variances < -1e12 are now rounded to zero
+
+	o fixes in contour.krige.bayes() regarding passing the
+          argument "add"
+
+        o fixes in print method for eyefit() and summary.eyefit()
+  
+	
+
                 ==============================
  		CHANGES IN geoR VERSION 1.5-7
 		==============================
@@ -11,6 +113,10 @@ NEW FEATURES
 
 
 BUGS	
+
+        o statistics.predictive() now tests for missing arguments
+  
+	o mode calculation removed from backtransform.moments()
 
 	
 

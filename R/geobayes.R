@@ -1,6 +1,6 @@
 "krige.bayes" <- 
   function(geodata, coords=geodata$coords, data=geodata$data,
-           locations = "no", borders = NULL, model, prior, output)
+           locations = "no", borders, model, prior, output)
 {
   ##
   ## ======================= PART 1 ==============================
@@ -11,6 +11,8 @@
   ##
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
+  if(missing(borders))
+    borders <- geodata$borders
   if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
@@ -100,7 +102,8 @@
         }
         ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
         if(is.null(prior$beta)) prior$beta <-  NULL
-        if(is.null(prior$beta.prior)) prior$beta.prior <-  c("flat", "normal", "fixed")
+        if(is.null(prior$beta.prior))
+          prior$beta.prior <-  c("flat", "normal", "fixed")
         if(is.null(prior$beta.var.std)) prior$beta.var.std <-  NULL
         ## DO NOT CHANGE ORDER OF THE NEXT 3 LINES
         if(is.null(prior$sigmasq)) prior$sigmasq <- NULL
@@ -116,7 +119,8 @@
         if(is.null(prior$tausq.rel)) prior$tausq.rel <- 0
         if(is.null(prior$tausq.rel.prior))
           prior$tausq.rel.prior <- c("fixed", "uniform", "reciprocal")
-        if(is.null(prior$tausq.rel.discrete)) prior$tausq.rel.discrete <- NULL 
+        if(is.null(prior$tausq.rel.discrete))
+          prior$tausq.rel.discrete <- NULL 
         prior <- prior.control(beta.prior = prior$beta.prior,
                                beta = prior$beta,
                                beta.var.std = prior$beta.var.std,
@@ -311,7 +315,10 @@
     ## selecting locations inside the borders 
     ##
     if(!is.null(borders)){
-      locations <- locations.inside(locations, borders, bound=TRUE)
+      nloc0 <- nrow(locations)
+      ind.loc0  <- .geoR_inout(locations, borders)
+      ##    locations <- locations.inside(locations, borders)
+      locations <- locations[ind.loc0,]
       if(nrow(locations) == 0){
         warning("\nkrige.bayes: no prediction to be performed.\n             There are no prediction locations inside the borders")
         do.prediction <- FALSE
@@ -360,7 +367,11 @@
     else
       assign("trend.loc", unclass(trend.spatial(trend=model$trend.l, geodata = list(coords = locations))), envir=pred.env)
     ni <- nrow(get("trend.loc", envir=pred.env))
-    if(nrow(locations) != ni)
+    if(!is.null(borders))
+      if(ni == nloc0)
+        assign("trend.loc", get("trend.loc", envir=pred.env)[ind.loc0,],
+               envir=pred.env)
+     if(nrow(locations) != ni)
       stop("trend.l is not compatible with number of prediction locations")
     expect.env <- new.env()
     assign("expect", 0, envir=expect.env)
@@ -763,11 +774,11 @@
         beta.sam <- vec.beta + sqrt(sigmasq.sam * vec.vbeta) * rnorm(n.posterior, mean = 0, sd = 1)
       }
       else {
-        ind.beta <- matrix(phidist$beta, ncol = beta.size)[ind.unique,  ]
-        ind.beta <- ind.beta[rep(1:ind.length, ind.table),]
+        ind.beta <- matrix(phidist$beta, ncol = beta.size)[ind.unique,,drop=FALSE]
+        ind.beta <- ind.beta[rep(1:ind.length, ind.table),,drop=FALSE]
         ind.vbeta <- matrix(phidist$varbeta, ncol = 
-                            beta.size^2)[ind.unique,  ]
-        ind.vbeta <- ind.vbeta[rep(1:ind.length, ind.table),] * sigmasq.sam
+                            beta.size^2)[ind.unique,,drop=FALSE]
+        ind.vbeta <- ind.vbeta[rep(1:ind.length, ind.table),,drop=FALSE] * sigmasq.sam
         ##      print("2.4: try to speed up this bit!")
         temp.res <- apply(ind.vbeta, 1, rMVnorm,
                           beta.size = beta.size)
@@ -1098,11 +1109,12 @@
   kb$max.dist <- data.dist.max
   kb$call <- call.fc
   attr(kb, "prediction.locations") <- call.fc$locations
+  attr(kb, "data.locations") <- call.fc$coords
   if(do.prediction) attr(kb, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
   if(!is.null(call.fc$borders))
     attr(kb, "borders") <- call.fc$borders
   oldClass(kb) <- c("krige.bayes", "variomodel")
-  if(messages.screen) cat("krige.bayes: done!\n")
+  #if(messages.screen) cat("krige.bayes: done!\n")
   return(kb)
 }
 
@@ -1227,8 +1239,8 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
   if(missing(locations))
     locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -1250,6 +1262,9 @@
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
+  else
+    if(coords.data == TRUE)
+      coords.data <-  eval(attr(x, "data.locations"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   ##
@@ -1269,7 +1284,7 @@
                                            number.col = number.col,
                                            xlim= ldots.image$xlim,
                                            ylim= ldots.image$ylim,
-                                           messages=messages, bound=TRUE)
+                                           messages=messages)
     do.call("image", c(list(x=locations$x, y=locations$y,
                             z=locations$values), ldots.image))
     if(!is.null(coords.data)) points(coords.data)
@@ -1289,13 +1304,13 @@
             values.to.plot = c("mean", "variance",
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"),
-            number.col, coords.data,
+            filled= FALSE, number.col, coords.data,
             x.leg, y.leg, messages, ...) 
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
   if(missing(locations))
     locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -1308,7 +1323,8 @@
                   "mean.simulations", "variance.simulations",
                   "quantiles", "probabilities", "simulation"))
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    if(!is.null(attr(x, "borders")))
+      borders.arg <- borders <- eval(attr(x, "borders"))
     else borders.arg <- borders <- NULL
   }
   else{
@@ -1317,6 +1333,9 @@
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
+  else
+    if(coords.data == TRUE)
+      coords.data <-  eval(attr(x, "data.locations"))
   ##
   ## Plotting 1D or 2D
   ##
@@ -1329,8 +1348,9 @@
       ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
     else
-      ldots.contour <- .ldots.set(ldots, type="filled.contour",
+      ldots.contour <- .ldots.set(ldots, type="contour",
                                  data="prediction")
+    if(is.null(ldots.contour$asp)) ldots.contour$asp=1
     locations <- .prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
                                            borders.obj = eval(attr(x, "borders")),
@@ -1338,7 +1358,7 @@
                                            number.col = number.col,
                                            xlim = ldots.contour$xlim,
                                            ylim = ldots.contour$ylim,
-                                           messages=messages, bound=TRUE)
+                                           messages=messages)
     if(filled){
       if(is.null(ldots.contour$plot.axes)){
         ldots.contour$plot.axes <- quote({
@@ -1376,8 +1396,8 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x)
-  on.exit(detach(x))
+  attach(x, pos=2, warn.conflicts=FALSE)
+  on.exit(detach(2))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2) stop("locations must be a matrix or data-frame with two columns")
@@ -1407,7 +1427,7 @@
                                            xlim= ldots.persp$xlim,
                                            ylim= ldots.persp$ylim,
                                            number.col = number.col,
-                                           messages=messages, bound=TRUE)
+                                           messages=messages)
     do.call("persp", c(list(x=locations$x, y=locations$y,
                             z=locations$values), ldots.persp))
   }
@@ -1570,7 +1590,9 @@
       stop("prior.control: prior probabilities provided for phi do not add up to 1")
   }
   else
-    phi.prior <- match.arg(phi.prior, choices = c("uniform", "exponential", "fixed", "squared.reciprocal","reciprocal"))
+    phi.prior <- match.arg(phi.prior,
+                           choices = c("uniform", "exponential", "fixed",
+                             "squared.reciprocal","reciprocal"))
   if(phi.prior == "fixed"){
     if(is.null(phi)){
       stop("prior.control: argument `phi` must be provided with fixed prior for this parameter")
@@ -1733,8 +1755,8 @@
     }
     if(phi.prior == "exponential")
       ip$phi$pars <- c(ip$phi$pars, exp.par=phi)
-    else
-      ip$phi$probs <- ip$phi$probs/sum(ip$phi$probs)
+#    else
+    ip$phi$probs <- ip$phi$probs/sum(ip$phi$probs)
   }
   ##
   if(tausq.rel.prior == "fixed"){
@@ -1874,27 +1896,13 @@
   ##        sigmasq.fixed
   ##-----------------------------------------------------------------
   ##
-  ## Using C code to compute .bilinear forms (faster)
-  ##
-  iR <- varcov.spatial(dists.lowertri = get("data.dist", envir=env.dists),
-                       cov.model = model$cov.model,
-                       kappa = model$kappa, nugget = tausq.rel,
-                       cov.pars = c(1, phi), inv = TRUE,
-                       only.inv.lower.diag = TRUE, det = dets)
-  yiRy <- .bilinearformXAY(X = y, lowerA = iR$lower.inverse,
-                          diagA = iR$diag.inverse, Y = y)
-  xiRy.x <- .bilinearformXAY(X = xmat, lowerA = iR$lower.inverse,
-                          diagA = iR$diag.inverse, Y = cbind(y, xmat))
-  ##
-  ## Using R alone (not convenient if det = TRUE !!!) 
-  ##
-###    R <- varcov.spatial(dists.lowertri=dists.lowertri, cov.model = model$cov.model,
-###             kappa = model$kappa, nugget = tausq.rel,
-###                        cov.pars = c(1, phi))$varcov
-###    iRy.x <- .solve.geoR(R, cbind(y,xmat))
-###    xiRy.x <- crossprod(xmat, iRy.x)
-###    yiRy <- crossprod(y, iRy.x[,1])
-###    iRy.x <- NULL
+  R <- varcov.spatial(dists.lowertri = get("data.dist", envir=env.dists),
+                      cov.model = model$cov.model,
+                      kappa = model$kappa, nugget = tausq.rel,
+                      cov.pars = c(1, phi), det = dets)
+  iRy.x <- solve(R$varcov,cbind(y, xmat))
+  yiRy <- crossprod(y,iRy.x[,1])
+  xiRy.x <- crossprod(xmat,iRy.x)
   ##
   ## 1. Computing parameters of posterior for beta
   ##
@@ -1933,7 +1941,7 @@
               beta.var.std.post = beta.var.std.post,
               df.post = df.post, S2.post = S2.post)
   if(dets){
-    res$log.det.to.half <- iR$log.det.to.half
+    res$log.det.to.half <- R$log.det.to.half
     res$det.XiRX <- det(xiRy.x[,-1, drop=FALSE])
   }
   ##
@@ -1944,9 +1952,7 @@
                             kappa = model$kappa, cov.pars = c(1, phi)),
            envir=env.r0)
     ## care here, reusing b
-    b <- .bilinearformXAY(X = get("r0", envir=env.r0),
-                         lowerA = iR$lower.inverse,
-                         diagA = iR$diag.inverse, Y = cbind(y, xmat))
+    b <- crossprod(get("r0", envir=env.r0),iRy.x)
     riRy <- b[,1, drop=FALSE]
     b <- get("trend.loc", envir=env.pred) -  b[,-1, drop=FALSE]
     ##
@@ -1954,9 +1960,11 @@
     if((tausq.rel < 1e-12) & (!is.null(get("loc.coincide", envir=env.pred))))
       res$pred.mean[get("loc.coincide", envir=env.pred)] <- get("data.coincide", envir=env.pred)
     ##
-    R.riRr.bVb <- 1 - .diagquadraticformXAX(X = get("r0", envir=env.r0),
-                                           lowerA = iR$lower.inverse,
-                                           diagA = iR$diag.inverse)
+#    R.riRr.bVb <- 1 - .diagquadraticformXAX(X = get("r0", envir=env.r0),
+#                                           lowerA = iR$lower.inverse,
+#                                           diagA = iR$diag.inverse)
+    R.riRr.bVb <- 1 - colSums(get("r0", envir=env.r0) *
+                              solve(R$varcov,get("r0", envir=env.r0)))
     remove("env.r0")
      if(all(beta.info$iv != Inf))
        R.riRr.bVb <- R.riRr.bVb +
@@ -1974,6 +1982,12 @@
   }
   ##
   if(do.prediction.simulations){
+    ## check how to do without inverse!!!
+    iR <- varcov.spatial(dists.lowertri = get("data.dist", envir=env.dists),
+                         cov.model = model$cov.model,
+                         kappa = model$kappa, nugget = tausq.rel,
+                         cov.pars = c(1, phi), inv = TRUE,
+                         only.inv.lower.diag = TRUE, det = dets)
     res$inv.diag <- iR$diag.inverse
     res$inv.lower <- iR$lower.inverse
   }
@@ -2180,9 +2194,9 @@
   function(simuls, mean.var = TRUE, quantile, threshold, sim.means, sim.vars)
 {
   results <- list()
-  if(is.null(quantile)) quantile.estimator <- NULL
+  if(missing(quantile) || is.null(quantile)) quantile.estimator <- NULL
   else quantile.estimator <- quantile
-  if(is.null(threshold)) probability.estimator <- NULL
+  if(missing(threshold) || is.null(threshold)) probability.estimator <- NULL
   else probability.estimator <- threshold
   ##
   if(!is.null(mean.var) && mean.var){
@@ -2214,12 +2228,16 @@
         paste("threshold", probability.estimator, sep = "")
     }
   }
-  if(!is.null(sim.means) && sim.means){
-    results$sim.means <- drop(colMeans(simuls))
-    results$variance.simulations <- drop(apply(simuls, 1, var))
+  if(!missing(sim.means)){
+    if(!is.null(sim.means) && sim.means){
+      results$sim.means <- drop(colMeans(simuls))
+      results$variance.simulations <- drop(apply(simuls, 1, var))
+    }
   }
-  if(!is.null(sim.vars) && sim.vars){
-    results$sim.vars <- drop(apply(simuls, 2, var))
+  if(!missing(sim.vars)){
+    if(!is.null(sim.vars) && sim.vars){
+      results$sim.vars <- drop(apply(simuls, 2, var))
+    }
   }
   return(results)
 }
@@ -2267,6 +2285,7 @@
     else{
       phi.vals <- x$posterior$phi$phi.marginal[,"phi"]
       phi.off <- 0.1 * diff(phi.vals[1:2])
+      ## aqui
       phi.table <- rbind(x$prior$phi$probs, x$posterior$phi$dist)
       colnames(phi.table) <- phi.vals
       ## thining

@@ -348,7 +348,7 @@
         res$mean <- exp(mean + 0.5 * (variance))
         res$variance <- (exp(2 * temp + variance)) * (exp(variance) - 1)
         res$median <- exp(mean)
-        res$mode <- exp(mean - variance)
+#        res$mode <- exp(mean - variance)
       }
       else{
         temp <- 1 + (lambda * mean)
@@ -359,7 +359,7 @@
         else
           res$variance <- temp^((2/lambda)-2) *  variance
         res$median <- temp^(1/lambda)
-        res$mode <- ((temp+sqrt(1+4*lambda*variance*(lambda-1)+(temp-1)*(1+temp)))/2)^(1/lambda)
+#        res$mode <- ((temp+sqrt(1+4*lambda*variance*(lambda-1)+(temp-1)*(1+temp)))/2)^(1/lambda)
       }
       res$uncertainty <- (qnorm(.975, mean = mean, sd = sqrt(variance)) -
                           qnorm(.025, mean = mean, sd = sqrt(variance)))/4
