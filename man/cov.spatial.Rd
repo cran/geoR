@@ -162,7 +162,7 @@ cov.spatial(obj, cov.model= "matern",
   \emph{It is an alternative to the \code{gaussian} model since
   its graph is visually hardly distinguishable from the graph of
   the Gaussian model, but possesses neither the mathematical and nor the
-  numerical disadvantages of the Gaussian model.}\\
+  numerical disadvantages of the Gaussian model.}\cr
 
 
   \bold{gneiting.matern}\cr
@@ -171,14 +171,14 @@ cov.spatial(obj, cov.model= "matern",
   \eqn{\mbox{Gneiting-Mat\'{e}rn}}{Gneiting-Matern} is given by
   \deqn{\rho(h) = \rho_g(h|\phi=\alpha) \,
     \rho_m(h|\phi=\phi,\kappa=\kappa_1)}{rho(h) = rho_g(h | phi=alpha) *
-    rho_m(h | phi=phi, kappa = kappa_1)}\\
+    rho_m(h | phi=phi, kappa = kappa_1)}\cr
 
   \bold{wave}\cr
   \deqn{\rho(h) = \frac{\phi}{h}\sin(\frac{h}{\phi})}{(phi/h) *
-    sin(h/phi)} \\
+    sin(h/phi)} \cr
 
   \bold{pure.nugget} \cr
-  \deqn{\rho(h) = k}{rho(h) = k}\\
+  \deqn{\rho(h) = k}{rho(h) = k}\cr
   where k is a constant value. This model corresponds to
   no spatial correlation.
 

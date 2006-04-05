@@ -135,7 +135,10 @@
                          pure.nugget = rep(0, length(obj)),
                          wave = (1/obj) * (phi[i] * sin(obj/phi[i])),
                          exponential = exp( - (obj/phi[i])),
-                         matern = matern(u = obj, phi = phi[i], kappa = kappa[i]),
+                         matern = {
+                           if(kappa[i] == 0.5) exp( - (obj/phi[i]))
+                           else
+                             matern(u = obj, phi = phi[i], kappa = kappa[i])},
                          gaussian = exp( - ((obj/phi[i])^2)),
                          spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj/phi[i]) +
                            0.5 * (obj/phi[i])^3), 0),

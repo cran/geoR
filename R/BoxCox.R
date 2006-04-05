@@ -346,7 +346,7 @@
       if(abs(lambda) < 0.001) {
         temp <- mean
         res$mean <- exp(mean + 0.5 * (variance))
-        res$variance <- (exp(2 * temp + variance)) * (exp(variance) - 1)
+        res$variance <- (exp(2 * temp + variance)) * expm1(variance)
         res$median <- exp(mean)
 #        res$mode <- exp(mean - variance)
       }

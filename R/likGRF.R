@@ -330,9 +330,16 @@
   ##
   if(is.R()){
     if(length(ini) == 1){
-      if(upper.optim == Inf) upper.optim <- 1000*max.dist
-      lik.minim <- optimize(.negloglik.GRF,lower=lower.optim,upper=upper.optim,fp=fixed.values, ip=ip,temp.list = temp.list, ...)
-      lik.minim <- list(par = lik.minim$minimum, value = lik.minim$objective, convergence = 0, message = "function optimize used")      
+      if(upper.optim == Inf) upper.optim <- 50*max.dist
+      lik.minim <- optimize(.negloglik.GRF,
+                            lower=lower.optim,
+                            upper=upper.optim,
+                            fp=fixed.values,
+                            ip=ip, temp.list = temp.list, ...)
+      lik.minim <- list(par = lik.minim$minimum,
+                        value = lik.minim$objective,
+                        convergence = 0,
+                        message = "function optimize used")      
     }
     else
       lik.minim <- optim(par = ini, fn = .negloglik.GRF, method="L-BFGS-B",
@@ -545,7 +552,7 @@
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
   }      
-  if(is.R()) gc(verbose=FALSE)
+#  gc(verbose=FALSE)
   ##
   ## Computing estimated beta and tausq/sigmasq (if the case)
   ##

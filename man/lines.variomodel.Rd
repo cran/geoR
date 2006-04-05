@@ -35,7 +35,7 @@ lines.variomodel(x, \dots)
   \item{cov.model}{a string with the type of the variogram function. See
     documentation of \code{\link{cov.spatial}} for further details.
   }
-  \item{cov.pars}{a vector or matrix with the values for the sill
+  \item{cov.pars}{a vector or matrix with the values for the partial sill
     (\eqn{\sigma^2}{sigmasq}) and range (\eqn{\phi}{phi}) parameters. }
   \item{nugget}{a scalar with the value of the nugget
     (\eqn{\tau^2}{tausq}) parameter.

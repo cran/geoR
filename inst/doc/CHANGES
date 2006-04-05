@@ -1,4 +1,46 @@
 
+
+                =============================
+ 		CHANGES IN geoR VERSION 1.6-6
+		=============================
+
+NEW FEATURES
+
+         o as.geodata.default(), points.geodata() and 
+	   plot.geodata() now checks if all units.m > 0
+
+
+BUG FIXES
+
+         o variog.model.env() when lambda != 1
+
+         o image.kriging(), image.krige.bayes()
+           contour.kriging(), contour.krige.bayes() now recognises 
+           geodata$borders	
+
+         o fix in .geoR_pip() when calling .check.borders()
+
+         o positions of optional elements in as.geodata.default()
+
+         o dependencies from splancs removed from image.krige.bayes()
+
+         o default upper limit limit for numerical optimisation in
+           likfit() changed to 50*max.dist (was 1000*max.dist before)
+ 
+
+
+                =============================
+ 		CHANGES IN geoR VERSION 1.6-5
+		=============================
+
+BUG FIXES
+      
+        o internal change in krige.bayes() to prevent
+          overflow weh exponentiating values in the computation
+          of the discrete probabilities (previous ha a wrong 
+          plus/minus signal) 
+
+
                 =============================
  		CHANGES IN geoR VERSION 1.6-4
 		=============================

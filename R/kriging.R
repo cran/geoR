@@ -164,13 +164,14 @@
   coords <- as.matrix(coords)
   ##
   ## selecting locations inside the borders 
-  ## and also values of trend.l if the case
+  ## and this will also used later for 
+  ## values of trend.l if the case
   ##
   if(!is.null(borders)){
     nloc0 <- nrow(locations)
     ind.loc0  <- .geoR_inout(locations, borders)
 #    locations <- locations.inside(locations, borders)
-    locations <- locations[ind.loc0,]
+    locations <- locations[ind.loc0,,drop=TRUE]
     if(nrow(locations) == 0)
       stop("\nkrige.conv: there are no prediction locations inside the borders")
     if(messages.screen)
@@ -206,10 +207,11 @@
     trend.l <- unclass(krige$trend.l)
   else
     trend.l <- unclass(trend.spatial(trend=krige$trend.l,
-                                     geodata = list(coords = locations)))
+                                     geodata = list(coords =
+    locations)))
   if(!is.null(borders))
     if(nrow(trend.l) == nloc0)
-      trend.l <- trend.l[ind.loc0,]
+      trend.l <- trend.l[ind.loc0,,drop=FALSE]
   if (nrow(trend.l) != nrow(locations)) 
     stop("locations and trend.l have incompatible sizes")
   if(beta.size > 1)
@@ -302,7 +304,7 @@
   remove("Vcov", "ind.v0")
   b <- crossprod(cbind(data,trend.d),ivv0)
   if(n.predictive == 0) remove("v0", "ivv0")
-  gc(verbose = FALSE)
+#  gc(verbose = FALSE)
   tv0ivdata <- drop(b[1,])
   b <- t(trend.l) -  b[-1,, drop=FALSE]
   if(beta.prior == "deg") {
@@ -321,7 +323,7 @@
   }
   if(n.predictive == 0) remove("b","tv0ivv0")
   remove("tv0ivdata")
-  gc(verbose = FALSE)
+#  gc(verbose = FALSE)
   kc$distribution <- "normal"
   kc$krige.var[kc$krige.var < 1e-8] <- 0
 #  if(any(round(kc$krige.var, dig=12) < 0))
@@ -349,7 +351,7 @@
                                 kappa = kappa, nugget = nugget)$varcov) -
                                   tv0ivv0
       remove("tv0ivv0")
-      gc(verbose=FALSE)
+#      gc(verbose=FALSE)
 ## can this bit be improved in efficiency/robustness ?
       kc$simulations <-  kc$predict +
         crossprod(chol(varcov), matrix(rnorm(ni * n.predictive),
@@ -383,20 +385,21 @@
                                  only.inv.lower.diag = TRUE)
         kc$simulations[ind.not.coincide,] <- 
           .cond.sim(env.loc = base.env, env.iter = base.env,
-                   loc.coincide = loc.coincide,
-                   coincide.cond = coincide.cond, 
-                   tmean = kc$predict[ind.not.coincide],
-                   Rinv = invcov,
-                   mod = list(beta.size = beta.size, nloc = nloc,
-                     Nsims = n.predictive, n = n, Dval = Dval,
-                     df.model = df.model, s2 = sill.partial,
-                     cov.model.number = .cor.number(cov.model),
-                     phi = phi, kappa = kappa, nugget=nugget),
-                   vbetai = vbetai,
-                   fixed.sigmasq = TRUE)
+                    loc.coincide = loc.coincide,
+                    coincide.cond = coincide.cond, 
+                    tmean = kc$predict[ind.not.coincide],
+                    Rinv = invcov,
+                    mod = list(beta.size = beta.size, nloc = nloc,
+                      Nsims = n.predictive, n = n, Dval = Dval,
+                      df.model = df.model, s2 = sill.partial,
+                      cov.model.number = .cor.number(cov.model),
+                      phi = phi, kappa = kappa, nugget=nugget),
+                    vbetai = vbetai,
+                    fixed.sigmasq = TRUE)
+        remove("invcov")
       }
-      remove("b", "locations", "invcov")
-      gc(verbose = FALSE)
+      remove("b", "locations")
+#      gc(verbose = FALSE)
       if(coincide.cond)
         kc$simulations[loc.coincide,] <- rep(data.coincide, n.predictive)
     }
@@ -454,7 +457,9 @@
   ##
   attr(kc, "sp.dim") <- ifelse(krige1d, "1d", "2d")
   attr(kc, "prediction.locations") <- call.fc$locations
-  attr(kc, "data.locations") <- call.fc$coords
+  if(!is.null(call.fc$coords))
+    attr(kc, "data.locations") <- call.fc$coords
+  else attr(kc, "data.locations") <- substitute(a$coords, list(a=substitute(geodata)))
   if(!is.null(call.fc$borders))
     attr(kc, "borders") <- call.fc$borders
   oldClass(kc) <- "kriging"
@@ -563,7 +568,9 @@
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
       borders.arg <- borders <- eval(attr(x, "borders"))
-    else borders.arg <- borders <- NULL
+    else
+      borders.arg <- borders <- eval(x$call$geodata)$borders
+#    borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
@@ -571,7 +578,7 @@
   }
   if(missing(coords.data)) coords.data <- NULL
   else
-    if(coords.data == TRUE)
+    if(all(coords.data == TRUE))
       coords.data <-  eval(attr(x, "data.locations"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
@@ -631,7 +638,9 @@
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
       borders.arg <- borders <- eval(attr(x, "borders"))
-    else borders.arg <- borders <- NULL
+    else
+      borders.arg <- borders <- eval(x$call$geodata)$borders
+      # borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
@@ -639,7 +648,7 @@
   }
   if(missing(coords.data)) coords.data <- NULL
   else
-    if(coords.data == TRUE)
+    if(all(coords.data == TRUE))
       coords.data <-  eval(attr(x, "data.locations"))
   ##
   ## Plotting 1D or 2D

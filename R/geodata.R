@@ -166,6 +166,8 @@
     warning("eliminating rows with NA's")
   }
   res$coords <- as.matrix(obj[,coords.col])
+  if(any(!is.numeric(res$coords)))
+    stop("non-numerical values in the coordinates")
   if(is.null(colnames(res$coords)))
      colnames(res$coords) <- paste("Coord", c("1","2"), sep="")
   ##
@@ -175,10 +177,15 @@
   if(length(data.col) == 1) res$data <- as.vector(res$data)
   else if(!is.null(data.names)) colnames(res$data) <- data.names
   ##
+  ## adding optional elements to the list
+  ##
+  pos <- 3
+  ##
   ## setting the covariates, if the case 
   ##
   if(!is.null(covar.col)){
-    res[[3]] <- as.data.frame(obj[,covar.col])
+    pos.covar <- pos
+    res[[pos]] <- as.data.frame(obj[,covar.col])
     if(mode(covar.col) == "character") covar.names <- covar.col
     if(all(covar.names == "obj.names")){
       if(is.matrix(obj))      
@@ -186,22 +193,26 @@
       if(is.data.frame(obj))      
         col.names <- names(obj)
     }
-    names(res)[3] <- "covariate"
+    names(res)[pos] <- "covariate"
     if(all(covar.names == "obj.names"))
       if(is.null(col.names))
-        names(res[[3]]) <- paste("covar", 1:length(covar.col), sep="")
-      else  names(res[[3]]) <- col.names[covar.col]
+        names(res[[pos]]) <- paste("covar", 1:length(covar.col), sep="")
+      else  names(res[[pos]]) <- col.names[covar.col]
     else
-      names(res[[3]]) <- covar.names
-    covar.names <- names(res[[3]])
+      names(res[[pos]]) <- covar.names
+    covar.names <- names(res[[pos]])
+    pos <- pos + 1
   }
   ##
   ## setting units.m, if the case 
   ##
   if(!is.null(units.m.col)){
+    pos.units <- pos
     if(length(units.m.col) > 1) stop("units.m.col must be of length 1")
-    res[[4]] <- obj[,units.m.col]
-    names(res)[4] <- "units.m"
+    res[[pos]] <- obj[,units.m.col]
+    if(!all(res[[pos]] > 0))
+      stop("all values of units.m must be greater than zero")
+    names(res)[pos] <- "units.m"
   }
   ##
   ## Dealing with NA's
@@ -222,7 +233,7 @@
         res$coords <- res$coords[ind,]
         res$data <- drop(as.matrix(res$data)[ind,])
         if(!is.null(covar.col))
-          res[[3]] <- drop(as.matrix(res[[3]][ind,]))
+          res[[pos.covar]] <- drop(as.matrix(res[[pos.covar]][ind,]))
         cat(paste("as.geodata:", sum(!ind),
   "points removed due to NA in the data\n"))
         if(!is.null(units.m.col))
@@ -230,12 +241,12 @@
       }
     }
     if(!is.null(covar.col) && na.covar){
-      ind <- apply(as.matrix(res[[3]]), 1, not.na)
+      ind <- apply(as.matrix(res[[pos.covar]]), 1, not.na)
       if(!all(ind)){
         res$coords <- res$coords[ind,]
         res$data <- drop(as.matrix(res$data)[ind,])
         if(!is.null(covar.col))
-          res[[3]] <- drop(res[[3]][ind,])
+          res[[pos.covar]] <- drop(res[[pos.covar]][ind,])
         cat(paste("as.geodata:", sum(!ind), "points removed due to NA in the covariate(s)\n")) 
         if(!is.null(units.m.col))
           res$units.m <- res$units.m[ind]
@@ -295,7 +306,7 @@
       }
       res$data <- drop(apply(as.matrix(res$data), 2, rep.action.f, rep.action=rep.data.action))
       if(!is.null(covar.col))
-        res[[3]] <- drop(apply(res[[3]], 2, rep.action.f, rep.action=rep.covar.action))
+        res[[pos.covar]] <- drop(apply(res[[pos.covar]], 2, rep.action.f, rep.action=rep.covar.action))
       if(!is.null(units.m.col))
         res$units.m <- sapply(res$units.m, rep.action.f, rep.action=rep.covar.action)
       if(!is.null(res$realisations))
@@ -311,8 +322,8 @@
   }
   ##
   if(!is.null(covar.col)){
-    res[[3]] <- as.data.frame(res[[3]])
-    names(res[[3]]) <- covar.names
+    res[[pos.covar]] <- as.data.frame(res[[pos.covar]])
+    names(res[[pos.covar]]) <- covar.names
   }
   oldClass(res) <- "geodata"
   return(res)
@@ -484,8 +495,11 @@
     stop("coords and data have incompatible sizes")
   if (!is.null(weights.divide)) {
     if(all(weights.divide == "units.m")){
-      if(!is.null(x$units.m) && identical(data, x$data))
+      if(!is.null(x$units.m) && identical(data, x$data)){
+        if(!all(x$units.m > 0))
+          stop("all values in units.m must be greater than zero")
         data <- data/x$units.m
+      }
     }
     else{
       if((length(weights.divide) != 1) &&
@@ -690,8 +704,11 @@
   detach(2)
   if (!is.null(weights.divide)) {
     if(all(weights.divide == "units.m")){
-      if(!is.null(x$units.m) && identical(data, x$data))
+      if(!is.null(x$units.m) && identical(data, x$data)){
+        if(!all(x$units.m > 0))
+          stop("all values in units.m must be greater than zero")
         data <- data/x$units.m
+      }
     }
     else{
       if((length(weights.divide) != 1) &&

@@ -318,7 +318,7 @@
       nloc0 <- nrow(locations)
       ind.loc0  <- .geoR_inout(locations, borders)
       ##    locations <- locations.inside(locations, borders)
-      locations <- locations[ind.loc0,]
+      locations <- locations[ind.loc0,,drop=TRUE]
       if(nrow(locations) == 0){
         warning("\nkrige.bayes: no prediction to be performed.\n             There are no prediction locations inside the borders")
         do.prediction <- FALSE
@@ -369,7 +369,8 @@
     ni <- nrow(get("trend.loc", envir=pred.env))
     if(!is.null(borders))
       if(ni == nloc0)
-        assign("trend.loc", get("trend.loc", envir=pred.env)[ind.loc0,],
+        assign("trend.loc",
+               get("trend.loc", envir=pred.env)[ind.loc0,,drop=FALSE],
                envir=pred.env)
      if(nrow(locations) != ni)
       stop("trend.l is not compatible with number of prediction locations")
@@ -420,7 +421,7 @@
     assign("loc.coincide", loc.coincide, envir=pred.env)
     assign("data.coincide", data.coincide, envir=pred.env)
     remove(data.coincide, loc.coincide)
-    if(is.R()) gc(verbose=FALSE)
+#    gc(verbose=FALSE)
   }
   ##
   ## Preparing prior information on beta and sigmasq
@@ -1042,7 +1043,7 @@
       matrix(unlist(apply(phi.unique, 1, krige.bayes.aux20)),
              ncol = n.predictive)
     remove("inv.lower", "inv.diag", "counter.env", "pred.env")
-    if(is.R()) gc(verbose=FALSE)
+#    gc(verbose=FALSE)
     if(messages.screen)
       if(abs(lambda-1) > 0.001) 
         cat("krige.bayes: Box-Cox data transformation performed.\n             Simulations back-transformed to the original scale\n")
@@ -1075,7 +1076,7 @@
     }
     else{
       kb$predictive$simulations <- NULL
-      if(is.R()) gc(verbose=FALSE)
+#      gc(verbose=FALSE)
     }
     ##
     ## recording samples from  predictive if different from the posterior
@@ -1110,7 +1111,9 @@
   kb$max.dist <- data.dist.max
   kb$call <- call.fc
   attr(kb, "prediction.locations") <- call.fc$locations
-  attr(kb, "data.locations") <- call.fc$coords
+  if(!is.null(call.fc$coords))
+    attr(kb, "data.locations") <- call.fc$coords
+  else attr(kb, "data.locations") <- substitute(a$coords, list(a=substitute(geodata)))
   if(do.prediction) attr(kb, 'sp.dim') <- ifelse(krige1d, "1d", "2d")
   if(!is.null(call.fc$borders))
     attr(kb, "borders") <- call.fc$borders
@@ -1196,10 +1199,11 @@
   if(length(values.loc) == length(values)) values.loc <- values
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
-    if(require(splancs))
-      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
-    else
-      stop("argument borders requires the package splancs - please install it")
+    inout.vec  <- .geoR_inout(locations, borders.obj)
+#    if(require(splancs))
+#      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
+#    else
+#      stop("argument borders requires the package splancs - please install it")
     values.loc[inout.vec] <- values
     rm("inout.vec")
   }
@@ -1207,10 +1211,11 @@
     borders <- as.matrix(as.data.frame(borders))
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
-      if(require(splancs))
-        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
-      else
-        stop("argument borders requires the package splancs - please install it")
+      inout.vec  <- .geoR_inout(locations, borders)
+#      if(require(splancs))
+#        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
+#      else
+#        stop("argument borders requires the package splancs - please install it")
       if(length(values.loc[inout.vec]) == length(values))
         values.loc[inout.vec] <- values
       values.loc[!inout.vec] <- NA
@@ -1255,7 +1260,9 @@
                   "quantiles", "probabilities", "simulation"))
   if(missing(borders)){
     if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
-    else borders.arg <- borders <- NULL
+    else
+      borders.arg <- borders <- eval(x$call$geodata)$borders
+    #borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
@@ -1264,7 +1271,7 @@
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   else
-    if(coords.data == TRUE)
+    if(all(coords.data == TRUE))
       coords.data <-  eval(attr(x, "data.locations"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
@@ -1326,7 +1333,9 @@
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
       borders.arg <- borders <- eval(attr(x, "borders"))
-    else borders.arg <- borders <- NULL
+    else
+      borders.arg <- borders <- eval(x$call$geodata)$borders
+    # borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
@@ -1335,7 +1344,7 @@
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   else
-    if(coords.data == TRUE)
+    if(all(coords.data == TRUE))
       coords.data <-  eval(attr(x, "data.locations"))
   ##
   ## Plotting 1D or 2D

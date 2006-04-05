@@ -161,8 +161,8 @@
 }
 
 ".cond.sim" <-
-  function(env.loc, env.iter, loc.coincide, coincide.cond, tmean, Rinv, mod, vbetai,
-           fixed.sigmasq)
+  function(env.loc, env.iter, loc.coincide, coincide.cond, tmean,
+           Rinv, mod, vbetai, fixed.sigmasq)
 {
   NTOT <- mod$nloc * mod$Nsims
   if(fixed.sigmasq)

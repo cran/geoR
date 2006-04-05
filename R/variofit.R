@@ -648,6 +648,8 @@
   else cov.model <- "exponential"
   if(!is.null(model.pars$kappa)) kappa <- model.pars$kappa
   else kappa <- 0.5
+  if(!is.null(model.pars$lambda)) lambda <- model.pars$lambda
+  else lambda <- 0.5
   if(!is.null(model.pars$nugget)) nugget <- model.pars$nugget
   else nugget <- 0
   cov.pars <- model.pars$cov.pars
@@ -663,10 +665,17 @@
     cat(paste("variog.env: generating", nsim, "simulations (with ",
               obj.variog$n.data, 
               "points each) using the function grf\n"))
+#  simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
+#                cov.model = cov.model, cov.pars = cov.pars,
+#                nugget = nugget, kappa = kappa, nsim = nsim,
+#                messages = FALSE, lambda = obj.variog$lambda)
   simula <- grf(obj.variog$n.data, grid = as.matrix(coords),
                 cov.model = cov.model, cov.pars = cov.pars,
                 nugget = nugget, kappa = kappa, nsim = nsim,
-                messages = FALSE, lambda = obj.variog$lambda)
+                messages = FALSE)
+  ##
+  ## add the mean
+  ##
   if(messages.screen)
     cat("variog.env: adding the mean or trend\n")
   x.mat <- unclass(trend.spatial(trend=obj.variog$trend, geodata = geodata))

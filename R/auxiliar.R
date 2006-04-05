@@ -714,22 +714,20 @@
 }
 
 .geoR_inout <- function(pts, poly, ...) {
-  require(sp)
   ## inout returns logical vector
   ## poly <- .check.borders(poly)
   ## pts <- SpatialPoints(coords=pts)
   ## res <- overlay(pts, poly)
   ## !is.na(res)
-  !is.na(overlay(SpatialPoints(coords=pts), .check.borders(poly)))
+  !is.na(sp::overlay(SpatialPoints(coords=pts), .check.borders(poly)))
 }
 
 .geoR_pip <- function(pts, poly, ...) {
-  require(sp)
   ## pip returns the points matrix
   poly <- .check.borders(poly)
-  pts <- SpatialPoints(coords=pts)
-  res <- overlay(pts, poly)
-  opts <- coordinates(pts)[!is.na(res),]
+  pts <- sp::SpatialPoints(coords=pts)
+  res <- sp::overlay(pts, poly)
+  opts <- sp::coordinates(pts)[!is.na(res),]
   .check.locations(opts)
 }
 

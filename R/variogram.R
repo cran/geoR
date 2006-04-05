@@ -279,12 +279,12 @@
 
 "variog4" <-
   function (geodata, coords = geodata$coords, data = geodata$data, 
-            uvec = "default", breaks = "default", trend = "cte", lambda = 1,
-            option = c("bin", "cloud", "smooth"),
+            uvec = "default", breaks = "default", trend = "cte",
+            lambda = 1, option = c("bin", "cloud", "smooth"),
             estimator.type = c("classical", "modulus"), 
             nugget.tolerance, max.dist, pairs.min = 2,
-            bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4), tolerance = pi/8,
-            unit.angle = c("radians", "degrees"),
+            bin.cloud = FALSE, direction = c(0, pi/4, pi/2, 3*pi/4),
+            tolerance = pi/8, unit.angle = c("radians", "degrees"),
             messages, ...) 
 {
   if(! "package:stats" %in% search()) require(mva)
@@ -323,7 +323,8 @@
   }
   if (exists(".variog4.nomessage", w=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
   res$omnidirectional <- variog(geodata=geodata,
-                                uvec=uvec, breaks = breaks, trend = trend,
+                                uvec=uvec, breaks = breaks,
+                                trend = trend,
                                 lambda = lambda, option = option,
                                 estimator.type = estimator.type,
                                 nugget.tolerance = nugget.tolerance,
@@ -340,14 +341,18 @@
   return(res) 
 }
 
+
+
+
 "plot.variog4" <-
-  function (x, omnidirectional = FALSE, same.plot = TRUE, legend = TRUE,...)
+  function (x, omnidirectional = FALSE, same.plot = TRUE,
+            legend = TRUE,...)
 {
   ymax <- max(c(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v), na.rm=TRUE)
   n.o <- names(x)[1:4]
   GP <- list(...)
   if(is.null(GP$xlab)) GP$xlab <- "distance"
-  if(is.null(GP$ylab)) GP$ylab<- "semi-variance"
+  if(is.null(GP$ylab)) GP$ylab <- "semi-variance"
   if (same.plot) {
     xx <- x[[5]]$u
     yy <- cbind(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v)
@@ -365,7 +370,9 @@
     }
     if (is.null(GP$pch)) GP$pch <- NULL
     if (is.null(GP$type)) GP$type <- "l"
-    matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd, col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab, xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))
+    matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd,
+            col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab,
+            xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))
     if (legend) {
       if (omnidirectional) {
         legend(0, ymax,

@@ -54,7 +54,7 @@ points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders,
     is a matrix with the covariates (external trend).
     If provided the trend is "removed" using the function
     \code{\link[base]{lm}} and the residuals are plotted.  }
-  \item{abs.residuals}{logical. If \code{TRUE} and teh value passed to
+  \item{abs.residuals}{logical. If \code{TRUE} and the value passed to
     the
     argument \code{trend} is different from \code{"cte"} the point sizes
     are proportional to absolute values of the residuals.  }

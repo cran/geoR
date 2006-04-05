@@ -64,7 +64,7 @@ is.geodata(x)
     with the column number corresponding to the offset variable.
     Alternativelly can be a character vector with the name of the
     offset. This option is particularly relevant when using the package
-    \pkg{geoRglm}. }
+    \pkg{geoRglm}. All values must be greater then zero. }
   \item{realisations}{optional. A vector indicating the realisation
     number or a number indicating a column in \code{obj} with the
     realisation indicator variable.
