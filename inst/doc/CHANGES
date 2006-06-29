@@ -1,5 +1,24 @@
 
 
+                =======================================
+ 		CHANGES IN geoR VERSION 1.6-7 and 1.6-8
+		=======================================
+
+NEW FEATURES
+
+
+         o grf() now call GaussRF() from RandomFileds
+           with nicer defaults
+
+
+
+BUG FIXES
+
+         o fixes in docs for krige.bayes() 
+
+         o fix in variofit() when using variogram cloud as input object 
+
+
                 =============================
  		CHANGES IN geoR VERSION 1.6-6
 		=============================

@@ -341,14 +341,16 @@ post2prior(obj)
   Ribeiro, P.J. Jr. and Diggle, P.J. (1999) \emph{Bayesian inference in
     Gaussian model-based geostatistics}. Tech. Report ST-99-08, Dept
   Maths and Stats, Lancaster University.\cr
-  Available at: \cr
-  \url{http://www.maths.lancs.ac.uk/~ribeiro/publications.html}
+  Available at:
+  \url{http://www.est.ufpr.br/geoR/geoRdoc/bayeskrige.pdf}
 
   Further information about \pkg{geoR} can be found at:\cr
   \url{http://www.est.ufpr.br/geoR}.  
 
   For a extended list of examples of the usage
-  see \url{http://www.est.ufpr.br/geoR/geoRdoc/examples.krige.bayes.R}.
+  see \url{http://www.est.ufpr.br/geoR/tutorials/examples.krige.bayes.R}
+  and/or the \pkg{geoR} tutorials page at
+  \url{http://www.est.ufpr.br/geoR/tutorials}.
 }
 
 \author{

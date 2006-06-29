@@ -128,6 +128,7 @@
                               y = runif(ny, ylims[1], ylims[2]))
       if (messages.screen) 
         cat(paste("grf: simulation(s) on randomly chosen locations with ", n, " points\n"))
+      xpts <- ypts <- NULL
     }
     else {
       xpts <- seq(xlims[1], xlims[2], l = nx)
@@ -193,21 +194,25 @@
   ##
   ## simulating data at locations defined by the matrix results$coords
   ##
-  if (all(phi) == 0) {
+  if (all(phi) == 0) 
     results$data <- matrix(rnorm((n * nsim), mean = 0,
                                  sd = sqrt(sill.total)), 
                            nrow = n, ncol = nsim)
-  }
   else{
     if(method == "RF"){
       require(RandomFields)
       setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
                        nugget = nugget, kappa = kappa)
-      # , mean=mean)
-      results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
-                              model = setRF$model,
-                              param = setRF$param, grid = FALSE, n=nsim)
-      
+                                        # , mean=mean)
+      if(is.null(xpts))
+        results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
+                                model = setRF$model,
+                                param = setRF$param, grid = FALSE, n=nsim)
+      else
+        results$data <- drop(matrix(GaussRF(x=xpts,y=ypts,
+                                            model = setRF$model,
+                                            param = setRF$param, grid = TRUE, n=nsim),
+                                    ncol=nsim))
     }
     else
       results$data <-

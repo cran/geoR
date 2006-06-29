@@ -3,8 +3,7 @@
             fix.nugget = FALSE, nugget = 0, 
             fix.kappa = TRUE, kappa = 0.5,
             simul.number = NULL,  max.dist = vario$max.dist,
-            weights = c("npairs", "equal", "cressie"),
-            minimisation.function,
+            weights, minimisation.function,
             limits = pars.limits(), 
             messages, ...) 
 {
@@ -14,9 +13,6 @@
   else messages.screen <- messages
   if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
     warning("object vario should preferably be of the geoR's class \"variogram\"")
-  weights <- match.arg(weights)
-  if(messages.screen)
-    cat(paste("variofit: weights used:", weights, "\n"))
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
@@ -28,10 +24,20 @@
   ##  if(cov.model == "matern" | cov.model == "    powered.exponential" | 
   ##     cov.model == "cauchy" | cov.model == "gneiting.matern")
   ##    fix.kappa <- TRUE
-  if(missing(minimisation.function)){
-    if(weights == "equal") minimisation.function <- "nls"
-    else minimisation.function <- "optim"
+  if(missing(weights)){
+    if(vario$output.type == "cloud") weights <- "equal"
+    else weights <- "npairs"
   }
+  else
+    weights <- match.arg(weights, choices = c("npairs", "equal", "cressie"))
+  if(messages.screen)
+    cat(paste("variofit: weights used:", weights, "\n"))
+#  if(missing(minimisation.function)){
+#    if(weights == "equal") minimisation.function <- "nls"
+#    else minimisation.function <- "optim"
+#  }
+  if(missing(minimisation.function))
+    minimisation.function <- "optim"
   if(any(cov.model == c("linear", "power")) & minimisation.function == "nls"){
     cat("warning: minimisation function nls can not be used with given cov.model.\n          changing for \"optim\".\n")
     minimisation.function <- "optim"
@@ -180,8 +186,10 @@
       warning("unreasonable initial value for sigmasq (too high)")
     if(ini.cov.pars[1] + nugget > 3*vmax)
       warning("unreasonable initial value for sigmasq + nugget (too high)")
-    if(ini.cov.pars[1] + nugget < 0.3*vmax)
-      warning("unreasonable initial value for sigmasq + nugget (too low)")
+    if(vario$output.type != "cloud"){
+      if(ini.cov.pars[1] + nugget < 0.3*vmax)
+        warning("unreasonable initial value for sigmasq + nugget (too low)")
+    }
     if(nugget > 2*vmax)
       warning("unreasonable initial value for nugget (too high)")
     if(ini.cov.pars[2] > 1.5*umax)

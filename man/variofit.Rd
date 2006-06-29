@@ -15,8 +15,7 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
          fix.nugget = FALSE, nugget = 0,
          fix.kappa = TRUE, kappa = 0.5,
          simul.number = NULL, max.dist = vario$max.dist,
-         weights = c("npairs", "equal", "cressie"),
-         minimisation.function,
+         weights, minimisation.function,
          limits = pars.limits(), messages, \dots)
 }
 %- maybe also `usage' for other objects documented here.
@@ -143,7 +142,10 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   
   \describe{
     \item{\code{"npairs"}}{indicates that the weights are given by the
-      number of pairs in each bin. The loss function is:
+      number of pairs in each bin.
+      This is the default option unless \code{variog$output.type ==
+      "cloud"}.
+      The loss function is:
       \deqn{LOSS(\theta) = \sum_k n_k [(\hat{\gamma}_k) -
 	\gamma_k(\theta)]^2}{LOSS(theta) = sum_k n_k (hat(gamma) -
 	gamma(theta))^2}
@@ -157,7 +159,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
     
     \item{\code{"equal"}}{equal values for the weights. For this case
       the estimation corresponds to the ordinary least squares variogram
-      fitting.
+      fitting. This is the default option if \code{variog$output.type ==
+      "cloud"}.
       \deqn{LOSS(\theta) = \sum_k [(\hat{\gamma}_k) -
 	\gamma_k(\theta)]^2}{LOSS(\theta) = \sum_k (\hat(\gamma) -
 	\gamma(\theta))^2}
