@@ -10,8 +10,8 @@
        messages, ...) 
 {
   if(missing(geodata)) geodata <- list(coords=coords, data = data)
-  if(! "package:stats" %in% search()) require(mva)
-  if(! "package:stats" %in% search()) require(modreg)
+#  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(modreg)
   call.fc <- match.call()
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
@@ -251,7 +251,7 @@
       }
     }
     if (option == "smooth") {
-      if(! "package:stats" %in% search()) require(modreg)
+#      if(! "package:stats" %in% search()) require(modreg)
       if (is.matrix(v)) stop("smooth not yet available for more than one data-set")
       temp <- ksmooth(u, v, ...)
       result <- list(u = temp[[1]], v = temp[[2]])
@@ -287,7 +287,7 @@
             tolerance = pi/8, unit.angle = c("radians", "degrees"),
             messages, ...) 
 {
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
@@ -348,19 +348,22 @@
   function (x, omnidirectional = FALSE, same.plot = TRUE,
             legend = TRUE,...)
 {
+  fc.call <- match.call()
   ymax <- max(c(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v), na.rm=TRUE)
   n.o <- names(x)[1:4]
   GP <- list(...)
-  if(is.null(GP$xlab)) GP$xlab <- "distance"
-  if(is.null(GP$ylab)) GP$ylab <- "semi-variance"
+  argsnames <- c(names(formals(plot.default)), names(par()))
+  names(GP) <- argsnames[charmatch(names(GP), argsnames)]
+  if(is.null(GP$xlab)) GP$xlab <- fc.call$xlab <- "distance"
+  if(is.null(GP$ylab)) GP$ylab <- fc.call$ylab <- "semivariance"
   if (same.plot) {
     xx <- x[[5]]$u
     yy <- cbind(x[[1]]$v, x[[2]]$v, x[[3]]$v, x[[4]]$v)
     if (omnidirectional) yy <- cbind(x[[5]]$v, yy)
     ## OFC, changed : if (is.null(GP$lty)) GP$lty <- 1:5
     if (is.null(GP$lty)){
-      if(omnidirectional) GP$lty <- 1:5
-      else GP$lty <- 1:4
+      if(omnidirectional) GP$lty <- fc.call$lty <- 1:5
+      else GP$lty <- fc.call$lty <- 1:4
     }
     if (is.null(GP$lwd)) GP$lwd <- 1
     ## OFC, changed : if (is.null(GP$col)) GP$col <- 1:5
@@ -373,6 +376,10 @@
     matplot(x = xx, y = yy, type = GP$type, lty=GP$lty, lwd=GP$lwd,
             col=GP$col, pch=GP$pch, xlab=GP$xlab, ylab=GP$ylab,
             xlim = c(0, max(xx)), ylim=c(0,max(yy, na.rm=TRUE)))
+    #if (is.null(GP$xlim)) fc.call$xlim <- c(0, max(xx))
+    #if (is.null(GP$xlim)) fc.call$ylim <- c(0,max(yy, na.rm=TRUE)))
+    #fc.call[[1]] <- matplot
+    #eval(fc.call, sys.frame(parent.frame()))
     if (legend) {
       if (omnidirectional) {
         legend(0, ymax,
@@ -645,29 +652,20 @@
             var.lines = FALSE,  envelope.obj = NULL,
             pts.range.cex, bin.cloud = FALSE,  ...) 
 {
-  if(missing(max.dist)) max.dist <- max(x$u)
+  fc.call <- match.call()
+  fc.call$max.dist <- fc.call$vario.col <- fc.call$scaled <- 
+    fc.call$pts.range.cex <-  fc.call$bin.cloud <-
+      fc.call$envelope.obj <- NULL
   Ldots <- list(...)
-  if(is.null(Ldots$xlab)) Ldots$xlab <- "distance"
-  if(is.null(Ldots$ylab)) Ldots$ylab <- "semi-variance"
-  if(is.null(Ldots$ty)){
-    if (x$output.type == "bin") Ldots$type <- "p"
-    if (x$output.type == "smooth") Ldots$type <- "l"
-    if (x$output.type == "cloud") Ldots$type <- "p"
-  }
-  if(is.null(Ldots$col)) Ldots$col <- 1:6
-  if(is.null(Ldots$lty)) Ldots$lty <- 1:5
-  if(is.null(Ldots$lwd)) Ldots$lwd <- 1
-  if(is.null(Ldots$pch)) Ldots$pch <- NULL
-  if(is.null(Ldots$cex)) Ldots$cex <- NULL
-  if(is.null(Ldots$add)) Ldots$add <- FALSE
-# if (bin.cloud == TRUE &&  Ldots$type != "b") 
-#    stop("plot.variogram: object must be a binned variogram with option bin.cloud=TRUE")
+  argsnames <- c(names(formals(plot.default)), names(par()))
+  names(Ldots) <- argsnames[charmatch(names(Ldots), argsnames)]
+  if(missing(max.dist)) max.dist <- max(x$u)
+  if(is.null(Ldots$xlim)) fc.call$xlim <- c(0, max.dist) 
   if (bin.cloud == TRUE && all(is.na(x$bin.cloud))) 
     stop("plot.variogram: object must be a binned variogram with option bin.cloud=TRUE")
   if (bin.cloud == TRUE && any(!is.na(x$bin.cloud))) 
     boxplot(x$bin.cloud, varwidth = TRUE, 
-            xlab = "distance",
-            ylab = paste(x$estimator.type, "variogram"))
+            xlab = "distance", ylab = paste(x$estimator.type, "variogram"))
   else {
     if(!missing(pts.range.cex)){
       cex.min <- min(pts.range.cex)
@@ -691,35 +689,43 @@
       if(mode(vario.col) != "numeric" | any(vario.col > ncol(v)))
         stop("argument vario.col must be equals to \"all\" or a vector indicating the column numbers to be plotted")
     v <- v[, vario.col, drop=FALSE]
-    if (scaled)
-      v <- t(t(v)/x$var.mark[vario.col])
-    if (is.null(Ldots$ylim)){
+    if (scaled) v <- t(t(v)/x$var.mark[vario.col])
+    if(is.null(list(...)$ylim)){ 
       ymax <- max(v)
       if (!is.null(envelope.obj)) 
         ymax <- max(c(envelope.obj$v.upper, ymax))
-      Ldots$ylim <- c(0, ymax)
+      fc.call$ylim <- c(0, ymax)
     }
     if(ncol(v) == 1){
-      v <- as.vector(v)
-      uv <- data.frame(distance=u, semivariance = v)
-      if(is.null(list(...)$ylim)){
-        if(pts.prop)
-          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, cex = pts.cex, ...)
-        else
-          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, ...)
-      }
-      else{
-        if(pts.prop)
-          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim, cex = pts.cex)
-        else
-          plot(uv, xlim = c(0, max.dist), ylim = Ldots$ylim)
-      }
+      fc.call[[1]] <- as.name("plot")
+      fc.call$x <- data.frame(distance=u, semivariance = as.vector(v))
+      if(pts.prop) fc.call$cex <- pts.cex
+      eval(fc.call, sys.frame(sys.parent()))
     }
-    else
-      matplot(x=u, y= v, xlim = c(0, max.dist), ylim = Ldots$ylim, 
-              xlab = Ldots$xlab, ylab = Ldots$ylab, type = Ldots$type,
-              add = Ldots$add, pch = Ldots$pch,
-              lty = Ldots$lty, lwd = Ldots$lwd, col = Ldots$col)
+    else{
+      fc.call[[1]] <- as.name("matplot")
+      fc.call$x <- u
+      fc.call$y <- v
+      if(is.null(Ldots$xlab)) fc.call$xlab <- "distance"
+      if(is.null(Ldots$ylab)) fc.call$ylab <- "semivariance"
+      if(is.null(Ldots$ty)){
+        if (x$output.type == "bin") fc.call$type <- "p"
+        if (x$output.type == "smooth") fc.call$type <- "l"
+        if (x$output.type == "cloud") fc.call$type <- "p"
+      }
+#      if(is.null(Ldots$col)) fc.call$col <- 1:6
+#      if(is.null(Ldots$lty)) fc.call$lty <- 1:5
+#      if(is.null(Ldots$lwd)) $lwd <- 1
+#      if(is.null(Ldots$pch)) Ldots$pch <- NULL
+#      if(is.null(Ldots$cex)) Ldots$cex <- NULL
+#      if(is.null(Ldots$add)) Ldots$add <- FALSE
+#      
+#      matplot(x=u, y= v, xlim = c(0, max.dist), ylim = Ldots$ylim, 
+#              xlab = Ldots$xlab, ylab = Ldots$ylab, type = Ldots$type,
+#              add = Ldots$add, pch = Ldots$pch,
+#              lty = Ldots$lty, lwd = Ldots$lwd, col = Ldots$col)
+      eval(fc.call, sys.frame(sys.parent()))
+    }
     if (var.lines) {
       if (scaled) abline(h = 1, lty = 3)
       else abline(h = x$var.mark, lty = 3)
@@ -816,8 +822,8 @@
   }
   else
     my.l$max.dist <- max.dist
-  if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
-      x$cov.model == "cauchy" | x$cov.model == "gneiting.matern") 
+  if (any(x$cov.model == c("matern","powered.exponential",
+            "cauchy", "gencauchy", "gneiting.matern"))) 
     my.l$kappa <- x$kappa
   else kappa <- NULL
   if (is.vector(x$cov.pars)) 

@@ -8,7 +8,7 @@
   Sumarises each of the main elements of an object of the class \code{geodata}.
 }
 \usage{
-summary.geodata(object, lambda =1, add.to.data = 0,
+\method{summary}{geodata}(object, lambda =1, add.to.data = 0,
                 by.realisations=TRUE, ...)
 }
 %- maybe also `usage' for other objects documented here.

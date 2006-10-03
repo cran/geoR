@@ -13,7 +13,7 @@
     geodata <- list(coords = coords, data = data)
   if(missing(borders))
     borders <- geodata$borders
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
     warning(".Random.seed not initialised. Creating it with runif(1)")
@@ -460,7 +460,7 @@
   if(prior$phi.prior == "fixed"){
     phi.fixed <- prior$phi
     ##
-    ## Computing parameters of the posterior for $\(\beta, \sigma^2)$ 
+    ## Computing parameters of the posterior for $(\beta, \sigma^2)$ 
     ## and moments of the predictive (if applies)
     ##
     bsp <- beta.sigmasq.post(n = n, beta.info = beta.info[[1]],
@@ -1452,10 +1452,10 @@
     match.arg(cov.model,
               choices = c("matern", "exponential", "gaussian",
                 "spherical", "circular", "cubic", "wave", "power",
-                "powered.exponential", "cauchy", "gneiting",
+                "powered.exponential", "cauchy", "gencauchy", "gneiting",
                 "gneiting.matern", "pure.nugget"))
   if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
-    stop("model.control: for power exponential correlation model the parameter kappa must be in the interval \(0,2\]")
+    stop("model.control: for power exponential correlation model the parameter kappa must be in the interval \\(0,2\\]")
   ##  if(any(cov.model == c("exponential", "gaussian", "spherical",
   ##           "circular", "cubic", "wave", "powered.exponential",
   ##           "cauchy", "gneiting", "pure.nugget")))
@@ -2450,8 +2450,8 @@
     my.l$cov.model <- "exponential"
   else {
     my.l$cov.model <- x$call$cov.model
-    if(x$call$cov.model == "matern" | x$call$cov.model == "powered.exponential" |
-       x$call$cov.model == "cauchy" | x$call$cov.model == "gneiting.matern")
+    if(any(x$call$cov.model == c("matern", "powered.exponential",
+             "cauchy", "gencauchy", "gneiting.matern")))
       my.l$kappa <- x$call$kappa
     else my.l$kappa <- NULL
   }

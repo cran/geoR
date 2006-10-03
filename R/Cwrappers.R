@@ -131,9 +131,9 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "powered.exponential", "cauchy", "gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
-  if(any(cov.model == c("cauchy", "matern", "powered.exponential", "power", "gneiting.matern"))){
+  if(any(cov.model == c("cauchy", "gencauchy", "matern", "powered.exponential", "power", "gneiting.matern"))){
     if(missing(kappa))
       stop("argument kappa is needed for this choice of correlation function")
   }

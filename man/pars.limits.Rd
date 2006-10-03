@@ -11,6 +11,7 @@ pars.limits(phi = c(lower = 0, upper = +Inf),
             sigmasq = c(lower = 0, upper = +Inf),
             nugget.rel = c(lower = 0, upper = +Inf),
             kappa = c(lower = 0, upper = +Inf),
+            kappa2 = c(lower = 0, upper = +Inf), 
             lambda = c(lower = -3, upper = 3),
             psiR = c(lower = 1, upper = +Inf),
             psiA = c(lower = 0, upper = 2 * pi),
@@ -21,7 +22,7 @@ pars.limits(phi = c(lower = 0, upper = +Inf),
   \item{phi}{a two elements vector with limits for the parameter phi. Defaults to [0, +Inf]}
   \item{sigmasq}{idem for sigmasq. Defaults to [0, +Inf]}
   \item{nugget.rel}{idem for nugget.rel. Defaults to [0, +Inf]}
-  \item{kappa}{idem for kappa. Defaults to [0, +Inf]}
+  \item{kappa,kappa2}{idem. Defaults to [0, +Inf]}
   \item{lambda}{idem for lambda. Defaults to [-3, +3]. Only used in
     \code{\link{likfit}}. }
   \item{psiR}{idem for psiR. Defaults to [1, +Inf]. Only used in

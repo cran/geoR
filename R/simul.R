@@ -3,7 +3,7 @@
   cov.model <- match.arg(cov.model,
                          choices = c("exponential", "matern", "gaussian",
                            "spherical", "circular", "cubic", "wave",
-                           "power", "powered.exponential", "cauchy",
+                           "power", "powered.exponential", "cauchy","gencauchy",
                            "gneiting", "pure.nugget", "gneiting.matern"))
   if(length(cov.pars) != 2)
     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
@@ -18,12 +18,15 @@
                     power = "not compatible",
                     powered.exponential = "stable",
                     cauchy = "cauchy",
+                    gencauchy = "gencauchy",
                     gneiting = "gneiting",
                     gneiting.matern = "not compatible",
                     pure.nugget = "nugget")
   RFpars <- c(0, cov.pars[1], nugget, cov.pars[2])
   if(any(cov.model == c("matern","powered.exponential","cauchy")))
     RFpars <- c(RFpars, kappa)
+  if(any(cov.model == "gencauchy"))
+    RFpars <- c(RFpars, rev(kappa))
   if(RFmodel == "not compatible"){
     warning("geoR cov.model not compatible with RandomFields model")
     return(RFmodel)
@@ -54,7 +57,7 @@
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
                            "power", "powered.exponential", "stable",
-                           "cauchy", "gneiting", "gneiting.matern",
+                           "cauchy", "gencauchy", "gneiting", "gneiting.matern",
                            "pure.nugget"))
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
@@ -204,7 +207,7 @@
       setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
                        nugget = nugget, kappa = kappa)
                                         # , mean=mean)
-      if(is.null(xpts))
+      if(!exists("xpts") || is.null(xpts))
         results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
                                 model = setRF$model,
                                 param = setRF$param, grid = FALSE, n=nsim)
@@ -289,8 +292,8 @@
     if (phi[i] == 0) 
       cov.message[i] <- paste("grf: covariance model", i, "is a pure nugget effect\n")
     else {
-      if (cov.model == "matern" | cov.model == "powered.exponential" | 
-          cov.model == "cauchy" | cov.model == "gneiting.matern") 
+      if(any(cov.model == c("matern","powered.exponential", 
+          "cauchy", "gencauchy", "gneiting.matern"))) 
         cov.message[i] <- paste("grf: covariance model ", 
                                 i, " is: ", cov.model, "(sigmasq=", sigmasq[i], 
                                 ", phi=", phi[i], ", kappa = ", kappa, ")\n", sep = "")
@@ -306,9 +309,9 @@
   function (x, max.dist = max(dist(x$coords)), length = 100, 
             lwd = 2, ...) 
 {
-  if(! "package:stats" %in% search()) require(mva)
-  if (x$cov.model == "matern" | x$cov.model == "powered.exponential" | 
-      x$cov.model == "cauchy" | x$cov.model == "gneiting.matern") 
+#  if(! "package:stats" %in% search()) require(mva)
+  if(any(cov.model == c("matern","powered.exponential", 
+           "cauchy", "gencauchy", "gneiting.matern"))) 
     kappa <- x$kappa
   else kappa <- NULL
   distance <- seq(0, max.dist, length = length)

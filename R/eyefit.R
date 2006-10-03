@@ -19,7 +19,7 @@ summary.eyefit <- function(object, ...){
     for(i in 1:length(object)){
       tmp <- unclass(unlist(object[[i]]))
       if (tmp["cov.model"] != "gneiting.matern") tmp["kappa2"] <- NA
-      if (all(tmp["cov.model"] != c("powered.exponential","cauchy","matern")))
+      if (all(tmp["cov.model"] != c("powered.exponential","cauchy","gencauchy","matern")))
         tmp["kappa"] <- NA
       res[i,] <- tmp[c("cov.model","cov.pars1","cov.pars2","nugget", "kappa", "kappa2")]
     }
@@ -76,7 +76,7 @@ eyefit <- function(vario, silent=FALSE){
                             kappa=x$kappa, cov.pars=x$cov.pars,
                             nug=x$nug, max.dist=x$max.dist))
 
-    if (k == "gneiting.matern")
+    if (k == "gneiting.matern" |k == "gencauchy" )
       {
         lines.variomodel(x=seq(0,maxdist,l=100), cov.model=k, kappa=c(kp1,kp2),
                          cov.pars = c(sigmasq,phi),nug=tausq,max.dist=maxdist)
@@ -95,7 +95,7 @@ eyefit <- function(vario, silent=FALSE){
   redraw <- function(...)
     {
       var <- as.character(tclObj(kernel))	
-      if (var == "gneiting.matern") 
+      if (var == "gneiting.matern" | var == "gencauchy") 
 	{
           tkconfigure(entry.kappa1, state="normal")
     	  tkconfigure(ts5, state="normal")
@@ -188,7 +188,7 @@ eyefit <- function(vario, silent=FALSE){
   
   frame2 <- tkframe(right.frm, relief="groove", borderwidth=2)
   tkpack(tklabel(frame2, text="Function"))
-  for ( i in c("cauchy","circular","cubic","exponential","gaussian", 
+  for ( i in c("cauchy","gencauchy","circular","cubic","exponential","gaussian", 
                "gneiting","gneiting.matern","linear","matern","power",
                "powered.exponential","pure.nugget","spherical","wave") ) {        
     

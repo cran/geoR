@@ -8,7 +8,7 @@
   and back transforming to a \code{geodata} object.
 }
 \usage{
-subset.geodata(x, ..., other = TRUE)
+\method{subset}{geodata}(x, ..., other = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

@@ -12,9 +12,9 @@
 }
 \usage{
 dup.coords(x, \dots)
-dup.coords.default(x, \dots)
-dup.coords.geodata(x, incomparables, \dots)
-duplicated.geodata(x, incomparables, \dots)
+\method{dup.coords}{default}(x, \dots)
+\method{dup.coords}{geodata}(x, incomparables, \dots)
+\method{duplicated}{geodata}(x, incomparables, \dots)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

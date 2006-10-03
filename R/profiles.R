@@ -28,7 +28,7 @@
   else messages.screen <- messages
   if(missing(geodata))
     geodata <- list(coords = coords, data = data)
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   n.cov.pars <- obj.likfit$npars - length(obj.likfit$beta)
   if(obj.likfit$transform.info$fix.lambda == FALSE)

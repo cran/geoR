@@ -282,7 +282,7 @@
   if(!is.function(rep.units.action))
     rep.units.action <- match.arg(rep.units.action,
                                   choices = c("none", "first")) 
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   ## check also whether this should be checked within each realisation 
   ##  if(sum(rep.dup) > 0){
   if(any(duplicated(res$coords, MAR=1))){
@@ -333,7 +333,7 @@
 "summary.geodata" <-
   function(object, lambda=1, add.to.data = 0, by.realisations=TRUE,  ...)
 {
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   res <- list()
   ##
   ## data transformation (Box-Cox)
@@ -761,14 +761,14 @@
     points(coords[(data > data.quantile[4]), ], pch = 4, 
            cex = 2, col = 8)
   }
-  plot(data, coords[, 2], ylab = "Coord Y", xlab = data.lab, cex = 1, ylim = coords.lims[, 2])
+  plot(data, coords[, 2], ylab = "Y Coord", xlab = data.lab, cex = 1, ylim = coords.lims[, 2])
   if(lowess){
     foo <- lowess(data ~ coords[,2])
     lines(foo[[2]], foo[[1]])
   }
   if (!is.R()) 
     par(mar = c(5, 5, 1, 0.5))
-  plot(coords[, 1], data, xlab = "Coord X", ylab = data.lab, cex = 1, xlim = coords.lims[, 1], )
+  plot(coords[, 1], data, xlab = "X Coord", ylab = data.lab, cex = 1, xlim = coords.lims[, 1], )
   if(lowess) lines(lowess(data ~ coords[,1]))
   par(pty = "m")
   if (is.R()) par(mar = c(4, 4, 1, 1))
@@ -779,8 +779,8 @@
       hist(data, xlab= data.lab)
     }
     else scatterplot3d(x = coords[, 1], y = coords[, 2], 
-                       z = data, box = FALSE, type = "h", pch = 16, xlab = "Coord X", 
-                       ylab = "Coord Y", ...)
+                       z = data, box = FALSE, type = "h", pch = 16, xlab = "X Coord", 
+                       ylab = "Y Coord", ...)
   }
   ##  else xyzplot(coords = coords, data = data, ...)
   else hist(data, main="", xlab= data.lab, ...)

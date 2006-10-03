@@ -21,7 +21,7 @@
 {
   CM <- c("matern", "exponential", "gaussian", "spherical",
           "circular", "cubic", "wave", "power", "powered.exponential",
-          "stable", "cauchy", "gneiting", "pure.nugget")
+          "stable", "cauchy", "gencauchy", "gneiting", "pure.nugget")
   cov0.model <- match.arg(cov0.model, choices = CM)
   cov1.model <- match.arg(cov1.model, choices = CM)
   cov2.model <- match.arg(cov2.model, choices = CM)

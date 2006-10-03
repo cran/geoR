@@ -1,4 +1,37 @@
 
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-10/11
+		=================================
+
+NEW FEATURES
+
+
+BUG FIXES
+ 
+         o fixes in documentation and code to conform with
+           R devel
+ 
+
+                ==============================
+ 		CHANGES IN geoR VERSION 1.6-9
+		==============================
+
+NEW FEATURES
+
+
+         o new covariance function generalised cauchy
+	   (gencauchy) now implemented
+
+
+BUG FIXES
+ 
+         o plot.variogram() now passes arguments to the plot
+           function when argument 'ylim' is provided.
+           Better handling of '...' 
+
+         o error message about object xpts removed from grf()
+
+
 
                 =======================================
  		CHANGES IN geoR VERSION 1.6-7 and 1.6-8
@@ -6,6 +39,20 @@
 
 NEW FEATURES
 
+
+         o grf() now call GaussRF() from RandomFileds
+           with nicer defaults
+
+
+                =======================================
+ 		CHANGES IN geoR VERSION 1.6-7 and 1.6-8
+		=======================================
+
+NEW FEATURES
+
+
+         o new covariance function generalised cauchy
+	   (gencauchy) now implemented
 
          o grf() now call GaussRF() from RandomFileds
            with nicer defaults

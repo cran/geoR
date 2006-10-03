@@ -14,9 +14,9 @@ coords2coords(coords, xlim, ylim, xlim.ori, ylim.ori)
 
 zoom.coords(x, \ldots)
 
-zoom.coords.default(x, xzoom, yzoom, xlim.ori, ylim.ori, xoff=0, yoff=0, \ldots)
+\method{zoom.coords}{default}(x, xzoom, yzoom, xlim.ori, ylim.ori, xoff=0, yoff=0, \ldots)
 
-zoom.coords.geodata(x, \ldots)
+\method{zoom.coords}{geodata}(x, \ldots)
 
 rect.coords(coords, xzoom = 1, yzoom=xzoom, add.to.plot=TRUE,
             quiet = FALSE, \ldots)

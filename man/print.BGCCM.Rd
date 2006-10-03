@@ -6,7 +6,7 @@
   Prints a short version of an object of the class \code{BGCCM}.
 }
 \usage{
-print.BGCCM(x, ...)
+\method{print}{BGCCM}(x, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

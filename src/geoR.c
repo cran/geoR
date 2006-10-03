@@ -24,14 +24,14 @@ Real geoRmatern(Real uphi, Real kappa)
       ans = exp(-uphi);
     else {
       cte = R_pow(2, (-(kappa-1)))/gammafn(kappa); 
-      ans = cte * R_pow(uphi, kappa) * bessel_k(uphi,kappa,1); 
+      ans = cte * R_pow(uphi, kappa) * bessel_k(uphi, kappa, 1); 
     }
   }
   /* Rprintf("   ans=%d ", ans); */
   return ans; 
 }
 
-Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
+Real corrfctvalue(Real phi, Real *kappa, Real h, Integer cornr)
 {
   
   /* 
@@ -53,6 +53,7 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
      11: CIRCULAR
      12: MATERN
      13: GNEITING-MATERN (NOT YET IMPLEMENTED)
+     14: CAUCHY (Generalised Cauchy) 
      
      WARNING: codes above must be the same as in the geoR/geoS function
      "cor.number"
@@ -61,6 +62,7 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
   Real hphi; 
   Real hphi2;
   Real hphi4;
+  Real term1;
 
   if(h==0) return 1;
   else{  
@@ -74,12 +76,12 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
       break;
     case 3: /* spherical */
       if (h < phi) 
-	return 1 - (1.5 * hphi) + (0.5 * hphi*hphi*hphi) ;
+	return 1 - (1.5 * hphi) + (0.5 * R_pow(hphi,3)) ;
       else
 	return 0 ;
       break;
     case 4: /* Gaussian */
-      return exp(-(hphi * hphi)) ;
+      return exp(- R_pow(hphi,2)) ;
       break;
     case 5: /* wave (hole effect) */
       return sin(hphi)/hphi ;
@@ -98,10 +100,10 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
       return  R_pow(h, phi) ;
       break;
     case 8: /* powered.exponential */
-      return exp(-1 *  R_pow(hphi, kappa))  ;
+      return exp(-1 *  R_pow(hphi, kappa[0]))  ;
       break;
     case 9:  /* cauchy */
-      return R_pow((1 + (hphi * hphi)), (-kappa)) ;
+      return R_pow((1 + R_pow(hphi,2)), -(kappa[0])) ;
       break;
     case 10:  /* gneiting */
       hphi = 0.301187465825 * hphi ;
@@ -120,11 +122,20 @@ Real corrfctvalue(Real phi, Real kappa, Real h, Integer cornr)
 	return 0 ;
       break;
     case 12: /* matern */
-      return geoRmatern(hphi, kappa);
+      return geoRmatern(hphi, kappa[0]);
       break;
-      /* case 13: gneiting-matern NOT YET IMPLEMENTED 
-	 res[ind] =  ;
-	 break; */
+    case 13: /* gneiting-matern */
+      term1 = geoRmatern(hphi, kappa[0]);
+      hphi = 0.301187465825 * hphi/kappa[1] ; 
+      hphi4 = 1 - hphi ; 
+      if (hphi4 > 0) hphi4 = R_pow(hphi4, 8) ; 
+      else hphi4 = 0 ; 
+      hphi2 = hphi * hphi ; 
+      return term1 * (1 + 8 * hphi + 25 * hphi2 + 32 * (hphi2 * hphi)) * hphi4 ; 
+      break;
+    case 14:  /* gencauchy */
+      return R_pow((1 + R_pow(hphi, kappa[1])), -(kappa[0]/kappa[1]));
+      break;
     default: 
       return -1;
       break;
@@ -139,7 +150,7 @@ void veccorrval(Real *phi, Real *kappa, Real *h, Integer *n,
   Real cmax = 0, A;
   
   for (j=0; j<(*n); j++){
-    res[j] = corrfctvalue(*phi, *kappa, h[j], *cornr)  ;
+    res[j] = corrfctvalue(*phi, kappa, h[j], *cornr)  ;
     if(*cornr == 7) cmax = fmax2(cmax, res[j]) ;
   }
   if(*cornr == 7){
@@ -712,7 +723,7 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr,
 	h  = pythag(dx,dy) ;
 	if(*cornr > 0){
 	  if(*phi > 0){
-	    res[ind] = corrfctvalue((*phi), (*kappa), h, (*cornr));
+	    res[ind] = corrfctvalue(*phi, kappa, h, *cornr);
 	  }
 	  else res[ind] = 0;
 	}

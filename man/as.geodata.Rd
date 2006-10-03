@@ -1,5 +1,6 @@
 \name{as.geodata}
 \alias{as.geodata}
+\alias{geodata}
 \alias{as.geodata.default}
 \alias{as.geodata.SpatialPointsDataFrame}
 \alias{as.data.frame.geodata}
@@ -22,18 +23,18 @@
 \usage{
 as.geodata(obj, \dots)
 
-as.geodata.default(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
+\method{as.geodata}{default}(obj, coords.col = 1:2, data.col = 3, data.names = NULL, 
                    covar.col = NULL, covar.names = "obj.names",
                    units.m.col = NULL, realisations = NULL,
                    na.action = c("ifany", "ifdata", "ifcovar", "none"),
                    rep.data.action, rep.covar.action, rep.units.action,
                    ...)
 
-as.data.frame.geodata(x, \dots, borders = TRUE)
+\method{as.data.frame}{geodata}(x, \dots, borders = TRUE)
 
-as.geodata.geodata.frame(obj, \dots)
+\method{as.geodata}{geodata.frame}(obj, \dots)
 
-as.geodata.SpatialPointsDataFrame(obj, data.col = 1, \dots)
+\method{as.geodata}{SpatialPointsDataFrame}(obj, data.col = 1, \dots)
 
 is.geodata(x)
 }

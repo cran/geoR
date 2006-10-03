@@ -17,11 +17,11 @@
 \usage{
 boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
 
-print.boxcox.fit(x, \dots)
+\method{print}{boxcox.fit}(x, \dots)
 
-plot.boxcox.fit(x, hist = TRUE, data = eval(x$call$object), \dots)
+\method{plot}{boxcox.fit}(x, hist = TRUE, data = eval(x$call$object), \dots)
 
-lines.boxcox.fit(x, data = eval(x$call$object), \dots)
+\method{lines}{boxcox.fit}(x, data = eval(x$call$object), \dots)
 
 }
 

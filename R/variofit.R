@@ -16,7 +16,7 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
-                           "linear", "power", "powered.exponential", "stable", "cauchy",
+                           "linear", "power", "powered.exponential", "stable", "cauchy", "gencauchy",
                            "gneiting", "gneiting.matern", "pure.nugget"))
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "powered.exponential")
@@ -207,7 +207,7 @@
     ## minimisation using "nls"
     ##
     if (minimisation.function == "nls") {
-      if(! "package:stats" %in% search()) require(nls)
+#      if(! "package:stats" %in% search()) require(nls)
       if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
       if(kappa == 0) kappa <- 0.5
       if(cov.model == "power")
@@ -522,8 +522,8 @@
   else
     cat("variofit: model parameters estimated by WLS (weighted least squares):\n")
   cat(paste("covariance model is:", x$cov.model))
-  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
-     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern")
+  if(any(x$cov.model == c("matern", "powered.exponential",
+     "cauchy", "gencauchy", "gneiting.matern")))
     if(x$fix.kappa) cat(paste(" with fixed kappa =", x$kappa)) 
   if(x$cov.model == "matern" & x$fix.kappa & x$kappa == 0.5)
     cat(" (exponential)")
@@ -605,8 +605,8 @@
   cat(paste("   correlation function:", x$cov.model))
   if(x$cov.model == "matern" & x$fix.kappa & x$spatial.component.extra == 0.5)
     cat(" (exponential)")
-  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
-     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern"){
+  if(any(x$cov.model == c("matern", "powered.exponential",
+     "cauchy", "gencauchy", "gneiting.matern"))){
     if(x$fix.kappa)
       cat(paste("\n      (fixed) extra parameter kappa = ", round(x$spatial.component.extra, digits=digits)))
     else

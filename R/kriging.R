@@ -512,7 +512,7 @@
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic",
                            "wave", "linear", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "powered.exponential", "cauchy","gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(micro.scale > nugget)
     stop("krige.control: micro.scale must be in the interval [0, nugget]")

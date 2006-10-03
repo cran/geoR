@@ -22,7 +22,7 @@
             print.pars = FALSE, messages, ...) 
 {
   name.geodata <- deparse(substitute(geodata))
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   ##
   ## Checking input
   ##
@@ -37,19 +37,26 @@
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave",
                            "power", "powered.exponential", "stable",
-                           "cauchy", "gneiting",
+                           "cauchy","gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "power")
     stop("parameter estimation for power model is not implemented")
-  if(cov.model == "gneiting.matern")
+  if(any(cov.model == c("gneiting.matern", "gencauchy"))){
+    if(length(kappa != 2))
+      stop(paste(cov.model, "requires two values in the argument kappa"))
+    if(length(fix.kappa) == 1) f
+    ix.kappa <- rep(fix.kappa, 2) 
     stop("parameter estimation for gneiting.matern model is not yet implemented")
+  }
   if(fix.kappa & !is.null(kappa))
-    if(cov.model == "matern" & kappa == 0.5)
+    if(cov.model == "matern" & all(kappa == 0.5))
       cov.model <- "exponential"
   temp.list$cov.model <- cov.model
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2
+  if(cov.model == "gencauchy")
+    if(limits$kappa2["upper"] > 2) limits$kappa2["upper"] <- 2
   ##
   ## Likelihood method
   ##
@@ -1236,8 +1243,8 @@
   cat(paste("   correlation function:", x$cov.model))
   cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", format(x$spatial.component[1,2], dig=digits)))
   cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", format(x$spatial.component[2,2], dig=digits)))
-  if(x$cov.model == "matern" | x$cov.model == "powered.exponential" |
-     x$cov.model == "cauchy" | x$cov.model == "gneiting.matern"){
+  if(any(x$cov.model == c("matern", "powered.exponential",
+     "cauchy", "gencauchy", "gneiting.matern"))){
     kappa <- x$spatial.component.extra["kappa",2]
     if(x$spatial.component.extra["kappa",1] == "estimated")
       cat(paste("\n      (estimated) extra parameter kappa =", format(kappa, digits=digits)))

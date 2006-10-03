@@ -17,7 +17,7 @@
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "powered.exponential", "cauchy", "gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if (cov.model=="pure.nugget"){
     if(fix.nugget == TRUE) ini <- rep(0,2)
@@ -28,7 +28,7 @@
     if(cov.model == "matern" & kappa == 0.5)
       cov.model <- "exponential"
   minimisation.function <- match.arg(minimisation.function)
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   ftau <- nugget
   fixtau <- fix.nugget
   coords <- as.matrix(coords)
@@ -650,8 +650,8 @@
   if(messages.screen == TRUE){
     cat("likfit: estimated model parameters are:\n")
     cat(paste("covariance model:", cov.model))
-    if(cov.model == "matern" | cov.model == "powered.exponential" | 
-       cov.model == "cauchy" | cov.model == "gneiting.matern")
+    if(any(cov.model == c("matern","powered.exponential", 
+             "cauchy", "gencauchy", "gneiting.matern"))) 
       cat(paste(" with kappa =", kappa))
     if(!is.null(kappa))
       if(cov.model == "matern" & kappa == 0.5)

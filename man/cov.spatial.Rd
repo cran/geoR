@@ -30,7 +30,7 @@ cov.spatial(obj, cov.model= "matern",
   \item{cov.model}{string indicating the type of the correlation
     function. Available choices are: "matern", "exponential", "gaussian",
             "spherical", "circular", "cubic", "wave",
-            "power", "powered.exponential", "cauchy", 
+            "power", "powered.exponential", "cauchy", "gencauchy", 
             "gneiting", "gneiting.matern", "pure.nugget".
     See section \code{DETAILS} for available options and expressions of the correlation
     functions.  }
@@ -75,12 +75,17 @@ cov.spatial(obj, cov.model= "matern",
   \bold{cauchy} \cr
   \deqn{\rho(h) = [1+(\frac{h}{\phi})^2]^{-\kappa}}{rho(h) = [1+(h/phi)^2]^(-kappa)}
 
-  
+  \bold{gencauchy (generalised Cauchy)} \cr
+  \deqn{\rho(h) = [1+(\frac{h}{\phi})^\kappa_2]^{-\kappa_1/\kappa_2},
+    \kappa_1 > 0, 0 < \kappa_2 \leq 2 }{rho(h) =
+    [1+(h/phi)^kappa2]^(-kappa1/kappa2), kappa1 > 0, 0 < kappa2 <=0}
+    
   \bold{circular}\cr
   Let \eqn{\theta = \min(\frac{h}{\phi},1)}{theta = min(h/phi,1)} and
   \deqn{g(h)= 2\frac{(\theta\sqrt{1-\theta^2}+
-      \sin^{-1}\sqrt{\theta})}{\pi}.}{gamma(h)= 2 * ((\theta\sqrt{1-\theta^2}+
-      \sin^{-1}\sqrt{theta}))/pi.}
+      \sin^{-1}\sqrt{\theta})}{\pi}.}{gamma(h)= 2 * ((\theta *
+    \sqrt{1-\theta^2} +
+      \sin^{-1} \sqrt{theta}))/pi.}
   Then, the circular model is given by:
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
     1 - g(h)  \mbox{ , if $h < \phi$}\cr
@@ -90,7 +95,7 @@ cov.spatial(obj, cov.model= "matern",
   
   \bold{cubic}\cr
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
-    7(\frac{h}{\phi})^2-8.75(\frac{h}{\phi})^3+
+    7(\frac{h}{\phi})^2 - 8.75(\frac{h}{\phi})^3 +
     3.5(\frac{h}{\phi})^5-0.75(\frac{h}{\phi})^7 \mbox{ , if $h<\phi$} \cr
     0  \mbox{ , otherwise.}
     \end{array} \right.}{rho(h) = 
@@ -107,8 +112,8 @@ cov.spatial(obj, cov.model= "matern",
   \bold{matern}\cr
   \deqn{\rho(h) =
     \frac{1}{2^{\kappa-1}\Gamma(\kappa)}(\frac{h}{\phi})^\kappa
-    K_{\kappa}(\frac{h}{\phi})}{rho(h) =
-    (1/(2^(kappa-1) * \Gamma(kappa))) * ((h/phi)^kappa) * K_{kappa}(h/phi)} 
+    K_{\kappa}(\frac{h}{\phi})}{\rho(h) =
+    (1/(2^(\kappa-1) * \Gamma(\kappa))) * ((h/\phi)^\kappa) * K_{\kappa}(h/\phi)} 
 
   \bold{spherical}\cr
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
@@ -116,7 +121,7 @@ cov.spatial(obj, cov.model= "matern",
     \mbox{ , if $h$ < $\phi$} \cr
     0    \mbox{ ,  otherwise}
     \end{array} \right.}{rho(h) = 
-    1 - 1.5 * (h/phi) + 0.5(h/phi)^3   if h < $phi$ , 
+    1 - 1.5 * (h/phi) + 0.5(h/phi)^3   if h < phi , 
     0   otherwise}
     
   \bold{power (and linear)}\cr

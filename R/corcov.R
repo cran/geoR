@@ -23,7 +23,7 @@
 ".cor.number" <- 
   function(cov.model= c("exponential", "matern", "gaussian",
              "spherical", "circular", "linear", "cubic", "wave", "power",
-             "powered.exponential", "stable", "cauchy", "gneiting",
+             "powered.exponential", "stable", "cauchy", "gencauchy", "gneiting",
              "gneiting.matern", "pure.nugget"))
 {
 ###	WARNING: codes for covariance functions below
@@ -44,6 +44,7 @@
                       circular = as.integer(11),
                       matern = as.integer(12),
                       gneiting.matern = as.integer(13),
+                      gencauchy = as.integer(14),
                       stop("wrong or no specification of cov.model")
                       )
   return(cornumber)
@@ -51,7 +52,7 @@
 
 ".check.cov.model" <-
   function(cov.model, cov.pars, kappa, env=NULL, output=TRUE)
-{  
+{
   ## extracting covariance parameters
   if(is.vector(cov.pars)) sigmasq <- cov.pars[1]
   else sigmasq <- cov.pars[, 1]
@@ -70,11 +71,12 @@
   cov.model <- sapply(cov.model, match.arg,
                       c("matern", "exponential", "gaussian", "spherical",
                         "circular", "cubic", "wave", "linear", "power",
-                        "powered.exponential", "stable", "cauchy",
+                        "powered.exponential", "stable", "cauchy", "gencauchy",
                         "gneiting", "gneiting.matern", "pure.nugget"))
   cov.model[cov.model == "stable"] <- "powered.exponential"
-  if(any(cov.model == "gneiting.matern")){
-    if(length(kappa) != 2*ns) stop('wrong length for kappa')
+  if(any(cov.model == c("gneiting.matern", "gencauchy"))){
+    if(length(kappa) != 2*ns)
+    stop(paste("wrong length for kappa, ", cov.model, "model requires two values for the argument kappa")) 
   }
   else
     if(length(kappa) != ns) stop('wrong length for kappa')
@@ -82,14 +84,14 @@
   phi[cov.model == "linear"] <- 1
   cov.model[cov.model == "linear"] <- "power"
   ## checking input for cov. models with extra parameter(s)
-  if(any(cov.model == 'gneiting.model') && ns > 1)
+  if(any(cov.model == 'gneiting.matern') && ns > 1)
     stop('nested models including the gneiting.matern are not implemented') 
   for(i in 1:ns){
-    if(cov.model[i] == "matern" | cov.model[i] == "powered.exponential" | 
-       cov.model[i] == "cauchy" | cov.model[i] == "gneiting.matern"){
-      if(cov.model[i] == "gneiting.matern"){
+    if(any(cov.model[i] == c("matern","powered.exponential", "cauchy",
+                      "gneiting.matern", "gencauchy"))){
+      if(any(cov.model[i] == c("gneiting.matern", "gencauchy"))){
         if(any(is.na(kappa)) | length(kappa) != 2*ns)
-          stop("gneiting.matern correlation function model requires a vector with 2 parameters in the argument kappa")
+          stop(paste(cov.model[i],"correlation function model requires a vector with 2 parameters in the argument kappa"))
       }
       else{
         if(is.na(kappa[i]) | is.null(kappa[i]))
@@ -131,47 +133,46 @@
   for(i in 1:ns) {
     if(phi[i] < 1e-16)
       cov.model[i] <- "pure.nugget"
+    obj.sc <- obj/phi[i]
     cov.values <- switch(cov.model[i],
                          pure.nugget = rep(0, length(obj)),
-                         wave = (1/obj) * (phi[i] * sin(obj/phi[i])),
-                         exponential = exp( - (obj/phi[i])),
+                         wave = (1/obj) * (phi[i] * sin(obj.sc)),
+                         exponential = exp( - (obj.sc)),
                          matern = {
-                           if(kappa[i] == 0.5) exp( - (obj/phi[i]))
-                           else
-                             matern(u = obj, phi = phi[i], kappa = kappa[i])},
-                         gaussian = exp( - ((obj/phi[i])^2)),
-                         spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj/phi[i]) +
-                           0.5 * (obj/phi[i])^3), 0),
+                           if(kappa[i] == 0.5) exp( - (obj.sc))
+                           else matern(u = obj, phi = phi[i], kappa = kappa[i])},
+                         gaussian = exp( - ((obj.sc)^2)),
+                         spherical = ifelse(obj < phi[i], (1 - 1.5 * (obj.sc) +
+                           0.5 * (obj.sc)^3), 0),
                          circular = {
-                           obj.sc <- obj/phi[i];
                            obj.sc[obj.sc > 1] <- 1;
                            ifelse(obj < phi[i], (1 - (2 * ((obj.sc) *
                                                            sqrt(1 - ((obj.sc)^2)) +
                                                            asin(obj.sc)))/pi), 0)
                          },
                          cubic = {
-                           obj.sc <- obj/phi[i];
                            ifelse(obj < phi[i], (1 - (7 * (obj.sc^2) -
                                                       8.75 * (obj.sc^3) +
                                                       3.5 * (obj.sc^5) -
                                                       0.75 * (obj.sc^7))), 0)
                          },
                          power = (obj)^phi,
-                         powered.exponential = exp( - ((obj/phi[i])^kappa[i])),
-                         cauchy = (1 + (obj/phi[i])^2)^(-kappa[i]),
+                         powered.exponential = exp( - ((obj.sc)^kappa[i])),
+                         cauchy = (1 + (obj.sc)^2)^(-kappa[i]),
                          gneiting = {
-                           obj.sc <- 0.301187465825 * obj/phi[i];   
+                           obj.sc <- 0.301187465825 * obj.sc;   
                            t2 <- (1 - obj.sc);
                            t2 <- ifelse(t2 > 0, (t2^8), 0);
-                           (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^
-                                                                     3)) * t2
+                           (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^3)) * t2
                          },
-                         gneiting.matern = { 
-                           obj.sc <- obj/(phi[i] * kappa[2]);
+                         gencauchy = (1 + (obj.sc)^kappa[2])^(-kappa[1]/kappa[2]),
+                         gneiting.matern = {
+                           obj.sc <- 0.301187465825 * obj.sc/kappa[2] ;
                            t2 <- (1 - obj.sc);
                            t2 <- ifelse(t2 > 0, (t2^8), 0);
-                    cov.values <- (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^3)) * t2;
-                    cov.values * matern(u = obj, phi = phi[i], kappa = kappa[1])
+                           cov.values <- (1 + 8 * obj.sc + 25 * (obj.sc^2) + 32 * (obj.sc^3)) * t2;
+                           cov.values * matern(u = obj, phi = phi[i], kappa = kappa[1])
+
                   },
                   stop("wrong or no specification of cov.model")
                   )
@@ -204,7 +205,7 @@
            sqrt.inv = FALSE, try.another.decomposition = TRUE,
            only.inv.lower.diag = FALSE, ...) 
 {
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   ##
 ##  op.sem <- options()$show.error.message
 ##  options(show.error.message = FALSE)
@@ -222,6 +223,7 @@
                       choices = c("matern", "exponential", "gaussian",
                         "spherical", "circular", "cubic", "wave", "linear",
                         "power", "powered.exponential", "cauchy",
+                        "gencauchy",
                         "gneiting", "gneiting.matern", "pure.nugget"))
   if(only.inv.lower.diag)  inv <- TRUE
   if(is.null(coords) & is.null(dists.lowertri)) 

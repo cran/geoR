@@ -26,12 +26,12 @@
     if(messages.screen)
       cat("ksline: results will be returned only for prediction locations inside the borders\n")
   }
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   cov.model <- match.arg(cov.model,
                          choices = c("matern", "exponential", "gaussian",
                            "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gneiting",
+                           "powered.exponential", "cauchy","gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(abs(lambda-1) > 0.001) {
     if(messages.screen)
@@ -401,7 +401,7 @@
             micro.scale, location.number, 
             xmati, mkte, mkt, betawin, signal, dist.epsilon) 
 {
-  if(! "package:stats" %in% search()) require(mva)
+#  if(! "package:stats" %in% search()) require(mva)
   i <- location.number
   sigmasq <- cov.pars[1]
   phi <- cov.pars[2]

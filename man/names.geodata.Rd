@@ -9,7 +9,7 @@
   Can be useful to list names before using \code{{subset.geodata}}.
 }
 \usage{
-names.geodata(x)
+\method{names}{geodata}(x)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
