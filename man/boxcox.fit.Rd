@@ -90,6 +90,7 @@ boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
 }
 
 \examples{
+set.seed(384)
 ## Simulating data
 simul <- rboxcox(100, lambda=0.5, mean=10, sd=2)
 ## Finding the ML estimates

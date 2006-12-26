@@ -27,18 +27,22 @@ pred_grid(coords, y.coords = NULL, \dots, y.by = NULL,
   \item{y.length.out}{Optional. \code{length.out} argument for
     \code{\link{rep}} to be used with the y-coordinates. }
   \item{y.along.with}{Optional. \code{along.with} argument for \code{\link{rep}} to be
-      used with the y-coordinates. }
+    used with the y-coordinates. }
+%  \item{round.minmax}{to be implemented}
+%  \item{digits}{number of digits to be used if \code{round.minmax = TRUE}. See
+%  \code{\link{round}}.  }
 }
 
 %      \details{
 %  ~~ If necessary, more details than the description above ~~
-}
+%}
+
 \value{
  An two column data-frame which is on output of \code{\link{expand.grid}}. 
 }
 %\references{ ~put references to the literature/web site here ~ }
 %\author{ ~~who you are~~ }
-%\note{ ~~further notes~~ 
+%\note{ ~~further notes~~ }
 
 \seealso{See \code{\link{seq}} and \code{\link{expand.grid}} which are
   used internally and  \code{\link{locations.inside}} and

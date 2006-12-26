@@ -36,29 +36,33 @@
   ##  lik.method <- match.arg(lik.method, choices = c("ML", "RML"))
   lik.method <- "ML"
   ##
-  absmin <- abs(min(data)) + 0.0001 * diff(range(data)) 
+  if(all(data > 0)) absmin <- 0
+  else absmin <- abs(min(data)) + 0.00001 * diff(range(data))
   if(!is.null(lambda2)){
     if(missing(lambda)) lambda.ini <- seq(-2, 2, by=0.2)
     else lambda.ini <- lambda
     lambda2.ini <- 0
-    if(lambda2 == TRUE) lambda2.ini <- absmin
-    if(mode(lambda2) == "numeric") lambda2.ini <- lambda2
+    if(isTRUE(lambda2)) lambda2.ini <- absmin
+    else if(mode(lambda2) == "numeric") lambda2.ini <- lambda2
     lambdas.ini <- as.matrix(expand.grid(lambda.ini, lambda2.ini))
     ##
     if(length(as.matrix(lambdas.ini)) > 2){
       lamlik <- apply(lambdas.ini, 1, .negloglik.boxcox, data=data + absmin,
                       xmat=xmat, lik.method=lik.method)
-      lambdas.ini <- drop(lambdas.ini[which(lamlik == min(lamlik)),])
+      lambdas.ini <- lambdas.ini[which(lamlik == min(lamlik)),]
     }
-    names(lambdas.ini) <- NULL
+    lambdas.ini <- unname(drop(lambdas.ini))
     lik.lambda <- optim(par=lambdas.ini, fn = .negloglik.boxcox,
-                        method="L-BFGS-B", hessian = TRUE, 
+                        method="L-BFGS-B",
+                        #hessian = TRUE, 
                         lower = c(-Inf, absmin), 
                         data = data, xmat = xmat, lik.method = lik.method)
   }
   else{
-    lik.lambda <- optimize(.negloglik.boxcox, int = c(-5, 5), data = data, xmat = xmat, lik.method = lik.method)
-    lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective, convergence = 0, message = "function optimize used")
+    lik.lambda <- optimize(.negloglik.boxcox, int = c(-5, 5), data = data,
+                           xmat = xmat, lik.method = lik.method)
+    lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective,
+                       convergence = 0, message = "function optimize used")
   }
   ##
   ##  hess <- sqrt(diag(solve(as.matrix(lik.lambda$hessian))))
@@ -66,7 +70,8 @@
   if(length(lambda.fit) == 1) lambda.fit <- c(lambda.fit, 0)
   data <- data + lambda.fit[2]
   ##
-  if(abs(lambda.fit[1]) < 0.0001) yt <- log(data)
+#  if(abs(lambda.fit[1]) < 0.0001) yt <- log(data)
+  if(isTRUE(all.equal(unname(lambda.fit[1]),0))) yt <- log(data)
   else yt <- ((data^lambda.fit[1]) - 1)/lambda.fit[1]
   beta <- solve(crossprod(xmat), crossprod(xmat, yt))
   mu <- drop(xmat %*% beta)
@@ -107,10 +112,10 @@
     lambda <- lambda.val[1]
   }
   else lambda <- lambda.val
+  lambda <- unname(lambda)
   n <- length(data)
   beta.size <- ncol(xmat)
-  if(abs(lambda) < 0.0001)
-    yt <- log(data)
+  if(isTRUE(all.equal(unname(lambda), 0))) yt <- log(data)
   else yt <- ((data^lambda) - 1)/lambda
   beta <- solve(crossprod(xmat), crossprod(xmat, yt))
   ss <- sum((drop(yt) - drop(xmat %*% beta))^2)
@@ -124,7 +129,7 @@
       choldet <- sum(log(diag(chol(xx))))
     neglik <- ((n-beta.size)/2) * log(ss) + choldet -
       ((lambda - 1) * sum(log(data)))
-  }  
+  }
   if(mode(neglik) != "numeric") neglik <- Inf
   return(drop(neglik))
 }
@@ -212,13 +217,13 @@
   if(is.null(lambda2)) lambda2 <- 0
   if(is.na(lambda2)) lambda2 <- 0
   xn <- rnorm(n = n, mean = mean, sd = sd)
-  if(abs(lambda) < 0.001) xbc <- exp(xn)
+  if(isTRUE(all.equal(unname(lambda), 0))) xbc <- exp(xn)
   else{
     xbc <- rep(NA, n)
     ind <- xn < -1/lambda
     sum.ind <- sum(ind)
     if(sum.ind > 0)
-      cat(paste("rboxcox: WARNING ", sum.ind, "values truncated to 0")) 
+      cat(paste("rboxcox: WARNING ", sum.ind, "values truncated to 0\n")) 
     xn[ind] <- -1/lambda
     xbc <- ((xn * lambda) + 1)^(1/lambda)
   }
@@ -236,7 +241,7 @@
   for(i in 1:lx){
     if(x[i] <=0) dval[i] <- 0
     else{
-      if(abs(lambda) < 0.0001) xt <- log(x[i])
+      if(isTRUE(all.equal(unname(lambda), 0))) xt <- log(x[i])
       else xt <- ((x[i]^lambda) - 1)/lambda 
       dval[i] <- ((1/sqrt(2*pi)) * (1/sd) * x[i]^(lambda-1) *
                   exp(-((xt-mean)^2)/(2*sd^2)))
@@ -251,20 +256,21 @@
 {
   x <- x + add.to.data
   if(inverse){
-    if(log.jacobian) stop("options log.jacobian not allowed with inverse = TRUE")
-    if(abs(lambda) < 0.001)
+    if(log.jacobian)
+      stop("options log.jacobian not allowed with inverse = TRUE")
+    if(isTRUE(all.equal(unname(lambda), 0)))
       x <- exp(x)
     else{
-      if(lambda > 0.001)
+      if(lambda > 0)
         x[x < (-1/lambda)] <- -1/lambda
-      if(lambda < -0.001)
+      if(lambda < 0)
         x[x > (-1/lambda)] <- -1/lambda
       x <- ((x * lambda) + 1)^(1/lambda)
     }
     return(list(data = x))
   }
   else{
-    if(abs(lambda-1) > 0.001) {
+    if(!isTRUE(all.equal(unname(lambda), 1))){
       if(any(x <= 0))
         stop("Transformation requires positive data")
       if(log.jacobian){
@@ -274,12 +280,12 @@
         else temp.list$log.jacobian <- sum(log(Jdata))
         Jdata <- NULL
       }
-      if(abs(lambda) < 0.001)
+      if(isTRUE(all.equal(unname(lambda), 0)))
         x <- log(x)
       else x <- ((x^lambda) - 1)/lambda
       if(any(c(is.na(x), is.nan(x))))
         stop("transformation has generated NA or NaN values")
-      if(any(abs(x) == Inf))
+      if(any(!is.finite(x)))
         stop("transformation has generated Inf values")
     }
     else
@@ -314,7 +320,8 @@
   mean <- as.vector(mean)
   variance <- as.vector(variance)
   if (ni != length(variance)) stop("mean and variances must have same length")
-  if(abs(lambda-1) > 0.001){
+#  if(abs(lambda-1) > 0.001){
+  if(!isTRUE(all.equal(unname(lambda), 1))){
     if(simul.back){
       res$distribution <- "back-transformed (Box-Cox) from Gaussian by simulation"
       ap.warn <- options()$warn
@@ -329,7 +336,7 @@
       remove(ind.zero)
       temp.data <- BCtransform(x = temp.data, lambda = lambda, 
                                inverse = TRUE)$data
-      if(lambda < -0.001) {
+      if(lambda < 0) {
         res$mean  <-  "resulting distribution has no mean for negative lambda. Medians returned"
         res$variance  <-  "resulting distribution has no variance for negative lambda"
       }
@@ -343,7 +350,7 @@
     }
     else{
       res$distribution <- "back-transformed (Box-Cox) from Gaussian"
-      if(abs(lambda) < 0.001) {
+      if(isTRUE(all.equal(unname(lambda), 0))) {
         temp <- mean
         res$mean <- exp(mean + 0.5 * (variance))
         res$variance <- (exp(2 * temp + variance)) * expm1(variance)
@@ -354,7 +361,7 @@
         temp <- 1 + (lambda * mean)
         res$mean <- (temp^((1/lambda)-2) *
                      ((temp^2) + ((1-lambda)/2) * variance)) 
-        if(abs(lambda - 0.5) < 0.001)
+        if(isTRUE(all.equal(unname(lambda), 0.5)))
           res$variance <- variance * ((variance/8) + temp^2)
         else
           res$variance <- temp^((2/lambda)-2) *  variance

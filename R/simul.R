@@ -1,66 +1,62 @@
-"geoR2RF" <- function(cov.model, cov.pars, nugget = 0, kappa){
-  # , mean=0)
+`geoR2RF` <-
+  function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars) 
+{
   cov.model <- match.arg(cov.model,
-                         choices = c("exponential", "matern", "gaussian",
-                           "spherical", "circular", "cubic", "wave",
-                           "power", "powered.exponential", "cauchy","gencauchy",
-                           "gneiting", "pure.nugget", "gneiting.matern"))
-  if(length(cov.pars) != 2)
+                         choices = c("exponential", "matern", "gaussian", "spherical",
+                           "circular", "cubic", "wave", "power", "powered.exponential",
+                           "cauchy", "gencauchy", "gneiting", "pure.nugget",
+                           "gneiting.matern"))
+  if(missing(aniso.pars)) aniso.pars <- NULL
+  if(missing(kappa)) kappa <- NULL
+  if (length(cov.pars) != 2) 
     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
-  RFmodel <- switch(cov.model,
-                    matern = "whittlematern",
-                    exponential = "exponential",
-                    gaussian = "gauss",
-                    spherical = "spherical",
-                    circular = "circular",
-                    cubic = "cubic",
-                    wave = "wave",
-                    power = "not compatible",
-                    powered.exponential = "stable",
-                    cauchy = "cauchy",
-                    gencauchy = "gencauchy",
-                    gneiting = "gneiting",
-                    gneiting.matern = "not compatible",
-                    pure.nugget = "nugget")
-  RFpars <- c(0, cov.pars[1], nugget, cov.pars[2])
-  if(any(cov.model == c("matern","powered.exponential","cauchy")))
-    RFpars <- c(RFpars, kappa)
-  if(any(cov.model == "gencauchy"))
-    RFpars <- c(RFpars, rev(kappa))
-  if(RFmodel == "not compatible"){
+  RFmodel <- switch(cov.model, matern = "whittlematern", exponential = "exponential", 
+                    gaussian = "gauss", spherical = "spherical", circular = "circular", 
+                    cubic = "cubic", wave = "wave", power = "not compatible", 
+                    powered.exponential = "stable", cauchy = "cauchy",
+                    gencauchy = "gencauchy", gneiting = "gneiting",
+                    gneiting.matern = "not compatible", pure.nugget = "nugget")
+  if (RFmodel == "not compatible") {
     warning("geoR cov.model not compatible with RandomFields model")
     return(RFmodel)
   }
-  else
-    return(list(model=RFmodel, param = RFpars))
+  if (any(RFmodel == "gencauchy")) 
+    kappa <- rev(kappa)
+  if (!any(RFmodel == c("gencauchy", "whittlematern", "stable")))
+    kappa <- NULL
+  if(is.null(aniso.pars))
+    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
+                "+",
+                list(model="nugget", var=nugget)))
+  else{
+    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
+                          -sin(aniso.pars[1]), cos(aniso.pars[1])), nc=2)) %*%
+                            diag(c(aniso.pars[2], 1)/cov.pars[2])
+    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
+                "+",
+                list(model="nugget", var=nugget, aniso=diag(1,2))))
+  }
 }
 
-"grf" <-
-  function(n, grid = "irreg", 
-           nx, ny, xlims = c(0, 1), ylims = c(0, 1), nsim = 1, 
-           cov.model = "matern",
-           cov.pars=stop("missing covariance parameters sigmasq and phi"),
-           kappa = 0.5,  nugget=0, lambda=1, aniso.pars = NULL,
-           mean = 0, method, RF=TRUE, messages)
+`grf` <-
+  function (n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 
+                                                          1), nsim = 1, cov.model = "matern", cov.pars = stop("missing covariance parameters sigmasq and phi"), 
+            kappa = 0.5, nugget = 0, lambda = 1, aniso.pars = NULL, mean = 0, 
+            method, RF = TRUE, messages) 
 {
-  ##
-  ## reading and checking input
-  ##
   call.fc <- match.call()
-  if(missing(messages))
-    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
+  if (missing(messages)) 
+    messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), 
+                                         TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
-  ##
-  ## defining the model to simulate from
-  ##
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave",
-                           "power", "powered.exponential", "stable",
-                           "cauchy", "gencauchy", "gneiting", "gneiting.matern",
-                           "pure.nugget"))
-  if(cov.model == "stable") cov.model <- "powered.exponential"
-  if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
+  cov.model <- match.arg(cov.model, choices = c("matern", "exponential", 
+                                      "gaussian", "spherical", "circular", "cubic", "wave", 
+                                      "power", "powered.exponential", "stable", "cauchy", "gencauchy", 
+                                      "gneiting", "gneiting.matern", "pure.nugget"))
+  if (cov.model == "stable") 
+    cov.model <- "powered.exponential"
+  if (cov.model == "matern" && kappa == 0.5) 
+    cov.model <- "exponential"
   tausq <- nugget
   if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]
@@ -74,204 +70,167 @@
   }
   sill.total <- tausq + sum(sigmasq)
   messa <- .grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
-  ##
-  ## setting seed
-  ##
-  if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
     warning(".Random.seed not initialised. Creating it with by calling runif(1)")
     runif(1)
   }
-  rseed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
+  rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
   results <- list()
-  ##
-  ## checking whether it is a 1D simulation
-  ##
-  if((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) |
-     diff(xlims) == 0 | diff(ylims) == 0){
+  if ((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) | 
+      diff(xlims) == 0 | diff(ylims) == 0) {
     sim1d <- TRUE
     if (messages.screen) 
       cat("simulations in 1D\n")
   }
   else sim1d <- FALSE
-  ##
-  ## defining the locations for the simulated data
-  ##
-  if(mode(grid) == "character")
-    grid <- match.arg(grid, choices=c("irreg", "reg"))
+  if (mode(grid) == "character") 
+    grid <- match.arg(grid, choices = c("irreg", "reg"))
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
     if (messages.screen) 
       cat("grf: simulation on locations provided by the user\n")
   }
   else {
-    ##
-    ## defining number of points in each direction
-    ##
-    if(missing(nx)){
-      if(sim1d)
-        if(diff(xlims) == 0) nx <- 1
+    if (missing(nx)) {
+      if (sim1d) 
+        if (diff(xlims) == 0) 
+          nx <- 1
         else nx <- n
-      else
-        if(mode(grid) == "character" && grid == "reg") nx <- round(sqrt(n))
-        else nx <- n
+      else if (mode(grid) == "character" && grid == "reg") 
+        nx <- round(sqrt(n))
+      else nx <- n
     }
-    if(missing(ny)){
-      if(sim1d)
-        if(diff(ylims) == 0) ny <- 1
+    if (missing(ny)) {
+      if (sim1d) 
+        if (diff(ylims) == 0) 
+          ny <- 1
         else ny <- n
-      else
-        if(mode(grid) == "character" && grid == "reg") ny <- round(sqrt(n))
-        else ny <- n
+      else if (mode(grid) == "character" && grid == "reg") 
+        ny <- round(sqrt(n))
+      else ny <- n
     }
-    ##
-    ## defining the grid
-    ##
     if (mode(grid) == "character" && grid == "irreg") {
-      results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]),
+      results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]), 
                               y = runif(ny, ylims[1], ylims[2]))
       if (messages.screen) 
-        cat(paste("grf: simulation(s) on randomly chosen locations with ", n, " points\n"))
-      xpts <- ypts <- NULL
+        cat(paste("grf: simulation(s) on randomly chosen locations with ", 
+                  n, " points\n"))
     }
     else {
       xpts <- seq(xlims[1], xlims[2], l = nx)
       ypts <- seq(ylims[1], ylims[2], l = ny)
-      results$coords <- as.matrix(expand.grid(x = xpts, y = ypts))
-      if(length(xpts) == 1) xspacing <- 0
-      else xspacing <- xpts[2] - xpts[1] 
-      if(length(ypts) == 1) yspacing <- 0
-      else yspacing <- ypts[2] - ypts[1] 
-      if(abs(xspacing - yspacing) < 1e-12) equal.spacing <- TRUE
+      results$coords <- as.matrix(expand.grid(x = xpts, 
+                                              y = ypts))
+      if (length(xpts) == 1) 
+        xspacing <- 0
+      else xspacing <- xpts[2] - xpts[1]
+      if (length(ypts) == 1) 
+        yspacing <- 0
+      else yspacing <- ypts[2] - ypts[1]
+      if (abs(xspacing - yspacing) < 1e-12) 
+        equal.spacing <- TRUE
       else equal.spacing <- FALSE
       if (messages.screen) 
-        cat(paste("grf: generating grid ", nx, " * ", ny, 
-                  " with ", (nx*ny), " points\n"))
+        cat(paste("grf: generating grid ", nx, " * ", 
+                  ny, " with ", (nx * ny), " points\n"))
     }
   }
   n <- nrow(results$coords)
-  if(length(unique(round(results$coords[,1], dig=12))) == 1 |
-     length(unique(round(results$coords[,2], dig=12))) == 1)
+  if (length(unique(round(results$coords[, 1], dig = 12))) == 1 |
+      length(unique(round(results$coords[, 2], dig = 12))) == 1) 
     sim1d <- TRUE
   else sim1d <- FALSE
-  ##
-  ## transforming to the isotropic space 
-  ##
-  if(!is.null(aniso.pars)) {
-    if(length(aniso.pars) != 2 | mode(aniso.pars) != "numeric")
+  if (!RF && !is.null(aniso.pars)) {
+    if (length(aniso.pars) != 2 | mode(aniso.pars) != "numeric") 
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
-    if(messages.screen)
+    if (messages.screen) 
       cat("grf: transforming to the isotropic space \n")
-    results$coords <- coords.aniso(coords = results$coords,
+    results$coords <- coords.aniso(coords = results$coords, 
                                    aniso.pars = aniso.pars)
   }
-  ##
-  ## Defining the simulation method
-  ##
-  if(missing(method)){
+  if (missing(method)) {
     method <- "cholesky"
-    if(n > 500 && RF && require(RandomFields)) method <- "RF"
-  }
-  method <- match.arg(method, choices=c("cholesky", "svd", "eigen", "RF", "circular.embedding"))
-  if(method == "circular.embedding"){
-    if(require(RandomFields)){
+    if (n > 500 && RF && require(RandomFields)) 
       method <- "RF"
-      if(messages.screen)
+  }
+  method <- match.arg(method, choices = c("cholesky", "svd", 
+                                "eigen", "RF", "circular.embedding"))
+  if (method == "circular.embedding") {
+    if (require(RandomFields)) {
+      method <- "RF"
+      if (messages.screen) 
         warning("method \"circular.embedding\" now uses algorithm from the package RandomFields")
     }
-    else
-      error("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
+    else error("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
   }
-  ##
-  ## 
-  ##
   if (messages.screen) {
     cat(messa$nst)
     cat(messa$nugget)
     cat(messa$cov.structures)
-    if(method == "RF")
+    if (method == "RF") 
       cat("grf: simulation using the function GaussRF from package RandomFields \n")
-    else
-      cat(paste("grf: decomposition algorithm used is: ", method, "\n"))
+    else cat(paste("grf: decomposition algorithm used is: ", 
+                   method, "\n"))
   }
-  ##    cat("grf: for simulation of fields with large number of points the consider the package RandomFields.\n")
-  ##
-  ## simulating data at locations defined by the matrix results$coords
-  ##
   if (all(phi) == 0) 
-    results$data <- matrix(rnorm((n * nsim), mean = 0,
-                                 sd = sqrt(sill.total)), 
+    results$data <- matrix(rnorm((n * nsim), mean = 0, sd = sqrt(sill.total)), 
                            nrow = n, ncol = nsim)
-  else{
-    if(method == "RF"){
+  else {
+    if (method == "RF") {
       require(RandomFields)
-      setRF <- geoR2RF(cov.model = cov.model, cov.pars=cov.pars,
-                       nugget = nugget, kappa = kappa)
-                                        # , mean=mean)
-      if(!exists("xpts") || is.null(xpts))
-        results$data <- GaussRF(x=results$coords[,1],y=results$coords[,2],
-                                model = setRF$model,
-                                param = setRF$param, grid = FALSE, n=nsim)
-      else
-        results$data <- drop(matrix(GaussRF(x=xpts,y=ypts,
-                                            model = setRF$model,
-                                            param = setRF$param, grid = TRUE, n=nsim),
-                                    ncol=nsim))
+      setRF <<- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
+      if (!exists("xpts") || is.null(xpts)){
+        results$data <- GaussRF(x = results$coords[, 1],y = results$coords[, 2],
+                                model = setRF, grid = FALSE, n = nsim)
+      }
+      else{
+        results$data <- drop(matrix(GaussRF(x = xpts, y = ypts, model = setRF,
+                                            grid = TRUE, n = nsim), ncol = nsim))
+      }
     }
     else
-      results$data <-
-        drop(crossprod(varcov.spatial(coords=results$coords, 
-                                      cov.model = cov.model,
-                                      kappa = kappa,
-                                      nugget = nugget,
-                                      cov.pars = cov.pars, 
-                                      only.decomposition = TRUE,
-                                      func.in=method)$sqrt.varcov,
-                       matrix(rnorm((n*nsim)), nrow=n, ncol=nsim)))
+      results$data <- drop(crossprod(varcov.spatial(coords = results$coords, 
+                                                    cov.model = cov.model, kappa = kappa,
+                                                    nugget = nugget, 
+                                                    cov.pars = cov.pars,
+                                                    only.decomposition = TRUE,
+                                                    func.in = method)$sqrt.varcov, 
+                                     matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)))
   }
-  ##
-  ## adding the mean
-  ##
-  if(length(mean) != 1 & length(mean) != length(results$data))
+  if (length(mean) != 1 & length(mean) != length(results$data)) 
     stop("the mean must be a scalar or a vector of the same size as the data")
   results$data <- results$data + mean
-  ##
-  ## transforming data (Box - Cox)
-  ##
-  if (lambda != 1){
-    if (lambda != 0)
+  if (lambda != 1) {
+    if (lambda != 0) 
       results$data <- (results$data * lambda + 1)^(1/lambda)
-    else
-      results$data <- exp(results$data)
-    messa$transformation <- paste("grf: Data transformed (Box-Cox), for lambda =", lambda)
+    else results$data <- exp(results$data)
+    messa$transformation <- paste("grf: Data transformed (Box-Cox), for lambda =", 
+                                  lambda)
     if (messages.screen) 
-      cat(messa$transformation); cat("\n")
+      cat(messa$transformation)
+    cat("\n")
   }
-  ##
-  ## back-transformation to the anisotropic space 
-  ##
-  if(!is.null(aniso.pars)) {
-    if(messages.screen)
+  if (!RF && !is.null(aniso.pars)) {
+    if (messages.screen) 
       cat("grf: back-transforming to the anisotropic space \n")
-    results$coords <- coords.aniso(coords = results$coords,
-                                   aniso.pars = aniso.pars, reverse=TRUE)
+    results$coords <- coords.aniso(coords = results$coords, 
+                                   aniso.pars = aniso.pars, reverse = TRUE)
   }
-  else{aniso.pars <- "no anisotropy parameters provided/used"}
-  ##
-  ## preparing output
-  ##
+  else {
+    aniso.pars <- "no anisotropy parameters provided/used"
+  }
   if (messages.screen) 
-    cat(paste("grf: End of simulation procedure. Number of realizations:",
+    cat(paste("grf: End of simulation procedure. Number of realizations:", 
               nsim, "\n"))
-  results  <- c(results, list(cov.model = cov.model, 
-                              nugget = nugget, cov.pars = cov.pars,
-                              kappa = kappa, lambda = lambda,
-                              aniso.pars = aniso.pars, method = method,
-#                              sim.dim = ifelse(sim1d, "1d", "2d"),
-                              .Random.seed = rseed, messages = messa,
-                              call = call.fc))
-  if(mode(grid) == "character" && grid == "reg"){
-    if(equal.spacing) attr(results, "spacing") <- xspacing
-    else{
+  results <- c(results, list(cov.model = cov.model, nugget = nugget, 
+                             cov.pars = cov.pars, kappa = kappa, lambda = lambda, 
+                             aniso.pars = aniso.pars, method = method, .Random.seed = rseed, 
+                             messages = messa, call = call.fc))
+  if (mode(grid) == "character" && grid == "reg") {
+    if (equal.spacing) 
+      attr(results, "spacing") <- xspacing
+    else {
       attr(results, "xspacing") <- xspacing
       attr(results, "yspacing") <- yspacing
     }

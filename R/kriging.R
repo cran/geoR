@@ -232,8 +232,9 @@
   ##
   ## Box-Cox transformation
   ##
-  if(abs(lambda - 1) > 0.001) {
-    if(messages.screen) cat("krige.conv: performing the Box-Cox data transformation\n")
+  if(!isTRUE(all.equal(lambda, 1))) {
+    if(messages.screen)
+      cat("krige.conv: performing the Box-Cox data transformation\n")
     data <- BCtransform(x=data, lambda = lambda)$data
   }
   ## 
@@ -406,7 +407,7 @@
     ##
     ## Backtransforming simulations
     ##
-    if(abs(lambda - 1) > 0.001){
+    if(!isTRUE(all.equal(lambda, 1))){
       if(messages.screen)
         cat("krige.conv: back-transforming the simulated values\n")
       if(any(kc$simulations < -1/lambda))
@@ -433,10 +434,11 @@
   ## Backtransforming moments of the prediction distribution
   ## NOTE: this must be placed here, AFTER the simulations
   ##
-  if(abs(lambda-1) > 0.001){
+  if(!isTRUE(all.equal(lambda, 1))){
     if(messages.screen){
       cat("krige.conv: back-transforming the predicted mean and variance\n")
-      if((abs(lambda) > 0.001) & (abs(lambda-0.5) > 0.001))
+      ##      if((abs(lambda) > 0.001) & (abs(lambda-0.5) > 0.001))
+      if(!isTRUE(all.equal(lambda,0)) & !isTRUE(all.equal(lambda,0.5)))
         cat("krige.conv: back-transforming by simulating from the predictive.\n           (run the function a few times and check stability of the results.\n")
     }
     kc[c("predict", "krige.var")] <-

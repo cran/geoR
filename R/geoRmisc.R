@@ -3,6 +3,10 @@
 ##
 "globalvar" <- function(geodata, locations, coords = geodata$coords, krige)
 {
+  ##
+  ## computes the variance of a global mean (as if a block size was equal
+  ## to the study area) cf. Isaaks & Srivastava, pag. 508
+  ##
   if(ncol(coords) != 2)
     stop("function only available for 2-D coordinates")
   if(ncol(locations) != 2)

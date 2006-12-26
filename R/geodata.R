@@ -17,8 +17,7 @@
   if(!is.null(x$units.m)) res$units.m <- "units.m"
   if(!is.null(x$covariate)) res$covariate <- colnames(x$covariate)
   if(!is.null(x$realisations)) res$realisations <- "realisations"
-  res$other <- names.default(x)[!names.default(x) %in%
-  c("coords","data","units.m","covariate","realisations")]
+  res$other <- names(unclass(x))[!(names(unclass(x)) %in% c("coords","data","units.m","covariate","realisations"))]
   if(length(res$other) == 0) res$other <- NULL
   return(res)
 }
@@ -34,8 +33,8 @@
   attr(xdf, "ncol.covariate") <- attribs$ncol.covariate
   xdf <- as.geodata(xdf)
   if(other)
-    xdf <- c(xdf, x[names.default(x)[!names.default(x) %in%
-  c("coords","data","units.m","covariate","realisations")]])
+    xdf <- c(xdf, x[names(unclass(x))[!(names(unclass(x)) %in%
+  c("coords","data","units.m","covariate","realisations"))] ])
   oldClass(xdf) <- "geodata"
   return(xdf)
 }
@@ -418,12 +417,12 @@
     res$borders.summary <- apply(object$borders, 2, range)
     rownames(res$borders.summary) <- c("min", "max")
   }
-  others.ind <- is.na(match(names.default(object),
+  others.ind <- is.na(match(names(object),
                             c("coords","data","covariate","borders",
                               "realisations", "units.m")))
   res$duplicated.coords <- dup.coords(object)
   if(sum(others.ind) > 0)
-    res$others <- names.default(object[others.ind])
+    res$others <- names(unclass(object[others.ind]))
   oldClass(res) <- "summary.geodata"
   return(res)
 }

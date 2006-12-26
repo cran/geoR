@@ -52,7 +52,7 @@
   ##
   ##  det(A) = det(E) * det(D)
   ##
-  ##  So for:
+  ##  So, for:
   ##  A = ( E  F )  ; D = H - F' E^{-1} F
   ##      ( F' H )
   ##
@@ -149,7 +149,6 @@
 "loglikBGCCM" <-
   function(pars, geodata1, geodata2, cov.model, kappa, envir, ...)
 {
-  ##
   ## pars = c(eta, nu1, nu2, phi0, phi1, phi2)
   ##
 #  print(pars)
@@ -192,6 +191,22 @@
            kappa0=0.5, kappa1=0.5, kappa2=0.5,
            fc.min = c("optim", "nlminb"), ...)
 {
+  ##
+  ## Model:
+  ##    Y_1 = mu_1 + S_{01}(x) + S_1(x)
+  ##        = mu_1 + \sigma_{01} R_0(x) + \sigma_1 R_1(x)
+  ##    Y_2 = mu_2 + S_{02}(x) + S_2(x)
+  ##        = mu_2 + \sigma_{02} R_0(x) + \sigma_2 R_1(x)
+  ##
+  ## Reparametrization
+  ##     \sigma = \sigma_{01}  , \eta = \sigma_{02}/\sigma
+  ##     \nu1 = \sigma_1/\sigma, \nu2 = \sigma_2/\sigma
+  ##
+  ## optimization: using "concentrated likelihood" where
+  ## \mu_1, \mu_2, \sigma  are given analitically
+  ## and the remaning parameters through numerical optimization 
+  ## pars = c(eta, nu1, nu2, phi0, phi1, phi2)
+  ##
   call.fc <- match.call()
   fc.min <- match.arg(fc.min)
   name.geodata1 <- deparse(substitute(geodata1))
@@ -237,7 +252,7 @@
   likBGCCM.env <- new.env()
   assign("dist12", .dist12(geodata1, geodata2), envir=likBGCCM.env)
   assign("X", rbind(kronecker(t(1:0), rep(1,n1)),
-                    kronecker(t(0:1),rep(1,n2))),
+                    kronecker(t(0:1), rep(1,n2))),
          envir=likBGCCM.env)
   assign("y", c(geodata1$data, geodata2$data), envir=likBGCCM.env)
   ##
@@ -291,8 +306,8 @@
   res$mu <- drop(mu12)
   names(res$mu) <- c("mu1", "mu2")
   ## converting back to original parametrisation
-  res$sigmasq <- c(sigmasq01 = sigma2, sigmasq02=(sigma2)*(par1$nu1^2),
-                   sigmasq1 = (sigma2)*(par2$eta^2),
+  res$sigmasq <- c(sigmasq01 = sigma2, sigmasq1=(sigma2)*(par1$nu1^2),
+                   sigmasq02 = (sigma2)*(par2$eta^2),
                    sigmasq2=(sigma2)*(par2$nu2^2))
   res$phi <- c(phi0=par0$phi0, phi1=par1$phi1, phi2=par2$phi2)
   res$cov0.pars <- c(sigma=sqrt(sigma2), par0)

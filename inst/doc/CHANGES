@@ -1,4 +1,50 @@
 
+
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-13
+		=================================
+
+NEW FEATURES
+	
+	o 
+
+
+
+BUG FIXES
+
+         o adjusts in boxcox.fit()
+
+         o replaces of names.default() by getS3method("names", "default")
+           to adjust for Rdevel
+
+
+
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-12
+		=================================
+
+NEW FEATURES
+	
+	o logLik.likGRF() to extract maximised log-likelihood
+	  from an likfit() output  
+
+	o fitted.likGRF() and residuals.likGRF() to extract fitted values 
+          and residuals from an likfit() output
+
+
+BUG FIXES
+
+         o parameters were returned in wrong place by likfitBCCGM()
+           affeting prediction variances
+
+	 o change in tests for equality of lambda to 0, 1 and 0.5
+	   in several functions
+ 
+         o fix in simulating anisotropic models in grf()
+	   when calling GaussRF() from package RandomFields
+ 
+
+
                 =================================
  		CHANGES IN geoR VERSION 1.6-10/11
 		=================================

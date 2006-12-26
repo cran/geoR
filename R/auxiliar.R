@@ -740,6 +740,7 @@
 "pred_grid" <- function(coords, y.coords = NULL,
                         ... , y.by = NULL, y.length.out = NULL,
                         y.along.with = NULL){
+  #, round.minmax=FALSE, digits){
   if(is.list(coords)){
     x.coords <- range(coords[[1]])
     y.coords <- range(coords[[2]])
@@ -759,6 +760,14 @@ or a vector with x-coordinates")
       y.coords <- range(y.coords)
     }
   }
+#  if(round.minmax){
+#    if(missing(digits))
+#      stop("argument \"digits\" must be provided if round.minmax=TRUE")
+#    x.coords[1] <- x.coords[1]
+#    x.coords[2] <- x.coords[2]
+#    y.coords[1] <- y.coords[1]
+#    y.coords[2] <- y.coords[2]
+#  }
   gx <- seq(x.coords[1], x.coords[2], ...)
   ldots <- list(...)
   if(!is.null(ldots))
@@ -767,8 +776,7 @@ or a vector with x-coordinates")
   if(is.null(y.along.with)) y.along.with <- ldots$along.with
   if(is.null(y.by))
     y.by <- ifelse(is.null(ldots$by), ((y.coords[2] - y.coords[1])/y.length.out - 1), ldots$by)
-  gy <- seq(from=y.coords[1], to=y.coords[2],
-            by = y.by)
+  gy <- seq(from=y.coords[1], to=y.coords[2], by = y.by)
   return(expand.grid(gx,gy))
 }
 

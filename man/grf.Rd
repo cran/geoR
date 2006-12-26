@@ -14,9 +14,11 @@
 \title{Simulation of Gaussian Random Fields}
 
 \description{
-  Generates (unconditional)
+  \code{grf()} generates (unconditional)
   simulations of Gaussian random fields for
   given covariance parameters.
+  \code{geoR2RF} converts model specification used by \pkg{geoR}
+  to the correponding one in \pkg{RandomFields}.
 }
 
 
@@ -26,7 +28,8 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     mean = 0, method, RF=TRUE, messages)
-geoR2RF(cov.model, cov.pars, nugget = 0, kappa)
+
+geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 }
 
 %- maybe also `usage' for other objects documented here.

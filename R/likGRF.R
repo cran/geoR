@@ -1523,7 +1523,7 @@
   lambda <- pars[4]
   z <- .temp.list$z
   n <- .temp.list$n
-  if(.temp.list$fix.lambda == FALSE) {
+  if(!isTRUE(.temp.list$fix.lambda)) {
     if(lambda == 1) {
       .temp.list$log.jacobian <- 0
     }
@@ -1592,5 +1592,44 @@
                choldet + .temp.list$log.jacobian)
   }
   return(as.vector(loglik))
+}
+
+"logLik.likGRF" <- function(object, ...)
+  return(object$loglik)
+
+"fitted.likGRF" <- 
+  function(object, spatial = TRUE, ...)
+{
+  if(is.null(object$model.components)){
+    object$call$components <- TRUE
+    object$call$messages <- FALSE
+    object$call$ini.cov.pars <- object$cov.pars
+    object$call$nugget <- object$nugget
+    object$call$lambda <- object$lambda
+    cat("be patient ... this function currently require calling likfit again\n")
+    object <- eval(object.call)
+  }
+  if(spatial)
+    return(apply(object$model.components[,c("trend", "spatial")], 1, sum))
+  else
+    return(object$model.components[,"trend"]) 
+}
+
+"resid.likGRF" <- "residuals.likGRF" <-
+  function(object, spatial = FALSE, ...)
+{
+  if(is.null(object$model.components)){
+    object$call$components <- TRUE
+    object$call$messages <- FALSE
+    object$call$ini.cov.pars <- object$cov.pars
+    object$call$nugget <- object$nugget
+    object$call$lambda <- object$lambda
+    cat("be patient ... this function currently require calling likfit again\n")
+    object <- eval(object.call)
+  }
+  if(spatial)
+    return(apply(object$model.components[,c("spatial","residuals")], 1, sum))
+  else
+    return(object$model.components[,"residuals"])
 }
 

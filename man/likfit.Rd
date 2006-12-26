@@ -1,8 +1,14 @@
 \name{likfit}
 
 \alias{likfit}
+\alias{logLik.likGRF}
+\alias{resid.likGRF}
+\alias{residuals.likGRF}
+\alias{fitted.likGRF}
+\alias{likfit}
 \alias{likfit.limits}
 \alias{.negloglik.GRF}
+\alias{logLik.likGRF}
 
 \concept{variogram parameter estimation}
 
@@ -12,7 +18,8 @@
 
 \description{
   \emph{Maximum likelihood} (ML) or
-  \emph{restricted maximum likelihood} (REML) parameter estimation for (transformed) Gaussian
+  \emph{restricted maximum likelihood} (REML)
+  parameter estimation for (transformed) Gaussian
   random fields.
 }
 
@@ -25,6 +32,10 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        method.lik = "ML", components = FALSE,
        nospatial = TRUE, limits = pars.limits(),
        print.pars = FALSE, messages, \dots)
+
+\method{fitted}{likGRF}(object, spatial = TRUE, \ldots)
+
+\method{resid}{likGRF}(object, spatial = FALSE, \ldots)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -128,6 +139,11 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     function. Typically  arguments of the type  \code{control()} which controls the
     behavior of the minimisation algorithm. For further details see documentation 
     for the minimisation function \code{\link{optim}}.  }
+  \item{object}{an object with output of the function \code{likfit}.  }
+  \item{spatial}{logical, determines whether the spatial component of
+    the model in included in the output. The geostatistical model
+    components are: \emph{trend}, \emph{spatial} and \emph{residulas}.
+    See DETAILS.}
 }
 
 \details{
