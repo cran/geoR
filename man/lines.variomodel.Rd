@@ -16,7 +16,7 @@
 
 
 \usage{
-lines.variomodel(x, \dots)
+\method{lines}{variomodel}(x, \dots)
 \method{lines.variomodel}{default}(x, cov.model, cov.pars, nugget, kappa,
                           max.dist, scaled = FALSE, \dots)
 }

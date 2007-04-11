@@ -485,6 +485,7 @@
   ##
   if(!is.null(obj.model)){
     if(any(class(obj.model) == "eyefit")){
+      if(is.null(obj.model)) stop("eyefit object is NULL, you may have forgotten to save the fitted variogram model")
       if(length(obj.model) == 1) obj.model <- obj.model[[1]]
       else stop("select the eyefit model to be used (with [[ ]])")
     }

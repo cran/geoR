@@ -7,6 +7,37 @@
 ##    - methods for class likGRF
 ##    - some other functions
 
+"check.parameters.values" <- function(list)
+{
+  if(!is.null(list$nugget))
+    if(list$nugget < 0) stop("value for nugget must be non-negative")
+  if(!is.null(list$psiA))
+    if(list$psiA < 0) stop("value for psiA must be non-negative")
+  if(!is.null(list$psiR))
+    if(list$psiR < 1) stop("value for psiA must be >= 1")
+  if(!is.null(list$kappa)){
+    if(is.null(list$cov.model)) stop("cov.model must be provided when checking values of kappa")
+    if(list$kappa[1] <= 0) stop("parameter kappa[1] must be greater than 0")
+    if(any(list$cov.model == c("powered.exponential", "matern", "gneiting.matern", "gencauchy","cauchy"))){
+      if(any(list$cov.model == c("gneiting.matern", "gencauchy"))){
+        if(length(list$kappa) != 2)
+          stop(paste("kappa must be of length 2 for the", list$cov.model, "correlation function"))
+        if(list$cov.model == "gencauchy" && (list$kappa[2] <=0 | list$kappa[2] >0))
+          stop("for the gencauchy model the kappa must be within (0,2]")          
+      }
+      else{
+        if(list$cov.model == "powered.exponential" && (list$kappa <=0 | list$kappa >0))
+          stop("for the powered.exponential model the kappa must be within (0,2]")          
+        if(list$cov.model == "stable" && (list$kappa <=0 | list$kappa >0))
+          stop("for the stable model the kappa must be within (0,2]")          
+      }
+    }
+    else
+      cat(paste("kappa not used for the",list$cov.model, "correlation function\n"))
+  }
+  return(invisible())
+}
+
 "likfit" <-
   function (geodata, coords=geodata$coords, data=geodata$data,
             trend = "cte", ini.cov.pars,
@@ -40,18 +71,21 @@
                            "cauchy","gencauchy", "gneiting",
                            "gneiting.matern", "pure.nugget"))
   if(cov.model == "stable") cov.model <- "powered.exponential"
-  if(cov.model == "power")
-    stop("parameter estimation for power model is not implemented")
-  if(any(cov.model == c("gneiting.matern", "gencauchy"))){
-    if(length(kappa != 2))
-      stop(paste(cov.model, "requires two values in the argument kappa"))
-    if(length(fix.kappa) == 1) f
-    ix.kappa <- rep(fix.kappa, 2) 
-    stop("parameter estimation for gneiting.matern model is not yet implemented")
-  }
-  if(fix.kappa & !is.null(kappa))
-    if(cov.model == "matern" & all(kappa == 0.5))
-      cov.model <- "exponential"
+  if(any(cov.model == c("power", "gneiting.matern", "gencauchy")))
+     stop(paste("parameter estimation for", cov.model, "is not yet implemented"))
+  ##  if(any(cov.model == c("gneiting.matern", "gencauchy"))){
+  ##    if(length(kappa != 2))
+  ##      stop(paste(cov.model, "requires two values in the argument kappa"))
+  ##    if(length(fix.kappa) == 1) fix.kappa <- rep(fix.kappa, 2) 
+  ##    stop("parameter estimation for gneiting.matern model is not yet implemented")
+  ##  }
+  fixed.pars <- list(cov.model=cov.model)
+  if(fix.nugget) fixed.pars$nugget <- nugget
+  if(fix.kappa) fixed.pars$kappa <- kappa
+  if(fix.psiA) fixed.pars$psiA <- psiA
+  if(fix.psiR) fixed.pars$psiR <- psiR
+  check.parameters.values(list=fixed.pars)
+  if(cov.model == "matern" & all(kappa == 0.5)) cov.model <- "exponential"
   temp.list$cov.model <- cov.model
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2

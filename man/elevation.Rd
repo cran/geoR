@@ -7,7 +7,7 @@
   An onject of the class \code{geodata} with elevation values at 52 locations.
 }
 \usage{
-data(topo)
+data(elevation)
 }
 \format{
   An object of the class \code{geodata} which is a list with the

@@ -14,7 +14,7 @@
 }
 
 \usage{
-points.geodata(x, coords=x$coords, data=x$data, data.col = 1, borders,
+\method{points}{geodata}(x, coords=x$coords, data=x$data, data.col = 1, borders,
                pt.divide=c("data.proportional","rank.proportional",
                            "quintiles", "quartiles", "deciles", "equal"),
                lambda = 1, trend = "cte", abs.residuals = FALSE,

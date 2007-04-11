@@ -364,13 +364,13 @@
     if(lambda > 0.001) {
       if(messages.screen)
         cat("Back-transformation by simulating from the normal predictive distribution\n")
-      ap.warn <- options()$warn
-      options(warn = -1)
-      temp.data <- matrix(rnorm(ni * n.samples.backtransform,
+      ##ap.warn <- options()$warn
+      ##options(warn = -1)
+      temp.data <- suppressWarnings(matrix(rnorm(ni * n.samples.backtransform,
                                 mean = results$predict,
                                 sd = sqrt(results$krige.var)),
-                          nrow = ni)
-      options(warn = ap.warn)
+                          nrow = ni))
+      ##options(warn = ap.warn)
       temp.data[(results$krige.var == 0),  ] <- results$predict[(results$krige.var == 0)]
       temp.data[temp.data < -1/lambda] <- -1/lambda     
       temp.data <- ((temp.data * lambda) + 1)^(1/lambda)

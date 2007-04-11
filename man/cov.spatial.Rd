@@ -45,7 +45,7 @@ cov.spatial(obj, cov.model= "matern",
     correlation function.
     Only required by the following correlation
     functions: \code{"matern"}, \code{"powered.exponential"},
-    \code{"cauchy"} and \code{"gneiting.matern"}.  }
+    \code{"cauchy"}, \code{"gencauchy"} and \code{"gneiting.matern"}.  }
 }
 
 

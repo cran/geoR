@@ -9,6 +9,7 @@
 \alias{likfit.limits}
 \alias{.negloglik.GRF}
 \alias{logLik.likGRF}
+\alias{check.parameters.values}
 
 \concept{variogram parameter estimation}
 

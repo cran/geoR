@@ -417,7 +417,7 @@
     res$borders.summary <- apply(object$borders, 2, range)
     rownames(res$borders.summary) <- c("min", "max")
   }
-  others.ind <- is.na(match(names(object),
+  others.ind <- is.na(match(names(unclass(object)),
                             c("coords","data","covariate","borders",
                               "realisations", "units.m")))
   res$duplicated.coords <- dup.coords(object)

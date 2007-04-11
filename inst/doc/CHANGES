@@ -1,6 +1,34 @@
 
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-14
+		=================================
+
+NEW FEATURES
+	
+         o
+
+	 o
+
+	 o
+
+
+
+BUG FIXES
+
+         o fix in docs for data(elevation)
+
+         o fix in print names of "other" elements in summary.geodata()
+
+         o further checks for valid fixed parameter values in likfit()
+
+         o fix in chack.parameter.values() called by likfit()
+
+         o 
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-13
 		=================================
 

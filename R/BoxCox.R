@@ -324,13 +324,13 @@
   if(!isTRUE(all.equal(unname(lambda), 1))){
     if(simul.back){
       res$distribution <- "back-transformed (Box-Cox) from Gaussian by simulation"
-      ap.warn <- options()$warn
-      options(warn = -1)
-      temp.data <- matrix(rnorm(n = ni * n.simul,
+#      ap.warn <- options()$warn
+#      options(warn = -1)
+      temp.data <- suppressWarnings(matrix(rnorm(n = ni * n.simul,
                                 mean = mean,
                                 sd = sqrt(variance)),
-                          nrow = ni)
-      options(warn = ap.warn)
+                          nrow = ni))
+#      options(warn = ap.warn)
       ind.zero <- (variance < 1e-12)
       temp.data[ind.zero,  ] <- mean[ind.zero]
       remove(ind.zero)
