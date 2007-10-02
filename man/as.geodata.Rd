@@ -173,12 +173,12 @@ is.geodata(x)
 \dontrun{
 ## converting the data-set "topo" from the package MASS (VR's bundle)
 ## to the geodata format:
-require(MASS)
-data(topo)
+if(require(MASS)){
 topo
 topogeo <- as.geodata(topo)
 names(topogeo)
 topogeo
+}
 }
 }
 \keyword{spatial}

@@ -178,7 +178,6 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 
 \examples{
 \dontrun{
-data(s100)
 # Defining a prediction grid
 loci <- expand.grid(seq(0,1,l=21), seq(0,1,l=21))
 # predicting by ordinary kriging

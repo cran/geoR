@@ -63,10 +63,8 @@
 \seealso{\code{\link{summary}}, \code{\link{as.geodata}}. }
 
 \examples{
-data(s100)
 summary(s100)
 
-data(ca20)
 summary(ca20)
 }
 \keyword{univar}

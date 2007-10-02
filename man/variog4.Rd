@@ -112,7 +112,6 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
   \code{\link{plot.variog4}} for plotting results}
 
 \examples{
-data(s100)
 var4 <- variog4(s100, max.dist=1)
 plot(var4)
 }

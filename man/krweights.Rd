@@ -31,7 +31,6 @@ krweights(coords, locations, krige)
 %\seealso{ ~~objects to See Also as \code{\link{~~fun~~}}, ~~~ }
 \examples{
 ## Figure 8.4 in Webster and Oliver (2001), see help(wo)
-data(wo)
 attach(wo)
 par(mfrow=c(2,2))
 plot(c(-10,130), c(-10,130), ty="n", asp=1)

@@ -48,7 +48,7 @@
             fix.psiR = TRUE, psiR = 1, 
             cov.model = "matern", realisations,
             method.lik = "ML",
-            components = FALSE, nospatial = TRUE,
+            components = TRUE, nospatial = TRUE,
             limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
 {
@@ -580,10 +580,8 @@
   ##
   ## Transforming coords for estimated anisotropy (if the case)
   ##
-  if(fix.psiR & fix.psiA){
-    if(is.R()) remove(".likGRF.dists.vec", pos=1)
-    else remove(".likGRF.dists.vec", where=1)
-  }
+  if(fix.psiR & fix.psiA)
+    remove(".likGRF.dists.vec", pos=1)
   else{
     if(round(psiR, dig=6) != 1 | round(psiA, dig=6) != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
@@ -817,11 +815,7 @@
   ##
   ## Assigning classes
   ##
-  if(is.R()) oldClass(lik.results) <- c("likGRF", "variomodel")
-  else{
-    if(version$major <= 4) oldClass(lik.results) <- c("likGRF", "variomodel")
-    else oldOldClass(lik.results) <- c("likGRF", "variomodel")
-  }
+  oldClass(lik.results) <- c("likGRF", "variomodel")
   ##
   ## Some warning messages about particular possible results
   ##
@@ -1106,12 +1100,8 @@
   if(!ip$f.psiR | !ip$f.psiA){
     coords.c <- coords.aniso(temp.list$coords, aniso.pars=c(psiA, psiR))
     vecdist <- function(x){as.vector(dist(x))}
-    if(is.R())
-      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
-                                               temp.list$realisations), vecdist), pos=1)
-    else
-      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
-                                               temp.list$realisations), vecdist), where=1)
+    assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
+                                             temp.list$realisations), vecdist), pos=1)
   }
   ##
   ## Box-Cox transformation
@@ -1209,7 +1199,7 @@
   return(sumnegloglik) 
 }
 
-"likfit.limits" <- pars.limits
+"likfit.limits" <- "pars.limits"
 
 "print.likGRF" <-
   function (x, digits = max(3, getOption("digits") - 3), ...)
@@ -1641,10 +1631,10 @@
     object$call$nugget <- object$nugget
     object$call$lambda <- object$lambda
     cat("be patient ... this function currently require calling likfit again\n")
-    object <- eval(object.call)
+    object <- eval(object$call)
   }
   if(spatial)
-    return(apply(object$model.components[,c("trend", "spatial")], 1, sum))
+    return(rowSums(object$model.components[,c("trend", "spatial")]))
   else
     return(object$model.components[,"trend"]) 
 }
@@ -1659,10 +1649,10 @@
     object$call$nugget <- object$nugget
     object$call$lambda <- object$lambda
     cat("be patient ... this function currently require calling likfit again\n")
-    object <- eval(object.call)
+    object <- eval(object$call)
   }
   if(spatial)
-    return(apply(object$model.components[,c("spatial","residuals")], 1, sum))
+    return(rowSums(object$model.components[,c("spatial","residuals")]))
   else
     return(object$model.components[,"residuals"])
 }

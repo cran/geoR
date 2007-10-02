@@ -42,7 +42,6 @@
 %~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(hoef)
 hoef.geo <- as.geodata(hoef, covar.col=4)
 summary(hoef)
 summary(hoef.geo)

@@ -180,7 +180,6 @@ ksline(geodata, coords = geodata$coords, data = geodata$data,
 
 
 \examples{
-data(s100)
 loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- ksline(s100, loc=loci, cov.pars=c(1, .25))
 par(mfrow=c(1,2))

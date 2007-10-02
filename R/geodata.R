@@ -527,24 +527,26 @@
   ##
   ## permuting data locations
   ##
-  if(permute)
-    data <- sample(data)
+  if(permute) data <- sample(data)
   ##
-  ## proportional to data or to external variable
+  ## symbols size proportional to data or to external variable
   ##
   if(missing(cex.var)){
     if(trend != "cte" && abs.residuals)
-      cex.var <- abs.res
+      cex.var.data <- abs.res
     else
-      cex.var <- data
+      cex.var.data <- data
   }
-  if(length(cex.var) != npts)
-    stop("length of cex.var must be the same as the number of data locations")
-  ind <- order(cex.var)
-  r.y <- range(cex.var)
-  size <- cex.min + ((cex.var[ind] - r.y[1]) * (cex.max - 
+  else{
+    cex.var.data <- cex.var
+    if(length(cex.var) != npts)
+      stop("length of cex.var must be the same as the number of data locations")
+  }
+  ind <- order(cex.var.data)
+  r.y <- range(cex.var.data)
+  size <- cex.min + ((cex.var.data[ind] - r.y[1]) * (cex.max - 
                                                 cex.min))/(r.y[2] - r.y[1])
-  ind.order <- order(ind)  
+  ind.order <- order(ind)
   ##
   if(missing(borders)) borders <- x$borders
   attach(x, pos=2, warn.conflicts=FALSE)
@@ -568,7 +570,8 @@
   graph.list <- list()
   ##
   ##
-  if(mode(pt.divide) == "numeric"|| all(pt.divide == "quintiles") | all(pt.divide == "quartiles") | all(pt.divide == "deciles")) {
+#  if(mode(pt.divide) == "numeric"|| all(pt.divide == "quintiles") | all(pt.divide == "quartiles") | all(pt.divide == "deciles")) {
+  if(mode(pt.divide) == "numeric"|| any(pt.divide %in% c("quintiles", "quartiles", "deciles"))) {
     if (all(pt.divide == "quintiles")) {
       n.quant <- 5
       if (missing(col.seq)) 
@@ -777,9 +780,9 @@
       cat("plot.geodata: the argument scatter3d=TRUE requires the package \"scatterplot3d\" \n              will plot an histogram instead")
       hist(data, xlab= data.lab)
     }
-    else scatterplot3d(x = coords[, 1], y = coords[, 2], 
-                       z = data, box = FALSE, type = "h", pch = 16, xlab = "X Coord", 
-                       ylab = "Y Coord", ...)
+    else scatterplot3d:::scatterplot3d(x = coords[, 1], y = coords[, 2], 
+                                       z = data, box = FALSE, type = "h", pch = 16,
+                                       xlab = "X Coord", ylab = "Y Coord", ...)
   }
   ##  else xyzplot(coords = coords, data = data, ...)
   else hist(data, main="", xlab= data.lab, ...)

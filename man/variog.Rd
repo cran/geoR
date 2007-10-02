@@ -224,8 +224,6 @@ variog(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \examples{
-# Loading data:
-data(s100)
 #
 # computing variograms:
 #

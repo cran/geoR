@@ -43,7 +43,6 @@
   Bassoi thesis...
 }
 \examples{
-data(soil)
 ctc <- as.geodata(soil, data.col=16)
 plot(ctc)
 }

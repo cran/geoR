@@ -80,7 +80,6 @@
 \seealso{\code{\link{xvalid}} for the cross-validation computations.  }
 
 \examples{
-data(s100)
 wls <- variofit(variog(s100, max.dist = 1), ini = c(.5, .5), fix.n = TRUE)
 xvl <- xvalid(s100, model = wls)
 #

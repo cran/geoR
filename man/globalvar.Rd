@@ -36,8 +36,7 @@ globalvar(geodata, locations, coords = geodata$coords, krige)
 % ~Make other sections like Warning with \section{Warning }{....} ~
 %}
 \seealso{\code{\link{krige.conv}} for the kriging algorithm. }
-\examples{
-data(s100)
-}
+%\examples{
+%}
 \keyword{spatial}% at least one, from doc/KEYWORDS
 %\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

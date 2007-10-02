@@ -346,7 +346,7 @@
 ".naiveLL.BGCCM" <-
   function(geodata1, geodata2, mu, cov0.pars, cov1.pars, cov2.pars,
            cov0.model="matern", cov1.model="matern", cov2.model = "matern",
-           kappa0 = 0.5, kappa1 = 0.5, kappa2 = 0.5, profile=F)
+           kappa0 = 0.5, kappa1 = 0.5, kappa2 = 0.5, profile=FALSE)
 {
   if(!profile && missing(mu))
     stop("mu is needed if profile=FALSE")

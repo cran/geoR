@@ -125,7 +125,6 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
 
 
 \examples{
-data(s100)
 #
 # Maximum likelihood estimation
 #

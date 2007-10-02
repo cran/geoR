@@ -50,7 +50,6 @@ locations.inside(locations, borders, as.is = TRUE, \ldots)
 }
 
 \examples{
-data(parana)
 gr <- pred_grid(parana$borders, by=20)
 plot(gr, asp=1, pch="+")
 polygon(parana$borders)

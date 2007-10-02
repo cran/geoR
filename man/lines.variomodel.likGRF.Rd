@@ -62,7 +62,6 @@
 }
 
 \examples{
-data(s100)
 # compute and plot empirical variogram
 vario <- variog(s100, max.dist = 1)
 plot(vario)

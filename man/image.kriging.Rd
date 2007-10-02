@@ -90,7 +90,6 @@
   on the plotting functions.}
 
 \examples{
-data(s100) 
 loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))

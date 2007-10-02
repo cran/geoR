@@ -25,7 +25,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(head)
 summary(head)
 plot(head)
 }

@@ -110,7 +110,6 @@ trend.spatial(trend, geodata, add.to.trend)
 }
 
 \examples{
-data(SIC)
 # a first order polynomial trend
 trend.spatial("1st", sic.100)[1:5,]
 # a second order polynomial trend

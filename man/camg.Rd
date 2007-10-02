@@ -53,7 +53,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(camg)
 plot(camg[-(1:2),])
 mg20 <- as.geodata(camg, data.col=6)
 plot(mg20)

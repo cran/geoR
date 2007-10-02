@@ -1,13 +1,15 @@
 Package: geoR
-Version: 1.6-14
-Date: 2007/04/11
+Version: 1.6-15
+Date: 2007-10-02
 Title: Analysis of geostatistical data
-Author: Paulo J. Ribeiro Jr <paulojus@est.ufpr.br> and
+LazyLoad: yes
+LazyData: yes
+Author: Paulo J. Ribeiro Jr <paulojus@ufpr.br> and
         Peter J. Diggle <p.diggle@lancaster.ac.uk> 
 Maintainer: Paulo J. Ribeiro Jr <paulojus@ufpr.br>
 Depends: R (>= 2.2.0), stats, sp
-Suggests: MASS,scatterplot3d,RandomFields,methods
+Suggests: MASS, scatterplot3d, RandomFields, methods, tcltk
 Description: Geostatistical analysis including traditional, likelihood-based and Bayesian methods.
-License: GPL Version 2 or later
+License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR
-Packaged: Wed Apr 11 17:09:55 2007; paulojus
+Packaged: Tue Oct  2 16:18:48 2007; paulojus

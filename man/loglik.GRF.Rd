@@ -107,7 +107,6 @@ loglik.GRF(geodata, coords = geodata$coords, data = geodata$data,
 \seealso{\code{\link{likfit}} for likelihood-based parameter estimation.}
 
 \examples{
-data(s100)
 loglik.GRF(s100, cov.pars=c(0.8, .25), nugget=0.2)
 loglik.GRF(s100, cov.pars=c(0.8, .25), nugget=0.2, met="RML")
 

@@ -459,7 +459,7 @@
   if(attr(x, "sp.dim") != "1d")
     stop("can only be used for simulations in  1-D")
   if(is.matrix(x$data))
-    matplot(x$coords[,1], x$data, add=T, ...)
+    matplot(x$coords[,1], x$data, add=TRUE, ...)
   else
     lines(x$coords[,1], x$data, ...)
   return(invisible())

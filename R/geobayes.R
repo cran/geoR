@@ -13,7 +13,6 @@
     geodata <- list(coords = coords, data = data)
   if(missing(borders))
     borders <- geodata$borders
-#  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
   if(!exists(".Random.seed", envir=.GlobalEnv, inherits = FALSE)){
     warning(".Random.seed not initialised. Creating it with runif(1)")
@@ -992,7 +991,7 @@
       if(prior$beta.prior == "normal" && npr > 1)
         info.id <- par.set
       else info.id <- 1
-      if(beta.info[[info.id]]$iv == Inf)
+      if(any(beta.info[[info.id]]$iv == Inf))
         vbetai <- matrix(0, ncol = beta.size, nrow = beta.size)
       else
         vbetai <- matrix(drop(phidist$varbeta[phi.ind, nug.ind,  ]),
@@ -1200,10 +1199,6 @@
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     inout.vec  <- .geoR_inout(locations, borders.obj)
-#    if(require(splancs))
-#      inout.vec <- as.vector(inout(pts = locations, poly = borders.obj, ...))
-#    else
-#      stop("argument borders requires the package splancs - please install it")
     values.loc[inout.vec] <- values
     rm("inout.vec")
   }
@@ -1212,10 +1207,6 @@
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       inout.vec  <- .geoR_inout(locations, borders)
-#      if(require(splancs))
-#        inout.vec <- as.vector(inout(pts = locations, poly = borders, ...))
-#      else
-#        stop("argument borders requires the package splancs - please install it")
       if(length(values.loc[inout.vec]) == length(values))
         values.loc[inout.vec] <- values
       values.loc[!inout.vec] <- NA
@@ -2042,7 +2033,7 @@
     phi.discrete <- prior$phi.discrete
     tausq.rel.discrete <- prior$tausq.rel.discrete
     both.discrete <- expand.grid(phi.discrete, tausq.rel.discrete)
-    prob.discrete <- function(phi.discrete, tausq.discrete, prior){
+    "prob.discrete" <- function(phi.discrete, tausq.discrete, prior){
       if(all(prior$phi.prior == "user"))
         pd <- prior$priors.info$phi$probs
       else pd <- phi.discrete
@@ -2190,8 +2181,8 @@
                       ncol=beta.size))
           return(beta.sim)
         }
-        simul[,1:beta.size] <- t(sapply(ind), simula.betavec,
-                                 nphi = length(phi.discrete))
+        simul[,1:beta.size] <- t(sapply(ind, simula.betavec,
+                                 nphi = length(phi.discrete)))
       }
     }
   }

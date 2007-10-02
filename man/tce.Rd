@@ -28,7 +28,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(tce)
 summary(tce)
 summary(tce, lambda=0)
 plot(tce)

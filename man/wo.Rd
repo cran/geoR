@@ -28,7 +28,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(wo)
 attach(wo)
 par(mfrow=c(1,2))
 plot(c(-10,130), c(-10,130), ty="n", asp=1)

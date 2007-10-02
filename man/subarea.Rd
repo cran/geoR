@@ -56,7 +56,6 @@ arrows(foo[,1], foo[,2],foo2[,1],foo2[,2])
 legend(1,10, c("foo", "foo1 (zoom.coords)", "foo2 (coords2coords)"), lty=c(1,2,1), lwd=c(1,1,2), cex=1.7)
 
 ## "zooming" part of The Gambia map
-data(gambia)
 gb <- gambia.borders/1000
 gd <- gambia[,1:2]/1000
 plot(gb, ty="l", asp=1, xlab="W-E (kilometres)", ylab="N-S (kilometres)")
@@ -75,7 +74,6 @@ points(r1dn, pch=19, cex=0.5)
 text(450,1340, "Western Region", cex=1.5)
 
 if(require(geoRglm)){
-data(rongelap)
 points(rongelap, bor=borders)
 ## zooming the western area
 rongwest <- subarea(rongelap, xlim=c(-6300, -4800))

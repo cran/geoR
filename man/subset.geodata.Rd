@@ -35,7 +35,6 @@
 \seealso{\code{\link{subset}} for the generic function and methods and
   \code{\link{as.geodata}} for more information on geodata objects.  }
 \examples{
-data(ca20)
 subset(ca20, data > 70)
 subset(ca20, area == 1)
 }

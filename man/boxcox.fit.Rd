@@ -115,7 +115,6 @@ plot(ml)
 ## An example with a regression model
 ##
 if(require(MASS)){
-  data(trees)
   boxcox.fit(object = trees[,3], xmat = trees[,1:2])
   }
 }

@@ -51,7 +51,6 @@
 ".solve.geoR" <-
   function (a, b = NULL, ...) 
 {
-  require(methods)
   a <- eval(a)
   b <- eval(b)
   if(exists("trySilent")){
@@ -229,8 +228,6 @@
 "locations.inside" <-
   function(locations, borders, as.is = TRUE, ...)
 {
-#  if (!require(splancs))
-#    cat("package splancs in required to select points inside the borders\n")
   locations <- .check.coords(locations)
   borders <- .check.borders(borders)
   res <- .geoR_pip(pts = locations, poly = borders, ...)
@@ -246,10 +243,6 @@
 "polygrid" <- 
   function(xgrid, ygrid, borders, vec.inout = FALSE, ...)
 {
-  ## checking for splancs
-#  if(!require(splancs))
-#    cat("ERROR: function polygrid requires the package \"splancs\"")
-#  else library(splancs)
   ## checking input
   if(!is.list(xgrid) && is.vector(drop(xgrid))){
     if(missing(ygrid))
@@ -274,17 +267,11 @@
 #  if(nrow(borders) < 3) stop("borders must have at least 3 points")
 #  if(!identical(borders[1,], borders[nrow(borders),]) 
 #    borders <- rbind(borders, borders[1,])
-#  if(exists("inout")){
-    ind <- as.vector(.geoR_inout(pts=xygrid, poly=borders, ...))
-    xypoly <- xygrid[ind == TRUE,  ]
-    if(vec.inout == FALSE)
-      return(xypoly)
-    else return(list(xypoly = xypoly, vec.inout = ind))
-#  }
-#  else{
-#    cat("ERROR: function polygrid requires the package \"splancs\"")
-#    return(invisible())
-#  }
+  ind <- as.vector(.geoR_inout(pts=xygrid, poly=borders, ...))
+  xypoly <- xygrid[ind == TRUE,  ]
+  if(vec.inout == FALSE)
+    return(xypoly)
+  else return(list(xypoly = xypoly, vec.inout = ind))
 }
 
 "trend.spatial" <-
@@ -509,14 +496,8 @@
     stop("parameter psiR: lower limit greater or equal upper limit")
   if(psiA[1] >= psiA[2])
     stop("parameter psiA: lower limit greater or equal upper limit")
-  names(phi) <- c("lower", "upper")
-  names(sigmasq) <- c("lower", "upper")
-  names(tausq.rel) <- c("lower", "upper")
-  names(kappa) <- c("lower", "upper")
-  names(kappa2) <- c("lower", "upper")
-  names(lambda) <- c("lower", "upper")
-  names(psiR) <- c("lower", "upper")
-  names(psiA) <- c("lower", "upper")
+  names(phi) <- names(sigmasq) <- names(tausq.rel) <- names(kappa) <- 
+  names(kappa2) <- names(lambda) <- names(psiR) <- names(psiA) <- c("lower", "upper")
   return(list(phi = phi, sigmasq = sigmasq,
               tausq.rel = tausq.rel, kappa = kappa, kappa2 = kappa2,
               lambda = lambda, psiR = psiR, psiA = psiA))
@@ -677,11 +658,8 @@
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     dimnames(borders.obj) <- list(NULL, NULL)
-#    if(require(splancs))
-      inout.vec <- as.vector(.geoR_inout(pts = locations,
-                                         poly = borders.obj, ...))
-#    else
-#      stop("usage of the argument borders requires the package splancs")
+    inout.vec <- as.vector(.geoR_inout(pts = locations,
+                                       poly = borders.obj, ...))
     values.loc[inout.vec] <- values
     rm("inout.vec")
   }
@@ -689,11 +667,8 @@
     borders <- as.matrix(as.data.frame(borders))
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
-#      if(require(splancs))
-        inout.vec <- as.vector(.geoR_inout(pts = locations,
-                                           poly = borders, ...))
-#      else
-#        stop("usage of argument borders requires the package splancs")
+      inout.vec <- as.vector(.geoR_inout(pts = locations,
+                                         poly = borders, ...))
       if(length(values.loc[inout.vec]) == length(values))
         values.loc[inout.vec] <- values
       values.loc[!inout.vec] <- NA

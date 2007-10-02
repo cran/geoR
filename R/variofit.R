@@ -100,7 +100,7 @@
       if(!fix.kappa)
         kappa <- unique(c(kappa, 0.25, 0.5, 1, 1.5, 2))
       if(messages.screen)
-        warning("initial values not provided - performing default search")
+        warning("initial values not provided - running the default search")
     }
     else{
       if(any(class(ini.cov.pars) == "eyefit")){
@@ -197,7 +197,7 @@
     ##
     ## transforming kappa for constraint minimisation
     ##
-    if(fix.kappa == FALSE){
+    if(!fix.kappa){
       if(cov.model == "powered.exponential")
         Tkappa.ini <- log(kappa/(2-kappa))
       else
@@ -207,7 +207,6 @@
     ## minimisation using "nls"
     ##
     if (minimisation.function == "nls") {
-#      if(! "package:stats" %in% search()) require(nls)
       if(ini.cov.pars[2] == 0) ini.cov.pars <- max(XY$u)/10
       if(kappa == 0) kappa <- 0.5
       if(cov.model == "power")
@@ -301,25 +300,20 @@
       if(cov.model == "power") ini[2] <- log(ini[2]/(2-ini[2])) 
       if(cov.model == "linear") ini <- ini[1] 
       if(fix.nugget == FALSE) ini <- c(ini, nugget)
+      ## setting kappa > 0 for both methods
+      if(!fix.kappa) ini <- c(ini, Tkappa.ini)
+      names(ini) <- NULL
       if(minimisation.function == "nlm"){
-        if(fix.kappa == FALSE) ini <- c(ini, Tkappa.ini)
-        names(ini) <- NULL
         result <- nlm(.loss.vario, ini, g.l = .global.list, ...)
         result$par <- result$estimate
         result$value <- result$minimum
         result$convergence <- result$code
-        if(is.R()){
-          if(!is.null(get(".temp.theta", pos =1)))
-            result$par <- get(".temp.theta", pos=1)
-        }
-        else{
-          if(!is.null(get(".temp.theta", where = 1)))
-            result$par <- get(".temp.theta", where = 1)
-        }
+        if(!is.null(get(".temp.theta", pos =1)))
+          result$par <- get(".temp.theta", pos=1)
       }
       else{
-        if(fix.kappa == FALSE) ini <- c(ini, kappa)
-        names(ini) <- NULL
+#        if(fix.kappa == FALSE) ini <- c(ini, kappa)
+#        names(ini) <- NULL
         lower.l <- sapply(limits, function(x) x[1])
         upper.l <- sapply(limits, function(x) x[2])
         if(fix.kappa == FALSE){
@@ -372,21 +366,22 @@
       cov.pars <- as.vector(result$par[1:2])
       if(cov.model == "power")
         cov.pars[2] <- 2 * exp(cov.pars[2])/(1+exp(cov.pars[2]))  
-      if(fix.kappa == FALSE){
+      if(!fix.kappa){
         if (fix.nugget)
           kappa <- result$par[3]
         else{
           nugget <- result$par[3]
           kappa <- result$par[4]
         }
-        if(minimisation.function == "nlm"){
-          if(.global.list$cov.model == "powered.exponential")
-            kappa <- 2*(exp(kappa))/(1+exp(kappa))
-          else kappa <- exp(kappa)
-        }
+        ## kappa now > 0 for both nlm() and optim()
+        ##        if(minimisation.function == "nlm"){
+        if(.global.list$cov.model == "powered.exponential")
+          kappa <- 2*(exp(kappa))/(1+exp(kappa))
+        else kappa <- exp(kappa)
+        ##        }
       }
       else
-        if(fix.nugget == FALSE)
+        if(!fix.nugget)
           nugget <- result$par[3]        
     }
   }
@@ -425,7 +420,7 @@
   ##
   if(g.l$m.f == "nlm"){
     .temp.theta <<- NULL
-    if(g.l$fix.kappa == FALSE){
+    if(!g.l$fix.kappa){
       if(g.l$fix.nugget){
         if(g.l$cov.model == "power")
           theta.minimiser <- theta[1]
@@ -444,8 +439,7 @@
     else theta.minimiser <- theta
     penalty <- 10000 * sum(0 - pmin(theta.minimiser, 0))
     theta <- pmax(theta.minimiser, 0)
-    if(g.l$fix.kappa == FALSE)
-      theta <- c(theta.minimiser, Tkappa)
+    if(!g.l$fix.kappa) theta <- c(theta.minimiser, Tkappa)
     if (any(theta.minimiser < 0)) .temp.theta <<- theta
     else penalty <- 0
   }
@@ -453,7 +447,7 @@
   ##
   ## reading parameters
   ##
-  if(g.l$fix.kappa == FALSE){
+  if(!g.l$fix.kappa){
     if (g.l$fix.nugget){
       tausq <- g.l$nugget
       Tkappa <- theta[3]
@@ -462,12 +456,13 @@
       tausq <- theta[3]
       Tkappa <- theta[4]
     }
-    if(g.l$m.f == "nlm"){
-      if(g.l$cov.model == "powered.exponential")
-        kappa <- 2*(exp(Tkappa))/(1+exp(Tkappa))
-      else kappa <- exp(Tkappa)
-    }
-    else kappa <- Tkappa
+    ## kappa now > 0 for both nlm() and optim()
+    ##if(g.l$m.f == "nlm"){
+    if(g.l$cov.model == "powered.exponential")
+      kappa <-  2*(exp(Tkappa))/(1+exp(Tkappa))
+    else kappa <- exp(Tkappa)
+    ##}
+    ##else kappa <- Tkappa
   }
   else{
     kappa <- g.l$kappa
@@ -483,20 +478,20 @@
   ## Computing values for the theoretical variogram 
   ##
   if(any(g.l$cov.model == c("linear", "power")))
-    gamma <- tausq + sigmasq * (g.l$u^phi)
+    gammaU <- tausq + sigmasq * (g.l$u^phi)
   else
-    gamma <- sill.total - cov.spatial(g.l$u, cov.model = g.l$cov.model, 
-                                      kappa = kappa, cov.pars = c(sigmasq, phi))
+    gammaU <- sill.total - cov.spatial(g.l$u, cov.model = g.l$cov.model, 
+                                       kappa = kappa, cov.pars = c(sigmasq, phi))
   ##
   ## Computing loss function
   ##
   if(g.l$weight == "equal")
-    loss <- sum((g.l$v - gamma)^2)
+    loss <- sum((g.l$v - gammaU)^2)
   if (g.l$weights == "npairs") 
-    loss <- sum(g.l$n * (g.l$v - gamma)^2)
+    loss <- sum(g.l$n * (g.l$v - gammaU)^2)
   if (g.l$weights == "cressie") 
-    loss <- sum((g.l$n/(gamma^2)) * (g.l$v - gamma)^2)
-  if(loss > (.Machine$double.xmax^0.5) | loss == Inf | loss == -Inf)
+    loss <- sum((g.l$n/(gammaU^2)) * (g.l$v - gammaU)^2)
+  if(loss > (.Machine$double.xmax^0.5) | loss == Inf | loss == -Inf | is.nan(loss))
     loss <- .Machine$double.xmax^0.5
   return(loss + penalty)
 }
@@ -697,52 +692,25 @@
     cat(paste("variog.env: computing the empirical variogram for the", 
               nsim, "simulations\n"))
   nbins <- length(obj.variog$bins.lim) - 1
-  if(is.R()){
-    bin.f <- function(sim){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(obj.variog$n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(obj.variog$bins.lim)),
-                 as.integer(estimator.type == "modulus"),
-                 as.double(max(obj.variog$u)),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin),
-                 PACKAGE = "geoR")$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f)
+  bin.f <- function(sim){
+    cbin <- vbin <- sdbin <- rep(0, nbins)  
+    temp <- .C("binit",
+               as.integer(obj.variog$n.data),
+               as.double(as.vector(coords[,1])),
+               as.double(as.vector(coords[,2])),
+               as.double(as.vector(sim)),
+               as.integer(nbins),
+               as.double(as.vector(obj.variog$bins.lim)),
+               as.integer(estimator.type == "modulus"),
+               as.double(max(obj.variog$u)),
+               as.double(cbin),
+               vbin = as.double(vbin),
+               as.integer(FALSE),
+               as.double(sdbin),
+               PACKAGE = "geoR")$vbin
+    return(temp)
   }
-  else{
-    bin.f <- function(sim, nbins, n.data, coords, bins.lim, estimator.type, max.u){
-      cbin <- vbin <- sdbin <- rep(0, nbins)  
-      temp <- .C("binit",
-                 as.integer(n.data),
-                 as.double(as.vector(coords[,1])),
-                 as.double(as.vector(coords[,2])),
-                 as.double(as.vector(sim)),
-                 as.integer(nbins),
-                 as.double(as.vector(bins.lim)),
-                 as.integer(estimator.type == "modulus"),
-                 as.double(max.u),
-                 as.double(cbin),
-                 vbin = as.double(vbin),
-                 as.integer(FALSE),
-                 as.double(sdbin),
-                 PACKAGE = "geoR")$vbin
-      return(temp)
-    }
-    simula.bins <- apply(simula$data, 2, bin.f, nbins=nbins,
-                         n.data=obj.variog$n.data, coords=coords,
-                         bins.lim=obj.variog$bins.lim,
-                         estimator.type=estimator.type,
-                         max.u=max(obj.variog$u))
-  }
+  simula.bins <- apply(simula$data, 2, bin.f)
   simula.bins <- simula.bins[obj.variog$ind.bin,]
   if(exists(".IND.geoR.variog.model.env", where=1))
     return(simula.bins)
@@ -788,10 +756,10 @@
   .vf <- function(v){ 
     obj.variog$v <- v
     pars <- summary(variofit(obj.variog, 
-                             messages=F))$estimated.pars
+                             messages=FALSE))$estimated.pars
     ##      pars <- summary(variofit(obj.variog, ini = model.pars$cov.pars,
     ##                               nugget = model.pars$nugget,
-    ##                               messages=F))$estimated.pars
+    ##                               messages=FALSE))$estimated.pars
     if(trace){
       cat(paste("simulation", get(".geoR.count", env=geoR.count),
                 "out of", nsim, "\n"))

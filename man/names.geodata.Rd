@@ -37,7 +37,6 @@
 %}
 \seealso{\code{\link{names}}, \code{\link{subset.geodata}}, \code{\link{as.geodata}}. }
 \examples{
-data(ca20)
 names(ca20)
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS

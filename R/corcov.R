@@ -13,7 +13,7 @@
   if(is.matrix(u)) dimnames(u) <- list(NULL, NULL)
   uphi <- u/phi
   uphi <- ifelse(u > 0,
-                 (((2^(-(kappa-1)))/gamma(kappa)) *
+                 (((2^(-(kappa-1)))/ifelse(0, Inf,gamma(kappa))) *
                   (uphi^kappa) *
                   besselK(x=uphi, nu=kappa)), 1)    
   uphi[u > 600*phi] <- 0 
@@ -56,17 +56,18 @@
   ## extracting covariance parameters
   if(is.vector(cov.pars)) sigmasq <- cov.pars[1]
   else sigmasq <- cov.pars[, 1]
-  if(is.vector(cov.pars)) phi <- cov.pars[2]
+  if(is.vector(cov.pars)) phi <-  cov.pars[2]
   else phi <- cov.pars[, 2]
   if(missing(kappa) || is.null(kappa)) kappa <- NA
-  ## checking for nested models 
+  ## checking for nested models
+  cov.pars <- drop(cov.pars)
   if(is.vector(cov.pars)) ns <- 1
   else{
     ns <- nrow(cov.pars)
     if(length(cov.model) == 1) cov.model <- rep(cov.model, ns)
     if(length(kappa) == 1) kappa <- rep(kappa, ns)
   }
-  if(length(cov.model) != ns) stop('wrong length for cov.model')
+  if(length(cov.model) != ns) stop("wrong length for cov.model")
   ##
   cov.model <- sapply(cov.model, match.arg,
                       c("matern", "exponential", "gaussian", "spherical",
@@ -76,7 +77,7 @@
   cov.model[cov.model == "stable"] <- "powered.exponential"
   if(any(cov.model == c("gneiting.matern", "gencauchy"))){
     if(length(kappa) != 2*ns)
-    stop(paste("wrong length for kappa, ", cov.model, "model requires two values for the argument kappa")) 
+      stop(paste("wrong length for kappa, ", cov.model, "model requires two values for the argument kappa")) 
   }
   else
     if(length(kappa) != ns) stop('wrong length for kappa')

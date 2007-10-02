@@ -30,7 +30,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
        cov.model = "matern", realisations,
-       method.lik = "ML", components = FALSE,
+       method.lik = "ML", components = TRUE,
        nospatial = TRUE, limits = pars.limits(),
        print.pars = FALSE, messages, \dots)
 
@@ -333,7 +333,6 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 
 \examples{
 \dontrun{
-data(s100)
 ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE)
 ml
 summary(ml)

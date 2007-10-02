@@ -81,11 +81,9 @@ variog.mc.env(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \examples{
-if(is.R()) data(s100)
 s100.vario <- variog(s100, max.dist=1)
 s100.env <- variog.mc.env(s100, obj.var = s100.vario)
 plot(s100.vario, envelope = s100.env)
-
 }
 
 \keyword{spatial}

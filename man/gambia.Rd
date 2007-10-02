@@ -55,7 +55,6 @@ Medicine and Hygiene} 61: 2--8.
   \emph{Applied Statistics}.
 }
 \examples{
-data(gambia)
 plot(gambia.borders, type="l", asp=1)
 points(gambia[,1:2], pch=19)
 # a built-in function for a zoomed map

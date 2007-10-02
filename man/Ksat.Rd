@@ -28,7 +28,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(Ksat)
 summary(Ksat)
 plot(Ksat, border=borders)
 }

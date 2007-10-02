@@ -179,7 +179,6 @@ proflik(obj.likfit, geodata, coords = geodata$coords,
 
 \examples{
 op <- par(no.readonly=TRUE)
-data(s100)
 ml <- likfit(s100, ini=c(.5, .5), fix.nug=TRUE)
 ## a first atempt to find reasonable values for the x-axis:
 prof <- proflik(ml, s100, sill.values=seq(0.5, 1.5, l=4),

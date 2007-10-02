@@ -43,7 +43,6 @@ boxcox.geodata(object, trend = "cte", ...)
 
 \examples{
 if(require(MASS)){
-data(wolfcamp)
 boxcox(wolfcamp)
 
 data(ca20)

@@ -25,6 +25,7 @@ image.grf               Image, Contour or Perspective Plot of Simulated
 image.krige.bayes       Plots Results of the Predictive Distribution
 image.kriging           Image or Perspective Plot with Kriging Results
 isaaks                  Data from Isaaks and Srisvastava's book
+kattegat                Kattegat basin salinity data
 krige.bayes             Bayesian Analysis for Gaussian Geostatistical
                         Models
 krige.conv              Spatial Prediction -- Conventional Kriging

@@ -1,12 +1,40 @@
 
 
+
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-15
+		=================================
+
+NEW FEATURES
+	
+	 o Changes in the DESCRIPTION file, now with:
+              LazyLoad: yes
+              LazyData: yes 
+
+	 o components argument in likfit() now defaults to TRUE
+
+
+
+BUG FIXES
+
+         o fixes in fitted.likGRF() and resid.likGRF()
+
+         o "Suggests" in DESCRIPTION file now includes \pkg{tcltk}
+    
+ 	 o fix in points.geodata(), option pt.div="rank.proportional" was not working
+
+         o critical bug fix in sample.beta.posterior() which was reading wrong arguments
+
+         o internal fix in condition check for beta$iv in krige.bayes()
+
+
                 =================================
  		CHANGES IN geoR VERSION 1.6-14
 		=================================
 
 NEW FEATURES
 	
-         o
+         o new data set "kattegat"
 
 	 o
 

@@ -49,7 +49,6 @@
   generic function.  }
 
 \examples{
-if(is.R()) data(s100)
 s100.vario <- variog(s100, max.dist = 1)
 s100.ml <- likfit(s100, ini=c(.5, .5))
 s100.mod.env <- variog.model.env(s100, obj.variog = s100.vario,

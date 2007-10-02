@@ -21,7 +21,6 @@ data(elevation)
   Davis, J.C. (1973) \emph{Statistics and Data Analysis in Geology.} Wiley.
 }
 \examples{
-data(elevation)
 summary(elevation)
 plot(elevation)
 }

@@ -31,7 +31,6 @@
 %  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data(isaaks)
 isaaks
 summary(isaaks)
 plot(isaaks$coords, asp=1, type="n")

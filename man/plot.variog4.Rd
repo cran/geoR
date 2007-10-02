@@ -51,7 +51,6 @@
   \code{\link{matplot}} for multiple lines plotting.  }
 
 \examples{
-if(is.R()) data(s100)
 s100.v4 <- variog4(s100, max.dist=1)
 # Plotting variograms for the four directions
 plot(s100.v4)

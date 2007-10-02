@@ -52,7 +52,6 @@
 }
 
 \examples{
-data(parana)
 summary(parana)
 plot(parana, bor=borders)
 }
