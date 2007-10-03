@@ -2,6 +2,24 @@
 
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-16
+		=================================
+
+NEW FEATURES
+	
+	 o 
+
+
+
+BUG FIXES
+
+         o fix in grf() changing error() by stop()
+
+         o fixes in docs for subarea() and pars.limits()
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-15
 		=================================
 

@@ -1,4 +1,4 @@
-`geoR2RF` <-
+"geoR2RF" <-
   function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars) 
 {
   cov.model <- match.arg(cov.model,
@@ -161,7 +161,7 @@
       if (messages.screen) 
         warning("method \"circular.embedding\" now uses algorithm from the package RandomFields")
     }
-    else error("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
+    else stop("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
   }
   if (messages.screen) {
     cat(messa$nst)

@@ -3,7 +3,8 @@
 
 \title{Selects a Subarea from a Geodata Object}
 \description{
-  
+  Selects elements of a \code{geodata} object wich are within a
+  rectangular (sub)area
 }
 \usage{
 subarea(geodata, xlim, ylim, \ldots)

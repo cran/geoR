@@ -49,7 +49,8 @@ pars.limits(phi = c(lower = 0, upper = +Inf),
 
 % ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{}
+\seealso{\code{\link{likfit}}, \code{\link{variofit}}}
+
 \examples{
 pars.limits(phi=c(0,10))
 pars.limits(phi=c(0,10), sigmasq=c(0, 100))
