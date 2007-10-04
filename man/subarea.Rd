@@ -75,6 +75,7 @@ points(r1dn, pch=19, cex=0.5)
 text(450,1340, "Western Region", cex=1.5)
 
 if(require(geoRglm)){
+data(rongelap)
 points(rongelap, bor=borders)
 ## zooming the western area
 rongwest <- subarea(rongelap, xlim=c(-6300, -4800))

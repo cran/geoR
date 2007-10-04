@@ -11,11 +11,11 @@
   taken from the 0-20cm layer at 178 locations within a certain study area divided in three
   sub-areas. The elevation at each location was also recorded.
 
-  The first region is tipically flooded during the rain season and not
+  The first region is typically flooded during the rain season and not
   used as an experimental area. The calcium levels would represent
   the natural content in the region. The second region has received
-  fertilizers a while ago and is tipically occupied by rice fields.
-  The third region has recieved fertilizers recently and is frequently
+  fertilisers a while ago and is typically occupied by rice fields.
+  The third region has received fertilisers recently and is frequently
   used as an experimental area.
 }
 

@@ -2,6 +2,23 @@
 
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-17
+		=================================
+
+NEW FEATURES
+	
+	 o 
+
+
+
+BUG FIXES
+
+         o fix in subset() docs to allow pass in windows checks
+
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-16
 		=================================
 
