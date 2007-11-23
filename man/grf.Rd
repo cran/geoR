@@ -24,7 +24,7 @@
 
 \usage{
 grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
-    nsim = 1, cov.model = "matern",
+    borders, nsim = 1, cov.model = "matern",
     cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
     mean = 0, method, RF=TRUE, messages)
@@ -44,6 +44,8 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
   to \eqn{[0,1]}.  }
   \item{ylims}{optional. Limits of the area in the Y direction.  Defaults
   to \eqn{[0,1]}.  }
+  \item{borders}{optional. Typically a two coluns matrix especifying a
+    polygon. See DETAILS below.}
   \item{nsim}{Number of simulations. Defaults to 1.}
   \item{cov.model}{correlation function. See \code{\link{cov.spatial}} for
     further details. Defaults to the 
@@ -109,6 +111,14 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 
   The option \code{"RF"} calls internally  the function
   \code{\link[RandomFields]{GaussRF}} from the package \pkg{RandomFields}.
+
+  The argument \code{borders}, if provides takes a
+  polygon data set following argument \code{poly}
+  for the \pkg{splancs}' function \code{\link[splancs]{csr}}, in case of
+  \code{grid="reg"} or \code{\link[splancs]{gridpts}}, in case of
+  \code{grid="irreg"}. For the latter the simulation will have 
+  \emph{approximately} \dQuote{n} points.
+
 }
 
 
@@ -158,12 +168,12 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
   Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
   
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.est.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR}.
 }
 
 
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br},  \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br},  \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
@@ -204,6 +214,15 @@ image(sim11, type="l", ylim=yl)
 image(sim12, type="l", ylim=yl)
 image(sim13, type="l", ylim=yl)
 par(par.ori)
+
+## simulating within borders
+data(parana)
+pr1 <- grf(100, cov.pars=c(200, 40), borders=parana$borders, mean=500)
+points(pr1)
+pr1 <- grf(100, grid="reg", cov.pars=c(200, 40), borders=parana$borders)
+points(pr1)
+pr1 <- grf(100, grid="reg", nx=10, ny=5, cov.pars=c(200, 40), borders=parana$borders)
+points(pr1)
 }
 
 \keyword{spatial}

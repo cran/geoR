@@ -17,7 +17,8 @@
   if(!is.null(x$units.m)) res$units.m <- "units.m"
   if(!is.null(x$covariate)) res$covariate <- colnames(x$covariate)
   if(!is.null(x$realisations)) res$realisations <- "realisations"
-  res$other <- names(unclass(x))[!(names(unclass(x)) %in% c("coords","data","units.m","covariate","realisations"))]
+  if(!is.null(x$borders)) res$borders <- "borders"
+  res$other <- names(unclass(x))[!(names(unclass(x)) %in% c("coords","data","units.m","covariate","realisations","borders"))]
   if(length(res$other) == 0) res$other <- NULL
   return(res)
 }
@@ -55,7 +56,7 @@
   nc2 <- ncol(xdf)
   if(!is.null(x$realisation))
     xdf <- cbind(xdf, realisations = x$realisations)
-  attr(xdf, "ncol.data") <- 3:nc1
+  attr(xdf, "ncol.data") <- 3:nc0
   if(nc2>nc1)
     attr(xdf, "ncol.covariate") <- (nc1+1):nc2
   if(borders && !is.null(x$borders))
@@ -114,9 +115,9 @@
 {
   res <- as.geodata.default(obj, coords.col = 1:2,
                             data.col = attributes(obj)$ncol.data,
-                            units.m = gl$units.m,
+                            units.m = obj$units.m,
                             covar.col = attributes(obj)$ncol.covariate,
-                            realisations = gl$realisation)
+                            realisations = obj$realisation)
   res$borders <- attributes(obj)$borders
   return(res)
 }
@@ -207,8 +208,13 @@
   ##
   if(!is.null(units.m.col)){
     pos.units <- pos
-    if(length(units.m.col) > 1) stop("units.m.col must be of length 1")
-    res[[pos]] <- obj[,units.m.col]
+    if(length(units.m.col) > 1){
+      if(length(units.m.col) != nrow(res$coords))
+        stop("units.m.col must be of length 1 or the same length as the coordinates")
+      else res[[pos]] <- units.m.col
+    }
+    else
+      res[[pos]] <- obj[,units.m.col]
     if(!all(res[[pos]] > 0))
       stop("all values of units.m must be greater than zero")
     names(res)[pos] <- "units.m"
@@ -483,7 +489,9 @@
   ##
   ## Checking input
   ##
-  if(missing(x)) x <- list(coords = coords, data = data)
+  if(missing(x)) x <- list()
+  x$coords <- coords
+  x$data <- data
   ## This is for compatibility with previously used argument pt.sizes
   if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
   ##
@@ -503,7 +511,7 @@
     else{
       if((length(weights.divide) != 1) &&
          (length(weights.divide) != length(data))) 
-        stop("length of weights.divide must be equals to the length of data")
+        stop("length of weights.divide must be equal to the length of data")
       data <- data/weights.divide
     }
   }
@@ -518,7 +526,7 @@
   ##
   xmat <- unclass(trend.spatial(trend = trend, geodata = x))
   if (nrow(xmat) != nrow(coords)) 
-    stop("coords and trend have incompatible sizes")
+    stop("coords and trend have incompatible dimensions")
   if (trend != "cte") {
     data <- lm(data ~ xmat + 0)$residuals
     if(abs.residuals) abs.res <- abs(data)
@@ -529,7 +537,7 @@
   ##
   if(permute) data <- sample(data)
   ##
-  ## symbols size proportional to data or to external variable
+  ## symbols size proportional to the data or to an "external" variable
   ##
   if(missing(cex.var)){
     if(trend != "cte" && abs.residuals)
@@ -543,10 +551,10 @@
       stop("length of cex.var must be the same as the number of data locations")
   }
   ind <- order(cex.var.data)
-  r.y <- range(cex.var.data)
-  size <- cex.min + ((cex.var.data[ind] - r.y[1]) * (cex.max - 
-                                                cex.min))/(r.y[2] - r.y[1])
   ind.order <- order(ind)
+  r.y <- range(cex.var.data)
+  size <- cex.min + ((cex.var.data[ind] - r.y[1]) *
+                     (cex.max - cex.min))/(r.y[2] - r.y[1])
   ##
   if(missing(borders)) borders <- x$borders
   attach(x, pos=2, warn.conflicts=FALSE)
@@ -570,8 +578,8 @@
   graph.list <- list()
   ##
   ##
-#  if(mode(pt.divide) == "numeric"|| all(pt.divide == "quintiles") | all(pt.divide == "quartiles") | all(pt.divide == "deciles")) {
-  if(mode(pt.divide) == "numeric"|| any(pt.divide %in% c("quintiles", "quartiles", "deciles"))) {
+  if(mode(pt.divide) == "numeric" ||
+     any(pt.divide %in% c("quintiles", "quartiles", "deciles"))) {
     if (all(pt.divide == "quintiles")) {
       n.quant <- 5
       if (missing(col.seq)) 
@@ -602,19 +610,18 @@
     else
       data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
     if(!missing(col.seq) && all(col.seq == "gray"))
-      col.seq <- gray(seq(1,0, l=n.quant))
-    if (missing(pch.seq))
-      pch.seq <- rep(21, n.quant)
-    if(missing(cex.var))
-      size <- seq(cex.min, cex.max, l = n.quant)[as.numeric(graph.list$data.group)]
-    else size <- size[ind.order]
-    if (round.quantiles == TRUE) {
+      col.seq <- gray(seq(1, 0, l=n.quant))
+    if (missing(pch.seq)) pch.seq <- rep(21, n.quant)
+    if (round.quantiles) {
       data.quantile[1] <- floor(data.quantile[1])
       data.quantile[n.quant + 1] <- ceiling(data.quantile[n.quant + 1])
       data.quantile <- round(data.quantile)
     }
     graph.list$quantiles <- data.quantile
     graph.list$data.group <- cut(data, breaks=data.quantile, include.l=TRUE)
+    if(missing(cex.var))
+      size <- seq(cex.min, cex.max, l = n.quant)[as.numeric(graph.list$data.group)]
+    else size <- size[ind.order]
     graph.list$cex <- size
     graph.list$pch <- pch.seq
     graph.list$col <- col.seq[as.numeric(graph.list$data.group)]
@@ -637,30 +644,25 @@
     if (missing(pch.seq)) pch.seq <- 21
     ##    coords.order <- coords[ind, ]
     ind.d <- order(data)
-    data.order <- data[ind.d]
     ind.d.order <- order(ind.d)
     if (pt.divide == "rank.proportional") {
       if(missing(cex.var))
         size <- seq(cex.min, cex.max, l = n)
-      else size <- size[ind.order]
-      data.quantile <- range(data.order)
     }
     if (pt.divide == "data.proportional") {
       if(missing(cex.var)){
-        r.y <- range(data.order)
-        size <- cex.min + ((data.order - r.y[1]) * (cex.max - 
-                                                    cex.min))/(r.y[2] - r.y[1])
+        r.y <- range(data)
+        size <- cex.min + ((sort(data) - r.y[1]) *
+                           (cex.max - cex.min))/(r.y[2] - r.y[1])
       }
-      else size <- size[ind.order]
     }
     if (pt.divide == "equal") size <- cex.max
-    ##      if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
-    ##      else col.seq <- round(seq(1,length(col.seq),length=n))
+    else size <- size[ind.order]
     if (missing(col.seq)) col.seq <- 0
     if(all(col.seq == "gray")) col.seq <- gray(seq(1,0.1, l=n))
     if (length(col.seq) == 1) col.seq <- rep(col.seq, n)
-    if (length(col.seq) != n) col.seq <-
-      round(seq(1,length(col.seq),length=n))
+    if (length(col.seq) != n)
+      col.seq <- col.seq[round(seq(1,length(col.seq),length=n))]
     col.seq <- col.seq[ind.d.order]
     graph.list$cex <- size
     if(mode(pch.seq) == "numeric")
@@ -672,13 +674,6 @@
     if (add.to.plot) 
       points(coords, cex = size, pch = pch.seq, bg = col.seq, ...)
     else points(coords, cex = size, pch = pch.seq, bg = col.seq)
-    ##      for (i in 1:n) {
-    ##        if (add.to.plot) 
-    ##          points(coords.order[i, , drop = FALSE], cex = size[i], 
-    ##                 pch = pch.seq, bg = col.seq[i], ...)
-    ##        else points(coords.order[i, , drop = FALSE], 
-    ##                    cex = size[i], pch = pch.seq, bg = col.seq[i])
-    ##      }
     if(!missing(x.leg) && !missing(y.leg))
       warning(paste('arguments x.leg and y.leg are ignored when pt.divide = ', pt.divide,'\n'))
   }
@@ -689,13 +684,14 @@
 "plot.geodata" <-
   function (x, coords = x$coords, data = x$data, borders = x$borders, 
     trend = "cte", lambda = 1, col.data = 1, weights.divide = "units.m", 
-    lowess = FALSE, scatter3d = FALSE, qt.col, ...) 
+    lowess = FALSE, scatter3d = FALSE, density = TRUE, rug = TRUE, qt.col, ...) 
 {
-  if(missing(x)) x <- list(coords=coords, data = data)
+  if(missing(x)) x <- list()
+  x$coords <- coords
+  x$data <- data
   if(missing(qt.col)) qt.col <- c("blue", "green", "yellow2", "red")
   if(length(qt.col) == 1) qt.col <- rep(qt.col, 4)
-  if (is.R()) par.ori <- par(no.readonly = TRUE)
-  else par.ori <- par()
+  par.ori <- par(no.readonly = TRUE)
   on.exit(par(par.ori))
   coords <- as.matrix(coords)
   data <- as.matrix(data)
@@ -734,7 +730,6 @@
   }
   else data.lab <- "data"
   par(mfrow = c(2, 2), mar = c(4, 4, 0, 0.5), mgp=c(2,.8,0))
-  data.quantile <- quantile(data)
   if (is.null(borders)) 
     coords.lims <- set.coords.lims(coords = coords)
   else {
@@ -746,46 +741,35 @@
   plot(coords, xlab = "X Coord", ylab = "Y Coord ", type = "n", 
        xlim = coords.lims[, 1], ylim = coords.lims[, 2])
   if (!is.null(borders)) polygon(borders)
-  if (is.R()) {
-    data.breaks <- unique(quantile(data))
-    n.breaks <- length(data.breaks)
-    data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, 
-                    labels = FALSE)
-    points(coords, pch = (1:4)[data.cut], col = qt.col[data.cut])
-  }
-  else {
-    points(coords[(data <= data.quantile[2]), ], pch = 1, 
-           cex = 0.6, col = 2)
-    points(coords[((data > data.quantile[2]) & (data <= data.quantile[3])), 
-                  ], pch = 2, cex = 1.4, col = 4)
-    points(coords[((data > data.quantile[3]) & (data <= data.quantile[4])), 
-                  ], pch = 3, cex = 1.7, col = 7)
-    points(coords[(data > data.quantile[4]), ], pch = 4, 
-           cex = 2, col = 8)
-  }
+  data.breaks <- unique(quantile(data))
+  data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, 
+                  labels = FALSE)
+  points(coords, pch = (1:4)[data.cut], col = qt.col[data.cut])
   plot(data, coords[, 2], ylab = "Y Coord", xlab = data.lab, cex = 1, ylim = coords.lims[, 2])
   if(lowess){
     foo <- lowess(data ~ coords[,2])
     lines(foo[[2]], foo[[1]])
   }
-  if (!is.R()) 
-    par(mar = c(5, 5, 1, 0.5))
+  par(mar = c(5, 5, 1, 0.5))
   plot(coords[, 1], data, xlab = "X Coord", ylab = data.lab, cex = 1, xlim = coords.lims[, 1], )
   if(lowess) lines(lowess(data ~ coords[,1]))
   par(pty = "m")
-  if (is.R()) par(mar = c(4, 4, 1, 1))
-  else par(mar = c(0, 1, 0, 0.5))
-  if (scatter3d) {
-    if (!require(scatterplot3d)) {
-      cat("plot.geodata: the argument scatter3d=TRUE requires the package \"scatterplot3d\" \n              will plot an histogram instead")
-      hist(data, xlab= data.lab)
-    }
-    else scatterplot3d:::scatterplot3d(x = coords[, 1], y = coords[, 2], 
-                                       z = data, box = FALSE, type = "h", pch = 16,
-                                       xlab = "X Coord", ylab = "Y Coord", ...)
+  par(mar = c(4, 4, 1, 1))
+  if (scatter3d && !require(scatterplot3d)){
+    scatter3d <- FALSE
+    cat("plot.geodata: the argument scatter3d=TRUE requires the package scatterplot3d\n which is not available, will plot an histogram instead")
+  }
+  if(scatter3d)
+    scatterplot3d:::scatterplot3d(x = coords[, 1],
+                                  y = coords[, 2], z = data,
+                                  box = FALSE, type = "h", pch = 16,
+                                  xlab= "X Coord", ylab = "Y Coord", ...)
+  else{
+    hist(data, main="", xlab= data.lab, prob=TRUE, ...)
+    if(density) lines(density(data))
+    if(rug) rug(data)
   }
   ##  else xyzplot(coords = coords, data = data, ...)
-  else hist(data, main="", xlab= data.lab, ...)
   return(invisible())
 }
 

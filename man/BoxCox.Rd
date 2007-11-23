@@ -77,7 +77,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 }
 
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 

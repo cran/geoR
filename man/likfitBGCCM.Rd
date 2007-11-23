@@ -43,8 +43,8 @@ likfitBGCCM(geodata1, geodata2, ini.sigmasq, ini.phi,
 \value{
   A list with model fitting information to which
   the class \code{BGCCM} is assigned.
-  \item{mu}{a 2 elements vector with estimated variance values.}
-  \item{sigmasq}{a 4 elements vector with estimated mean values.}
+  \item{mu}{a 2 elements vector with mean estimates.}
+  \item{sigmasq}{a 4 elements vector with variance estimates.}
   \item{phi}{a 3 elements vector with estimated correlation
     parameters values.  }
   \item{loglik}{a scalar. Maximised value of the log-likelihood.  }
@@ -54,7 +54,7 @@ likfitBGCCM(geodata1, geodata2, ini.sigmasq, ini.phi,
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{
-  Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 %\note{ ~~further notes~~ 
@@ -68,7 +68,7 @@ likfitBGCCM(geodata1, geodata2, ini.sigmasq, ini.phi,
   \code{\link{varcovBGCCM}},
   \code{\link{as.geodata}}, \code{\link{likfit}}. }
 \examples{
-# see http://www.est.ufpr.br/geoR/tutorials/CCM.R
+# see http://www.leg.ufpr.br/geoR/tutorials/CCM.R
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS
 \keyword{models}

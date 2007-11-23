@@ -33,7 +33,7 @@ eyefit(vario, silent = FALSE)
 
 %\references{ ~put references to the literature/web site here ~ }
 \author{Andreas Kiefer \email{andreas@inf.ufpr.br} \cr
-        Paulo Justiniano Rineiro Junior \email{paulojus@est.ufpr.br}. }
+        Paulo Justiniano Ribeiro Junior \email{paulojus@leg.ufpr.br}. }
 %\note{ ~~further notes~~ }
 
 % ~Make other sections like Warning with \section{Warning }{....} ~

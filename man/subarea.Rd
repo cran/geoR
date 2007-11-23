@@ -33,7 +33,7 @@ subarea(geodata, xlim, ylim, \ldots)
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@legufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 %\note{ ~~further notes~~ }

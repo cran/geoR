@@ -2,6 +2,60 @@
 
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-19
+		=================================
+
+NEW FEATURES
+
+         o internal changes in varcov.spatial() (and other) to speed up
+           matrix computations based on results from eigen() or svd()	
+
+	 o grf() now takes argument borders
+
+         o improvements in plot 1 dimentional results from krige.bayes()
+           (image/persp/contour.krige.bayes() )
+
+
+BUG FIXES
+
+        o some minor/partial fixes to eliminate creation of objects not used
+          (rf. "visible bindings" -- still many left behind ...) 
+
+
+
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-18
+		=================================
+
+NEW FEATURES
+	
+         o plot.geodata() now adds by default a density estimation (from density())
+           and a rug plot  (from rug()) to the histogram. The histogram now uses 
+           prob=TRUE as default. 
+
+	 o grf() now return boders when argments "xlims" and "ylims" are used
+
+ 
+
+BUG FIXES
+
+         o serious fix in points.geodata() which was ploting with worng sizes
+           in some cases
+
+         o small fixed in doc for liffitBGCCM() and geoR tutorial
+           on "Simulating bivariate proccess"
+
+         o fixes in image/countour/persp.kriging/krige.bayes() 
+           in the reference to the environmento of atributes to allow
+	   call from within other functions
+
+         o fix in subset.geodata() and related functions to deal with
+           "units.m" properly
+
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-17
 		=================================
 
@@ -12,6 +66,7 @@ NEW FEATURES
 
 
 BUG FIXES
+
 
          o fix in subset() docs to allow pass in windows checks
 

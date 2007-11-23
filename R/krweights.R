@@ -1,4 +1,6 @@
-krweights <- function(coords, locations, krige){
+"krweights" <-
+  function(coords, locations, krige)
+{
   if(is.vector(coords)) coords <- cbind(coords, 0)
   coords <- as.matrix(coords)
   if(is.vector(locations)) {
@@ -62,19 +64,17 @@ krweights <- function(coords, locations, krige){
   }
   cov.model <- krige$cov.model
   kappa <- krige$kappa
-  lambda <- krige$lambda
-  beta <- krige$beta
+  # lambda <- krige$lambda
+  # beta <- krige$beta
   cov.pars <- krige$cov.pars
   nugget <- krige$nugget
-  micro.scale <- krige$micro.scale
+  # micro.scale <- krige$micro.scale
   aniso.pars <- krige$aniso.pars
   ##
   ## Anisotropy correction (this should be placed AFTER trend.d/trend.l
   ##
   if(!is.null(aniso.pars)) {
     if(abs(aniso.pars[2] - 1) > 0.0001){
-      if(messages.screen)
-        cat("krige.conv: anisotropy correction performed\n")
       coords <- coords.aniso(coords = coords, aniso.pars = aniso.pars)
       locations <- coords.aniso(coords = locations, aniso.pars = aniso.pars)
     }

@@ -45,7 +45,7 @@ matern(u, phi, kappa)
 }
 
 \author{
-  Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 

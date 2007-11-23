@@ -47,7 +47,7 @@ geostatistical model}
 
 \seealso{\code{\link{likfitBGCCM}}}
 \examples{
-# see http://www.est.ufpr.br/geoR/tutorials/CCM.R
+# see http://www.leg.ufpr.br/geoR/tutorials/CCM.R
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS
 %\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

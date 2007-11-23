@@ -32,7 +32,7 @@ data(s256i)
     Stats, Lancaster University}. 
   
   Further information about the \pkg{geoR} package can be found at:\cr
-  \url{http://www.est.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR}.
 }
 
 \examples{

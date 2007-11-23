@@ -1110,6 +1110,7 @@
   kb$max.dist <- data.dist.max
   kb$call <- call.fc
   attr(kb, "prediction.locations") <- call.fc$locations
+  attr(kb, "parent.env") <- parent.frame()
   if(!is.null(call.fc$coords))
     attr(kb, "data.locations") <- call.fc$coords
   else attr(kb, "data.locations") <- substitute(a$coords, list(a=substitute(geodata)))
@@ -1121,6 +1122,50 @@
   return(kb)
 }
 
+".values.krige.bayes" <- 
+  function (obj, values.to.plot, number.col, messages.screen)
+{
+  if(messages.screen)
+    switch(values.to.plot,
+           mean = cat("mapping the means of the predictive distribution\n"),
+           variance = cat("mapping the variances of the predictive distribution\n"),
+           mean.simulations = cat("mapping the means of simulations from the predictive distribution\n"),
+           variance.simulations = cat("mapping the variances of simulations from the predictive distribution\n"),
+           median = cat("mapping the medians of the predictive distribution\n"),
+           uncertainty = cat("mapping the uncertainty of the predictive distribution\n"),
+           quantiles = cat("mapping a quantile of the predictive distribution\n"),
+           probabilities = cat("mapping a probability of beeing bellow threshold of the predictive distribution\n"),
+           simulation = cat("mapping a simulation from the predictive distribution\n"),
+           stop("wrong specification for values to plot")
+           )
+  switch(values.to.plot,
+         mean = obj$predictive$mean,
+         variance = obj$predictive$variance,
+         mean.simulations = obj$predictive$mean.simulations,
+         variance.simulations = obj$predictive$variance.simulations,
+         median = obj$predictive$median,
+         uncertainty = obj$predictive$uncertainty,
+         quantiles = {
+           if(!is.vector(obj$predictive$quantiles))
+             if(is.null(number.col)) stop("argument number.col must be provided")
+             else as.matrix(obj$predictive$quantiles)[,number.col]
+           else as.matrix(obj$predictive$quantiles)[,1]
+         },
+         probabilities = {
+           if(!is.vector(obj$predictive$probab)){
+             if(is.null(number.col)) stop("argument number.col must be provided")
+             else as.matrix(obj$predictive$probab)[,number.col]
+           }
+           else as.matrix(obj$predictive$probab)[,1]
+         },
+         simulation = {
+           if(is.null(number.col)) stop("argument number.col must be provided")
+           as.matrix(obj$predictive$simulations)[,number.col]
+         },
+         stop("wrong specification for values to plot")
+         )
+}
+
 ".prepare.graph.krige.bayes" <-
   function (obj, locations, borders, borders.obj=NULL,
             values.to.plot, number.col, xlim, ylim, messages, ...) 
@@ -1128,67 +1173,10 @@
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
-  if (mode(values.to.plot) != "numeric"){
-    switch(values.to.plot,
-           mean = {
-             values <- obj$predictive$mean
-             if(messages.screen) cat("mapping the means of the predictive distribution\n")
-           },
-           variance = {
-             values <- obj$predictive$variance
-             if(messages.screen) cat("mapping the variances of the predictive distribution\n")
-           },
-           mean.simulations = {
-             values <- obj$predictive$mean.simulations
-             if(messages.screen) cat("mapping the means of simulations from the predictive distribution\n")
-           },
-           variance.simulations =
-           {
-             values <- obj$predictive$variance.simulations
-             if(messages.screen) cat("mapping the variances of simulations from the predictive distribution\n")
-           },
-           median = {
-             values <- obj$predictive$median
-             if(messages.screen) cat("mapping the medians of the predictive distribution\n")
-           },
-           uncertainty = {
-             values <- obj$predictive$uncertainty
-             if(messages.screen) cat("mapping the uncertainty of the predictive distribution\n")
-           },
-           quantiles =
-           {
-             if(!is.vector(obj$predictive$quantiles))
-               if(is.null(number.col))
-                 stop("argument number.col must be provided")
-               else
-                 values <- as.matrix(obj$predictive$quantiles)[,number.col]
-             else
-               values <- as.matrix(obj$predictive$quantiles)[,1]
-             if(messages.screen) cat("mapping a quantile of the predictive distribution\n")
-           },
-           probabilities =
-           {
-             if(!is.vector(obj$predictive$probab)){
-               if(is.null(number.col))
-                 stop("argument number.col must be provided")
-               else
-                 values <- as.matrix(obj$predictive$probab)[,number.col]
-             }
-             else{
-               values <- as.matrix(obj$predictive$probab)[,1]
-             }
-             if(messages.screen) cat("mapping a probability of beeing bellow threshold of the predictive distribution\n")
-           },
-           simulation =
-           {
-             values <- as.matrix(obj$predictive$simulations)[,number.col]
-             if(messages.screen) cat("mapping a simulation from the predictive distribution\n")
-           },
-           stop("wrong specification for values to plot")
-           )
-  }
-  else values <- values.to.plot
-  remove("values.to.plot")
+  if (mode(values.to.plot) != "numeric")
+    values.to.plot <- .values.krige.bayes(obj=obj, values.to.plot=values.to.plot,
+                                          number.col=number.col,
+                                          messages.screen=messages.screen)
   locations <- locations[order(locations[, 2], locations[,1]), ]
   xx <- as.numeric(levels(as.factor(locations[, 1])))
   nx <- length(xx)
@@ -1239,7 +1227,7 @@
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
   if(missing(locations))
-    locations <-  eval(attr(x, "prediction.locations"))
+    locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
@@ -1250,35 +1238,40 @@
                   "mean.simulations", "variance.simulations",
                   "quantiles", "probabilities", "simulation"))
   if(missing(borders)){
-    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"))
+    if(!is.null(attr(x, "borders"))) borders.arg <- borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
     else
-      borders.arg <- borders <- eval(x$call$geodata)$borders
+      borders.arg <- borders <- eval(x$call$geodata, envir= attr(x, "parent.env"))$borders
     #borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
-    if(is.null(borders)) borders <- eval(attr(x, "borders"))
+    if(is.null(borders)) borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   else
     if(all(coords.data == TRUE))
-      coords.data <-  eval(attr(x, "data.locations"))
+      coords.data <-  eval(attr(x, "data.locations"), envir= attr(x, "parent.env"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   ##
   ## Plotting 1D or 2D
   ##
-  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
-                                   data="prediction")))
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
+    if (mode(values.to.plot) != "numeric")
+      values.to.plot <- .values.krige.bayes(obj=x, values.to.plot=values.to.plot,
+                                            number.col=number.col,
+                                            messages.screen=messages)
+    do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
+                              x1vals = unique(round(locations[,1], dig=12))),
+                         .ldots.set(ldots, type="plot.1d", data="prediction")))
+  }
   else{
     ldots.image <- .ldots.set(ldots, type="image", data="prediction")
     locations <- .prepare.graph.krige.bayes(obj=x,
                                            locations=locations,
                                            borders=borders,
-                                           borders.obj = eval(attr(x, "borders")),
+                                           borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
                                            xlim= ldots.image$xlim,
@@ -1311,7 +1304,7 @@
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
   if(missing(locations))
-    locations <-  eval(attr(x, "prediction.locations"))
+    locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
@@ -1323,27 +1316,32 @@
                   "quantiles", "probabilities", "simulation"))
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
-      borders.arg <- borders <- eval(attr(x, "borders"))
+      borders.arg <- borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
     else
-      borders.arg <- borders <- eval(x$call$geodata)$borders
+      borders.arg <- borders <- eval(x$call$geodata, envir= attr(x, "parent.env"))$borders
     # borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
-    if(is.null(borders)) borders <- eval(attr(x, "borders"))
+    if(is.null(borders)) borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
   }
   if(missing(number.col)) number.col <- NULL
   if(missing(coords.data)) coords.data <- NULL
   else
     if(all(coords.data == TRUE))
-      coords.data <-  eval(attr(x, "data.locations"))
+      coords.data <-  eval(attr(x, "data.locations"), envir= attr(x, "parent.env"))
   ##
   ## Plotting 1D or 2D
   ##
-  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
-                                    data="prediction")))
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
+    if (mode(values.to.plot) != "numeric")
+      values.to.plot <- .values.krige.bayes(obj=x, values.to.plot=values.to.plot,
+                                            number.col=number.col,
+                                            messages.screen=messages)
+    do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
+                              x1vals = unique(round(locations[,1], dig=12))),
+                         .ldots.set(ldots, type="plot.1d", data="prediction")))
+  }
   else{
     if(filled)
       ldots.contour <- .ldots.set(ldots, type="filled.contour",
@@ -1354,7 +1352,7 @@
     if(is.null(ldots.contour$asp)) ldots.contour$asp=1
     locations <- .prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
-                                           borders.obj = eval(attr(x, "borders")),
+                                           borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                            values.to.plot=values.to.plot,
                                            number.col = number.col,
                                            xlim = ldots.contour$xlim,
@@ -1369,10 +1367,8 @@
           if(!is.null(borders)) polygon(borders, lwd=2)
         })
       }
-      do.call("filled.contour", c(list(x=locations$x,
-                                       y=locations$y,
-                                       z=locations$values,
-                                       plot.axes={temp.contour()}),
+      do.call("filled.contour", c(list(x=locations$x, y=locations$y,
+                                       z=locations$values),
                                   ldots.contour))
     }
     else{
@@ -1399,7 +1395,7 @@
   if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
-  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
+  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2) stop("locations must be a matrix or data-frame with two columns")
   if(mode(values.to.plot) != "numeric"){
@@ -1415,15 +1411,20 @@
   ##
   ## Plotting 1D or 2D
   ##
-  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
-    do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),                         .ldots.set(ldots, type="plot.1d",
-                                    data="prediction")))
+  if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
+    if (mode(values.to.plot) != "numeric")
+      values.to.plot <- .values.krige.bayes(obj=x, values.to.plot=values.to.plot,
+                                            number.col=number.col,
+                                            messages.screen=messages)
+    do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
+                              x1vals = unique(round(locations[,1], dig=12))),
+                         .ldots.set(ldots, type="plot.1d", data="prediction")))
+  }
   else{
     ldots.persp <- .ldots.set(ldots, type="persp", data="prediction")
     locations <- .prepare.graph.krige.bayes(obj=x, locations=locations,
                                            borders=borders,
-                                           borders.obj = eval(attr(x, "borders")),
+                                           borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                            values.to.plot=values.to.plot,
                                            xlim= ldots.persp$xlim,
                                            ylim= ldots.persp$ylim,
@@ -2502,3 +2503,6 @@
 {
   print.default(x, ...)
 }
+
+
+

@@ -80,7 +80,6 @@
       ## excluding data point
       coords.out <- coords[ndata, , drop = FALSE]
       data.out <- data[ndata]
-      xmat.out <- xmat[ndata, , drop = FALSE]
       cv.coords <- coords[-ndata, ]
       cv.data <- as.vector(data)[-ndata]
       cv.xmat <- xmat[-ndata, , drop = FALSE]
@@ -133,8 +132,8 @@
                             weights = model$weights, messages = FALSE, ...)
           if(output.reestimate){
             CVpars <- CVmod$cov.pars
-            if(CVmod$fix.nugget == FALSE) CVpars <- c(CVpars, CVmod$nugget)
-            if(CVmod$fix.kappa == FALSE) CVpars <- c(CVpars, CVmod$kappa)
+            if(!CVmod$fix.nugget) CVpars <- c(CVpars, CVmod$nugget)
+            if(!CVmod$fix.kappa) CVpars <- c(CVpars, CVmod$kappa)
           }
         }
       }
@@ -160,7 +159,7 @@
       names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
       kr <- krige.conv(coords = cv.coords, data = cv.data, loc = coords.out,
                        krige = krige.control(trend.d = ~cv.xmat + 0,
-                         trend.l = ~xmat.out + 0,
+                         trend.l = ~xmat[ndata, , drop = FALSE] + 0,
                          cov.model = CVmod$cov.model, 
                          cov.pars = CVmod$cov.pars, nugget = CVmod$nugget, 
                          kappa = val.pars["kappa"],
@@ -176,8 +175,6 @@
     res <- as.data.frame(t(apply(matrix(locations.xvalid), 1, cv.f)))
   }
   else{
-    xmat.val.loc <- trend.spatial(trend = model$trend,
-                                  geodata = list(coords=locations.xvalid))
     if(is.null(model$method)){
       fix.pars <- rep(TRUE, 5)
       val.pars <- c(mod$nugget, mod$kappa, mod$aniso.pars, mod$lambda)
@@ -195,11 +192,12 @@
     names(fix.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
     names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
     res <- krige.conv(coords = coords, data = data, loc = locations.xvalid,
-                     krige = krige.control(trend.d = ~xmat + 0,
-                       trend.l = ~xmat.val.loc + 0, cov.model = model$cov.model, 
-                       cov.pars = model$cov.pars, nugget = model$nugget, 
-                       kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
-                       aniso.pars = val.pars[c("psiA", "psiR")]),
+                      krige = krige.control(trend.d = ~xmat + 0,
+                        trend.l = ~trend.spatial(trend = model$trend, geodata = list(coords=locations.xvalid)) + 0,
+                        cov.model = model$cov.model, 
+                        cov.pars = model$cov.pars, nugget = model$nugget, 
+                        kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
+                        aniso.pars = val.pars[c("psiA", "psiR")]),
                       output = output.control(mess = FALSE))[1:2]
     res <- data.frame(data.xvalid, res$pred, res$krige.var)
   } 
@@ -212,8 +210,8 @@
       pars.names <- c(pars.names,(c("tausq", "kappa", "psiA", "psiR", "lambda"))[fix.pars == FALSE])
     }
     if(model$method == "OLS" | model$method == "WLS"){
-      if(model$fix.nugget == FALSE) pars.names <- c(pars.names, "tausq")
-      if(model$fix.kappa == FALSE) pars.names <- c(pars.names, "kappa")
+      if(!model$fix.nugget) pars.names <- c(pars.names, "tausq")
+      if(!model$fix.kappa) pars.names <- c(pars.names, "kappa")
     }
       names(res) <- c(c("data", "predicted", "krige.var"), pars.names)
   }

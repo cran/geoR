@@ -41,7 +41,7 @@ dup.coords(x, \dots)
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br} \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br} \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
@@ -52,16 +52,16 @@ dup.coords(x, \dots)
 \seealso{\code{\link{as.geodata}}, \code{\link{duplicated}}.  }
 \examples{
 ## simulating data
-foo <- grf(30, cov.p=c(1, .3)) 
+dt <- grf(30, cov.p=c(1, .3)) 
 ## "forcing" some duplicated locations
-foo$coords[4,] <- foo$coords[14,] <- foo$coords[24,] <- foo$coords[2,]
-foo$coords[17,] <- foo$coords[23,] <- foo$coords[8,]
+dt$coords[4,] <- dt$coords[14,] <- dt$coords[24,] <- dt$coords[2,]
+dt$coords[17,] <- dt$coords[23,] <- dt$coords[8,]
 ## output of the method for geodata
-dup.coords(foo)
+dup.coords(dt)
 ## which is the same as a method for duplicated()
-duplicated(foo)
+duplicated(dt)
 ## the default method:
-dup.coords(foo$coords)
+dup.coords(dt$coords)
 }
 \keyword{spatial}
 \keyword{manip}

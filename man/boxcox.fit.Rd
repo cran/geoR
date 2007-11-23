@@ -73,7 +73,7 @@ boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
 }
 
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 

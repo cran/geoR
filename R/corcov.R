@@ -259,8 +259,7 @@
       varcov[lower.tri(varcov)] <- covvec
       varcov <- t(varcov)
       varcov[lower.tri(varcov)] <- covvec
-      if (is.R()) remove("covvec")
-      else remove("covvec", frame = sys.nframe())
+      remove("covvec")
       if(sum(sigmasq) < 1e-16) diag(varcov) <- 1 
       else diag(varcov) <- 1 + (tausq/sum(sigmasq))
     }
@@ -275,8 +274,7 @@
       varcov[lower.tri(varcov)] <- covvec
       varcov <- t(varcov)
       varcov[lower.tri(varcov)] <- covvec
-      if (is.R()) remove("covvec")
-      else remove("covvec", frame = sys.nframe())
+      remove("covvec")
       diag(varcov) <- tausq + sum(sigmasq)
     }
   }
@@ -297,24 +295,13 @@
         }
       }
       else {
-        if (only.decomposition | inv) 
-          if (is.R()) remove("varcov")
-          else remove("varcov", frame = sys.nframe())
-        if (only.decomposition == FALSE) {
+        if (only.decomposition | inv) remove("varcov")
+        if (!only.decomposition) {
           if (det) cov.logdeth <- sum(log(diag(varcov.sqrt)))
           if (sqrt.inv) inverse.sqrt <- solve(varcov.sqrt)
           if (inv) {
-            if (is.R()) {
-              invcov <- chol2inv(varcov.sqrt)
-              if (!sqrt.inv)
-                remove("varcov.sqrt")
-            }
-            else {
-              invcov.sqrt <- solve.upper(varcov.sqrt)
-              invcov <- invcov.sqrt %*% t(invcov.sqrt)
-              if (!sqrt.inv) 
-                remove("varcov.sqrt", frame = sys.nframe())
-            }
+            invcov <- chol2inv(varcov.sqrt)
+            if (!sqrt.inv) remove("varcov.sqrt")
           }
         }
       }
@@ -336,19 +323,14 @@
         }
       }
       else {
-        if (only.decomposition | inv) 
-          if (is.R())  remove("varcov")
-          else remove("varcov", frame = sys.nframe())
+        if (only.decomposition | inv) remove("varcov")
         if (only.decomposition) 
-          varcov.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
-                                             sqrt(varcov.svd$d)))
+          varcov.sqrt <- crossprod(t(varcov.svd$u) * sqrt(sqrt(varcov.svd$d)))
         if (inv) {
-          invcov <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
-                                        (1/varcov.svd$d)))
+          invcov <- crossprod(t(varcov.svd$u)/sqrt(varcov.svd$d))
         }
         if (sqrt.inv) 
-          inverse.sqrt <- t(varcov.svd$u %*% (t(varcov.svd$u) * 
-                                              (1/sqrt(varcov.svd$d))))
+          inverse.sqrt <- crossprod(t(varcov.svd$u)/sqrt(sqrt(varcov.svd$d)))
       }
     }
     if (func.inv == "solve") {
@@ -366,8 +348,7 @@
           stop()
         }
       }
-      if (is.R()) remove("varcov")
-      else remove("varcov", frame = sys.nframe())
+      remove("varcov")
     }
     if (func.inv == "eigen") {
       if(exists("trySilent")){
@@ -393,22 +374,16 @@
         }
       }
       else {
-        if (only.decomposition | inv) 
-          if (is.R()) remove("varcov")
-          else remove("varcov", frame = sys.nframe())
+        if (only.decomposition | inv) remove("varcov")
         if (only.decomposition) 
-          varcov.sqrt <- (varcov.eig$vec %*% diag(sqrt(varcov.eig$val)) %*% 
-                          t(varcov.eig$vec))
-        if (inv) 
-          invcov <- (varcov.eig$vec %*% diag(1/varcov.eig$val) %*% 
-                     t(varcov.eig$vec))
+          varcov.sqrt <- crossprod(t(varcov.eig$vec)* sqrt(sqrt(varcov.eig$val)))
+        if (inv) invcov <- crossprod(t(varcov.eig$vec)/sqrt(varcov.eig$val))
         if (sqrt.inv) 
-          inverse.sqrt <- (varcov.eig$vec %*% diag(1/sqrt(varcov.eig$val)) %*% 
-                           t(varcov.eig$vec))
+          inverse.sqrt <- crossprod(t(varcov.eig$vec)/sqrt(sqrt(varcov.eig$val)))
       }
     }
   }
-  if (only.decomposition == FALSE) {
+  if (!only.decomposition) {
     if (det) {
       if (inv) {
         if (only.inv.lower.diag) 

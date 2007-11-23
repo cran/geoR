@@ -74,13 +74,13 @@
     t.ei <- eigen(a, symmetric = TRUE)
     if(exists("trySilent")){
       if (is.null(b))
-        res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
+        res <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)))
       else
-        res <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
+        res <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b)
     }
     else{
-      if (is.null(b)) res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec))
-      else res <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% b)
+      if (is.null(b)) res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)))
+      else res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b)
     }
     if (any(is.na(res)) | any(is.nan(res)) | any(is.infinite(res))) 
       oldClass(res) <- "try-error"

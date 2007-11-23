@@ -114,8 +114,7 @@
   xmat <- unclass(xmat)
   if(nrow(xmat) != n)
     stop("trend matrix has dimension incompatible with the data")
-  test.xmat <- .solve.geoR(crossprod(xmat))
-  test.xmat <- NULL
+  .solve.geoR(crossprod(xmat))
   beta.size <- temp.list$beta.size <- dim(xmat)[2]
   ##
   ## setting a factor to indicate different realisations
@@ -600,7 +599,6 @@
   yivy <- 0
   for(i in 1:nrep){
     ni <- temp.list$n[i]
-    xmati <- temp.list$xmat[[i]]
     if((phi < 1e-12))
       V <- diag(x=(1+tausq), ni)
     else{
@@ -1157,12 +1155,12 @@
       t.ei <- eigen(xivx, symmetric = TRUE)
       require(methods)
       if(exists("trySilent"))
-        betahat <- trySilent(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
+        betahat <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% xivy)
       else{
         error.now <- options()$show.error.message
         options(show.error.messages = FALSE)
-        betahat <- try(t.ei$vec %*% diag(t.ei$val^(-1)) %*% t(t.ei$vec) %*% xivy)
-        if(is.null(error.now) || error.now == TRUE) options(show.error.messages = TRUE)        
+        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% xivy)
+        if(is.null(error.now) || error.now) options(show.error.messages = TRUE)        
       }
     }
     if(inherits(betahat, "try-error"))

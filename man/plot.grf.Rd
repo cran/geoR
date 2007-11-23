@@ -39,11 +39,11 @@
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.est.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR}.
 }
 
 \author{
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 

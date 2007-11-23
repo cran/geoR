@@ -459,6 +459,7 @@
   ##
   attr(kc, "sp.dim") <- ifelse(krige1d, "1d", "2d")
   attr(kc, "prediction.locations") <- call.fc$locations
+  attr(kc, "parent.env") <- parent.frame()
   if(!is.null(call.fc$coords))
     attr(kc, "data.locations") <- call.fc$coords
   else attr(kc, "data.locations") <- substitute(a$coords, list(a=substitute(geodata)))
@@ -564,25 +565,25 @@
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
   if(missing(locations))
-    locations <-  eval(attr(x, "prediction.locations"))
+    locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
-      borders.arg <- borders <- eval(attr(x, "borders"))
+      borders.arg <- borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
     else
-      borders.arg <- borders <- eval(x$call$geodata)$borders
+      borders.arg <- borders <- eval(x$call$geodata, envir= attr(x, "parent.env"))$borders
 #    borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
-    if(is.null(borders)) borders <- eval(attr(x, "borders"))
+    if(is.null(borders)) borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
   }
   if(missing(coords.data)) coords.data <- NULL
   else
     if(all(coords.data == TRUE))
-      coords.data <-  eval(attr(x, "data.locations"))
+      coords.data <-  eval(attr(x, "data.locations"), envir= attr(x, "parent.env"))
   if(missing(x.leg)) x.leg <- NULL
   if(missing(y.leg)) y.leg <- NULL
   ##
@@ -598,7 +599,7 @@
     ldots.image <- .ldots.set(ldots, type="image", data="prediction")
     locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
-                                       borders.obj = eval(attr(x, "borders")),
+                                       borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                        values=values,
                                        xlim= ldots.image$xlim,
                                        ylim= ldots.image$yli)
@@ -634,25 +635,25 @@
   if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
-  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
+  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
   if(missing(borders)){
     if(!is.null(attr(x, "borders")))
-      borders.arg <- borders <- eval(attr(x, "borders"))
+      borders.arg <- borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
     else
-      borders.arg <- borders <- eval(x$call$geodata)$borders
+      borders.arg <- borders <- eval(x$call$geodata, envir= attr(x, "parent.env"))$borders
       # borders.arg <- borders <- NULL
   }
   else{
     borders.arg <- borders
-    if(is.null(borders)) borders <- eval(attr(x, "borders"))
+    if(is.null(borders)) borders <- eval(attr(x, "borders"), envir= attr(x, "parent.env"))
   }
   if(missing(coords.data)) coords.data <- NULL
   else
     if(all(coords.data == TRUE))
-      coords.data <-  eval(attr(x, "data.locations"))
+      coords.data <-  eval(attr(x, "data.locations"), envir= attr(x, "parent.env"))
   ##
   ## Plotting 1D or 2D
   ##
@@ -672,7 +673,7 @@
     if(is.null(ldots.contour$asp)) ldots.contour$asp=1
     locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
-                                       borders.obj = eval(attr(x, "borders")),
+                                       borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                        values=values,
                                        xlim= ldots.contour$xlim,
                                        ylim= ldots.contour$ylim)
@@ -685,8 +686,7 @@
           if(!is.null(borders)) polygon(borders, lwd=2)
         })
       }
-      do.call("filled.contour", c(list(x=locations$x,
-                                       y=locations$y,
+      do.call("filled.contour", c(list(x=locations$x, y=locations$y,
                                        z=locations$values),
                                   ldots.contour))
     }
@@ -710,7 +710,7 @@
   if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
-  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"))
+  if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
     stop("locations must be a matrix or data-frame with two columns")
@@ -727,7 +727,7 @@
     ldots.persp <- .ldots.set(ldots, type="persp", data="prediction")
     locations <- .prepare.graph.kriging(locations=locations,
                                        borders=borders,
-                                       borders.obj = eval(attr(x, "borders")),
+                                       borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
                                        values=values,
                                        xlim= ldots.persp$xlim,
                                        ylim= ldots.persp$ylim)

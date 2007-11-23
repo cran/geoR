@@ -51,7 +51,7 @@ varcovBGCCM(dists.obj, cov0.pars, cov1.pars, cov2.pars,
 %\references{ ~put references to the literature/web site here ~ }
 
 \author{
-  Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 %\note{ ~~further notes~~ 
@@ -62,6 +62,6 @@ varcovBGCCM(dists.obj, cov0.pars, cov1.pars, cov2.pars,
 
 \seealso{\code{\link{cov.spatial}}, \code{\link{varcov.spatial}}}
 \examples{
-# see http://www.est.ufpr.br/geoR/tutorials/CCM.R
+# see http://www.leg.ufpr.br/geoR/tutorials/CCM.R
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS

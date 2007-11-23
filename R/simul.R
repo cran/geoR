@@ -38,9 +38,10 @@
   }
 }
 
-`grf` <-
-  function (n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 
-                                                          1), nsim = 1, cov.model = "matern", cov.pars = stop("missing covariance parameters sigmasq and phi"), 
+"grf" <-
+  function (n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
+            borders, nsim = 1, cov.model = "matern",
+            cov.pars = stop("missing covariance parameters sigmasq and phi"), 
             kappa = 0.5, nugget = 0, lambda = 1, aniso.pars = NULL, mean = 0, 
             method, RF = TRUE, messages) 
 {
@@ -49,14 +50,19 @@
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), 
                                          TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
-  cov.model <- match.arg(cov.model, choices = c("matern", "exponential", 
-                                      "gaussian", "spherical", "circular", "cubic", "wave", 
-                                      "power", "powered.exponential", "stable", "cauchy", "gencauchy", 
-                                      "gneiting", "gneiting.matern", "pure.nugget"))
-  if (cov.model == "stable") 
-    cov.model <- "powered.exponential"
-  if (cov.model == "matern" && kappa == 0.5) 
-    cov.model <- "exponential"
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+    warning(".Random.seed not initialised. Creating it with by calling runif(1)")
+    runif(1)
+  }
+  rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  ##
+  cov.model <- match.arg(cov.model,
+                         choices = c("matern", "exponential", "gaussian", "spherical",
+                           "circular", "cubic", "wave", "power", "powered.exponential",
+                           "stable", "cauchy", "gencauchy", "gneiting",
+                           "gneiting.matern", "pure.nugget"))
+  if (cov.model == "stable") cov.model <- "powered.exponential"
+  if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
   tausq <- nugget
   if (is.vector(cov.pars)) {
     sigmasq <- cov.pars[1]
@@ -70,48 +76,47 @@
   }
   sill.total <- tausq + sum(sigmasq)
   messa <- .grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
-  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-    warning(".Random.seed not initialised. Creating it with by calling runif(1)")
-    runif(1)
-  }
-  rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  results <- list()
+  ## 
+  results <- list(coords=NULL, data=NULL)
   if ((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) | 
       diff(xlims) == 0 | diff(ylims) == 0) {
     sim1d <- TRUE
-    if (messages.screen) 
-      cat("simulations in 1D\n")
+    if (messages.screen) cat("simulations in 1D\n")
   }
   else sim1d <- FALSE
-  if (mode(grid) == "character") 
+  if(mode(grid) == "character"){ 
     grid <- match.arg(grid, choices = c("irreg", "reg"))
+    if(!missing(borders) & !sim1d){
+      if(!require(splancs))
+        stop("package splancs is required to simulate within borders provided by the user")
+      results$borders <- borders
+      if(grid == "irreg") grid <- splancs::csr(poly=borders, npoints=n)
+      else{
+        if(!missing(nx) && !missing(nx)){
+          bb <- bbox(borders)
+          grid <- gridpts(poly=borders, xs = diff(bb[1,])/(nx-1),
+                                    ys=diff(bb[1,])/(nx-1))
+        }
+        else grid <- splancs::gridpts(poly=borders, npts=n)
+      }
+    }
+  }
   if (is.matrix(grid) | is.data.frame(grid)) {
     results$coords <- as.matrix(grid)
-    if (messages.screen) 
-      cat("grf: simulation on locations provided by the user\n")
+    if (messages.screen) cat("grf: simulation on locations provided by the user\n")
   }
   else {
     if (missing(nx)) {
-      if (sim1d) 
-        if (diff(xlims) == 0) 
-          nx <- 1
-        else nx <- n
-      else if (mode(grid) == "character" && grid == "reg") 
-        nx <- round(sqrt(n))
-      else nx <- n
+      if (sim1d) nx <- ifelse(diff(xlims) == 0, 1, n)
+      else nx <- ifelse((mode(grid)=="character" && grid=="reg"), round(sqrt(n)), n)
     }
     if (missing(ny)) {
-      if (sim1d) 
-        if (diff(ylims) == 0) 
-          ny <- 1
-        else ny <- n
-      else if (mode(grid) == "character" && grid == "reg") 
-        ny <- round(sqrt(n))
-      else ny <- n
+      if (sim1d) ny <- ifelse(diff(ylims) == 0, 1, n)
+      else ny <- ifelse((mode(grid)=="character" && grid=="reg"), round(sqrt(n)), n)
     }
     if (mode(grid) == "character" && grid == "irreg") {
-      results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]), 
-                              y = runif(ny, ylims[1], ylims[2]))
+        results$coords <- cbind(x = runif(nx, xlims[1], xlims[2]), 
+                                y = runif(ny, ylims[1], ylims[2]))
       if (messages.screen) 
         cat(paste("grf: simulation(s) on randomly chosen locations with ", 
                   n, " points\n"))
@@ -119,20 +124,17 @@
     else {
       xpts <- seq(xlims[1], xlims[2], l = nx)
       ypts <- seq(ylims[1], ylims[2], l = ny)
-      results$coords <- as.matrix(expand.grid(x = xpts, 
-                                              y = ypts))
-      if (length(xpts) == 1) 
-        xspacing <- 0
-      else xspacing <- xpts[2] - xpts[1]
-      if (length(ypts) == 1) 
-        yspacing <- 0
-      else yspacing <- ypts[2] - ypts[1]
-      if (abs(xspacing - yspacing) < 1e-12) 
-        equal.spacing <- TRUE
-      else equal.spacing <- FALSE
+      xspacing <- ifelse(length(xpts) == 1, 0, diff(xpts[1:2])) 
+      yspacing <- ifelse(length(ypts) == 1, 0, diff(ypts[1:2]))
+      results$coords <- as.matrix(expand.grid(x = xpts, y = ypts))
+      equal.spacing <- ifelse(abs(xspacing - yspacing) < 1e-12, TRUE, FALSE)
       if (messages.screen) 
         cat(paste("grf: generating grid ", nx, " * ", 
                   ny, " with ", (nx * ny), " points\n"))
+    }
+    if(!sim1d & missing(borders)){
+      lbor <- as.matrix(expand.grid(xlims, ylims))
+      results$borders <- lbor[chull(lbor),]
     }
   }
   n <- nrow(results$coords)
@@ -181,11 +183,11 @@
       setRF <<- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
                        nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
       if (!exists("xpts") || is.null(xpts)){
-        results$data <- GaussRF(x = results$coords[, 1],y = results$coords[, 2],
+        results$data <- RandomFields::GaussRF(x = results$coords[, 1],y = results$coords[, 2],
                                 model = setRF, grid = FALSE, n = nsim)
       }
       else{
-        results$data <- drop(matrix(GaussRF(x = xpts, y = ypts, model = setRF,
+        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = setRF,
                                             grid = TRUE, n = nsim), ncol = nsim))
       }
     }

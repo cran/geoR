@@ -21,7 +21,7 @@
 \method{plot}{geodata}(x, coords=x$coords, data = x$data,
              borders, trend="cte", lambda = 1, col.data = 1,
              weights.divide = "units.m", lowess = FALSE, scatter3d = FALSE,
-             qt.col, \dots)
+             density = TRUE, rug = TRUE, qt.col, \dots)
 }
 
 %- maybe also `usage' for other objects do cumented here.
@@ -69,6 +69,10 @@
     produced by
     \code{\link[scatterplot3d]{scatterplot3d}} showing
     a 3d plot with data locations and corresponding values.  }
+  \item{density}{logical. If \code{TRUE} (default) a line with density
+    estimation is added to the histogram.  }
+  \item{rug}{logical. If \code{TRUE} a rug plot is added to the
+    histogram. }
   \item{qt.col}{colors for the quartiles in the first plot. If missing
     defaults to blue, green, yellow and red.}
   \item{\dots}{further arguments to be passed to the function
@@ -89,17 +93,19 @@
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.est.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR}.
 }
 
 \author{
-  Paulo J. Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}, \cr
+  Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
   Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
 }
 
 %\note{ ~~further notes~~ }
 
-\seealso{\code{\link{points.geodata}}, \code{\link[scatterplot3d]{scatterplot3d}}. }
+\seealso{\code{\link{points.geodata}},
+  \code{\link[scatterplot3d]{scatterplot3d}}, \code{\link{lowess}}, 
+  \code{\link{density}}, \code{\link{rug}}. }
 
 \examples{
 require(geoR)

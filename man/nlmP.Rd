@@ -34,14 +34,14 @@ values.
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.est.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR}.
 }
 
 
 \author{
   Patrick E. Brown \email{p.brown@lancaster.ac.uk}.\cr
   Adapted and included in \pkg{geoR} by \cr
-  Paulo Justiniano Ribeiro Jr. \email{Paulo.Ribeiro@est.ufpr.br}
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br}
 
 }
 
