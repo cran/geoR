@@ -20,9 +20,8 @@
                lambda = 1, trend = "cte", abs.residuals = FALSE,
                weights.divide = "units.m", cex.min, cex.max, cex.var,
                pch.seq, col.seq, add.to.plot = FALSE,
-               x.leg, y.leg, dig.leg = 2, 
-               round.quantiles = FALSE, graph.pars = FALSE,
-               permute = FALSE, \dots)
+               x.leg, y.leg = NULL, dig.leg = 2, 
+               round.quantiles = FALSE, permute = FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -68,7 +67,7 @@
     Defaults divides the data by the element \code{units.m} in the
     data object, if present, otherwise no action is taken and original
     data is used.
-    The usage oc \code{units.m} is common for data objects
+    The usage of \code{units.m} is common for data objects
     to be analysed using the package \pkg{geoRglm}. }
   \item{cex.min}{minimum value for the graphical parameter
     \code{cex}. This value defines the size of the point corresponding the minimum
@@ -86,14 +85,13 @@
     \code{col}.  }
   \item{add.to.plot}{logical. If \code{TRUE} the points are added
     to the current plot otherwise a display is open. Defaults to \code{FALSE}.  }
-  \item{x.leg, y.leg}{\code{x} and \code{y} location of the legend.  }
-  \item{dig.leg}{integer indicating the precision to be used in the
-    legend values. }
+  \item{x.leg, y.leg}{\code{x} and \code{y} location of the legend as
+    documented in \code{\link{legend}}.  }
+  \item{dig.leg}{the desired number of digits after the decimal
+    point. Printing values in the legend uses \code{\link{formatC}} with
+    argument \code{format = \dQuote{f}}. }
   \item{round.quantiles}{logical. Defines whether or not the values
     of the quantiles should be rounded. Defaults to \code{FALSE}.  }
-  \item{graph.pars}{logical. If \code{TRUE} the graphics
-    parameters used to produce the plots are returned.
-    Defaults to \code{FALSE}.  }
   \item{permute}{logical indication whether the data values should be
     randomly re-alocatted to the coordinates. See \code{DETAILS} below.}
   \item{\dots}{further arguments to be passed to the function
@@ -150,10 +148,8 @@
 
 \value{
   A plot is created or points are added to the current graphics device.\cr
-  By default no value is returned. However, if \code{graph.pars = TRUE}
-  a list with graphical parameters used to produce the plot is returned.
-  According to the input options, the list has
-  some or all of the
+  A list with graphical parameters used to produce the plot is returned invisibily.
+  According to the input options, the list has some or all of the
   following components:
 
   \item{quantiles}{the values of the quantiles used to divide the data.  }

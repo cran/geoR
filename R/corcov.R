@@ -6,6 +6,28 @@
 ## vectors and matrices and related operations
 ## 
 
+".geoR.cov.models" <-
+  c("matern", "exponential", "gaussian", "spherical",
+    "circular", "cubic", "wave", "linear", "power",
+    "powered.exponential", "stable", "cauchy", "gencauchy",
+    "gneiting", "gneiting.matern", "pure.nugget")
+
+
+"practicalRange" <-
+  function (cov.model, phi, kappa=0.5, correlation = 0.05, ...) 
+{
+  cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
+  if(cov.model %in% c("circular","cubic","spherical"))
+    return(phi)
+  if(any(cov.model %in% c("pure.nugget")))
+    return(0)  
+  findRange <- function(range, cm, p, k, cor)
+    (cor - cov.spatial(range, cov.model=cm, kappa=k, cov.pars=c(1, p)))^2
+  pr <- optimise(findRange, interval=c(0,50*phi), cm=cov.model,
+                 p=phi, k=kappa, cor=correlation, ...)$min
+  return(pr)
+}
+
 "matern" <-
   function (u, phi, kappa) 
 {
@@ -69,11 +91,7 @@
   }
   if(length(cov.model) != ns) stop("wrong length for cov.model")
   ##
-  cov.model <- sapply(cov.model, match.arg,
-                      c("matern", "exponential", "gaussian", "spherical",
-                        "circular", "cubic", "wave", "linear", "power",
-                        "powered.exponential", "stable", "cauchy", "gencauchy",
-                        "gneiting", "gneiting.matern", "pure.nugget"))
+  cov.model <- sapply(cov.model, match.arg, .geoR.cov.models)
   cov.model[cov.model == "stable"] <- "powered.exponential"
   if(any(cov.model == c("gneiting.matern", "gencauchy"))){
     if(length(kappa) != 2*ns)
@@ -220,12 +238,7 @@
   }
   ##
   func.inv <- match.arg(func.inv)
-  cov.model <- sapply(cov.model, match.arg,
-                      choices = c("matern", "exponential", "gaussian",
-                        "spherical", "circular", "cubic", "wave", "linear",
-                        "power", "powered.exponential", "cauchy",
-                        "gencauchy",
-                        "gneiting", "gneiting.matern", "pure.nugget"))
+  cov.model <- sapply(cov.model, match.arg, choices = .geoR.cov.models)
   if(only.inv.lower.diag)  inv <- TRUE
   if(is.null(coords) & is.null(dists.lowertri)) 
     stop("one of the arguments, coords or dists.lowertri must be provided")

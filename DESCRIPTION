@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.6-19
-Date: 2007-11-23
+Version: 1.6-20
+Date: 2007-11-28
 Title: Analysis of geostatistical data
 LazyLoad: yes
 LazyData: yes
@@ -12,4 +12,4 @@ Suggests: MASS, splancs, scatterplot3d, RandomFields, methods, tcltk
 Description: Geostatistical analysis including traditional, likelihood-based and Bayesian methods.
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR
-Packaged: Fri Nov 23 02:50:54 2007; paulojus
+Packaged: Wed Nov 28 01:12:17 2007; paulojus

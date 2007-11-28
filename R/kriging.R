@@ -512,12 +512,7 @@
   if(type.krige == "sk")
     if(is.null(beta) | mode(beta) != "numeric")
       stop("\nkrige.conv: argument beta must be provided in order to perform simple kriging")
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic",
-                           "wave", "linear", "power",
-                           "powered.exponential", "cauchy","gencauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
   if(micro.scale > nugget)
     stop("krige.control: micro.scale must be in the interval [0, nugget]")
   ##

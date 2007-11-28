@@ -1183,11 +1183,11 @@
   yy <- as.numeric(levels(as.factor(locations[, 2])))
   ny <- length(yy)
   values.loc <- rep(NA, nrow(locations))
-  if(length(values.loc) == length(values)) values.loc <- values
+  if(length(values.loc) == length(values.to.plot)) values.loc <- values.to.plot
   if(!is.null(borders.obj)){
     borders.obj <- as.matrix(as.data.frame(borders.obj))
     inout.vec  <- .geoR_inout(locations, borders.obj)
-    values.loc[inout.vec] <- values
+    values.loc[inout.vec] <- values.to.plot
     rm("inout.vec")
   }
   if (!is.null(borders)){
@@ -1195,8 +1195,8 @@
     dimnames(borders) <- list(NULL, NULL)
     if(!(!is.null(borders.obj) && identical(borders,borders.obj))){
       inout.vec  <- .geoR_inout(locations, borders)
-      if(length(values.loc[inout.vec]) == length(values))
-        values.loc[inout.vec] <- values
+      if(length(values.loc[inout.vec]) == length(values.to.plot))
+        values.loc[inout.vec] <- values.to.plot
       values.loc[!inout.vec] <- NA
       rm("inout.vec")
     }
@@ -1441,11 +1441,7 @@
            kappa = 0.5, aniso.pars = NULL, lambda = 1)
 {
   cov.model <-
-    match.arg(cov.model,
-              choices = c("matern", "exponential", "gaussian",
-                "spherical", "circular", "cubic", "wave", "power",
-                "powered.exponential", "cauchy", "gencauchy", "gneiting",
-                "gneiting.matern", "pure.nugget"))
+    match.arg(cov.model, choices = .geoR.cov.models)
   if(cov.model == "powered.exponential" & (kappa <= 0 | kappa > 2))
     stop("model.control: for power exponential correlation model the parameter kappa must be in the interval \\(0,2\\]")
   ##  if(any(cov.model == c("exponential", "gaussian", "spherical",

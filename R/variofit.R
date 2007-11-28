@@ -13,11 +13,7 @@
   else messages.screen <- messages
   if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
     warning("object vario should preferably be of the geoR's class \"variogram\"")
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave",
-                           "linear", "power", "powered.exponential", "stable", "cauchy", "gencauchy",
-                           "gneiting", "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "powered.exponential")
     if(limits$kappa["upper"] > 2) limits$kappa["upper"] <- 2

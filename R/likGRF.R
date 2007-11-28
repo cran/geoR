@@ -64,12 +64,7 @@
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave",
-                           "power", "powered.exponential", "stable",
-                           "cauchy","gencauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(any(cov.model == c("power", "gneiting.matern", "gencauchy")))
      stop(paste("parameter estimation for", cov.model, "is not yet implemented"))

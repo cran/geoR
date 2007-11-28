@@ -482,9 +482,8 @@
             weights.divide = "units.m",
             cex.min, cex.max, cex.var,
             pch.seq, col.seq, add.to.plot = FALSE,
-            x.leg, y.leg, dig.leg = 2, 
-            round.quantiles = FALSE, graph.pars = FALSE,
-            permute = FALSE, ...) 
+            x.leg, y.leg = NULL, dig.leg = 2, 
+            round.quantiles = FALSE, permute = FALSE, ...) 
 {
   ##
   ## Checking input
@@ -632,11 +631,15 @@
     ##
     ## Adding legend
     ##
-    if(!missing(x.leg) && !missing(y.leg)){
-      textleg <- character()
+    if(!missing(x.leg)){
+      nums <- formatC(graph.list$quantiles, digits=dig.leg, format="f")
+      textleg <- expression()
       for (i in 1:(length(graph.list$quantiles)-1))
-        textleg <- c(textleg, substitute({a <= y} < b, list(a=round(unname(graph.list$quantiles)[i], dig=dig.leg), b=round(unname(graph.list$quantiles[i+1]), dig=dig.leg))))
-      legend(x=x.leg, y=y.leg,textleg, pt.bg=graph.list$col, col=graph.list$col, pch=graph.list$pch)
+        textleg <- c(textleg,
+                     substitute(group("[", list(a, b), ")"),
+                                list(a=nums[i], b=nums[i+1])))
+      legend(x=x.leg, y=y.leg, legend=textleg,
+             pt.bg=col.seq, col=col.seq, pch=graph.list$pch)
     }
   }
   else {
@@ -677,8 +680,7 @@
     if(!missing(x.leg) && !missing(y.leg))
       warning(paste('arguments x.leg and y.leg are ignored when pt.divide = ', pt.divide,'\n'))
   }
-  if (graph.pars == TRUE) return(graph.list)
-  else return(invisible())
+  return(invisible(graph.list))
 }
 
 "plot.geodata" <-

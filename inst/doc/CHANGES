@@ -2,6 +2,31 @@
 
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-20
+		=================================
+
+NEW FEATURES
+
+         o new function practicalRange() provinding values of practical ranges
+           for the covariance models inplemented in geoR 
+
+	 o internal variable ".geoR.cov.models" allowing for cleaner internal code
+           (in particular user in match.call(cov.model, choices = .geoR.cov.models)
+
+         o transparent internal changes in points.geodata() and 
+           greater compatibility with legend() arguments to locate the legend
+
+         o small changes in documentation concerning legends
+
+
+BUG FIXES
+
+        o fix in legends for points.geodata()
+
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-19
 		=================================
 

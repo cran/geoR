@@ -1,14 +1,10 @@
 "geoR2RF" <-
   function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars) 
 {
-  cov.model <- match.arg(cov.model,
-                         choices = c("exponential", "matern", "gaussian", "spherical",
-                           "circular", "cubic", "wave", "power", "powered.exponential",
-                           "cauchy", "gencauchy", "gneiting", "pure.nugget",
-                           "gneiting.matern"))
+  cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if(missing(aniso.pars)) aniso.pars <- NULL
   if(missing(kappa)) kappa <- NULL
-  if (length(cov.pars) != 2) 
+  if (length(cov.pars) != 2)
     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
   RFmodel <- switch(cov.model, matern = "whittlematern", exponential = "exponential", 
                     gaussian = "gauss", spherical = "spherical", circular = "circular", 
@@ -56,11 +52,7 @@
   }
   rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
   ##
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian", "spherical",
-                           "circular", "cubic", "wave", "power", "powered.exponential",
-                           "stable", "cauchy", "gencauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if (cov.model == "stable") cov.model <- "powered.exponential"
   if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
   tausq <- nugget
@@ -267,12 +259,11 @@
 }
 
 "lines.variomodel.grf" <-
-  function (x, max.dist = max(dist(x$coords)), length = 100, 
-            lwd = 2, ...) 
+  function (x, max.dist = max(dist(x$coords)), length = 100, lwd = 2, ...) 
 {
 #  if(! "package:stats" %in% search()) require(mva)
-  if(any(cov.model == c("matern","powered.exponential", 
-           "cauchy", "gencauchy", "gneiting.matern"))) 
+  if(x$cov.model %in% c("matern","powered.exponential", 
+                        "cauchy", "gencauchy", "gneiting.matern"))
     kappa <- x$kappa
   else kappa <- NULL
   distance <- seq(0, max.dist, length = length)

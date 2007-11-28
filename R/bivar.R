@@ -19,12 +19,9 @@
   function(cov0.model="matern", cov1.model="matern", cov2.model="matern",
            kappa0=0.5, kappa1=0.5, kappa2=0.5)
 {
-  CM <- c("matern", "exponential", "gaussian", "spherical",
-          "circular", "cubic", "wave", "power", "powered.exponential",
-          "stable", "cauchy", "gencauchy", "gneiting", "pure.nugget")
-  cov0.model <- match.arg(cov0.model, choices = CM)
-  cov1.model <- match.arg(cov1.model, choices = CM)
-  cov2.model <- match.arg(cov2.model, choices = CM)
+  cov0.model <- match.arg(cov0.model, choices =  .geoR.cov.models)
+  cov1.model <- match.arg(cov1.model, choices =  .geoR.cov.models)
+  cov2.model <- match.arg(cov2.model, choices =  .geoR.cov.models)
   if(cov0.model == "stable") cov0.model <- "powered.exponential"
   if(cov1.model == "stable") cov1.model <- "powered.exponential"
   if(cov2.model == "stable") cov2.model <- "powered.exponential"

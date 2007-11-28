@@ -72,7 +72,7 @@ polygon(foo1, lty=2)
 polygon(foo2, lwd=2)
 arrows(foo[,1], foo[,2],foo1[,1],foo1[,2], lty=2)
 arrows(foo[,1], foo[,2],foo2[,1],foo2[,2])
-legend(1,10, c("foo", "foo1 (zoom.coords)", "foo2 (coords2coords)"), lty=c(1,2,1), lwd=c(1,1,2), cex=1.7)
+legend("topleft", c("foo", "foo1 (zoom.coords)", "foo2 (coords2coords)"), lty=c(1,2,1), lwd=c(1,1,2))
 
 ## "zooming" part of The Gambia map
 gb <- gambia.borders/1000

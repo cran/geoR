@@ -28,11 +28,7 @@
   }
 #  if(! "package:stats" %in% search()) require(mva)
   call.fc <- match.call()
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy","gencauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
   if(abs(lambda-1) > 0.001) {
     if(messages.screen)
       cat("ksline: Box-Cox data transformation performed.\n")

@@ -128,11 +128,7 @@
 ".corr.diaglowertri" <-
   function(coords, cov.model, phi, kappa)
 {
-  cov.model <- match.arg(cov.model,
-                         choices = c("matern", "exponential", "gaussian",
-                           "spherical", "circular", "cubic", "wave", "power",
-                           "powered.exponential", "cauchy", "gencauchy", "gneiting",
-                           "gneiting.matern", "pure.nugget"))
+  cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
   if(any(cov.model == c("cauchy", "gencauchy", "matern", "powered.exponential", "power", "gneiting.matern"))){
     if(missing(kappa))
       stop("argument kappa is needed for this choice of correlation function")

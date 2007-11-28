@@ -72,6 +72,7 @@ plot.variogram          Plot Empirical Variogram
 plot.xvalid             Plot Cross-Validation Results
 points.geodata          Plots Spatial Locations and Data Values
 polygrid                Coordinates of Points Inside a Polygon
+practicalRange          Pratical range for correlation functions
 pred_grid               Generates a 2D Prediction Grid
 predict.BGCCM           Prediction for the bivariate Gaussian common
                         component geostatistical model

@@ -248,7 +248,7 @@ plot(vario.s, main="smoothed variogram")
 vario.0 <- variog(s100, max.dist=1, dir=0, tol=pi/8)
 plot(vario.b, type="l", lty=2)
 lines(vario.0)
-legend(0, 1.2, legend=c("omnidirectional", expression(0 * degree)), lty=c(2,1))
+legend("topleft", legend=c("omnidirectional", expression(0 * degree)), lty=c(2,1))
 }
 
 \keyword{spatial}
