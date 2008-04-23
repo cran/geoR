@@ -166,7 +166,7 @@
     else cat(paste("grf: decomposition algorithm used is: ", 
                    method, "\n"))
   }
-  if (all(phi) == 0) 
+  if (all(phi == 0)) 
     results$data <- matrix(rnorm((n * nsim), mean = 0, sd = sqrt(sill.total)), 
                            nrow = n, ncol = nsim)
   else {

@@ -32,7 +32,8 @@
   if(cov2.model=="matern" & kappa2 == 0.5) cov2.model <- "exponential"
   return(list(cov.model=c(cov0.model=cov0.model,cov1.model=cov1.model,
               cov2.model=cov2.model),
-              kappa = c(kappa0=kappa0, kappa1=kappa1, kappa2=kappa2)))
+              kappa = c(kappa0=unname(kappa0), kappa1=unname(kappa1),
+                kappa2=unname(kappa2))))
 }
 
 "varcovBGCCM" <- function(dists.obj, cov0.pars, cov1.pars, cov2.pars,
@@ -149,8 +150,7 @@
   ## pars = c(eta, nu1, nu2, phi0, phi1, phi2)
   ##
 #  print(pars)
-  if(any(pars < 0))
-    return(-.Machine$double.xmax^0.5)
+  if(any(pars < 0)) return(-.Machine$double.xmax^0.5)
 #  print("-----------------------------")
   if(length(cov.model) != 1 & length(cov.model) != 3)
     stop("cov.model must have length 1 or 3")
@@ -172,6 +172,7 @@
                       cov2.pars=list(eta=pars[1],nu2=pars[3],phi2=pars[6]),
                       cov0.model = cov.model[1], cov1.model = cov.model[2],
                       cov2.model = cov.model[3],
+                      kappa0 = kappa[1], kappa1 = kappa[2], kappa2 = kappa[3],
                       scaled = TRUE, inv = TRUE, det=TRUE)
   SinvX <- crossprod(Sinv,calcs$X)
   QF <- sum(crossprod(calcs$y,Sinv)*calcs$y) -
@@ -256,26 +257,24 @@
   ## obtaining numerical estimates
   ##
   ldots <- list(...)
-  lower <- rep(0,6)
   if(!is.null(names(ldots))){
-    names(ldots)[pmatch(names(ldots), "lower")] <- "lower"
-    names(ldots)[pmatch(names(ldots), "method")] <- "method"
+    names(ldots)[which(as.logical(pmatch(names(ldots), "lower", nomatch=0)))] <- "lower"
+    names(ldots)[which(as.logical(pmatch(names(ldots), "method", nomatch=0)))] <- "method"
   }
-  if(is.null(ldots$lower)) lower <- ldots$lower
   if(fc.min == "optim"){
-    if (is.null(ldots$method) || ldots$method != "L-BFGS-B")
-      lower <- -Inf
-    est <- optim(par=ini.pars, fn=.negloglikBGCCM,
-                 geodata1 = geodata1, geodata2 = geodata2,
-                 cov.model=CM$cov.model, kappa=CM$kappa,
-                 envir=likBGCCM.env, lower = lower, ...)
+    if(!is.null(ldots$method) && ldots$method == "L-BFGS-B" && is.null(ldots$lower))
+      ldots$lower <- rep(0,6)
+    est <- do.call("optim", c(list(par=ini.pars, fn=.negloglikBGCCM,
+                                   geodata1 = geodata1, geodata2 = geodata2,
+                                   cov.model=CM$cov.model, kappa=CM$kappa,
+                                   envir=likBGCCM.env), ldots))
   }
   else{
-    est <- nlminb(start=ini.pars, objective=.negloglikBGCCM,
-                  lower=lower,
-                  geodata1 = geodata1, geodata2 = geodata2,
-                  cov.model=CM$cov.model, kappa=CM$kappa,
-                  envir=likBGCCM.env, ...)
+    if(is.null(ldots$lower)) ldots$lower <- rep(0,6)
+    est <- do.call("nlminb", c(list(start=ini.pars, objective=.negloglikBGCCM,
+                                    geodata1 = geodata1, geodata2 = geodata2,
+                                    cov.model=CM$cov.model, kappa=CM$kappa,
+                                    envir=likBGCCM.env), ldots))
     est$value <- est$objective
   }
   ##
@@ -313,6 +312,9 @@
   res$loglik <- (- est$value)
   res$cov.model <- CM$cov.model
   res$kappa <- CM$kappa
+  res$practicalRange <- c(pr0=with(res, practicalRange(cov.model[1], phi[1], kappa[1])),
+                          pr1=with(res, practicalRange(cov.model[2], phi[2], kappa[2])),
+                          pr2=with(res, practicalRange(cov.model[3], phi[3], kappa[3])))
   res$n <- c(n1=n1, n2=n2)
   res$optim <- est
 ##  res$y <- calcs$y
@@ -334,6 +336,10 @@
   print(format(x$sigmasq, ...))
   cat("Correlation parameters:\n")
   print(format(x$phi, ...))
+  cat("Extra correlation parameter (fixed):\n")
+  print(format(x$kappa, ...))
+  cat("Practical Ranges with cor=0.05 for asymptotic range:\n")
+  print(format(x$practicalRange, ...))
   cat("Reparametrised:\n")
   print(format(x$optim$par, ...))
   cat(paste("Maximised log-Likelihood:",x$loglik,"\n"))

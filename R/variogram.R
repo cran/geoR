@@ -139,14 +139,14 @@
     if(bins.lim[1] < 1e-16) bins.lim[1] <- -1
     bin.f <- function(data) {
       cbin <- vbin <- sdbin <- rep(0, nbins)
-      result <- .C("binit", as.integer(n.data),
-                   as.double(as.vector(coords[, 1])),
-                   as.double(as.vector(coords[, 2])), as.double(as.vector(data)), 
-                   as.integer(nbins), as.double(as.vector(bins.lim)), 
-                   as.integer(estimator.type == "modulus"), as.double(max.dist), 
-                   cbin = as.integer(cbin), vbin = as.double(vbin), 
-                   as.integer(TRUE), sdbin = as.double(sdbin),
-                   PACKAGE = "geoR")[c("vbin", "cbin", "sdbin")]
+      .C("binit", as.integer(n.data),
+         as.double(as.vector(coords[, 1])),
+         as.double(as.vector(coords[, 2])), as.double(as.vector(data)), 
+         as.integer(nbins), as.double(as.vector(bins.lim)), 
+         as.integer(estimator.type == "modulus"), as.double(max.dist), 
+         cbin = as.integer(cbin), vbin = as.double(vbin), 
+         as.integer(TRUE), sdbin = as.double(sdbin),
+         PACKAGE = "geoR")[c("vbin", "cbin", "sdbin")]
     }
     result <- array(unlist(lapply(as.data.frame(data), bin.f)), 
                     dim = c(nbins, 3, n.datasets))

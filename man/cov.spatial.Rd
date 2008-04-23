@@ -76,7 +76,7 @@ cov.spatial(obj, cov.model= "matern",
   \deqn{\rho(h) = [1+(\frac{h}{\phi})^2]^{-\kappa}}{rho(h) = [1+(h/phi)^2]^(-kappa)}
 
   \bold{gencauchy (generalised Cauchy)} \cr
-  \deqn{\rho(h) = [1+(\frac{h}{\phi})^\kappa_2]^{-\kappa_1/\kappa_2},
+  \deqn{\rho(h) = [1+(\frac{h}{\phi})^{\kappa_{2}}]^{-{\kappa_1}/{\kappa_2}},
     \kappa_1 > 0, 0 < \kappa_2 \leq 2 }{rho(h) =
     [1+(h/phi)^kappa2]^(-kappa1/kappa2), kappa1 > 0, 0 < kappa2 <=0}
     
@@ -95,16 +95,16 @@ cov.spatial(obj, cov.model= "matern",
   
   \bold{cubic}\cr
   \deqn{\rho(h) = \left\{ \begin{array}{ll}
-    7(\frac{h}{\phi})^2 - 8.75(\frac{h}{\phi})^3 +
-    3.5(\frac{h}{\phi})^5-0.75(\frac{h}{\phi})^7 \mbox{ , if $h<\phi$} \cr
+    1 - [7(\frac{h}{\phi})^2 - 8.75(\frac{h}{\phi})^3 +
+    3.5(\frac{h}{\phi})^5-0.75(\frac{h}{\phi})^7] \mbox{ , if $h<\phi$} \cr
     0  \mbox{ , otherwise.}
     \end{array} \right.}{rho(h) = 
-    7 * ((h/phi)^2) - 8.75 * ((h/phi)^3) +
-    3.5 * ((h/phi)^5) - 0.75 * ((h/phi)^7) if h < phi
+    1 - (7 * ((h/phi)^2) - 8.75 * ((h/phi)^3) +
+    3.5 * ((h/phi)^5) - 0.75 * ((h/phi)^7)) if h < phi
     , 0  otherwise.}
   
   \bold{gaussian}\cr
-  \deqn{\rho(h) = \exp[(-\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
+  \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
 
   \bold{exponential}\cr
   \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{exp(-h/phi)}

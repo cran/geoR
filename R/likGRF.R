@@ -22,13 +22,13 @@
       if(any(list$cov.model == c("gneiting.matern", "gencauchy"))){
         if(length(list$kappa) != 2)
           stop(paste("kappa must be of length 2 for the", list$cov.model, "correlation function"))
-        if(list$cov.model == "gencauchy" && (list$kappa[2] <=0 | list$kappa[2] >0))
+        if(list$cov.model == "gencauchy" && (list$kappa[2] <=0 | list$kappa[2] >2))
           stop("for the gencauchy model the kappa must be within (0,2]")          
       }
       else{
-        if(list$cov.model == "powered.exponential" && (list$kappa <=0 | list$kappa >0))
+        if(list$cov.model == "powered.exponential" && (list$kappa <=0 | list$kappa >2))
           stop("for the powered.exponential model the kappa must be within (0,2]")          
-        if(list$cov.model == "stable" && (list$kappa <=0 | list$kappa >0))
+        if(list$cov.model == "stable" && (list$kappa <=0 | list$kappa >2))
           stop("for the stable model the kappa must be within (0,2]")          
       }
     }
@@ -47,7 +47,7 @@
             fix.psiA = TRUE, psiA = 0, 
             fix.psiR = TRUE, psiR = 1, 
             cov.model = "matern", realisations,
-            method.lik = "ML",
+            lik.method = "ML",
             components = TRUE, nospatial = TRUE,
             limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
@@ -58,6 +58,7 @@
   ## Checking input
   ##
   call.fc <- match.call()
+  ldots <- list(...)
   temp.list <- list()
   temp.list$print.pars <- print.pars
   if(missing(messages))
@@ -89,8 +90,19 @@
   ##
   ## Likelihood method
   ##
-  if(method.lik == "REML" | method.lik == "reml" | method.lik == "rml")  method.lik <- "RML"
-  if(method.lik == "ML" | method.lik == "ml") method.lik <- "ML"
+#####
+##### temporary code back compatibility to argumet method
+  lik.MET <- c("ML", "ml", "RML", "REML", "rml", "reml")
+  MET <- pmatch(names(ldots), "method") == 1
+  if(any(MET) && (ldots[[which(MET)]] %in% lik.MET)){
+    warning("argument \"method\" has changed and is now used as an argument to be passed to optim(). Use \"lik.method\" to define the likelihood method")
+    lik.method <- lik.MET[pmatch(ldots[[which(MET)]], lik.MET)]
+    ldots[which(as.logical(pmatch(names(ldots), "method", nomatch=0)))] <- NULL
+  }
+#####
+  method.lik <- lik.method
+  if(method.lik %in% c("REML","reml","rml","RML"))  method.lik <- "RML"
+  if(method.lik %in% c("ML", "ml")) method.lik <- "ML"
   if(method.lik == "ML" & cov.model == "power")
     stop("\n\"power\" model can only be used with method.lik=\"RML\".\nBe sure that what you want is not \"powered.exponential\"")
   temp.list$method.lik <- method.lik
@@ -366,20 +378,30 @@
   if(is.R()){
     if(length(ini) == 1){
       if(upper.optim == Inf) upper.optim <- 50*max.dist
-      lik.minim <- optimize(.negloglik.GRF,
-                            lower=lower.optim,
-                            upper=upper.optim,
-                            fp=fixed.values,
-                            ip=ip, temp.list = temp.list, ...)
+      lik.minim <- do.call("optimize", c(list(.negloglik.GRF,
+                                              lower=lower.optim,
+                                              upper=upper.optim,
+                                              fp=fixed.values,
+                                              ip=ip, temp.list = temp.list), ldots))
       lik.minim <- list(par = lik.minim$minimum,
                         value = lik.minim$objective,
                         convergence = 0,
                         message = "function optimize used")      
     }
-    else
-      lik.minim <- optim(par = ini, fn = .negloglik.GRF, method="L-BFGS-B",
-                         lower=lower.optim, upper=upper.optim,
-                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
+    else{
+      MET <- pmatch(names(ldots), names(formals(optim)))
+      if(is.na(MET) || all(names(formals(optim))[MET] != "method"))
+        ldots$method <- "L-BFGS-B"
+      if(!is.null(ldots$method) && ldots$method == "L-BFGS-B"){
+        ldots$lower <- lower.optim
+        ldots$upper <- upper.optim
+      }
+      lik.minim <- do.call("optim", c(list(par = ini, fn = .negloglik.GRF,
+                                           fp=fixed.values, ip=ip, temp.list = temp.list), ldots))
+      ##      lik.minim <- optim(par = ini, fn = .negloglik.GRF, method=optim.METHOD
+      ##                         lower=lower.optim, upper=upper.optim,
+      ##                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
+    }
   }
   else{
     lik.minim <- nlminb(ini, .negloglik.GRF,
@@ -674,6 +696,8 @@
                       lambda = lambda,
                       aniso.pars = c(psiA = psiA, psiR = psiR),
                       tausq = tausq,
+                      practicalRange = practicalRange(cov.model=cov.model,
+                        phi = phi, kappa = kappa),
                       method.lik = method.lik, trend = trend,
                       loglik = loglik.max,
                       npars = npars,
@@ -770,8 +794,8 @@
     if(!fix.psiR & !fix.psiA)
       if(psiR != 1 | psiA != 0)
         coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-    coords.rep <- split(as.data.frame(coords), realisations)
-    res.rep <- split(res, realisations)
+    #coords.rep <- split(as.data.frame(coords), realisations)
+    #res.rep <- split(res, realisations)
     trend.comp <- temp.list$z - res
     spatial.comp <- list()
     for(i in 1:nrep){
@@ -1084,8 +1108,8 @@
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(.Machine$double.xmax^0.5)
-  if((tausq+sigmasq) < (.Machine$double.eps^0.5))
+  if(kappa < 1e-04 | (tausq+sigmasq) < (.Machine$double.eps^0.5) |
+     any(c(phi, tausq, sigmasq, kappa) < 0))
     return(.Machine$double.xmax^0.5)
   ##
   ## Anisotropy
@@ -1203,6 +1227,8 @@
   names(est.pars) <- names.est.pars
   cat("likfit: estimated model parameters:\n")
   print.default(format(est.pars, digits = digits), ...)
+  cat(paste("Practical Range with cor=0.05 for asymptotic range:", format(x$practicalRange, ...)))
+  cat("\n")
   ##  print(round(est.pars, digits=digits))
   cat("\nlikfit: maximised log-likelihood = ")
   cat(format(x$loglik, digits = digits))
@@ -1227,6 +1253,7 @@
   summ.lik$spatial.component.extra <- object$parameters.summary[c("kappa", "psiA", "psiR"),]
   summ.lik$nugget.component <- object$parameters.summary[c("tausq"),, drop=FALSE]
   summ.lik$transformation  <- object$parameters.summary[c("lambda"),, drop=FALSE]
+  summ.lik$practicalRange <-  object$practicalRange
   summ.lik$likelihood <- list(log.L = object$loglik, n.params = as.integer(object$npars),
                                AIC = object$AIC, BIC = object$BIC)
   summ.lik$ns.likelihood <- list(log.L = object$nospatial$loglik.ns, n.params = object$nospatial$npars.ns, AIC=object$nospatial$AIC.ns, BIC=object$nospatial$BIC.ns)
@@ -1307,6 +1334,10 @@
     if(abs(lambda - 1) <  0.0001) cat(" (no transformation)")
     if(abs(lambda) < 0.0001) cat(" (log-transformation)")
   }
+  cat("\n")
+  cat("\n")
+  cat("Practical Range with cor=0.05 for asymptotic range:",
+      format(x$practicalRange, ...))
   cat("\n")
   cat("\n")
   cat("Maximised Likelihood:")

@@ -391,6 +391,8 @@
   estimation <- list(nugget = nugget, cov.pars = cov.pars, 
                      cov.model = cov.model, kappa = kappa, value = value, 
                      trend = vario$trend, beta.ols = vario$beta.ols,
+                     practicalRange = practicalRange(cov.model=cov.model,
+                       phi = cov.pars[2], kappa = kappa),
                      max.dist = max.dist, 
                      minimisation.function = minimisation.function)
 #  if(exists("hess")) estimation$hessian <- hess
@@ -523,6 +525,8 @@
     cat(paste("fixed value for tausq = ", x$nugget,"\n"))
   cat("parameter estimates:\n")
   print(round(est.pars, digits=digits))
+  cat(paste("Practical Range with cor=0.05 for asymptotic range:", format(x$practicalRange, ...)))
+  cat("\n")
   if(x$weights == "equal")
     cat("\nvariofit: minimised sum of squares = ")
   else
@@ -554,6 +558,7 @@
   summ.lik$nugget.component <- c(tausq = object$nugget)
   summ.lik$fix.nugget <- object$fix.nugget
   summ.lik$fix.kappa <- object$fix.kappa
+  summ.lik$practicalRange <-  object$practicalRange
   summ.lik$sum.of.squares <- c(value = object$value)
   if(object$fix.nugget){
     summ.lik$estimated.pars <- c(sigmasq = object$cov.pars[1], phi=object$cov.pars[2])
@@ -615,6 +620,10 @@
     cat(paste("\n      (estimated) nugget = ", round(x$nugget.component, dig=digits)))
   cat("\n")
   cat("\n")
+  cat("Practical Range with cor=0.05 for asymptotic range:",
+      format(x$practicalRange, ...))
+  cat("\n")
+  cat("\n")
   names(x$sum.of.squares) <- NULL
   if(x$weights == "equal") cat("Minimised sum of squares: ")
   else cat("Minimised weighted sum of squares: ")
@@ -647,8 +656,8 @@
   else cov.model <- "exponential"
   if(!is.null(model.pars$kappa)) kappa <- model.pars$kappa
   else kappa <- 0.5
-  if(!is.null(model.pars$lambda)) lambda <- model.pars$lambda
-  else lambda <- 0.5
+  #if(!is.null(model.pars$lambda)) lambda <- model.pars$lambda
+  #else lambda <- 0.5
   if(!is.null(model.pars$nugget)) nugget <- model.pars$nugget
   else nugget <- 0
   cov.pars <- model.pars$cov.pars

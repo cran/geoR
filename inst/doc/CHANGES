@@ -1,5 +1,35 @@
 
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-21
+		=================================
 
+NEW FEATURES
+ 
+        o likfit(), variofit(), eyefit() and likfitBGCCM() and the corresponding
+    	   print() and summary() functions now reports on the practical range
+
+	o likfit() now allow other than L-BFGS-B methods to be passed to optim()
+
+	o the latter requires argument name to be change from "method.lik"
+	  "lik.method"	  
+
+
+BUG FIXES
+
+        o fixes in likfitBGCCM() for allowing more flexible passing arguments tom optim() 
+ 
+        o fix in all() to be OK with R-2.7-0
+
+	o print.BGCCM was ot printing kappa parameter values
+
+        o likfitBGCCM was not passing values of the kappa parameter 
+	  for the correlation functions
+
+        o fix in likfit() when checking valid values for kappa for the 
+          powered exponential, stable e gencauchy correlation functions
+
+        o fix in documentation, correlation function equations, for cov.spatial()
+ 
 
                 =================================
  		CHANGES IN geoR VERSION 1.6-20
@@ -17,7 +47,6 @@ NEW FEATURES
            greater compatibility with legend() arguments to locate the legend
 
          o small changes in documentation concerning legends
-
 
 BUG FIXES
 

@@ -30,7 +30,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
        cov.model = "matern", realisations,
-       method.lik = "ML", components = TRUE,
+       lik.method = "ML", components = TRUE,
        nospatial = TRUE, limits = pars.limits(),
        print.pars = FALSE, messages, \dots)
 
@@ -118,7 +118,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{realisations}{optional. A vector indicating the number of replication
     for each datum. For further information see \code{DETAILS} below and
     documentation for \code{\link{as.geodata}}. }
-  \item{method.lik}{options are \code{"ML"} for maximum likelihood and \code{"REML"} for
+  \item{lik.method}{(formely method.lik) options are \code{"ML"} for maximum likelihood and \code{"REML"} for
     restricted maximum likelihood. Defaults to \code{"ML"}.  }
   \item{components}{an \eqn{n \times 3}{n x 3} data-frame with fitted
     values for the three model components: trend, spatial and residuals.
@@ -336,7 +336,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
 ml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE)
 ml
 summary(ml)
-reml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE, met = "REML")
+reml <- likfit(s100, ini=c(0.5, 0.5), fix.nug = TRUE, lik.met = "REML")
 summary(reml)
 plot(variog(s100))
 lines(ml)

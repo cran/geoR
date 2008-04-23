@@ -134,7 +134,7 @@
   ##
   n.predictive <- ifelse(is.null(n.predictive), 0, n.predictive)
   simulations.predictive <- ifelse(is.null(output$simulations.predictive), FALSE, TRUE)
-  keep.simulations <- ifelse(is.null(output$keep.simulations), TRUE, FALSE)
+  #keep.simulations <- ifelse(is.null(output$keep.simulations), TRUE, FALSE)
   mean.estimator <- output$mean.estimator
   sim.means <- output$sim.means
   if(is.null(sim.means))
@@ -311,7 +311,7 @@
   if(beta.prior == "deg") {
     kc$predict <- tv0ivdata + drop(crossprod(b,beta))
     kc$krige.var <- sill.partial * drop(1+nug.factor - tv0ivv0)
-    beta.est <- "Simple kriging performed (beta provided by user)"
+    kc$beta.est <- "Simple kriging performed (beta provided by user)"
   }
   if(beta.prior == "flat"){
     kc$predict <- tv0ivdata + drop(crossprod(b,beta.flat))

@@ -177,7 +177,7 @@
   else{
     if(is.null(model$method)){
       fix.pars <- rep(TRUE, 5)
-      val.pars <- c(mod$nugget, mod$kappa, mod$aniso.pars, mod$lambda)
+      val.pars <- c(model$nugget, model$kappa, model$aniso.pars, model$lambda)
     }
     if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
       fix.pars <- (model$parameters.summary[c("tausq", "kappa", 

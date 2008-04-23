@@ -14,14 +14,14 @@ lines.eyefit <- function(x, ...){
 summary.eyefit <- function(object, ...){
   if(length(object) == 0) return(NULL)
   else{
-    res <- data.frame(t(rep(0,6)))
-    names(res) <-c("cov.model","sigmasq","phi","tausq", "kappa", "kappa2")
+    res <- data.frame(t(rep(0,7)))
+    names(res) <-c("cov.model","sigmasq","phi","tausq", "kappa", "kappa2", "practicalRange")
     for(i in 1:length(object)){
       tmp <- unclass(unlist(object[[i]]))
       if (tmp["cov.model"] != "gneiting.matern") tmp["kappa2"] <- NA
       if (all(tmp["cov.model"] != c("powered.exponential","cauchy","gencauchy","matern")))
         tmp["kappa"] <- NA
-      res[i,] <- tmp[c("cov.model","cov.pars1","cov.pars2","nugget", "kappa", "kappa2")]
+      res[i,] <- tmp[c("cov.model","cov.pars1","cov.pars2","nugget", "kappa", "kappa2", "practicalRange")]
     }
   }
   return(res)
@@ -221,9 +221,11 @@ eyefit <- function(vario, silent=FALSE){
     phi <- as.numeric(tclObj(range))
     tausq <- as.numeric(tclObj(nugget))
     aux <- list(cov.model=k, cov.pars=c(sigmasq, phi), 
-                nugget=tausq, kappa=c(kp1,kp2),
-                lambda = vario$lambda,
-                trend = vario$trend, max.dist=maxdist)      
+                nugget=tausq, kappa=c(kp1,kp2), lambda = vario$lambda,
+                trend = vario$trend,
+                practicalRange = practicalRange(cov.model=k,
+                  phi = phi, kappa = kp1),
+                max.dist=maxdist)      
     oldClass(aux) <- "variomodel"
     assign("eyefit.tmp", c(get("eyefit.tmp", env=eyefit.env),list(aux)), envir=eyefit.env)
     
