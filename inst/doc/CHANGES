@@ -1,5 +1,41 @@
 
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-22
+		=================================
+
+NEW FEATURES
+
+        o improved handling of realisations in geodata objects by summary.geodata() and likfit()
+ 
+        o new data set "soja98"
+
+        o new data set "wrc"
+
+        o new data set "soil250"
+
+	o new argument "borders" in {image,persp,countour}.grf, and better handling of borders 
+          provided in grf()
+
+	o 
+
+
+BUG FIXES
+
+        o fixes for subset.geodata() handle units.m and realisations
+
+        o several fixes preventing warnings on `R CMD check` regarding `no visible binding for global variable` 
+
+        o fix in a bug in likfit() introduced in the previous version 
+
+        o fix in the calculation of loglikBGCCM()
+
+        o fixes on krige.bayes() and hist.krige.bayes() to prevent warnings
+
+	o fixes in lines.variomodel() for computing nested variogramas 
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-21
 		=================================
 

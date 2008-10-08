@@ -1,8 +1,7 @@
 "xvalid" <-
   function (geodata, coords = geodata$coords, data = geodata$data, 
-            model, reestimate = FALSE, variog.obj = NULL,
-            output.reestimate = FALSE, locations.xvalid = "all",
-            data.xvalid = NULL, messages, ...) 
+            model, reestimate = FALSE, variog.obj = NULL, output.reestimate = FALSE,
+            locations.xvalid = "all", data.xvalid = NULL, messages, ...) 
 {
   ##
   ## Checking and organising input
@@ -18,50 +17,53 @@
   if(missing(geodata)) geodata <- list(coords = coords, data = data)
   n <- nrow(coords)
   data <- as.vector(data)
-  if (length(data) != n) stop("coords and data have incompatible sizes")
+  if (length(data) != n) stop(paste("incompatible sizes: coords (",n,") and data (", length(data), ")", sep=""))
   xmat <- trend.spatial(trend = model$trend, geodata = geodata)
-  if (nrow(xmat) != n) stop("coords and trend have incompatible sizes")
+  if (nrow(xmat) != n) stop(paste("incompatible sizes: coords (",n,") and trend (", nrow(xmat), ")", sep=""))
   if(is.null(model$method)) reestimate <- FALSE
   if(is.null(model$aniso.pars)) model$aniso.pars <- c(0,1)
   if(is.null(model$kappa)) model$kappa <- 0.5
   ##
   ## Locations to be used in the cross-validation
   ##
-  if(all(locations.xvalid == "all") | is.vector(locations.xvalid)){
+  if(all(locations.xvalid == "all") || is.vector(locations.xvalid)){
     autocross <- TRUE
     if(all(locations.xvalid == "all"))
       locations.xvalid <- 1:n
-    else
-      if(any(locations.xvalid > n) | mode(locations.xvalid) != "numeric")
-        stop("\nxvalid: vector indicating locations to be validated is not a numeric vector and/or has element(s) with value greater than the number of data loccations")
+    else{
+      if(any(locations.xvalid > n))
+        stop("\nxvalid: vector indicating validation locations has values exceeding the number of data locations")
+      if(mode(locations.xvalid) != "numeric")
+        stop("\nxvalid: vector indicating validation locations is not a numeric vector")
+    }
     crossvalid <- TRUE
   }
   else{
     autocross <- FALSE
-    if(is.matrix(locations.xvalid) | is.data.frame(locations.xvalid))
-      if(dim(locations.xvalid)[2] <= 2){
-        if(dim(locations.xvalid)[2] == 1){
+    if(is.matrix(locations.xvalid) || is.data.frame(locations.xvalid))
+      if(ncol(locations.xvalid) <= 2){
+        if(ncol(locations.xvalid) == 1){
           locations.xvalid <- is.vector(locations.xvalid)
           crossvalid <- TRUE
           if(any(locations.xvalid) > n | length(locations.xvalid) > n)
-            stop("incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
+            stop("\nxvalid: incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
         }
         else{
           if(messages.screen)
             cat("xvalid: cross-validation to be performed on locations provided by the user\n")
           if(is.null(data.xvalid))
-            stop("the argument \"data.xvalid\" must be provided in order to perform validation on a set of locations different from the original data")
+            stop("\nxvalid: the argument \"data.xvalid\" must be provided when performing validation on locations other than data locations")
           crossvalid <- FALSE
         }
       }
       else
         if(!is.vector(locations.xvalid) | mode(locations.xvalid) != "numeric")
-          stop("\nargument locations.xvalid must be either:\n a numeric vector with numbers indicating the locations to be cross-validated\n a matrix with coordinates for the locations to be cross-validated.")
+          stop("\nxvalid: argument locations.xvalid must be either:\n a numeric vector with numbers indicating the locations to be cross-validated\n a matrix with coordinates for the locations to be cross-validated.")
         else
           if(any(locations.xvalid) > n | length(locations.xvalid) > n)
             stop("incorrect value to the argument locations.xvalid.\nThis must be a numeric vector with numbers indicating the locations to be cross-validated")
   }
-  if(crossvalid == FALSE) n.pt.xv <- dim(locations.xvalid)[[1]]
+  if(!crossvalid) n.pt.xv <- dim(locations.xvalid)[[1]]
   else n.pt.xv <- length(locations.xvalid)
   if(messages.screen){
     cat(paste("xvalid: number of data locations       =", n))
@@ -69,7 +71,7 @@
     cat(paste("xvalid: number of validation locations =", n.pt.xv))
     cat("\n")
     if(crossvalid) cat("xvalid: performing cross-validation at location ... ")
-    else  cat("xvalid: performing validation at the locations provided")
+    else  cat("xvalid: performing validation at the specified locations")
     }
   ##
   ## Defining a function to predict at one point
@@ -88,8 +90,7 @@
         if(model$method == "eyefit")
           stop("option reestimate = TRUE not allowed for
                 a model of the class eyefit")
-        if(model$method == "ML" | model$method == "REML" |
-           model$method == "RML"){
+        if(any(model$method == c("ML","REML", "RML"))){
           fix.pars <- (model$parameters.summary[c("tausq", "kappa", "psiA",
                                                   "psiR", "lambda"), 1] == "fixed")
           val.pars <- model$parameters.summary[c("tausq", "kappa", 
@@ -179,13 +180,13 @@
       fix.pars <- rep(TRUE, 5)
       val.pars <- c(model$nugget, model$kappa, model$aniso.pars, model$lambda)
     }
-    if(model$method == "ML" | model$method == "REML" | model$method == "RML"){
+    if(any(model$method == c("ML","REML","RML"))){
       fix.pars <- (model$parameters.summary[c("tausq", "kappa", 
                                               "psiA", "psiR", "lambda"), 1] == "fixed")
       val.pars <- model$parameters.summary[c("tausq", "kappa", 
                                              "psiA", "psiR", "lambda"), 2]
     }
-    if(model$method == "OLS" | model$method == "WLS"){
+    if(any(model$method == c("OLS","WLS"))){
       fix.pars <- c(model$fix.nugget, model$fix.kappa,TRUE,TRUE,TRUE)
       val.pars <- c(model$nugget, model$kappa, 0, 1, model$lambda)
     }
@@ -193,7 +194,8 @@
     names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
     res <- krige.conv(coords = coords, data = data, loc = locations.xvalid,
                       krige = krige.control(trend.d = ~xmat + 0,
-                        trend.l = ~trend.spatial(trend = model$trend, geodata = list(coords=locations.xvalid)) + 0,
+                        trend.l = ~trend.spatial(trend = model$trend,
+                                                 geodata = list(coords=locations.xvalid)) + 0,
                         cov.model = model$cov.model, 
                         cov.pars = model$cov.pars, nugget = model$nugget, 
                         kappa = val.pars["kappa"], lambda = val.pars["lambda"], 

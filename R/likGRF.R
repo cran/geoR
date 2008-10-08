@@ -7,7 +7,7 @@
 ##    - methods for class likGRF
 ##    - some other functions
 
-"check.parameters.values" <- function(list)
+"check.parameters.values" <- function(list, messages = TRUE)
 {
   if(!is.null(list$nugget))
     if(list$nugget < 0) stop("value for nugget must be non-negative")
@@ -32,8 +32,10 @@
           stop("for the stable model the kappa must be within (0,2]")          
       }
     }
-    else
-      cat(paste("kappa not used for the",list$cov.model, "correlation function\n"))
+    else{
+      if(messages)
+        cat(paste("kappa not used for the",list$cov.model, "correlation function\n"))
+    }
   }
   return(invisible())
 }
@@ -80,7 +82,7 @@
   if(fix.kappa) fixed.pars$kappa <- kappa
   if(fix.psiA) fixed.pars$psiA <- psiA
   if(fix.psiR) fixed.pars$psiR <- psiR
-  check.parameters.values(list=fixed.pars)
+  check.parameters.values(list=fixed.pars, messages = messages)
   if(cov.model == "matern" & all(kappa == 0.5)) cov.model <- "exponential"
   temp.list$cov.model <- cov.model
   if(cov.model == "powered.exponential")
@@ -91,10 +93,10 @@
   ## Likelihood method
   ##
 #####
-##### temporary code back compatibility to argumet method
+##### temporary code back compatibility for argument "method"
   lik.MET <- c("ML", "ml", "RML", "REML", "rml", "reml")
   MET <- pmatch(names(ldots), "method") == 1
-  if(any(MET) && (ldots[[which(MET)]] %in% lik.MET)){
+  if(!is.na(MET) && any(MET) && (ldots[[which(MET)]] %in% lik.MET)){
     warning("argument \"method\" has changed and is now used as an argument to be passed to optim(). Use \"lik.method\" to define the likelihood method")
     lik.method <- lik.MET[pmatch(ldots[[which(MET)]], lik.MET)]
     ldots[which(as.logical(pmatch(names(ldots), "method", nomatch=0)))] <- NULL
@@ -130,9 +132,14 @@
     realisations <- as.factor(rep(1, n))
   else{
     if(!missing(geodata)){
-      real.name <- deparse(substitute(realisations))
-      if(!is.null(geodata[[real.name]]))
-        realisations <- geodata$realisations
+        real.name <- deparse(substitute(realisations))
+        if(all(isTRUE(as.logical(real.name))))
+          if(is.null(geodata$realisations)) stop("element realisation not available in the geodata object")
+          else realisations <- geodata$realisations
+      else{
+        if(!is.null(geodata[[real.name]]))
+          realisations <- geodata[[real.name]]
+      }
     }
     if(length(realisations) != n)
       stop("realisations must be a vector with the same length of the data")
@@ -188,7 +195,7 @@
     if(messages.screen) cat("likfit: searching for best initial value ...")
     ini.temp <- matrix(ini.cov.pars, ncol=2)
     grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
-    .likGRF.dists.vec <<- lapply(split(as.data.frame(coords), realisations), vecdist)
+    assign(".likGRF.dists.vec",  lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
     temp.f <- function(parms, coords, data, temp.list)
       return(loglik.GRF(geodata = geodata,
                         coords = coords, data = as.vector(data),
@@ -256,7 +263,7 @@
     if(psiR != 1 | psiA != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
       assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
-    range.dist <- range(.likGRF.dists.vec)
+    range.dist <- range(get(".likGRF.dists.vec", pos=1))
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
   }
@@ -375,38 +382,34 @@
   ##
   ## Numerical minimization of the -loglikelihood
   ##
-  if(is.R()){
-    if(length(ini) == 1){
-      if(upper.optim == Inf) upper.optim <- 50*max.dist
-      lik.minim <- do.call("optimize", c(list(.negloglik.GRF,
-                                              lower=lower.optim,
-                                              upper=upper.optim,
-                                              fp=fixed.values,
-                                              ip=ip, temp.list = temp.list), ldots))
-      lik.minim <- list(par = lik.minim$minimum,
-                        value = lik.minim$objective,
-                        convergence = 0,
-                        message = "function optimize used")      
-    }
-    else{
-      MET <- pmatch(names(ldots), names(formals(optim)))
-      if(is.na(MET) || all(names(formals(optim))[MET] != "method"))
-        ldots$method <- "L-BFGS-B"
-      if(!is.null(ldots$method) && ldots$method == "L-BFGS-B"){
-        ldots$lower <- lower.optim
-        ldots$upper <- upper.optim
-      }
-      lik.minim <- do.call("optim", c(list(par = ini, fn = .negloglik.GRF,
-                                           fp=fixed.values, ip=ip, temp.list = temp.list), ldots))
-      ##      lik.minim <- optim(par = ini, fn = .negloglik.GRF, method=optim.METHOD
-      ##                         lower=lower.optim, upper=upper.optim,
-      ##                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
-    }
+  if(length(ini) == 1){
+    if(upper.optim == Inf) upper.optim <- 50*max.dist
+    lik.minim <- do.call("optimize", c(list(.negloglik.GRF,
+                                            lower=lower.optim,
+                                            upper=upper.optim,
+                                            fp=fixed.values,
+                                            ip=ip, temp.list = temp.list), ldots))
+    lik.minim <- list(par = lik.minim$minimum,
+                      value = lik.minim$objective,
+                      convergence = 0,
+                      message = "function optimize used")      
   }
   else{
-    lik.minim <- nlminb(ini, .negloglik.GRF,
-                        lower=lower.optim, upper=upper.optim,
-                        fp=fixed.values, ip=ip, temp.list = temp.list, ...)
+    MET <- pmatch(names(ldots), names(formals(optim)))
+    if(is.na(MET) || all(names(formals(optim))[MET] != "method"))
+      ldots$method <- "L-BFGS-B"
+    if(!is.null(names(ldots))){
+      names(ldots)[which(as.logical(pmatch(names(ldots), "method", nomatch=0)))] <- "method"
+    }
+    if(!is.null(ldots$method) && ldots$method == "L-BFGS-B"){
+      ldots$lower <- lower.optim
+      ldots$upper <- upper.optim
+    }
+    lik.minim <- do.call("optim", c(list(par = ini, fn = .negloglik.GRF,
+                                         fp=fixed.values, ip=ip, temp.list = temp.list), ldots))
+    ##      lik.minim <- optim(par = ini, fn = .negloglik.GRF, method=optim.METHOD
+    ##                         lower=lower.optim, upper=upper.optim,
+    ##                         fp=fixed.values, ip=ip, temp.list = temp.list, ...)
   }
   ##
   if(messages.screen) cat("likfit: end of numerical maximisation.\n")
@@ -1162,23 +1165,23 @@
                   log.det.to.half = (n/2) * log(1+tausq))
     }
     else
-      v <- varcov.spatial(dists.lowertri = .likGRF.dists.vec[[i]],
+      v <- varcov.spatial(dists.lowertri = get(".likGRF.dists.vec", pos=1)[[i]],
                           cov.model = temp.list$cov.model, kappa=kappa,
                           nugget = tausq, cov.pars=c(sigmasq, phi),
                           det = TRUE)
     if(!is.null(v$crash.parms)) return(.Machine$double.xmax^0.5)
     ivx <- solve(v$varcov,xmat)
     xivx <- crossprod(ivx,xmat)
-    betahat <- .solve.geoR(xivx,crossprod(ivx,z))
+    betahat <- try(.solve.geoR(xivx,crossprod(ivx,z)))
     if(inherits(betahat, "try-error")){
       t.ei <- eigen(xivx, symmetric = TRUE)
       require(methods)
       if(exists("trySilent"))
-        betahat <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% xivy)
+        betahat <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z))
       else{
         error.now <- options()$show.error.message
         options(show.error.messages = FALSE)
-        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% xivy)
+        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z))
         if(is.null(error.now) || error.now) options(show.error.messages = TRUE)        
       }
     }
@@ -1470,7 +1473,7 @@
       xx.eigen <- eigen(crossprod(xmat[[i]]), symmetric = TRUE, only.values = TRUE)
       negloglik <- negloglik + ((n-beta.size)/2)*(log(2*pi)) - 0.5 * sum(log(xx.eigen$values))
     }
-    sumnegloglik <- sumnegloglik + negloglik 
+    sumnegloglik <- sumnegloglik + negloglik
   }
   sumnegloglik <- sumnegloglik - log.jacobian
   if(sumnegloglik > (.Machine$double.xmax^0.5))
@@ -1500,22 +1503,22 @@
     if (temp.list$minimisation.function == "nlm"){
       assign(".temp.lower.lambda",-2, pos=1)
       assign(".temp.upper.lambda", 2, pos=1)
-      results <- nlm(proflik.lambda, 1, ...)
+      results <- nlm(.proflik.lambda, 1, ...)
       if(exists(".temp.lambda")){
-        results$lambda <- .temp.lambda
+        results$lambda <- get(".temp.lambda", pos=1)
         remove(".temp.lambda", pos=1, inherits = TRUE)
       }
       else{
         results$lambda <- results$estimate
       }
-      rm(.temp.lower.lambda, .temp.upper.lambda, inherits = TRUE, pos=1)
+      remove(".temp.lower.lambda", ".temp.upper.lambda", inherits = TRUE, pos=1)
     }
     if (temp.list$minimisation.function == "nlmP"){
-      results <- nlmP(proflik.lambda, 1, lower=-2, upper=2,...)  
+      results <- .nlmP(.proflik.lambda, 1, lower=-2, upper=2,...)  
       results$lambda <- results$estimate
     }
     if (temp.list$minimisation.function == "optim"){
-      results <- optim(1, proflik.lambda, method="L-BFGS-B", lower=-2, upper=2,...)
+      results <- optim(1, .proflik.lambda, method="L-BFGS-B", lower=-2, upper=2,...)
       results$minimum <- results$value
       results$lambda <- results$par
     }

@@ -404,9 +404,9 @@
       
       return(madparamsX)
     }
-  
-  madtonormalQQ <<- function(madparamsX)
-    {
+#  madtonormalQQ <<- function(madparamsX)
+  "madtonormalQQ" <- function(madparamsX)
+  {
       normalparamsX <- madparamsX
       
       if(any(.bounds.list$bothlimQQ)) {
@@ -425,24 +425,25 @@
         normalparamsX[.bounds.list$upperonlyQQ] <-
           - exp(madparamsX[.bounds.list$upperonlyQQ]) + .bounds.list$uoneQQ
       
-      if(exists(".ind.prof.phi"))
-        if(is.nan(normalparamsX[.ind.prof.phi]))
-          normalparamsX[.ind.prof.phi] <- 0
+      if(exists(get(".ind.prof.phi", pos=1)))
+        if(is.nan(normalparamsX[get(".ind.prof.phi", pos=1)]))
+          normalparamsX[get(".ind.prof.phi", pos=1)] <- 0
       
       return(normalparamsX)
     }
   
   newobjfunc <- function(madparams) {
-    normalparams <-  madtonormalQQ(madparams)
+    normalparams <-  get("madtonormalQQ", pos=1)(madparams)
     
-    .objfuncQQ(normalparams)
+    get(".objfuncQQ", pos=1)(normalparams)
     
   }
-  
+  assign("madtonormalQQ", madtonormalQQ, pos=1)
+
   startmadparams <- normaltomad(params)
   result <- nlm(newobjfunc, startmadparams, ...)
   result$madestimate <- result$estimate
-  result$estimate <- madtonormalQQ(result$madestimate)
+  result$estimate <- get("madtonormalQQ", pos=1)(result$madestimate)
   remove(".bounds.list", pos=1, inherits=TRUE)
   remove(".objfuncQQ", pos=1, inherits=TRUE)
   remove("madtonormalQQ", pos=1, inherits=TRUE)

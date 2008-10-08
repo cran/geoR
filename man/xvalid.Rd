@@ -8,17 +8,17 @@
 \concept{cross-validation}
 
 
-\title{Cross-validation using kriging}
+\title{Cross-validation by kriging}
 
 \description{
-  This is a function to perform model validation
-  Options include \emph{leaving-one-out} cross-validation where.
+  A function to perform model validation by comparing observed and
+  values predicted by kriging.
+  Options include: (i) \emph{leaving-one-out} cross-validation where
   each data location is removed from the data set and the variable at
-  this location is predicted using the remaining locations, for as given
-  model. This can be done for all or some of the locations.
-  Alternativelly, other validation locations which
-  are not the same as the
-  original data locations can be used.   
+  this location is predicted using the remaining locations, for a given
+  model. This can be computed for all or a subset of the data locations;
+  (ii) \emph{external validation} can be performed by using
+  validation locations other than data locations.
 }
 
 \usage{
@@ -57,16 +57,18 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
       TRUE}. Specifies whether the re-estimated parameters are returned.  }
   \item{locations.xvalid}{there are three possible specifications for
     this argument: \code{"all"} indicates the \emph{leaving-on-out}
-    method is used. The second possibility is to use only a sub-set of
-    the data for cross-validation. For this case  a vector should be
-    provided with numbers indicating at which locations the
+    method is used at all data locations.
+    The second possibility is to use only a sub-set of
+    the data for cross-validation in which case the argument takes
+    a vector with numbers (indexes) indicating at which of the data locations the
     cross-validation should be performed. The third option is to perform
-    validation on a different set of data. For this a matrix with the
-    coordinates of the validation points should be provided and the the
-    argument \code{locations.data} should also be provided.  }
+    external validation, on locations other than data locations used for
+    the model. For the latter a matrix with the
+    coordinates of the validation points should be provided and the
+    argument \code{data.xvalid} mandatory.  }
   \item{data.xvalid}{data values at the validation locations.
-    Only used if the validation locations are not the same or a
-    subset of the original data coordinates.  }
+    Only used if the validation locations are other than the data
+    locations.  }
   \item{messages}{logical. Indicates whether
     status messages should be printed on the screen (or output device)
     while the function is running.  }
@@ -75,15 +77,16 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
 }
 
 \details{
-  The cross-validation uses the function \code{krige.conv} to predict
-  at each location.
+  The cross-validation uses internally the function \code{krige.conv}
+  to predict at each location.
   
   For models fitted by \code{\link{variofit}} the
   parameters \eqn{\kappa}{kappa}, \eqn{\psi_A}{psiA}, \eqn{\psi_R}{psiR}
-  and \eqn{\lambda}{lambda} are always regarded as fixed.
+  and \eqn{\lambda}{lambda} are always regarded as fixed when
+  reestimating the model.
   
-  See documentation of the function \code{\link{likfit}} for more
-  details on the model and its parameters.
+  See documentation of the function \code{\link{likfit}} for further
+  details on the model specification and parameters.
 }
 
 \value{
@@ -91,7 +94,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
   \item{data}{the original data.  }
   \item{predicted}{the values predicted by cross-validation.  }
   \item{krige.var}{the cross-validation prediction variance.  }
-  \item{error}{difference \code{data - predicted}.   }
+  \item{error}{the differences \code{data - predicted value}.   }
   \item{std.error}{the errors divided by the square root of the
     prediction variances.  }
   \item{prob}{the cumulative probability at original value under a
@@ -101,7 +104,7 @@ xvalid(geodata, coords = geodata$coords, data = geodata$data,
   and standard errors.
   
   If \code{reestimate = TRUE} and \code{output = TRUE} additional
-  columns are added to the data-frame. Each column will contain the
+  columns are added to the resulting data-frame with the
   values of the re-estimated parameters.
 }
 

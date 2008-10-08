@@ -1645,7 +1645,7 @@
     if(round(max(1e08 * discrete.diff)) != round(min(1e08 * discrete.diff)))
       stop("prior.control: the current implementation requires equally spaced values in the argument `tausq.rel.discrete`\n")
   }
-  if(any(tausq.rel.discrete) < 0)
+  if(any(tausq.rel.discrete < 0))
     stop("prior.control: negative values not allowed for parameter tausq.rel")
   ##
   ## Further checks on dimensions
@@ -1842,7 +1842,7 @@
   ##
   if(!is.null(quantile.estimator)){
     if(mode(quantile.estimator) == "numeric")
-      if(any(quantile.estimator) < 0 | any(quantile.estimator) > 1)
+      if(any(quantile.estimator < 0) | any(quantile.estimator > 1))
         stop("output.control: quantiles indicators must be numbers in the interval [0,1]\n")
     if(all(quantile.estimator == TRUE))
       quantile.estimator <- c(0.025, 0.5, 0.975)
@@ -2030,13 +2030,13 @@
     phi.discrete <- prior$phi.discrete
     tausq.rel.discrete <- prior$tausq.rel.discrete
     both.discrete <- expand.grid(phi.discrete, tausq.rel.discrete)
-    "prob.discrete" <- function(phi.discrete, tausq.discrete, prior){
+    "prob.discrete" <- function(phi.d, tausq.rel.d, prior){
       if(all(prior$phi.prior == "user"))
         pd <- prior$priors.info$phi$probs
-      else pd <- phi.discrete
+      else pd <- phi.d
       if(all(prior$tausq.rel.prior == "user"))
         td <- prior$priors.info$tausq.rel$probs
-      else td <- tausq.rel.discrete
+      else td <- tausq.rel.d
       probs <- switch(prior$phi.prior,
                       user = outer(pd, td, function(x,y){x}),
 #                      uniform = outer(pd, td, function(x,y){x-x+1}),
@@ -2056,8 +2056,9 @@
       }
       return(probs/sum(probs))
     }
-    both.discrete$probs <- as.vector(prob.discrete(phi.discrete = phi.discrete,
-                                                   tausq.discrete = tausq.discrete,
+    both.discrete$probs <- as.vector(prob.discrete(phi.d = phi.discrete,
+#                                                   tausq.discrete = tausq.discrete,
+                                                   tausq.rel.d = tausq.rel.discrete,
                                                    prior = prior))
     n.points <- nrow(both.discrete)
     ind <- sample((1:n.points), n, replace = TRUE,
@@ -2392,7 +2393,7 @@
     y <- as.vector(x$posterior$sample[[ipar]])
     ymax <- 0
     if(histogram){
-      res$histogram[[ipar]] <- plH <- hist(y, prob = FALSE, plot = FALSE, ...)
+      res$histogram[[ipar]] <- plH <- hist(y, plot = FALSE, ...)
       ymax <- max(plH$dens)
     }
     if(density.est){

@@ -123,14 +123,17 @@
                      kappa=CM$kappa["kappa0"])
     FpEinv <- crossprod(F,Einv$inverse)
     Dinv <- solve(H - FpEinv %*% F)
-#    Dinv <- solve(H-crossprod(crossprod(Einv$sqrt,F)))
     S[(n1+1):n,(n1+1):n] <- Dinv
-    S[(n1+1):n, (1:n1)] <- - Dinv %*% FpEinv 
+    S[(n1+1):n, (1:n1)] <- - Dinv %*% FpEinv
     S[1:n1, (n1+1):n] <- t(S[(n1+1):n, (1:n1)])
-    S[1:n1,1:n1] <- Einv$inverse + crossprod(-S[(n1+1):n,(1:n1)],
-                                             FpEinv)
-    if(det)
-      attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - log(det(Dinv))
+    S[1:n1,1:n1] <- Einv$inverse + crossprod(-S[(n1+1):n,(1:n1)], FpEinv)
+    #if(det){
+    #  detDinv <- det(Dinv)
+    #  if(detDinv <= 0) attr(S, "logdetS") <- NaN
+    #  else attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - log(detDinv)
+    #}
+    if(det) attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - log(det(Dinv))
+    ## returning S^{-1}
     if(scaled)
       return(S)
     else
@@ -149,8 +152,8 @@
 {
   ## pars = c(eta, nu1, nu2, phi0, phi1, phi2)
   ##
-#  print(pars)
-  if(any(pars < 0)) return(-.Machine$double.xmax^0.5)
+  # print(pars)
+  if(any(pars[-1] < 0)) return(-.Machine$double.xmax^0.5)
 #  print("-----------------------------")
   if(length(cov.model) != 1 & length(cov.model) != 3)
     stop("cov.model must have length 1 or 3")
@@ -174,12 +177,14 @@
                       cov2.model = cov.model[3],
                       kappa0 = kappa[1], kappa1 = kappa[2], kappa2 = kappa[3],
                       scaled = TRUE, inv = TRUE, det=TRUE)
+  # if(is.nan(attributes(Sinv)$logdetS)) return(-.Machine$double.xmax^0.5)
   SinvX <- crossprod(Sinv,calcs$X)
-  QF <- sum(crossprod(calcs$y,Sinv)*calcs$y) -
-    (crossprod(calcs$y, SinvX) %*%
-     solve(crossprod(SinvX,calcs$X),crossprod(SinvX,calcs$y)))
-  loglik <- drop(-0.5*(log(2*pi) + attributes(Sinv)$logdetS +
-                       n*(1-log(n)+log(QF))))
+  QF <- sum(crossprod(calcs$y,Sinv)*calcs$y) - (crossprod(calcs$y, SinvX) %*%
+     solve(crossprod(SinvX,calcs$X), crossprod(SinvX,calcs$y)))
+  loglik <- drop(-0.5*(attributes(Sinv)$logdetS + n*(log(2*pi) + 1- log(n)+log(QF))))
+#  if(is.nan(attributes(Sinv)$logdetS) || QF < 0 || is.nan(loglik)){  
+#    print(c(pars, loglik))
+#  }
   return(loglik)
 }
 
@@ -263,7 +268,7 @@
   }
   if(fc.min == "optim"){
     if(!is.null(ldots$method) && ldots$method == "L-BFGS-B" && is.null(ldots$lower))
-      ldots$lower <- rep(0,6)
+      ldots$lower <- c(-Inf, rep(0,5))
     est <- do.call("optim", c(list(par=ini.pars, fn=.negloglikBGCCM,
                                    geodata1 = geodata1, geodata2 = geodata2,
                                    cov.model=CM$cov.model, kappa=CM$kappa,

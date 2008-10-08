@@ -3,6 +3,7 @@
 \alias{image.grf}
 \alias{contour.grf}
 \alias{persp.grf}
+\alias{.geoR_fullGrid}
 %- Also NEED an `\alias' for EACH other topic documented here.
 
 \title{Image, Contour or Perspective Plot of Simulated Gaussian Random Field}
@@ -10,13 +11,13 @@
 \description{
   Methods for image, contour or perspective plot of a
   realisation of a Gaussian
-  random field, simulated using the function \code{\link{grf}}.  
+  random field, simulated using the function \code{\link{grf}}.   
 }
 
 \usage{
-\method{image}{grf}(x, sim.number = 1, x.leg, y.leg, \dots)
-\method{contour}{grf}(x, sim.number = 1, filled = FALSE, \dots)
-\method{persp}{grf}(x, sim.number = 1, \dots)
+\method{image}{grf}(x, sim.number = 1, borders, x.leg, y.leg, \dots)
+\method{contour}{grf}(x, sim.number = 1, borders, filled = FALSE, \dots)
+\method{persp}{grf}(x, sim.number = 1, borders, \dots)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -27,6 +28,8 @@
     Indicates the number of the simulation top be plotted.
     Only valid if the object contains more than one simulation.
     Defaults to 1.  }
+  \item{borders}{optional. Typically a two coluns matrix especifying a
+    polygon. Points outside the borders will be set no \code{NA} }
   \item{x.leg, y.leg}{limits for the legend in the horizontal and vertical directions.  }
   \item{filled}{logical. If \code{FALSE} the function
     \code{\link{contour}} is used otherwise

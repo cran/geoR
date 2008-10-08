@@ -90,7 +90,9 @@ sample.posterior        Samples from the posterior distribution
 sample.prior            Sample the prior distribution
 set.coords.lims         Sets Limits to Scale Plots
 SIC                     Spatial Interpolation Comparison data
-soil                    Soil chemistry properties data set
+soil250                 Soil chemistry properties data set
+soja98                  Soya bean production and other variables in a
+                        uniformity trial
 statistics.predictive   Summary statistics from predictive
                         distributions
 subarea                 Selects a Subarea from a Geodata Object
@@ -115,4 +117,5 @@ variog.model.env        Envelops for Empirical Variograms Based on
 wo                      Kriging example data from Webster and Oliver
 wolfcamp                Wolfcamp Aquifer Data
 wrappers                Wrappers for the C functions used in geoR
-xvalid                  Cross-validation using kriging
+wrc                     Points of a water retention curve data set
+xvalid                  Cross-validation by kriging

@@ -41,6 +41,7 @@
             kappa = 0.5, nugget = 0, lambda = 1, aniso.pars = NULL, mean = 0, 
             method, RF = TRUE, messages) 
 {
+  ## checking input options
   call.fc <- match.call()
   if (missing(messages)) 
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), 
@@ -51,7 +52,7 @@
     runif(1)
   }
   rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  ##
+  ## model setup
   cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if (cov.model == "stable") cov.model <- "powered.exponential"
   if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
@@ -68,36 +69,46 @@
   }
   sill.total <- tausq + sum(sigmasq)
   messa <- .grf.aux1(nst, nugget, sigmasq, phi, kappa, cov.model)
-  ## 
+  ## 1 or 2-D simulation
   results <- list(coords=NULL, data=NULL)
+  ##
   if ((!missing(nx) && nx == 1) | (!missing(ny) && ny == 1) | 
       diff(xlims) == 0 | diff(ylims) == 0) {
     sim1d <- TRUE
     if (messages.screen) cat("simulations in 1D\n")
   }
   else sim1d <- FALSE
-  if(mode(grid) == "character"){ 
+  ## setting locations for simulation 
+  if(mode(grid) == "character"){
     grid <- match.arg(grid, choices = c("irreg", "reg"))
+    attr(results, "grid") <- grid    
     if(!missing(borders) & !sim1d){
       if(!require(splancs))
         stop("package splancs is required to simulate within borders provided by the user")
       results$borders <- borders
-      if(grid == "irreg") grid <- splancs::csr(poly=borders, npoints=n)
+      if(grid == "irreg") results$coords  <- splancs::csr(poly=borders, npoints=n)
       else{
-        if(!missing(nx) && !missing(nx)){
+        if(!missing(nx) && !missing(ny)){
           bb <- bbox(borders)
-          grid <- gridpts(poly=borders, xs = diff(bb[1,])/(nx-1),
-                                    ys=diff(bb[1,])/(nx-1))
+          results$coords  <- splancs::gridpts(poly=borders, xs = diff(bb[1,])/(nx-1),
+                                              ys=diff(bb[1,])/(nx-1))
         }
-        else grid <- splancs::gridpts(poly=borders, npts=n)
+        else results$coords  <- splancs::gridpts(poly=borders, npts=n)
+        xgrid <- round(sort(unique(results$coords[,1])), dig=12)
+        ygrid <- round(sort(unique(results$coords[,2])), dig=12)
+        attr(results, "xgrid") <- c(range(xgrid),unique(diff(xgrid)))
+        attr(results, "ygrid") <- c(range(ygrid),unique(diff(ygrid)))
+        names(attr(results, "xgrid")) <- c("xmin", "xmax", "xstep")
+        names(attr(results, "ygrid")) <- c("ymin", "ymax", "ystep")
       }
     }
   }
-  if (is.matrix(grid) | is.data.frame(grid)) {
+  else{
     results$coords <- as.matrix(grid)
-    if (messages.screen) cat("grf: simulation on locations provided by the user\n")
+    if (messages.screen) cat("grf: simulation on a set of locations provided by the user\n")
   }
-  else {
+  if (!is.matrix(results$coords) & !is.data.frame(results$coords)) {
+    ## isto aqui nunca é chamado e pode ser eliminado???
     if (missing(nx)) {
       if (sim1d) nx <- ifelse(diff(xlims) == 0, 1, n)
       else nx <- ifelse((mode(grid)=="character" && grid=="reg"), round(sqrt(n)), n)
@@ -114,8 +125,8 @@
                   n, " points\n"))
     }
     else {
-      xpts <- seq(xlims[1], xlims[2], l = nx)
-      ypts <- seq(ylims[1], ylims[2], l = ny)
+      xpts <- seq(xlims[1], xlims[2], length = nx)
+      ypts <- seq(ylims[1], ylims[2], length = ny)
       xspacing <- ifelse(length(xpts) == 1, 0, diff(xpts[1:2])) 
       yspacing <- ifelse(length(ypts) == 1, 0, diff(ypts[1:2]))
       results$coords <- as.matrix(expand.grid(x = xpts, y = ypts))
@@ -123,6 +134,8 @@
       if (messages.screen) 
         cat(paste("grf: generating grid ", nx, " * ", 
                   ny, " with ", (nx * ny), " points\n"))
+      attr(results, "xgrid") <- c(xmin = xlims[1], xmax = xlims[2], xstep = xspacing)
+      attr(results, "ygrid") <- c(ymin = ylims[1], ymax = ylims[2], ystep = yspacing)
     }
     if(!sim1d & missing(borders)){
       lbor <- as.matrix(expand.grid(xlims, ylims))
@@ -172,14 +185,14 @@
   else {
     if (method == "RF") {
       require(RandomFields)
-      setRF <<- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
-                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
+      assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
       if (!exists("xpts") || is.null(xpts)){
         results$data <- RandomFields::GaussRF(x = results$coords[, 1],y = results$coords[, 2],
-                                model = setRF, grid = FALSE, n = nsim)
+                                model = get("setRF", pos=1), grid = FALSE, n = nsim)
       }
       else{
-        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = setRF,
+        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = get("setRF", pos=1),
                                             grid = TRUE, n = nsim), ncol = nsim))
       }
     }
@@ -217,24 +230,17 @@
   if (messages.screen) 
     cat(paste("grf: End of simulation procedure. Number of realizations:", 
               nsim, "\n"))
-  results <- c(results, list(cov.model = cov.model, nugget = nugget, 
-                             cov.pars = cov.pars, kappa = kappa, lambda = lambda, 
-                             aniso.pars = aniso.pars, method = method, .Random.seed = rseed, 
-                             messages = messa, call = call.fc))
-  if (mode(grid) == "character" && grid == "reg") {
-    if (equal.spacing) 
-      attr(results, "spacing") <- xspacing
-    else {
-      attr(results, "xspacing") <- xspacing
-      attr(results, "yspacing") <- yspacing
-    }
-  }
+  results[c("cov.model", "nugget", "cov.pars", "kappa", "lambda", "aniso.pars", "method",
+            ".Random.seed", "messages", "call")] <- 
+              list(cov.model, nugget, cov.pars, kappa = kappa, lambda = lambda, aniso.pars, 
+                   method, rseed,  messa, call.fc)
+  attr(results, "borders") <- call.fc$borders
   attr(results, "sp.dim") <- ifelse(sim1d, "1d", "2d")
   oldClass(results) <- c("grf", "geodata", "variomodel")
   return(results)
 }
 
-
+              
 ".grf.aux1" <-
   function (nst, nugget, sigmasq, phi, kappa, cov.model) 
 {
@@ -276,105 +282,139 @@
   return(invisible())
 }
 
+".geoR_fullGrid" <-
+  function(x, borders)
+{
+  xgrid <- seq(attr(x, "xgrid")["xmin"], attr(x, "xgrid")["xmax"],
+               by=attr(x, "xgrid")["xstep"])
+  ygrid <- seq(attr(x, "ygrid")["ymin"], attr(x, "ygrid")["ymax"],
+               by=attr(x, "ygrid")["ystep"])
+  data2plot <- rep(NA, length(xgrid)*length(ygrid))
+  data2plot[.geoR_inout(expand.grid(xgrid, ygrid), borders)] <- x$data
+  return(data2plot)
+}
+
 "image.grf" <-
-  function (x, sim.number = 1, x.leg, y.leg, ...) 
+  function (x, sim.number = 1, borders, x.leg, y.leg, ...) 
 {
   ##
   ## this seems to cause problems overlapping maps
   ##op <- par(no.readonly=TRUE)
   ##on.exit(par(op))
   ##
-  x1vals <- unique(round(x$coords[,1], dig=12))
-  x2vals <- unique(round(x$coords[,2], dig=12))
+  x1vals <- sort(unique(round(x$coords[,1], dig=12)))
+  x2vals <- sort(unique(round(x$coords[,2], dig=12)))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
+  if(is.vector(x$data)){
+    if(sim.number != 1) stop("there is just one simulation in the object")
+  }
+  else
+    x$data <- x$data[,sim.number]
+  n <- length(x$data)
   ##
   ## Plotting simulations in 1-D
   ##
-  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
-    do.call("plot.1d", c(list(x = x,
-                              x1vals = x1vals),
-                         .ldots.set(ldots, type="plot.1d",
-                                   data="simulation")))
-  }
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1)
+    do.call("plot.1d", c(list(x = x, x1vals = x1vals),
+                         .ldots.set(ldots, type="plot.1d", data="simulation")))
   else{
     ##
     ## Plotting simulations in 2-D
     ##
-    ## Checking for retangular grid
+    ## Checking for rectangular grid
     ##
-    x$data <- as.matrix(x$data)
-    n <- nrow(x$data)
-    if (nx * ny != n) 
-      stop("cannot produce image plot probably due to irregular grid of locations")
+    if(is.null(attr(x, "grid")) || attr(x, "grid") != "reg")
+      stop("cannot produce image plot, probably you've got an irregular grid of locations")
     ##
     ## Preparing image plot elements
     ##
-    do.call("image", c(list(x=x1vals, y=x2vals,
-                            z=matrix(x$data[, sim.number], nc=ny)),
-                       .ldots.set(ldots, type="image",
-                                 data="simulation")))
+    if(missing(borders))
+      borders <-  eval(attr(x, "borders"), envir= attr(x, "parent.env"))
+    if (!is.null(borders)){
+      if(nx * ny == n)
+        x$data[!.geoR_inout(x$coords, borders)] <- NA
+      else
+        x$data <- .geoR_fullGrid(x = x, borders = borders)
+    }
+    do.call("image", c(list(x=x1vals, y=x2vals, z=matrix(x$data, nc=ny)),
+                       .ldots.set(ldots, type="image", data="simulation")))
     ##
     ## Adding the legend (if the case)
     ##
     if(!missing(x.leg) && !missing(y.leg)){
       if(is.null(ldots$col)) ldots$col <- heat.colors(12)
-      do.call("legend.krige", c(list(x.leg=x.leg,
-                                     y.leg=y.leg,
-                                     values = x$data[, sim.number]),
-                                     ldots))
+      do.call("legend.krige", c(list(x.leg=x.leg, y.leg=y.leg,
+                                     values = x$data), ldots))
     }
+    if(!is.null(borders)) polygon(borders)
   }
   return(invisible())
 }
 
 "persp.grf" <- 
-  function(x, sim.number = 1, ...)
+  function(x, sim.number = 1, borders, ...)
 {
   x1vals <- unique(round(x$coords[,1], dig=12))
   x2vals <- unique(round(x$coords[,2], dig=12))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
-  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
-    do.call("plot.1d", c(list(x = x,
-                              x1vals = x1vals),
-                       .ldots.set(ldots, type="plot.1d",
-                                 data="simulation")))
+  if(is.vector(x$data)){
+    if(sim.number != 1) stop("there is just one simulation in the object")
   }
+  else
+    x$data <- x$data[,sim.number]
+  n <- length(x$data)
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1)
+    do.call("plot.1d", c(list(x = x, x1vals = x1vals),
+                       .ldots.set(ldots, type="plot.1d", data="simulation")))
   else{
-    x$data <- as.matrix(x$data)
-    n <- nrow(x$data)
-    if(nx * ny != n)
-      stop("cannot produce perspective plot, probably irregular grid")
-    do.call("persp", c(list(x=x1vals, y=x2vals,
-                            z=matrix(x$data[, sim.number], ncol = ny)),
-                       .ldots.set(ldots, type="persp",
-                                 data="simulation")))
+    if(is.null(attr(x, "grid")) || attr(x, "grid") != "reg")
+      stop("cannot produce persp plot, probably you've got an irregular grid of locations")
+    if(missing(borders))
+      borders <-  eval(attr(x, "borders"), envir= attr(x, "parent.env"))
+    if (!is.null(borders)){
+      if(nx * ny == n)
+        x$data[!.geoR_inout(x$coords, borders)] <- NA
+      else
+        x$data <- .geoR_fullGrid(x = x, borders = borders)
+    }
+    do.call("persp", c(list(x=x1vals, y=x2vals, z=matrix(x$data, ncol = ny)),
+                       .ldots.set(ldots, type="persp", data="simulation")))
   }
   return(invisible())
 }
 
 "contour.grf" <- 
-  function(x, sim.number = 1, filled = FALSE, ...)
+  function(x, sim.number = 1, borders, filled = FALSE, ...)
 {
   x1vals <- unique(round(x$coords[,1], dig=12))
   x2vals <- unique(round(x$coords[,2], dig=12))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
-  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1){
-    do.call("plot.1d", c(list(x = x,
-                              x1vals = x1vals),
-                       .ldots.set(ldots, type="plot.1d",
-                                 data="simulation")))
+  if(is.vector(x$data)){
+    if(sim.number != 1) stop("there is just one simulation in the object")
   }
+  else
+    x$data <- x$data[,sim.number]
+  n <- length(x$data)
+  if(attr(x, 'sp.dim') == "1d" | nx == 1 | ny == 1)
+    do.call("plot.1d", c(list(x = x, x1vals = x1vals),
+                       .ldots.set(ldots, type="plot.1d", data="simulation")))
   else{
-    x$data <- as.matrix(x$data)
-    n <- nrow(x$data)
-    if(nx * ny != n)
-      stop("cannot produce the countour plot, probably irregular grid")
+    if(is.null(attr(x, "grid")) || attr(x, "grid") != "reg")
+      stop("cannot produce contour plot, probably you've got an irregular grid of locations")
+    if(missing(borders))
+      borders <-  eval(attr(x, "borders"), envir= attr(x, "parent.env"))
+    if (!is.null(borders)){
+      if(nx * ny == n)
+        x$data[!.geoR_inout(x$coords, borders)] <- NA
+      else
+        x$data <- .geoR_fullGrid(x = x, borders = borders)
+    }
     if(filled)
       ldots.contour <- .ldots.set(ldots, type="filled.contour",
                                  data="prediction")
@@ -390,15 +430,14 @@
           if(!is.null(borders)) polygon(borders, lwd=2)
         })
       }
-      do.call("filled.contour", c(list(x=x1vals, y=x2vals,
-                                       z=matrix(x$data[, sim.number], ncol = ny)),
+      do.call("filled.contour", c(list(x=x1vals, y=x2vals, z=matrix(x$data, ncol = ny)),
                                   ldots.contour))
     }
     else{
-      do.call("contour", c(list(x=x1vals, y=x2vals,
-                                z=matrix(x$data[, sim.number], ncol = ny)),
+      do.call("contour", c(list(x=x1vals, y=x2vals, z=matrix(x$data, ncol = ny)),
                            ldots.contour))
     }
+    if(!is.null(borders)) polygon(borders)
   }
   return(invisible())
 }

@@ -304,7 +304,7 @@
   else dg <- direction
   if (missing(max.dist)) umax <- max(u)  
   else umax <- max(u[u < max.dist])
-  .variog4.nomessage <<- TRUE
+  assign(".variog4.nomessage", TRUE, pos=1)
   for(angle in direction){
     res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-
       variog(geodata=geodata,
@@ -755,7 +755,7 @@
   ## reading and checking model/other components
   fn.env <- sys.frame(sys.nframe())
   .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
-                  env=fn.env, output=FALSE)
+                   env=fn.env, output=FALSE)
   if(missing(nugget)){
     if(missing(x) || is.null(x$nugget)) 
       stop("argument nugget must be provided")
@@ -794,7 +794,7 @@
             vals <- vals + (cov.pars[i,1] * (x^cov.pars[i,2]))
           }
           else vals <- vals + cov.pars[i,1] - cov.spatial(x, cov.model = cov.model[i],
-                                                          kappa = kappa, cov.pars = cov.pars[i,])
+                                                          kappa = kappa[i], cov.pars = cov.pars[i,])
         }
         return(vals)
       }

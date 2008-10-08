@@ -23,44 +23,51 @@
   return(res)
 }
 
+
 "subset.geodata" <-
-  function(x, ..., other = TRUE)
+  function (x, ..., other = TRUE) 
 {
   xdf <- as.data.frame(x)
   attribs <- list(ncol.data = attributes(xdf)$ncol.data,
-                  ncol.covariate = attributes(xdf)$ncol.covariate)
+                            ncol.covariate = attributes(xdf)$ncol.covariate,
+                            ncol.units.m = attributes(xdf)$ncol.units.m,
+                            ncol.realisations = attributes(xdf)$ncol.realisations)
   xdf <- subset.data.frame(xdf, ...)
-  attr(xdf, "ncol.data") <- attribs$ncol.data
-  attr(xdf, "ncol.covariate") <- attribs$ncol.covariate
+  attributes(xdf) <- c(attributes(xdf), attribs)
   xdf <- as.geodata(xdf)
-  if(other)
-    xdf <- c(xdf, x[names(unclass(x))[!(names(unclass(x)) %in%
-  c("coords","data","units.m","covariate","realisations"))] ])
+  if (other) 
+    xdf <- c(xdf, x[names(unclass(x))[!(names(unclass(x)) %in% 
+                                        c("coords", "data", "units.m", "covariate", "realisations"))]])
   oldClass(xdf) <- "geodata"
   return(xdf)
 }
 
-
 "as.data.frame.geodata" <-
-  function(x, ..., borders = TRUE)
+  function (x, ..., borders = TRUE) 
 {
   xdf <- as.data.frame(x$coords)
-  if(is.vector(x$data)) xdf <- cbind(xdf, data=x$data)
+  if (is.vector(x$data)) 
+    xdf <- cbind(xdf, data = x$data)
   else xdf <- cbind(xdf, as.data.frame(x$data))
   nc0 <- nc1 <- ncol(xdf)
-  if(!is.null(x$units.m)){
-    xdf <- cbind(xdf, units.m = x$units.m)
-    nc1 <- nc1 + 1
-  }
-  if(!is.null(x$covariate)) xdf <- cbind(xdf, x$covariate)
-  nc2 <- ncol(xdf)
-  if(!is.null(x$realisation))
-    xdf <- cbind(xdf, realisations = x$realisations)
   attr(xdf, "ncol.data") <- 3:nc0
-  if(nc2>nc1)
-    attr(xdf, "ncol.covariate") <- (nc1+1):nc2
-  if(borders && !is.null(x$borders))
-     attr(xdf, "borders") <- x$borders
+  if (!is.null(x$units.m)) {
+    xdf$units.m <- x$units.m
+    nc1 <- nc1 + 1
+    attr(xdf, "ncol.units.m") <- which(names(xdf) == "units.m")
+  }
+  if (!is.null(x$realisation)){
+    xdf$realisations <- x$realisations
+    nc1 <- nc1 + 1
+    attr(xdf, "ncol.realisations") <- which(names(xdf) == "realisations")
+  }
+  if (!is.null(x$covariate)){
+    xdf <- cbind(xdf, x$covariate)
+    attr(xdf, "ncol.covariate") <- (nc1 + 1):ncol(xdf)
+  }
+  print(ncol(xdf))
+  if (borders && !is.null(x$borders)) 
+    attr(xdf, "borders") <- x$borders
   oldClass(xdf) <- c("geodata.frame", "data.frame")
   return(xdf)
 }
@@ -128,9 +135,9 @@
   df <- as.data.frame(coordinates(obj))
   if(ncol(df) > 2){
     if(is.null(list(...)$coords.col))
-      stop("geoR only works with 2D coordinates. Use argument coords.col to specify the positions of first and second coordinate")
+      stop("geoR only works with 2D coordinates. Pass extra argument coords.col to specify the positions of first and second coordinate")
     else
-      df <- df[,coords.col]
+      df <- df[,list(...)$coords.col]
   }
   df <- cbind(as.data.frame(obj@data), df)
   nc <- ncol(df)    
@@ -355,8 +362,7 @@
 #    data <- lm(data ~ xmat + 0)$residuals
 #    names(data) <- NULL
 #  }
-  if(!is.null(object$realisations) && by.realisations){
-#  if(!is.null(object$realisations)){
+  if(!is.null(object$realisations) && by.realisations && length(unique(object$realisations)) > 1){
     by2matrix <- function(x){
       x <- unclass(x)
       attributes(x) <- NULL
@@ -364,7 +370,6 @@
       x.n <- length(x)
       x <- matrix(unlist(x), nr=x.n, byrow=TRUE)
       colnames(x) <- x.names
-##      rownames(x) <- paste("real.", 1:x.n, sep="")
       rownames(x) <- real.names
       return(x)
     }
@@ -402,6 +407,8 @@
       res$covariate.summary <- by(object$covariate, real, summary)
       attr(res$covariate.summary, "dimnames") <- list(realisation = levels(real)) 
     }
+    res$duplicated.coords <- lapply(sort(unique(object$realisations)), function(x) dup.coords(eval(substitute(subset(object, realisations == z), list(z=x)))))
+    if(all(sapply(res$duplicated.coords, is.null))) res$duplicated.coords <- NULL
   }
   else{
     res$n <- nrow(object$coords)
@@ -418,6 +425,7 @@
       res$units.m.summary <- drop(apply(as.matrix(object$units.m), 2, summary))
     if(!is.null(object$covariate))
       res$covariate.summary <- summary(object$covariate)
+    res$duplicated.coords <- dup.coords(object)
   }
   if(!is.null(object$borders)){
     res$borders.summary <- apply(object$borders, 2, range)
@@ -426,7 +434,6 @@
   others.ind <- is.na(match(names(unclass(object)),
                             c("coords","data","covariate","borders",
                               "realisations", "units.m")))
-  res$duplicated.coords <- dup.coords(object)
   if(sum(others.ind) > 0)
     res$others <- names(unclass(object[others.ind]))
   oldClass(res) <- "summary.geodata"
@@ -563,6 +570,7 @@
     if(is.null(borders))
       coords.lims <- set.coords.lims(coords=coords)
     else{
+      borders <- as.matrix(as.data.frame(borders))
       if(ncol(borders) != 2)
         stop("argument borders must be an object with 2 columns with the XY coordinates of the borders of the area")
       coords.lims <- set.coords.lims(coords=rbind(as.matrix(coords), as.matrix(borders)))
@@ -735,6 +743,7 @@
   if (is.null(borders)) 
     coords.lims <- set.coords.lims(coords = coords)
   else {
+    borders <- as.matrix(as.data.frame(borders))
     if (ncol(borders) != 2) 
       stop("argument \"borders\" must be a 2 columns object with coordinates of the borders of the study area")
     coords.lims <- set.coords.lims(coords = rbind(as.matrix(coords), as.matrix(borders)))

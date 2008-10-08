@@ -115,7 +115,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \item{cov.model}{a string specifying the model for the correlation
     function. For further details see documentation for \code{\link{cov.spatial}}.
     Defaults are equivalent to the \emph{exponential} model.  }
-  \item{realisations}{optional. A vector indicating the number of replication
+  \item{realisations}{optional. Logical or a vector indicating the number of replication
     for each datum. For further information see \code{DETAILS} below and
     documentation for \code{\link{as.geodata}}. }
   \item{lik.method}{(formely method.lik) options are \code{"ML"} for maximum likelihood and \code{"REML"} for
@@ -245,15 +245,17 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   of an output of the functions \code{\link{eyefit}}, \code{\link{variofit}} or
   \code{\link{likfit}} be used as initial value.
 
-  The argument \bold{realisations} allows replicated data to be used.
-  For instance, data collected at different times at least partially
-  the same locations
-  can be pooled together in the parameter estimation if independence is
-  assumed between time points.
+  The argument \bold{realisations} allows sets of data \emph{assumed to be
+  independent} replications of the same process.
+  Data on different realisations may or may not be co-located.
+  For instance, data collected at different times
+  can be pooled together in the parameter estimation assuming
+  time independence.
   The argument \code{realisations} takes a vector indicating the
-  replication number (e.g. the times). The log-likelihoods are computed
-  for each replication and added together.\cr
-  \emph{Notice that this assumes independence among the replications}.
+  replication number (e.g. the times).
+  If \code{realisations = TRUE} the code looks for an element
+  named \code{realisations} in the \code{geodata} object.
+  The log-likelihoods are computed for each replication and added together.
 }
 
 

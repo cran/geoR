@@ -5,8 +5,7 @@
             kappa = 0.5, fix.lambda = TRUE, lambda = 1, method = "ML", 
             predicted = FALSE, residuals = FALSE, 
             minimisation.function = c("optim","nlmP", "nlm"),
-            automatic.refit = FALSE, range.limits,
-            messages = TRUE, ...) 
+            automatic.refit = FALSE, range.limits, messages = TRUE, ...) 
 {
   if(missing(messages))
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
@@ -113,13 +112,13 @@
                             fix.lambda = fix.lambda, n = n,
                             minimisation.function=minimisation.function), pos=1)
   if(fix.lambda == TRUE) {
-    .temp.list$lambda <<- lambda
-    .temp.list$log.jacobian <<- log.jacobian
+    eval(substitute(.temp.list$lambda <-  xxx, list(xxx=lambda)), env=.GlobalEnv)
+    eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log.jacobian)), env=.GlobalEnv)
   }
   if ((cov.model == "pure.nugget") | all(ini==0) ){  
     if(messages.screen == TRUE)
       cat("likfit: fitting model without spatial correlation\n")
-    lik.results <- likfit.nospatial(.temp.list, ...)
+    lik.results <- likfit.nospatial(get(".temp.list", pos=1), ...)
     if (fix.nugget == FALSE)
       temp.pars <- c(lik.results$tausqhat, 0, 0)
     else
@@ -206,14 +205,14 @@
           if(minimisation.function == "nlm"){
             lik.results <- nlm(.proflik.ftau, ini, ...)
             if(exists(".temp.sill")){
-              lik.results$estimate[1] <- .temp.sill
+              lik.results$estimate[1] <- get(".temp.sill")
               remove(".temp.sill", pos=1)
             }
             if(exists(".temp.phi")){
-              lik.results$estimate[2] <- .temp.phi
+              lik.results$estimate[2] <- get(".temp.phi")
               remove(".temp.phi", pos=1)
             }
-            rm(.temp.lower, inherits = TRUE, pos=1)
+            remove(".temp.lower", inherits = TRUE, pos=1)
           }
           if(minimisation.function == "nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
@@ -231,21 +230,21 @@
             assign(".temp.upper.lambda", 2, pos=1)
             lik.results <- nlm(.proflik.ftau, c(ini,lambda), ...)
             if(exists(".temp.sill")){
-              lik.results$estimate[1] <- .temp.sill
+              lik.results$estimate[1] <- get(".temp.sill")
               remove(".temp.sill", pos=1)
             }
             if(exists(".temp.phi")){
-              lik.results$estimate[2] <- .temp.phi
+              lik.results$estimate[2] <- get(".temp.phi")
               remove(".temp.phi", pos=1)
             }
             if(exists(".temp.lambda")){
-              lambda <- .temp.lambda
+              lambda <- get(".temp.lambda")
               remove(".temp.lambda", pos=1)
             }
             else{
               lambda <- lik.results$estimate[3]
             }
-            rm(.temp.lower, .temp.lower.lambda, .temp.upper.lambda, inherits = TRUE, pos=1)
+            remove(".temp.lower", ".temp.lower.lambda", ".temp.upper.lambda", inherits = TRUE, pos=1)
           }
           if(minimisation.function == "nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
@@ -274,14 +273,14 @@
             assign(".temp.lower", c(0, lower.phi), pos=1)
             lik.results <- nlm(.proflik.nug, ini.m, ...) 
             if(exists(".temp.nugget")){
-              lik.results$estimate[1] <- .temp.nugget
+              lik.results$estimate[1] <- get(".temp.nugget")
               remove(".temp.nugget", pos=1)
             }
             if(exists(".temp.phi")){
-              lik.results$estimate[2] <- .temp.phi
+              lik.results$estimate[2] <- get(".temp.phi")
               remove(".temp.phi", pos=1)
             }
-            rm(.temp.lower, inherits = TRUE, pos=1)
+            remove(".temp.lower", inherits = TRUE, pos=1)
           }
           if (minimisation.function=="nlmP"){
             if(ini.m[1] == 0) ini.m[1] <- 0.05
@@ -300,21 +299,21 @@
             assign(".temp.upper.lambda", 2, pos=1)
             lik.results <- nlm(.proflik.nug, c(ini.m, lambda), ...)
             if(exists(".temp.nugget")){
-              lik.results$estimate[1] <- .temp.nugget
+              lik.results$estimate[1] <- get(".temp.nugget")
               remove(".temp.nugget", pos=1)
             }
             if(exists(".temp.phi")){
-              lik.results$estimate[2] <- .temp.phi
+              lik.results$estimate[2] <- get(".temp.phi")
               remove(".temp.phi", pos=1)
             }
             if(exists(".temp.lambda")){
-              lambda <- .temp.lambda
+              lambda <- get(".temp.lambda")
               remove(".temp.lambda", pos=1)
             }
             else{
               lambda <- lik.results$estimate[3]
             }
-            rm(.temp.lower, .temp.lower.lambda,  .temp.upper.lambda, inherits = TRUE, pos=1)
+            remove(".temp.lower", ".temp.lower.lambda",  ".temp.upper.lambda", inherits = TRUE, pos=1)
           }
           if (minimisation.function=="nlmP"){
             assign(".ind.prof.phi", 2, pos=1)
@@ -341,17 +340,17 @@
             cat(paste("likfit: WARNING: ratio of estimates tau^2/sigma^2 < 0.01 (",round(lik.results$estimate[1], dig = 4), ")", sep = ""))
           cat("\n")
           reduce.pars <- 1
-          .temp.list$ftau <<- 0
-          .temp.list$fixtau <<- TRUE
+          eval(expression(.temp.list$ftau <- 0), env=.GlobalEnv)
+          eval(expression(.temp.list$fixtau <- TRUE), env=.GlobalEnv)
           if(fix.lambda == TRUE) {
             if (minimisation.function=="nlm"){
               assign(".temp.lower.phi", lower.phi, pos=1)
               lik.results <- nlm(.proflik.phi, ini[3],  ...)
               if(exists(".temp.phi")){
-                lik.results$estimate <- .temp.phi
+                lik.results$estimate <- get(".temp.phi")
                 remove(".temp.phi", pos=1)
               }
-              rm(.temp.lower, inherits = TRUE, pos=1)
+              remove(".temp.lower", inherits = TRUE, pos=1)
             }
             if (minimisation.function=="nlmP"){
               assign(".ind.prof.phi", 1, pos=1)
@@ -369,20 +368,20 @@
               assign(".temp.upper.lambda", 2, pos=1)
               lik.results <- nlm(.proflik.phi, c(ini[3], lambda), ...)
               if(exists(".temp.lambda")){
-                lambda <- .temp.lambda
+                lambda <- get(".temp.lambda")
                 remove(".temp.lambda", pos=1)
               }
               else{
                 lambda <- lik.results$estimate[2]
               }
               if(exists(".temp.phi")){
-                lik.results$estimate <- .temp.phi
+                lik.results$estimate <- get(".temp.phi")
                 remove(".temp.phi", pos=1)
               }
               else{
                 lik.results$estimate <- as.vector(lik.results$estimate[1])
               }
-              rm(.temp.lower.phi, .temp.lower.lambda, .temp.upper.lambda, inherits = TRUE, pos=1)
+              remove(".temp.lower.phi", ".temp.lower.lambda", ".temp.upper.lambda", inherits = TRUE, pos=1)
             }
             if (minimisation.function=="nlmP"){
               lik.results <- .nlmP(.proflik.phi, c(ini[3], lambda), lower=c(lower.phi, -2), upper=c(upper.phi, 2),...)
@@ -429,7 +428,7 @@
           cat("likfit: model re-fitted without spatial correlation (phi=0)\n")
         }
         reduce.pars <- 2
-        lik.results <- likfit.nospatial(.temp.list, ...)
+        lik.results <- likfit.nospatial(get(".temp.list", pos=1), ...)
         lambda <- lik.results$lambda
         if(fix.nugget == TRUE) {
           lik.results$parameters <- temp.pars <-
@@ -449,10 +448,10 @@
           assign(".temp.lower.phi", lower.phi, pos=1)
           lik.results <- nlm(.proflik.phi,ini.m,   ...)
           if(exists(".temp.phi")){
-            lik.results$estimate <- .temp.phi
+            lik.results$estimate <- get(".temp.phi")
             remove(".temp.phi", pos=1)
           }
-          rm(.temp.lower, inherits = TRUE, pos=1)
+          remove(".temp.lower", inherits = TRUE, pos=1)
         }
         if (minimisation.function=="nlmP"){
           assign(".ind.prof.phi", 1, pos=1)
@@ -470,20 +469,20 @@
           assign(".temp.upper.lambda", 2, pos=1)
           lik.results <- nlm(.proflik.phi, c(ini.m, lambda), ...)
           if(exists(".temp.lambda")){
-            lambda <- .temp.lambda
+            lambda <- get(".temp.lambda")
             remove(".temp.lambda", pos=1)
           }
           else{
             lambda <- lik.results$estimate[2]
           }
           if(exists(".temp.phi")){
-            lik.results$estimate <- .temp.phi
+            lik.results$estimate <- get(".temp.phi")
             remove(".temp.phi", pos=1)
           }
           else{
             lik.results$estimate <- as.vector(lik.results$estimate[1])
           }
-          rm(.temp.lower.phi, .temp.lower.lambda, .temp.upper.lambda, inherits = TRUE, pos=1)
+          remove(".temp.lower.phi", ".temp.lower.lambda", ".temp.upper.lambda", inherits = TRUE, pos=1)
         }
         if (minimisation.function=="nlmP"){
           assign(".ind.prof.phi", 1, pos=1)
@@ -512,7 +511,7 @@
           cat("likfit: model without spatial correlation was fitted (phi=0 and sigma^2=0)\n")
         }
         reduce.pars <- 1
-        lik.results <- likfit.nospatial(.temp.list, ...)
+        lik.results <- likfit.nospatial(get(".temp.list", pos=1), ...)
         lambda <- lik.results$lambda
         if(fix.nugget == TRUE) {
           lik.results$parameters <- temp.pars <-
@@ -674,6 +673,8 @@
 ".proflik.ftau" <-
   function (theta) 
 {
+  .temp.list <- get(".temp.list", pos=1)
+  .temp.lower <- get(".temp.lower", pos=1)
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))
     neglik <- 1e+32
   else{
@@ -691,13 +692,13 @@
         assign(".temp.phi", theta[2], pos=1)
       if (include.lambda){
         lambda <- theta[3]
-        penalty <- penalty + 1000 * (.temp.lower.lambda - min(lambda, .temp.lower.lambda))
-        lambda <- max(lambda, .temp.lower.lambda)
-        penalty <- penalty + 1000 * (.temp.upper.lambda - max(lambda, .temp.upper.lambda))
-        lambda <- min(lambda, .temp.upper.lambda)
-        if (round(1000 * theta.minimiser[3]) <= round(1000 * .temp.lower.lambda))
+        penalty <- penalty + 1000 * (get(".temp.lower.lambda", pos=1) - min(lambda, get(".temp.lower.lambda", pos=1)))
+        lambda <- max(lambda, get(".temp.lower.lambda", pos=1))
+        penalty <- penalty + 1000 * (get(".temp.upper.lambda", pos=1) - max(lambda, get(".temp.upper.lambda", pos=1)))
+        lambda <- min(lambda, get(".temp.upper.lambda", pos=1))
+        if (round(1000 * theta.minimiser[3]) <= round(1000 * get(".temp.lower.lambda", pos=1)))
           assign(".temp.lambda", lambda, pos=1)
-        if (round(1000 * theta.minimiser[3]) >= round(1000 * .temp.upper.lambda))
+        if (round(1000 * theta.minimiser[3]) >= round(1000 * get(".temp.upper.lambda", pos=1)))
           assign(".temp.lambda", lambda, pos=1)
       }
     }
@@ -708,17 +709,16 @@
     n <- length(z)
     if (include.lambda){
       if(lambda == 1) {
-        .temp.list$log.jacobian <<- 0
+        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
       }
       else {
         if(any(z < 0))
           stop("Transformation option not allowed when there are zeros or negative data"
                )
         if(any(z^(lambda - 1) <= 0))
-          .temp.list$log.jacobian <<- log(prod(z^(lambda - 1)))
-        else .temp.list$log.jacobian <<- sum(log(z^(lambda - 1)))
-        if(lambda == 0)
-          z <- log(z)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), env=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+        if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }
     }
@@ -798,9 +798,14 @@
   else
     return(as.vector(neglik))
 }
+
+
 ".proflik.lambda" <-
 function(lambda)
 {
+  .temp.list <- get(".temp.list", pos=1)
+  .temp.lower.lambda <- get(".temp.lower.lambda", pos=1)
+  .temp.upper.lambda <- get(".temp.upper.lambda", pos=1)
   if (any(is.na(lambda)) | any(lambda==Inf) | any(is.nan(lambda)))
     neglik <- 1e+32
   else{
@@ -823,8 +828,7 @@ function(lambda)
     }
     else {
       if(any(z < 0))
-        stop("Transformation option not allowed when there are zeros or negative data"
-             )
+        stop("Transformation option not allowed when there are zeros or negative data")
       if(any(z^(lambda - 1) <= 0))
         .temp.list$log.jacobian <- log(prod(z^(lambda - 1)))
       else .temp.list$log.jacobian <- sum(log(z^(lambda - 1)))
@@ -863,6 +867,10 @@ function(lambda)
 ".proflik.nug" <-
   function (theta) 
 {
+  .temp.list <- get(".temp.list", pos=1)
+  .temp.lower <- get(".temp.lower", pos=1)
+  .temp.lower.lambda <- get(".temp.lower.lambda", pos=1)
+  .temp.upper.lambda <- get(".temp.upper.lambda", pos=1)
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))
     neglik <- 1e+32
   else{
@@ -897,17 +905,15 @@ function(lambda)
     n <- .temp.list$n
     if(include.lambda){
       if(lambda == 1) {
-        .temp.list$log.jacobian <<- 0
+        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
       }
       else {
         if(any(z < 0))
-          stop("Transformation option not allowed when there are zeros or negative data"
-               )
+          stop("Transformation option not allowed when there are zeros or negative data")
         if(any(z^(lambda - 1) <= 0))
-          .temp.list$log.jacobian <<- log(prod(z^(lambda - 1)))
-        else .temp.list$log.jacobian <<- sum(log(z^(lambda - 1)))
-        if(lambda == 0)
-          z <- log(z)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), env=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+        if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }
     }
@@ -991,6 +997,10 @@ function(lambda)
 ".proflik.phi" <-
   function (theta) 
 {
+  .temp.list <- get(".temp.list", pos=1)
+  .temp.lower.phi <- get(".temp.lower.phi", pos=1)
+  .temp.lower.lambda <- get(".temp.lower.lambda", pos=1)
+  .temp.upper.lambda <- get(".temp.upper.lambda", pos=1)
   if (any(is.na(theta)) | any(theta==Inf) | any(is.nan(theta)))
     neglik <- 1e+32
   else{
@@ -1004,7 +1014,8 @@ function(lambda)
       if (phi.minimiser < 1.001 * .temp.lower.phi)
         assign(".temp.phi", phi, pos=1)
       if(include.lambda){
-        lambda <- lambda.minimiser <- phi.lambda[2]
+#        lambda <- lambda.minimiser <- phi.lambda[2]
+        lambda <- lambda.minimiser <- theta[2]
         penalty <-  penalty + 1000 * (.temp.lower.lambda - min(lambda, .temp.lower.lambda))
         lambda <- max(lambda, .temp.lower.lambda)
         penalty <- penalty + 1000 * (.temp.upper.lambda - max(lambda, .temp.upper.lambda))
@@ -1023,17 +1034,16 @@ function(lambda)
     n <- .temp.list$n
     if(include.lambda){
       if(lambda == 1) {
-        .temp.list$log.jacobian <<- 0
+        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
       }
       else {
         if(any(z <= 0))
           stop("Transformation option not allowed when there are zeros or negative data"
                )
         if(any(z^(lambda - 1) <= 0))
-          .temp.list$log.jacobian <<- log(prod(z^(lambda - 1)))
-        else .temp.list$log.jacobian <<- sum(log(z^(lambda - 1)))
-        if(lambda == 0)
-          z <- log(z)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= log(prod(z^(lambda - 1))))), env=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <-xxx, list(xxx= sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+        if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }
     }

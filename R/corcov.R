@@ -23,7 +23,7 @@
     return(0)  
   findRange <- function(range, cm, p, k, cor)
     (cor - cov.spatial(range, cov.model=cm, kappa=k, cov.pars=c(1, p)))^2
-  pr <- optimise(findRange, interval=c(0,50*phi), cm=cov.model,
+  pr <- optimise(findRange, interval=c(0,50*phi+1), cm=cov.model,
                  p=phi, k=kappa, cor=correlation, ...)$min
   return(pr)
 }
@@ -97,8 +97,9 @@
     if(length(kappa) != 2*ns)
       stop(paste("wrong length for kappa, ", cov.model, "model requires two values for the argument kappa")) 
   }
-  else
+  else{
     if(length(kappa) != ns) stop('wrong length for kappa')
+  }
   ## settings for power model (do not reverse order of the next two lines!)
   phi[cov.model == "linear"] <- 1
   cov.model[cov.model == "linear"] <- "power"
@@ -109,7 +110,7 @@
     if(any(cov.model[i] == c("matern","powered.exponential", "cauchy",
                       "gneiting.matern", "gencauchy"))){
       if(any(cov.model[i] == c("gneiting.matern", "gencauchy"))){
-        if(any(is.na(kappa)) | length(kappa) != 2*ns)
+        if(any(is.na(kappa)) || length(kappa) != 2*ns)
           stop(paste(cov.model[i],"correlation function model requires a vector with 2 parameters in the argument kappa"))
       }
       else{
@@ -145,11 +146,13 @@
   fn.env <- sys.frame(sys.nframe())
   .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                    env=fn.env, output=FALSE)
+  phi <- get("phi", env=fn.env)
+  sigmasq <- get("sigmasq", env=fn.env)
   ##
   ## computing correlations/covariances
   ##
   covs <- array(0, dim = dim(obj))
-  for(i in 1:ns) {
+  for(i in 1:get("ns", env=fn.env)) {
     if(phi[i] < 1e-16)
       cov.model[i] <- "pure.nugget"
     obj.sc <- obj/phi[i]

@@ -66,7 +66,7 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{\code{\link{expand.grid}}, \code{\link[sp]{overlay}},
+\seealso{\code{\link{pred_grid}}, \code{\link{expand.grid}}, \code{\link[sp]{overlay}},
     \code{\link[sp]{SpatialPoints}}. 
 }
 

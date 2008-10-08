@@ -474,7 +474,8 @@
   ##
   if(mode(m0) == "numeric") {
     difwin <- skwwin %*% (data - m0)
-    estwin <- m0win + difwin
+#    estwin <- m0win + difwin
+    estwin <- m0 + difwin
     if(signal)
       kvarwin <- sigmasq - crossprod(v0win, ivwin) %*% v0win
     else kvarwin <- tausq + sigmasq - crossprod(v0win, ivwin) %*%

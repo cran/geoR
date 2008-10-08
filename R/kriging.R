@@ -593,11 +593,11 @@
   else{
     ldots.image <- .ldots.set(ldots, type="image", data="prediction")
     locations <- .prepare.graph.kriging(locations=locations,
-                                       borders=borders,
-                                       borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
-                                       values=values,
-                                       xlim= ldots.image$xlim,
-                                       ylim= ldots.image$yli)
+                                        borders=borders,
+                                        borders.obj = eval(attr(x, "borders"), envir= attr(x, "parent.env")),
+                                        values=values,
+                                        xlim= ldots.image$xlim,
+                                        ylim= ldots.image$yli)
     do.call("image", c(list(x=locations$x, y=locations$y,
                             z=locations$values), ldots.image))
     ##

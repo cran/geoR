@@ -417,7 +417,7 @@
   ## Imposing constraints for nlm
   ##
   if(g.l$m.f == "nlm"){
-    .temp.theta <<- NULL
+    assign(".temp.theta",  NULL, pos=1)
     if(!g.l$fix.kappa){
       if(g.l$fix.nugget){
         if(g.l$cov.model == "power")
@@ -438,7 +438,7 @@
     penalty <- 10000 * sum(0 - pmin(theta.minimiser, 0))
     theta <- pmax(theta.minimiser, 0)
     if(!g.l$fix.kappa) theta <- c(theta.minimiser, Tkappa)
-    if (any(theta.minimiser < 0)) .temp.theta <<- theta
+    if (any(theta.minimiser < 0)) assign(".temp.theta", theta, pos=1)
     else penalty <- 0
   }
   else penalty <- 0
@@ -746,7 +746,7 @@
   ##
   if(messages.screen)
     cat("Computing empirical variograms for simulations\n")
-  .IND.geoR.variog.model.env <<- TRUE
+  assign(".IND.geoR.variog.model.env", TRUE, pos =1)
   vmat <- variog.model.env(geodata=geodata, coords=coords,
                            obj.variog=obj.variog, model.pars=model.pars,
                            nsim=nsim, messages = FALSE)
@@ -760,8 +760,7 @@
   assign(".geoR.count", 1, env=geoR.count)
   .vf <- function(v){ 
     obj.variog$v <- v
-    pars <- summary(variofit(obj.variog, 
-                             messages=FALSE))$estimated.pars
+    pars <- summary(variofit(obj.variog, messages=FALSE))$estimated.pars
     ##      pars <- summary(variofit(obj.variog, ini = model.pars$cov.pars,
     ##                               nugget = model.pars$nugget,
     ##                               messages=FALSE))$estimated.pars
