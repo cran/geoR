@@ -32,6 +32,7 @@ krige.conv              Spatial Prediction -- Conventional Kriging
 krweights               Computes kriging weights
 Ksat                    Saturated Hydraulic Conductivity
 ksline                  Spatial Prediction -- Conventional Kriging
+landim1                 Data from Landim's book
 legend.krige            Add a legend to a image with kriging results
 likfit                  Likelihood Based Parameter Estimation for
                         Gaussian Random Fields

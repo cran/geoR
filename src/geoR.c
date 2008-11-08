@@ -809,11 +809,3 @@ void kb_sim_new(Real *means, Real *nscores,
   
   free(R0lower);
 }
-
-
-
-
-
-
- 
-

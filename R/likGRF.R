@@ -7,7 +7,7 @@
 ##    - methods for class likGRF
 ##    - some other functions
 
-"check.parameters.values" <- function(list, messages = TRUE)
+".check.geoRparameters.values" <- function(list, messages = TRUE)
 {
   if(!is.null(list$nugget))
     if(list$nugget < 0) stop("value for nugget must be non-negative")
@@ -33,7 +33,7 @@
       }
     }
     else{
-      if(messages)
+      if(messages && !is.null(list$kappa))
         cat(paste("kappa not used for the",list$cov.model, "correlation function\n"))
     }
   }
@@ -82,7 +82,7 @@
   if(fix.kappa) fixed.pars$kappa <- kappa
   if(fix.psiA) fixed.pars$psiA <- psiA
   if(fix.psiR) fixed.pars$psiR <- psiR
-  check.parameters.values(list=fixed.pars, messages = messages)
+  .check.geoRparameters.values(list=fixed.pars, messages = messages.screen)
   if(cov.model == "matern" & all(kappa == 0.5)) cov.model <- "exponential"
   temp.list$cov.model <- cov.model
   if(cov.model == "powered.exponential")

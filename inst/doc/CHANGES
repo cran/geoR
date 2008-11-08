@@ -1,3 +1,16 @@
+                =================================
+ 		CHANGES IN geoR VERSION 1.6-23
+		=================================
+
+NEW FEATURES
+        o check.parameter.values() rename for .check.geoRparameter.values()
+
+
+BUGS
+        o fix in messages issued by likfit()
+
+        o data(ca20) fix of two points with wrong values for covariate "areas"
+
 
                 =================================
  		CHANGES IN geoR VERSION 1.6-22
@@ -16,7 +29,6 @@ NEW FEATURES
 	o new argument "borders" in {image,persp,countour}.grf, and better handling of borders 
           provided in grf()
 
-	o 
 
 
 BUG FIXES

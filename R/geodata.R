@@ -65,7 +65,6 @@
     xdf <- cbind(xdf, x$covariate)
     attr(xdf, "ncol.covariate") <- (nc1 + 1):ncol(xdf)
   }
-  print(ncol(xdf))
   if (borders && !is.null(x$borders)) 
     attr(xdf, "borders") <- x$borders
   oldClass(xdf) <- c("geodata.frame", "data.frame")
