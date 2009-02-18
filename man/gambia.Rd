@@ -10,33 +10,33 @@
 \usage{data(gambia)}
 \format{
   Two objects are made available:
-  \begin{enumerate}
-  \item \code{gambia}\cr
-  A data frame with 2035 observations on the following 8 variables.
-  \describe{
-    \item{x}{x-coordinate of the village (UTM).  }
-    \item{y}{y-coordinate of the village (UTM).  }
-    \item{pos}{presence (1) or absence (0) of malaria in a blood
-    sample taken from the child.}
-    \item{age}{age of the child, in days}
-    \item{netuse}{indicator variable denoting whether (1) or not (0)
-      the child regularly sleeps under a bed-net.  }
-    \item{treated}{indicator variable denoting
-     whether (1) or not (0) the bed-net is
-      treated (coded 0 if netuse=0).}
-    \item{green}{satellite-derived measure of the green-ness of vegetation
-    in the immediate vicinity of the village (arbitrary units).  }
-    \item{phc}{indicator variable denoting the presence (1) or
-    absence (0) of a health center in the
-      village.  }
+  \enumerate{
+    \item \code{gambia}\cr
+    A data frame with 2035 observations on the following 8 variables.
+    \describe{
+      \item{x}{x-coordinate of the village (UTM).  }
+      \item{y}{y-coordinate of the village (UTM).  }
+      \item{pos}{presence (1) or absence (0) of malaria in a blood
+	sample taken from the child.}
+      \item{age}{age of the child, in days}
+      \item{netuse}{indicator variable denoting whether (1) or not (0)
+	the child regularly sleeps under a bed-net.  }
+      \item{treated}{indicator variable denoting
+	whether (1) or not (0) the bed-net is
+	treated (coded 0 if netuse=0).}
+      \item{green}{satellite-derived measure of the green-ness of vegetation
+	in the immediate vicinity of the village (arbitrary units).  }
+      \item{phc}{indicator variable denoting the presence (1) or
+	absence (0) of a health center in the
+	village.  }
+    }
+    \item \code{gambia.borders}\cr
+    A data frame with 2 variables:
+    \describe{
+      \item{x}{x-coordinate of the country borders.  }
+      \item{y}{y-coordinate of the country borders.  }
+    }
   }
-  \item \code{gambia.borders}\cr
-  A data frame with 2 variables:
-  \describe{
-    \item{x}{x-coordinate of the country borders.  }
-    \item{y}{y-coordinate of the country borders.  }
-  }
- \end{enumerate}
 }
 %\details{
 %  ~~ If necessary, more details than the __description__ above ~~

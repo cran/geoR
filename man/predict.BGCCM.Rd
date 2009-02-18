@@ -13,7 +13,7 @@ geostatistical model}
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{object}{on object of the class{BGCCMfit}, which is
+  \item{object}{on object of the class \code{BGCCMfit}, which is
     an output of \code{\link{likfitBGCCM}}.  }
   \item{locations}{an \eqn{N \times 2}{N x 2} matrix or data-frame with
     the 2-D coordinates of the \eqn{N} prediction locations,

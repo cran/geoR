@@ -45,26 +45,30 @@
 "as.data.frame.geodata" <-
   function (x, ..., borders = TRUE) 
 {
-  xdf <- as.data.frame(x$coords)
   if (is.vector(x$data)) 
-    xdf <- cbind(xdf, data = x$data)
-  else xdf <- cbind(xdf, as.data.frame(x$data))
-  nc0 <- nc1 <- ncol(xdf)
-  attr(xdf, "ncol.data") <- 3:nc0
+    xdf <- data.frame(x$coords, data = x$data)
+  else xdf <- data.frame(x$coords, x$data)
+  nc.data <- ncol(xdf)
+  nc.units <- nc.covariate <- nc.realisations <- NULL
   if (!is.null(x$units.m)) {
     xdf$units.m <- x$units.m
-    nc1 <- nc1 + 1
-    attr(xdf, "ncol.units.m") <- which(names(xdf) == "units.m")
+    nc.units <- ncol(xdf)
   }
   if (!is.null(x$realisation)){
     xdf$realisations <- x$realisations
-    nc1 <- nc1 + 1
-    attr(xdf, "ncol.realisations") <- which(names(xdf) == "realisations")
+    nc.realisations <- ncol(xdf)
   }
   if (!is.null(x$covariate)){
-    xdf <- cbind(xdf, x$covariate)
-    attr(xdf, "ncol.covariate") <- (nc1 + 1):ncol(xdf)
+    nc <- ncol(xdf)+1
+    xdf <- data.frame(xdf, x$covariate)
+    nc.covariate <- nc:ncol(xdf)
   }
+  ## setting columns ID's as attributes
+  attr(xdf, "ncol.data") <- 3:nc.data
+  attr(xdf, "ncol.units.m") <- nc.units
+  attr(xdf, "ncol.realisations") <- nc.realisations
+  attr(xdf, "ncol.covariate") <- nc.covariate
+  ##
   if (borders && !is.null(x$borders)) 
     attr(xdf, "borders") <- x$borders
   oldClass(xdf) <- c("geodata.frame", "data.frame")

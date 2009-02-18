@@ -14,7 +14,7 @@ set.coords.lims(coords, xlim, ylim)
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{coords}{an \eqn{n \times 2}{nx2} matrix with coordinates.  }
-  \item{xlim, ylim} {the ranges to be encompassed by the x and y axes.  }
+  \item{xlim, ylim}{the ranges to be encompassed by the x and y axes.  }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~

@@ -1645,8 +1645,13 @@
   return(as.vector(loglik))
 }
 
-"logLik.likGRF" <- function(object, ...)
-  return(object$loglik)
+"logLik.likGRF" <- function(object, ...){
+  val <- object$loglik
+  attr(val, "df") <- object$npars
+  attr(val, "method") <- object$method.lik
+  class(val) <- "logLik"
+  return(val)
+}
 
 "fitted.likGRF" <- 
   function(object, spatial = TRUE, ...)

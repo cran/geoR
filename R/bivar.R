@@ -97,8 +97,8 @@
                              kappa=CM$kappa[c("kappa0", "kappa1")],
                              sqrt.inv=TRUE, det=TRUE)
       attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) +
-        log(det(S[(n1+1):n, (n1+1):n] -
-                crossprod(crossprod(Einv$sqrt,S[(1:n1),(n1+1):n]))))
+        determinant(S[(n1+1):n, (n1+1):n] -
+                crossprod(crossprod(Einv$sqrt,S[(1:n1),(n1+1):n])))$modulus
     }
     if(scaled)
       return(S)
@@ -132,7 +132,7 @@
     #  if(detDinv <= 0) attr(S, "logdetS") <- NaN
     #  else attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - log(detDinv)
     #}
-    if(det) attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - log(det(Dinv))
+    if(det) attr(S, "logdetS") <- fc + (2*Einv$log.det.to.half) - determinant(Dinv)$modulus
     ## returning S^{-1}
     if(scaled)
       return(S)
@@ -379,7 +379,7 @@
   if(profile)
     cov0.pars$sigma <- sqrt(Q/n)
   loglik <- -0.5 * (log(2*pi) + n*log(cov0.pars$sigma^2) +
-                    log(det(C)) + Q/(cov0.pars$sigma^2))
+                    determinant(C)$modulus + Q/(cov0.pars$sigma^2))
   return(loglik)
 }
 

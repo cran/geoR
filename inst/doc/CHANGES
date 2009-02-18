@@ -1,4 +1,24 @@
                 =================================
+ 		CHANGES IN geoR VERSION 1.6-24/25
+		=================================
+
+NEW FEATURES
+
+        o practical() range replaces internally optimise() by uniroot() as the search algorithm
+
+        o logLik.likGRF() now returns object of the class "logLik"
+          which also allows usage of AIC
+
+        o new tutorial section on converting geoR <--> sp
+          exemple on converting kriging results
+
+
+BUGS
+        o fix in the format of the $data component subset.geodata() 
+
+
+
+                =================================
  		CHANGES IN geoR VERSION 1.6-23
 		=================================
 

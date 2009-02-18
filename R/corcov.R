@@ -22,9 +22,10 @@
   if(any(cov.model %in% c("pure.nugget")))
     return(0)  
   findRange <- function(range, cm, p, k, cor)
-    (cor - cov.spatial(range, cov.model=cm, kappa=k, cov.pars=c(1, p)))^2
-  pr <- optimise(findRange, interval=c(0,50*phi+1), cm=cov.model,
-                 p=phi, k=kappa, cor=correlation, ...)$min
+    cov.spatial(range, cov.model = cm, kappa = k, cov.pars = c(1, p))-cor
+  pr <- uniroot(findRange, interval = c(0, 50 * phi + 1), 
+                 cm = cov.model, p = phi, k = kappa, cor = correlation, 
+                 ...)$root
   return(pr)
 }
 
