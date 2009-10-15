@@ -328,11 +328,13 @@
         res$realisations <- res$realisations[!rep.dup]
     }
     else{
-      check.coincide <- function(x){sum(dist(x) < 1e-16) > 0}
-      any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
-      any.coincide <- as.vector(unlist(any.coincide))
+      any.coincide <- as.vector(unlist(by(as.data.frame(res$coords), list(realisations),
+                                function(x) any(duplicated(x)))))
+     ## check.coincide <- function(x){sum(dist(x) < 1e-16) > 0}
+     ## any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
+     ## any.coincide <- as.vector(unlist(any.coincide))
       if(sum(any.coincide) > 0)
-        cat("WARNING: there are data at coincident or very closed locations, some of the geoR's functions may not work. Use function dup.coords to locate duplicated coordinates. \n")      
+        cat("WARNING: there are data at coincident or very closed locations, some of the geoR's functions may not work. Use function dup.coords() to locate duplicated coordinates. \n")      
     }
   }
   ##

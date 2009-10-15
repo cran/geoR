@@ -233,13 +233,12 @@
 ##  op.sem <- options()$show.error.message
 ##  options(show.error.message = FALSE)
 ##  on.exit(options(show.error.message = op.sem))
-  require(methods)
-  if(!exists("trySilent")){
-    error.now <- options()$show.error.messages
-    if (is.null(error.now) | error.now) 
-      on.exit(options(show.error.messages = TRUE))
-    options(show.error.messages = FALSE)
-  }
+#  require(methods)
+#  if(!exists("trySilent")){
+#    error.now <- options()$show.error.messages
+##      on.exit(options(show.error.messages = TRUE))
+##   options(show.error.messages = FALSE)
+## }
   ##
   func.inv <- match.arg(func.inv)
   cov.model <- sapply(cov.model, match.arg, choices = .geoR.cov.models)
@@ -297,10 +296,7 @@
   }
   if (inv | det | only.decomposition | sqrt.inv | only.inv.lower.diag) {
     if (func.inv == "cholesky") {
-      if(exists("trySilent"))
-        varcov.sqrt <- trySilent(chol(varcov))
-      else
-        varcov.sqrt <- try(chol(varcov))
+        varcov.sqrt <- try(chol(varcov), silent=TRUE)
       if (inherits(varcov.sqrt, "try-error")) {
         if (try.another.decomposition){
           cat("trying another decomposition (svd)\n")
@@ -325,10 +321,7 @@
     }
     if (func.inv == "svd") {
       varcov.svd <- svd(varcov, nv = 0)
-      if(exists("trySilent"))
-        cov.logdeth <- trySilent(sum(log(sqrt(varcov.svd$d))))
-      else
-        cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))))
+      cov.logdeth <- try(sum(log(sqrt(varcov.svd$d))), silent=TRUE)
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition){
           cat("trying another decomposition (eigen)\n")
@@ -353,10 +346,7 @@
     if (func.inv == "solve") {
       if (det) 
         stop("the option func.inv == \"solve\" does not allow computation of determinants. \nUse func.inv = \"chol\",\"svd\" or \"eigen\"\n")
-      if(exists("trySilent"))
-        invcov <- trySilent(solve(varcov))
-      else
-        invcov <- try(solve(varcov))
+      invcov <- try(solve(varcov), silent=TRUE)
       if (inherits(cov.logdeth, "try-error")) {
         if (try.another.decomposition) 
           func.inv <- "eigen"
@@ -368,24 +358,12 @@
       remove("varcov")
     }
     if (func.inv == "eigen") {
-      if(exists("trySilent")){
-        varcov.eig <- trySilent(eigen(varcov, symmetric = TRUE))
-        cov.logdeth <- trySilent(sum(log(sqrt(varcov.eig$val))))
-      }
-      else{
-        varcov.eig <- try(eigen(varcov, symmetric = TRUE))
-        cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
-      }
+      varcov.eig <- try(eigen(varcov, symmetric = TRUE), silent=TRUE)
+      cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))), silent=TRUE)
       if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
         diag(varcov) <- 1.0001 * diag(varcov)
-        if(exists("trySilent")){
-          varcov.eig <- trySilent(eigen(varcov, symmetric = TRUE))
-          cov.logdeth <- trySilent(sum(log(sqrt(varcov.eig$val))))
-        }
-        else{
-          varcov.eig <- try(eigen(varcov, symmetric = TRUE))
-          cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))))
-        }
+        varcov.eig <- try(eigen(varcov, symmetric = TRUE), silent=TRUE)
+        cov.logdeth <- try(sum(log(sqrt(varcov.eig$val))), silent=TRUE)
         if (inherits(cov.logdeth, "try.error") | inherits(varcov.eig, "try-error")) {
           return(list(crash.parms = c(tausq=tausq, sigmasq=sigmasq, phi=phi, kappa=kappa)))
         }

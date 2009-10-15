@@ -62,9 +62,9 @@
 
 \references{
 
-  Oliveira, M.C.N. (2003) \emph{M\'etodos de estima\c{c}\~ao de par\^ametros
-  em modelos geoestat\'{\i}sticos com diferentes estruturas de
-  covari\^ancias: uma aplica\c{c}\~ao ao teor de c\'alcio no solo.}
+  Oliveira, M.C.N. (2003) \emph{Métodos de estimação de parâmetros
+  em modelos geoestatísticos com diferentes estruturas de
+  covariâncias: uma aplicação ao teor de cálcio no solo.}
   Tese de Doutorado, ESALQ/USP/Brasil. 
   
   Further information on the package \pkg{geoR} can be found at:\cr

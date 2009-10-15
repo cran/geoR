@@ -1669,23 +1669,22 @@
       else{
         if((length(beta))^2 != length(beta.var.std))
           stop("prior.control: beta and beta.var.std have incompatible dimensions")
-        require(methods)
-        if(exists("trySilent")){
-          if(inherits(trySilent(.solve.geoR(beta.var.std)), "try-error"))
-            stop("prior.control: singular matrix in beta.var.std")
-          if(inherits(trySilent(chol(beta.var.std)), "try-error"))
-            stop("prior.control: no Cholesky decomposition for beta.var.std")
-        }
-        else{
-          error.now <- options()$show.error.messages
-          if (is.null(error.now) | error.now) 
-            on.exit(options(show.error.messages = TRUE))
-          options(show.error.messages = FALSE)
-          if(inherits(try(.solve.geoR(beta.var.std)), "try-error"))
-            stop("prior.control: singular matrix in beta.var.std")
-          if(inherits(try(chol(beta.var.std)), "try-error"))
-            stop("prior.control: no Cholesky decomposition for beta.var.std")
-        }
+#        if(exists("trySilent")){
+        if(inherits(try(.solve.geoR(beta.var.std), silent=TRUE), "try-error"))
+          stop("prior.control: singular matrix in beta.var.std")
+        if(inherits(try(chol(beta.var.std), silent=TRUE), "try-error"))
+          stop("prior.control: no Cholesky decomposition for beta.var.std")
+#        }
+#        else{
+#          error.now <- options()$show.error.messages
+#          if (is.null(error.now) | error.now) 
+#            on.exit(options(show.error.messages = TRUE))
+#          options(show.error.messages = FALSE)
+#          if(inherits(try(.solve.geoR(beta.var.std)), "try-error"))
+#            stop("prior.control: singular matrix in beta.var.std")
+#          if(inherits(try(chol(beta.var.std)), "try-error"))
+#            stop("prior.control: no Cholesky decomposition for beta.var.std")
+#        }
         if(any(beta.var.std != t(beta.var.std)))
           stop("prior.control: non symmetric matrix in beta.var.std")
       }

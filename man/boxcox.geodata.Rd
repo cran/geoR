@@ -35,9 +35,9 @@ boxcox.geodata(object, trend = "cte", ...)
 
 % ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link[MASS]{boxcox}}, \code{\link[MASS]{boxcox.fit}} for
+\seealso{\code{\link[MASS]{boxcox}} for
   parameter estimation results for independent data and
-  \code{\link[MASS]{likfit}} for parameter estimation
+  \code{\link{likfit}} for parameter estimation
   within the geostatistical model.
 }
 

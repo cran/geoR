@@ -87,7 +87,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 \seealso{The parameter estimation function \code{\link{boxcox.fit}},
   the function \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
-  the function \code{\link[car]{boxcox}} in the package \pkg{car}.
+  the function \code{\link[car]{box.cox}} in the package \pkg{car}.
 }
 
 \examples{

@@ -191,3 +191,5 @@ data(s100)
 }
 
 \keyword{spatial}%-- one or more ...
+
+

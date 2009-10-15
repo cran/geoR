@@ -267,11 +267,10 @@ post2prior(obj)
   The attribute \code{prediction.locations} containing the name of the
   object with the coordinates of the prediction locations (argument
   \code{locations}) is assigned to the object.
-  Returns a list with the following components:
-  
+  Returns a list with the following components:  
   \item{posterior}{results on on the posterior distribution of the
     model parameters. A list with the following possible components:\cr  }
-  
+
   \itemize{   
     \item{beta}{summary information on the posterior distribution
       of the mean parameter \eqn{\beta}{beta}.  }
@@ -287,16 +286,11 @@ post2prior(obj)
     \item{sample}{a data.frame with a sample from the posterior
       distribution.
       Each column corresponds to one of the basic model parameters.  }
-    \cr
-    \cr
   }
-  
-  \cr
-  \cr
   
   \item{predictive}{results on the predictive distribution at the
     prediction locations, if provided.
-    A list with the following possible components:\cr  }
+    A list with the following possible components:  }
   
   \itemize{    
     \item{mean}{expected values.  }
@@ -308,9 +302,6 @@ post2prior(obj)
     \item{probabilities.simulations}{probabilities computed from the simulations.  }
     \item{simulations}{simulations from the predictive distribution.  }
   }
-  
-  \cr
-  \cr
   
   \item{prior}{a list with information on the prior distribution
     and hyper-parameters of the model parameters (\eqn{\beta, \sigma^2,
@@ -336,8 +327,7 @@ post2prior(obj)
   Modelling, Vol. 6, No. 2, 129-146.
   
   The technical details about the  implementation of \code{krige.bayes} can be
-  found at:
-  \cr
+  found at:\cr
   Ribeiro, P.J. Jr. and Diggle, P.J. (1999) \emph{Bayesian inference in
     Gaussian model-based geostatistics}. Tech. Report ST-99-08, Dept
   Maths and Stats, Lancaster University.\cr

@@ -53,18 +53,18 @@
 {
   a <- eval(a)
   b <- eval(b)
-  if(exists("trySilent")){
-    if (is.null(b)) res <- trySilent(solve(a, ...))
-    else res <- trySilent(solve(a, b, ...))
-  }
-  else{
-    error.now <- options()$show.error.messages
-    if (is.null(error.now) | error.now) 
-      on.exit(options(show.error.messages = TRUE))
-    options(show.error.messages = FALSE)
-    if (is.null(b)) res <- try(solve(a, ...))
-    else res <- try(solve(a, b, ...))
-  }
+#  if(exists("trySilent")){
+    if (is.null(b)) res <- try(solve(a, ...), silent=TRUE)
+    else res <- try(solve(a, b, ...), silent=TRUE)
+#  }
+#  else{
+#    error.now <- options()$show.error.messages
+#    if (is.null(error.now) | error.now) 
+#      on.exit(options(show.error.messages = TRUE))
+#    options(show.error.messages = FALSE)
+#    if (is.null(b)) res <- try(solve(a, ...))
+#    else res <- try(solve(a, b, ...))
+#  }
   if (inherits(res, "try-error")) {
     test <- all.equal.numeric(a, t(a), 100 * .Machine$double.eps)
     if(!(is.logical(test) && test)){
@@ -72,16 +72,16 @@
       stop("matrix `a' is not symmetric")
     }
     t.ei <- eigen(a, symmetric = TRUE)
-    if(exists("trySilent")){
+#    if(exists("trySilent")){
       if (is.null(b))
-        res <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)))
+        res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)), silent=TRUE)
       else
-        res <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b)
-    }
-    else{
-      if (is.null(b)) res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)))
-      else res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b)
-    }
+        res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b, silent=TRUE)
+#    }
+#    else{
+#      if (is.null(b)) res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)))
+#      else res <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% b)
+#    }
     if (any(is.na(res)) | any(is.nan(res)) | any(is.infinite(res))) 
       oldClass(res) <- "try-error"
   }
@@ -286,17 +286,16 @@
     on.exit(detach("geodata"), add=TRUE)
   }
   if(inherits(trend, "formula")) {
-    require(methods)
-    if(exists("trySilent")){
-      trend.mat <- trySilent(model.matrix(trend))
-    }
-    else{
-      error.now <- options()$show.error.messages
-      if (is.null(error.now) | error.now) 
-        on.exit(options(show.error.messages = TRUE))
-      options(show.error.messages = FALSE)
-      trend.mat <- try(model.matrix(trend))
-    }    
+                                        #    require(methods)
+                                        #    if(exists("trySilent")){
+    trend.mat <- try(model.matrix(trend), silent=TRUE)
+                                        #    }
+                                        #    else{
+                                        #      error.now <- options()$show.error.messages
+                                        #      if (is.null(error.now) | error.now) 
+    ##      options(show.error.messages = FALSE)
+                                        #     trend.mat <- try(model.matrix(trend))
+                                        #   }    
     if (inherits(trend.mat, "try-error")) 
       stop("\ntrend elements not found")
   }
@@ -604,7 +603,8 @@
                   contour = contour.default,
                   filled.contour = filled.contour)
     ind <- pmatch(names(ldots), names(formals(fct)))
-    ldots[[is.na(ind)]] <- NULL
+    #if(any(is.na(ind)))
+      ldots[is.na(ind)] <- NULL
     if(!is.null(ldots))
       names(ldots) <- names(formals(fct))[ind[!is.na(ind)]]
   }
@@ -642,6 +642,8 @@
 {
   ind <- order(locations[, 2], locations[, 1])
   locations <- locations[ind, ]
+  ## added 23/02/2009:
+  if(nrow(locations) == length(borders)) values <- values[ind]
 ##  xx <- as.numeric(levels(as.factor(round(locations[, 1], dig = 8))))
   xx <- sort(unique(locations[, 1]))
   nx <- length(xx)

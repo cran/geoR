@@ -25,7 +25,7 @@
   \item{object}{an object of \code{\link[base]{class}} \emph{likGRF}, typically
     a result of a call to \code{\link{likfit}}.  }
   \item{x}{an object of \code{\link[base]{class}} \emph{likGRF} or
-    \code{\link[geoR]{class}} \emph{summary.likGRF}, typically
+    \code{\link[base]{class}} \emph{summary.likGRF}, typically
     resulting from a call to \code{\link{likfit}}.  }
   \item{digits}{the number of significant digits to use when printing. }
   \item{\dots}{extra arguments for \code{\link[base]{print}}.  }

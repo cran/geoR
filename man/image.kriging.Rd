@@ -90,7 +90,7 @@
   on the plotting functions.}
 
 \examples{
-loci <- expand.grid(seq(0,1,l=31), seq(0,1,l=31))
+loci <- expand.grid(seq(0,1,l=51), seq(0,1,l=51))
 kc <- krige.conv(s100, loc=loci,
                  krige=krige.control(cov.pars=c(1, .25)))
 image(kc)
@@ -139,7 +139,7 @@ image(kc, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), cex=1.5)
 image(kc, ylim=c(-0.2, 1), x.leg=c(0,1), y.leg=c(-0.2, -0.1), offset.leg=0.5)
 
 image(kc, xlim=c(0, 1.2))
-legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1),kc$pred, vert=TRUE)
+legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1), kc$pred, vert=TRUE)
 image(kc, xlim=c(0, 1.2))
 legend.krige(x.leg=c(1.05,1.1), y.leg=c(0,1),kc$pred, vert=TRUE, off=1.5, cex=1.5)
 

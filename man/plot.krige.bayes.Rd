@@ -29,8 +29,8 @@
     distributions for this parameter.  }
   \item{add}{logical. If \code{TRUE} plots is added to current one.  }
   \item{type}{indicates the type of plot. Option \code{"bars"} uses the
-    function \code{\link[base]{barplot}} and the others uses
-    \code{\link[base]{matplot}}. }
+    function \code{\link[graphics]{barplot}} and the others uses
+    \code{\link[graphics]{matplot}}. }
   \item{thin}{a numerical vector defining the thining for values of the
     parameters \code{phi} and \code{tausq.rel} respectively.
     This improves visualisation when there are many values

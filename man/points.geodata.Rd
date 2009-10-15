@@ -28,7 +28,8 @@
   \item{x}{a list containing elements \code{coords} and
     \code{data} described next. Typically an object of the class
     \code{"geodata"} - a \pkg{geoR} data-set. If not provided the arguments
-    \code{coords} and \code{data} must be provided instead.  }
+    \code{coords} and \code{data} must be provided instead.  
+}
   \item{coords}{an \eqn{n \times 2}{n x 2} matrix containing
     coordinates of the \eqn{n} data locations in each row.
     Defaults to \code{geodata$coords}.  }
@@ -52,7 +53,7 @@
     on the coordinates), or a formula of the type \code{~X} where \code{X}
     is a matrix with the covariates (external trend).
     If provided the trend is "removed" using the function
-    \code{\link[base]{lm}} and the residuals are plotted.  }
+    \code{\link[stats]{lm}} and the residuals are plotted.  }
   \item{abs.residuals}{logical. If \code{TRUE} and the value passed to
     the
     argument \code{trend} is different from \code{"cte"} the point sizes
@@ -89,7 +90,7 @@
     documented in \code{\link{legend}}.  }
   \item{dig.leg}{the desired number of digits after the decimal
     point. Printing values in the legend uses \code{\link{formatC}} with
-    argument \code{format = \dQuote{f}}. }
+    argument \code{format = "f"}. }
   \item{round.quantiles}{logical. Defines whether or not the values
     of the quantiles should be rounded. Defaults to \code{FALSE}.  }
   \item{permute}{logical indication whether the data values should be

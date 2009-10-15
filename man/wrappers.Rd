@@ -93,3 +93,4 @@ loccoords(coords, locations)
 \keyword{spatial} 
 \keyword{programming}
 \keyword{interface}
+

@@ -1516,7 +1516,7 @@ function(phi.lambda, ...)
       if(x$method.lik == "ML")
         ylabm <- "profile log-likelihood"
       else ylabm <- "profile log-(restricted) likelihood"
-      if(all(conf.int) != FALSE) {
+      if(!is.logical(conf.int) || all(conf.int) != FALSE) {
         if(mode(conf.int) != "numeric"| any(conf.int > 1))
           stop("argument conf.int must be numerical (scalar or vector) with values between 0 and 1")
         conf.int.drop <- x[[i]][[3]][2] - 0.5 * qchisq(conf.int,1)

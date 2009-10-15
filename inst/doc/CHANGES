@@ -1,3 +1,21 @@
+                ===============================
+ 		CHANGES IN geoR VERSION 1.6-26
+		===============================
+
+NEW FEATURES
+
+        o 
+
+
+BUGS
+        o bug fix/change in prepare.graph.kriging() ordering values
+ 	  as well as coordinates allowing for unusual/not standard kriging grids
+          as, for instance, imported from other systems (thanks to Olivier Briet)
+
+        o internal change in check for duplicated locations in as.geodata.default()
+	  for better handling of memory
+
+
                 =================================
  		CHANGES IN geoR VERSION 1.6-24/25
 		=================================

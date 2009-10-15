@@ -141,7 +141,7 @@
                                         tausq=unique(nugget), kappa=unique(kappa)))
       ##  loss function:
       v.loss <- function(parms, u, v, n, cov.model, weights){
-        sigmasq <- parms[1]
+         sigmasq <- parms[1]
         phi <- parms[2]
         if(cov.model == "power") phi <- 2 * exp(phi)/(1+exp(phi))
         tausq <- parms[3]
@@ -411,6 +411,7 @@
 ".loss.vario" <-
   function (theta, g.l) 
 {
+  print(g.l$cov.model)
   if(g.l$cov.model == "linear")
     theta <- c(theta[1], 1, theta[-1])
   ##

@@ -3,7 +3,7 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Set limits for the parameter values}
 \description{
-  The functions \code{\link{likfit}} and \code{\limits{variofit}} in the
+  The functions \code{\link{likfit}} and \code{\link{variofit}} in the
   package \pkg{geoR}
 }
 \usage{

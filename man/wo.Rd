@@ -40,3 +40,5 @@ text(coords[,1], 5+coords[,2], format(data))
 text(x2[1]+5, x2[2]+5, "?", col=2)
 }
 \keyword{datasets}
+
+

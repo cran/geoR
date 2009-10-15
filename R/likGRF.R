@@ -1172,18 +1172,17 @@
     if(!is.null(v$crash.parms)) return(.Machine$double.xmax^0.5)
     ivx <- solve(v$varcov,xmat)
     xivx <- crossprod(ivx,xmat)
-    betahat <- try(.solve.geoR(xivx,crossprod(ivx,z)))
+    betahat <- try(.solve.geoR(xivx,crossprod(ivx,z)), silent=TRUE)
     if(inherits(betahat, "try-error")){
       t.ei <- eigen(xivx, symmetric = TRUE)
-      require(methods)
-      if(exists("trySilent"))
-        betahat <- trySilent(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z))
-      else{
-        error.now <- options()$show.error.message
-        options(show.error.messages = FALSE)
-        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z))
-        if(is.null(error.now) || error.now) options(show.error.messages = TRUE)        
-      }
+#      if(exists("trySilent"))
+        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z), silent=TRUE)
+#      else{
+#        error.now <- options()$show.error.message
+#        options(show.error.messages = FALSE)
+#        betahat <- try(crossprod(t(t.ei$vec)/sqrt(t.ei$val)) %*% crossprod(ivx,z))
+#        if(is.null(error.now) || error.now) options(show.error.messages = TRUE)        
+#      }
     }
     if(inherits(betahat, "try-error"))
       stop("Covariates have very different orders of magnitude. Try to multiply and/or divide them to bring them to similar orders of magnitude") 

@@ -39,7 +39,7 @@ geoRdefunct()
       \code{likfit.nospatial}, \code{loglik.spatial}, \code{proflik.nug}, \code{proflik.phi}, \code{proflik.ftau}.  }
 
     \item{distdiag}{functionally is redundant with
-      \code{\link[mva]{dist}}.  }
+      \code{\link{dist}}.  }
   }
 
 

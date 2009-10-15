@@ -86,7 +86,7 @@ boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
   Box-Cox transformation,
   the minimization function \code{\link{optim}},
   the function \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
-  the function \code{\link[car]{boxcox}} in the package \pkg{car}.
+  the function \code{\link[car]{box.cox}} in the package \pkg{car}.
 }
 
 \examples{

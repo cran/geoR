@@ -197,8 +197,8 @@ kc <- krige.conv(s100, loc = loci,
          krige = krige.control(cov.pars = c(1,.25)),
          output = s.out)
 par(mfrow=c(2,2))
-image(kc, val=kc$sim[,1], main="a cond. simul.")
-image(kc, val=kc$sim[,1], main="another cond. simul.")
+image(kc, val=kc$simul[,1], main="a cond. simul.")
+image(kc, val=kc$simul[,1], main="another cond. simul.")
 image(kc, val=(1 - kc$prob), main="Map of P(Y > 2)")
 image(kc, val=kc$quant, main="Map of y s.t. P(Y < y) = 0.9")
 par(par.ori)
