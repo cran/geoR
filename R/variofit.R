@@ -170,7 +170,7 @@
         return(loss)
       }
       grid.loss <- apply(grid.ini, 1, v.loss, u=XY$u, v=XY$v, n=XY$n, cov.model = cov.model, weights = weights)
-      ini.temp <- grid.ini[which(grid.loss == min(grid.loss)),, drop=FALSE]
+      ini.temp <- grid.ini[which(grid.loss == min(grid.loss))[1],, drop=FALSE]
       if(is.R()) rownames(ini.temp) <- "initial.value"
       if(messages.screen){
         cat(" selected values:\n")

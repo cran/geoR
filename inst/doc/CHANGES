@@ -1,25 +1,35 @@
 
                 ===============================
-            		CHANGES IN geoR VERSION 1.6-30
-		            ===============================
+       		CHANGES IN geoR VERSION 1.6-31
+	        ===============================
+
+NEW FEATURES
+
+        o 
+
+
+BUGS
+
+        o fix in proflik() which was passing wrong argument name for likfit() (lik.method/method.lik)
+          when computing the profile for the lambda parameter
+
+        o practicalRange() now returns Inf for power and linear correlation functions
+
+        o fixes in variofit() for linear correlation model
+
+
+                ===============================
+                CHANGES IN geoR VERSION 1.6-30
+	        ===============================
 
 NEW FEATURES
 
         o variofit() and likfit() now extracts "cov.model" if a "variomodel" (or eyefit)
           object is passed to "ini.cov.pars"
 
-  
-        o 
-
 
 BUGS
         o as.geodata() was handling units.m wrongly in case of duplicated locations. (Thanks Barry Rowligson)
-
-        o 
-
-        o 
-          
-        o 
 
  
 
@@ -33,17 +43,9 @@ NEW FEATURES
           jitterDupCoords.geodata(), jitter2d(), allowing for jittering
           (*Dup* for duplicated only) 2D coordinates  
   
-        o 
-
 
 BUGS
-        o practicalRange() now returns Inf for the linear model for correlation function
-
         o variog.model.env() now deals with "eyefit" objects. Runs for a object with a single model and issues an error if there is more than one model in the object, asking for rerun indicationg which one is the list to be used
-
-        o 
-          
-        o 
 
  
 

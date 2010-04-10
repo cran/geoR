@@ -17,11 +17,14 @@
   function (cov.model, phi, kappa=0.5, correlation = 0.05, ...) 
 {
   cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
+  .check.cov.model(cov.model = cov.model, cov.pars=c(1,phi), kappa=kappa, output=FALSE)
   if(cov.model %in% c("circular","cubic","spherical"))
     return(phi)
   if(any(cov.model %in% c("pure.nugget")))
     return(0)  
-  if(any(cov.model %in% c("pure.nugget")))
+  if(any(cov.model %in% c("linear")))
+    return(Inf)  
+  if(any(cov.model %in% c("power")))
     return(Inf)  
   findRange <- function(range, cm, p, k, cor)
     cov.spatial(range, cov.model = cm, kappa = k, cov.pars = c(1, p))-cor
@@ -30,6 +33,10 @@
                  ...)$root
   return(pr)
 }
+
+".check.cov.model" <-
+  function(cov.model, cov.pars, kappa, env=NULL, output=TRUE)
+  return(list(cov.model=cov.model, sigmasq=sigmasq, phi=phi, kappa=kappa, ns=ns))
 
 "matern" <-
   function (u, phi, kappa) 

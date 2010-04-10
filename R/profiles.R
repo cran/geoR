@@ -1053,7 +1053,7 @@ function(phitausq.rel, ...)
                        data = .temp.list$z,
                        ini = ini.cov, trend = trend.mat,
                        fix.nugget = .temp.temp.list$fixtau,
-                       method.lik = .temp.list$method.lik,
+                       lik.method = .temp.list$method.lik,
                        cov.model = .temp.list$cov.model,
                        kappa = .temp.list$kappa, fix.lambda = TRUE,
                        lambda = lambda,

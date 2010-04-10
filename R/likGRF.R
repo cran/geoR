@@ -64,10 +64,15 @@
   else messages.screen <- messages
   ##
   if(!missing(ini.cov.pars)){
-    if(any(class(ini.cov.pars) == "eyefit"))
-      cov.model <- ini.cov.pars[[1]]$cov.model
-    if(any(class(ini.cov.pars) == "variomodel"))
+    if(any(class(ini.cov.pars) == "eyefit")){
+ini.cov.pars <- ini.cov.pars[[1]]
+#      cov.model <- ini.cov.pars[[1]]$cov.model
+#      kappa <- ini.cov.pars[[1]]$kappa
+    }
+    if(any(class(ini.cov.pars) == "variomodel")){
       cov.model <- ini.cov.pars$cov.model
+      kappa <- ini.cov.pars$kappa
+}
   }
   if(missing(cov.model)) cov.model <- "matern"
   cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
