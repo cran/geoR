@@ -13,8 +13,7 @@
 }
 
 \usage{
-\method{lines.variomodel}{grf}(x, max.dist = max(dist(x$coords)),
-length = 100, lwd = 2, \dots)
+\method{lines.variomodel}{grf}(x, max.dist, n = 100, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -23,8 +22,7 @@ length = 100, lwd = 2, \dots)
     the function \code{\link{grf}}.  }
   \item{max.dist}{maximum distance to compute and plot the true
     variogram. Defaults to the maximum distance between two data locations.  }
-  \item{length}{number of points used to compute and draw the variogram line.}
-  \item{lwd}{width of the line.  }
+  \item{n}{number of points used to compute and draw the variogram line.}
   \item{\dots}{further arguments to be passed to the function
     \code{\link{curve}}.  }
 }

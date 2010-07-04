@@ -193,6 +193,9 @@ sim1 <- grf(100, cov.pars = c(1, .25))
 points(sim1)   
 # empirical and theoretical variograms
 plot(sim1)
+## alternative way
+plot(variog(sim1, max.dist=1))
+lines.variomodel(sim1)
 #
 # a "smallish" simulation
 sim2 <- grf(441, grid = "reg", cov.pars = c(1, .25)) 

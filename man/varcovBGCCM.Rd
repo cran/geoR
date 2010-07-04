@@ -19,17 +19,19 @@ varcovBGCCM(dists.obj, cov0.pars, cov1.pars, cov2.pars,
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dists.obj}{ ~~Describe \code{dists.obj} here~~ }
-  \item{cov0.pars}{ ~~Describe \code{cov0.pars} here~~ }
-  \item{cov1.pars}{ ~~Describe \code{cov1.pars} here~~ }
-  \item{cov2.pars}{ ~~Describe \code{cov2.pars} here~~ }
-  \item{cov0.model}{ ~~Describe \code{cov0.model} here~~ }
-  \item{cov1.model}{ ~~Describe \code{cov1.model} here~~ }
-  \item{cov2.model}{ ~~Describe \code{cov2.model} here~~ }
-  \item{kappa0}{ ~~Describe \code{kappa0} here~~ }
-  \item{kappa1}{ ~~Describe \code{kappa1} here~~ }
-  \item{kappa2}{ ~~Describe \code{kappa2} here~~ }
-  \item{scaled}{ ~~Describe \code{scaled} here~~ }
+  \item{dists.obj}{a vector with distance values }
+  \item{cov0.pars}{covarianve paremeter values for the common component }
+  \item{cov1.pars}{covariance parameter for the individual structure of
+    the first variable }
+  \item{cov2.pars}{covariance parameter for the individual structure of
+    the second variable }
+  \item{cov0.model}{character indicating a valid correlation model }
+  \item{cov1.model}{character indicating a valid correlation model }
+  \item{cov2.model}{character indicating a valid correlation model }
+  \item{kappa0}{scalar }
+  \item{kappa1}{scalar }
+  \item{kappa2}{scalar }
+  \item{scaled}{logical }
   \item{inv}{logical. If \code{TRUE} the inverse of the covariance
     matrix
     is returned instead.  }

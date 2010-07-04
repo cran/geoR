@@ -85,7 +85,7 @@
   \item{col.seq}{number(s) defining the colors in the graphical parameter
     \code{col}.  }
   \item{add.to.plot}{logical. If \code{TRUE} the points are added
-    to the current plot otherwise a display is open. Defaults to \code{FALSE}.  }
+    to the current plot or image otherwise a display is open. Defaults to \code{FALSE}.  }
   \item{x.leg, y.leg}{\code{x} and \code{y} location of the legend as
     documented in \code{\link{legend}}.  }
   \item{dig.leg}{the desired number of digits after the decimal

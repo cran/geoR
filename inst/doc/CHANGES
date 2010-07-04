@@ -1,3 +1,27 @@
+
+                ===============================
+ 		CHANGES IN geoR VERSION 1.6-27
+		===============================
+
+NEW FEATURES
+
+        o lines.variomodel.grf() with simpler argument list
+  
+        o more general passing arguments mechanism in image.*(), countour.*(), persp.*()
+
+
+BUGS
+        o variofit() was mistakenly printing "matern" while running
+
+        o points.geodata() now pass all plotting parameters correctly
+
+        o lines.variomodel.krige.bayes() was printing always the exponential model
+          now fixed 
+
+        o more general passing arguments mechanism in image.*(), countour.*(), persp.*()
+
+ 
+
                 ===============================
  		CHANGES IN geoR VERSION 1.6-26
 		===============================
@@ -5,7 +29,6 @@
 NEW FEATURES
 
         o 
-
 
 BUGS
         o bug fix/change in prepare.graph.kriging() ordering values

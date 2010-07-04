@@ -1222,8 +1222,9 @@
             number.col, coords.data,
             x.leg, y.leg, messages, ...) 
 {
-  ldots <- match.call(expand.dots = FALSE)$...
-  if(missing(x)) x <- NULL
+  ldots <- list(...)
+###  ldots <- match.call(expand.dots = FALSE)$...
+  ##  if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
   if(missing(locations))
@@ -1299,7 +1300,8 @@
             filled= FALSE, number.col, coords.data,
             x.leg, y.leg, messages, ...) 
 {
-  ldots <- match.call(expand.dots = FALSE)$...
+  ldots <- list(...)
+#  ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
@@ -1391,7 +1393,8 @@
               "mean.simulations", "variance.simulations",
               "quantiles", "probabilities", "simulation"), number.col, messages, ...) 
 {
-  ldots <- match.call(expand.dots = FALSE)$...
+  ldots <- list(...)
+#  ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
   attach(x, pos=2, warn.conflicts=FALSE)
   on.exit(detach(2))
@@ -2434,15 +2437,16 @@
   ##
   ## picking the variogram model
   ##
-  if(is.null(x$call$cov.model))
-    my.l$cov.model <- "exponential"
-  else {
-    my.l$cov.model <- x$call$cov.model
-    if(any(x$call$cov.model == c("matern", "powered.exponential",
-             "cauchy", "gencauchy", "gneiting.matern")))
-      my.l$kappa <- x$call$kappa
-    else my.l$kappa <- NULL
-  }
+ # if(is.null(x$call$cov.model))
+ #   my.l$cov.model <- "exponential"
+ # else {
+    my.l$cov.model <- x$model$cov.model
+    my.l$kappa <- x$model$kappa
+ #   if(any(x$model$cov.model == c("matern", "powered.exponential",
+ #            "cauchy", "gencauchy", "gneiting.matern")))
+ #     my.l$kappa <- x$call$kappa
+ #   else my.l$kappa <- NULL
+ # }
   ##
   posterior <- match.arg(posterior)
   if(is.function(summary.posterior)) spost <- post.fc <- summary.posterior

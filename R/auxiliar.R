@@ -125,8 +125,13 @@
 
 
 "set.coords.lims" <-
-  function(coords, xlim, ylim)
+  function(coords, borders = coords, xlim, ylim, ...)
 {
+  if(!is.null(borders)){
+    if(ncol(borders) != 2)
+      stop("argument borders must be an object with 2 columns with the XY coordinates of the borders of the area")
+    coords <- rbind(coords, as.matrix(as.data.frame(borders)))
+  }
   coords.lims <- apply(coords, 2, range, na.rm=TRUE)
   if(!missing(xlim) && mode(xlim) == "numeric")
     coords.lims[,1] <- xlim[order(xlim)]
@@ -136,9 +141,7 @@
   if (coords.diff[1] != coords.diff[2]) {
     coords.diff.diff <- abs(diff(as.vector(coords.diff)))
     ind.min <- which(coords.diff == min(coords.diff))
-    coords.lims[, ind.min] <-
-      coords.lims[, ind.min] +
-        c(-coords.diff.diff, coords.diff.diff)/2
+    coords.lims[, ind.min] <- coords.lims[, ind.min] + c(-coords.diff.diff, coords.diff.diff)/2
   }
   return(coords.lims)
 }
@@ -604,9 +607,11 @@
                   filled.contour = filled.contour)
     ind <- pmatch(names(ldots), names(formals(fct)))
     #if(any(is.na(ind)))
-      ldots[is.na(ind)] <- NULL
-    if(!is.null(ldots))
-      names(ldots) <- names(formals(fct))[ind[!is.na(ind)]]
+#      ldots[is.na(ind)] <- NULL
+#    if(!is.null(ldots))
+#      names(ldots) <- names(formals(fct))[ind[!is.na(ind)]]
+      ind <- pmatch(names(ldots), names(formals(fct)))
+      names(ldots) <- ifelse(is.na(ind), names(ldots), names(formals(fct))[ind])
   }
   if(data == "simulation"){
     if(type == "plot.1d"){
@@ -749,7 +754,7 @@ or a vector with x-coordinates")
   gx <- seq(x.coords[1], x.coords[2], ...)
   ldots <- list(...)
   if(!is.null(ldots))
-    names(ldots) <- match.arg(names(ldots), names(formals(seq.default)))
+    names(ldots) <- sapply(names(ldots), function(x) match.arg(x, names(formals(seq.default))))
   if(is.null(y.length.out)) y.length.out <- ldots$length.out
   if(is.null(y.along.with)) y.along.with <- ldots$along.with
   if(is.null(y.by))

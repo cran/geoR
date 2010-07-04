@@ -9,12 +9,14 @@
 }
 
 \usage{
-set.coords.lims(coords, xlim, ylim)
+set.coords.lims(coords, borders = coords, xlim, ylim, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{coords}{an \eqn{n \times 2}{nx2} matrix with coordinates.  }
+  \item{borders}{an \eqn{n \times 2}{nx2} matrix with coordinates.  }
   \item{xlim, ylim}{the ranges to be encompassed by the x and y axes.  }
+  \item{\dots}{not used, included just for internal handling.  }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~

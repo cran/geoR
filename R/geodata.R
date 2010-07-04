@@ -497,12 +497,17 @@
             x.leg, y.leg = NULL, dig.leg = 2, 
             round.quantiles = FALSE, permute = FALSE, ...) 
 {
+  ldots <- list(...)
+  TYPE <- ldots$type
+  if(length(ldots) > 0){
+    ind <- pmatch(names(ldots), names(formals(plot.default)))
+    names(ldots) <- ifelse(is.na(ind), names(ldots), names(formals(plot.default))[ind])
+#    names(ldots) <- match.arg(names(ldots), names(formals(plot.default)), several.ok=TRUE)
+  }
   ##
   ## Checking input
   ##
-  if(missing(x)) x <- list()
-  x$coords <- coords
-  x$data <- data
+  if(missing(x)) x <- list(coords = coords, data = data)
   ## This is for compatibility with previously used argument pt.sizes
   if(!is.null(list(...)$pt.s)) pt.divide <- list(...)$pt.s
   ##
@@ -551,10 +556,8 @@
   ## symbols size proportional to the data or to an "external" variable
   ##
   if(missing(cex.var)){
-    if(trend != "cte" && abs.residuals)
-      cex.var.data <- abs.res
-    else
-      cex.var.data <- data
+    if(trend != "cte" && abs.residuals) cex.var.data <- abs.res
+    else cex.var.data <- data
   }
   else{
     cex.var.data <- cex.var
@@ -567,25 +570,20 @@
   size <- cex.min + ((cex.var.data[ind] - r.y[1]) *
                      (cex.max - cex.min))/(r.y[2] - r.y[1])
   ##
-  if(missing(borders)) borders <- x$borders
   attach(x, pos=2, warn.conflicts=FALSE)
   eval(borders, envir=as.environment(2))
   detach(2)
   if (!add.to.plot) {
-    if(is.null(borders))
-      coords.lims <- set.coords.lims(coords=coords)
-    else{
-      borders <- as.matrix(as.data.frame(borders))
-      if(ncol(borders) != 2)
-        stop("argument borders must be an object with 2 columns with the XY coordinates of the borders of the area")
-      coords.lims <- set.coords.lims(coords=rbind(as.matrix(coords), as.matrix(borders)))
-    }
+    coords.lims <- set.coords.lims(coords=coords, borders = borders, ...)
     par(pty = "s")
     toplot <- apply(coords, 2, range)
     colnames(toplot) <- c("X Coord", "Y Coord")
-    plot(toplot, type = "n",
-         xlim = coords.lims[,1], ylim = coords.lims[, 2], ...)
+    ldots$xlim <- coords.lims[,1]
+    ldots$ylim <- coords.lims[,2]
+    ldots$type= "n"
+    do.call("plot", c(list(x=toplot), ldots))
   }
+  if(!is.null(TYPE) && ldots$type == "n") return(invisible())
   if(!is.null(borders)) polygon(borders)
   graph.list <- list()
   ##
@@ -607,24 +605,29 @@
       if (missing(col.seq)) 
         col.seq <- terrain.colors(46)[seq(1,46,by=5)]
     }
-    if(mode(pt.divide) == "numeric" && length(pt.divide) == 1){
-      n.quant <- pt.divide
-      if (missing(col.seq)) col.seq <- "gray"
-    }
-    if(mode(pt.divide) == "numeric" && length(pt.divide) > 1){
-      if(length(pt.divide <= length(data))){
-        data.quantile <- pt.divide
-        n.quant <- length(pt.divide) - 1
+    if(mode(pt.divide) == "numeric"){
+      if(length(pt.divide) == 1){
+        n.quant <- pt.divide
+        if (missing(col.seq))
+          col.seq <- "gray"
       }
-      else
-        stop("length of pt.divide cannot be greater than length of the data")
+      else{
+        if(length(pt.divide <= length(data))){
+          data.quantile <- pt.divide
+          n.quant <- length(pt.divide) - 1
+        }
+        else
+          stop("length of pt.divide cannot be greater than length of the data")
+      }
     }
     else
       data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
     if(!missing(col.seq) && all(col.seq == "gray"))
       col.seq <- gray(seq(1, 0, l=n.quant))
-    if (missing(pch.seq)) pch.seq <- rep(21, n.quant)
-    if (round.quantiles) {
+    if(length(col.seq) > n.quant)
+      col.seq <- col.seq[round(seq(1, length(col.seq), length=n.quant))]
+    if(missing(pch.seq)) pch.seq <- rep(21, n.quant)
+    if(round.quantiles) {
       data.quantile[1] <- floor(data.quantile[1])
       data.quantile[n.quant + 1] <- ceiling(data.quantile[n.quant + 1])
       data.quantile <- round(data.quantile)
@@ -746,20 +749,19 @@
   else data.lab <- "data"
   par(mfrow = c(2, 2), mar = c(4, 4, 0, 0.5), mgp=c(2,.8,0))
   if (is.null(borders)) 
-    coords.lims <- set.coords.lims(coords = coords)
+    coords.lims <- set.coords.lims(coords = coords, ...)
   else {
     borders <- as.matrix(as.data.frame(borders))
     if (ncol(borders) != 2) 
       stop("argument \"borders\" must be a 2 columns object with coordinates of the borders of the study area")
-    coords.lims <- set.coords.lims(coords = rbind(as.matrix(coords), as.matrix(borders)))
+    coords.lims <- set.coords.lims(coords = rbind(as.matrix(coords), as.matrix(borders)), ...)
   }
   par(pty = "s")
   plot(coords, xlab = "X Coord", ylab = "Y Coord ", type = "n", 
        xlim = coords.lims[, 1], ylim = coords.lims[, 2])
   if (!is.null(borders)) polygon(borders)
   data.breaks <- unique(quantile(data))
-  data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, 
-                  labels = FALSE)
+  data.cut <- cut(data, breaks = data.breaks, include.l = TRUE, labels = FALSE)
   points(coords, pch = (1:4)[data.cut], col = qt.col[data.cut])
   plot(data, coords[, 2], ylab = "Y Coord", xlab = data.lab, cex = 1, ylim = coords.lims[, 2])
   if(lowess){

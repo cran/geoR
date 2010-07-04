@@ -265,20 +265,16 @@
 }
 
 "lines.variomodel.grf" <-
-  function (x, max.dist = max(dist(x$coords)), length = 100, lwd = 2, ...) 
+  function (x, max.dist, n = 100, ...) 
 {
-#  if(! "package:stats" %in% search()) require(mva)
-  if(x$cov.model %in% c("matern","powered.exponential", 
-                        "cauchy", "gencauchy", "gneiting.matern"))
-    kappa <- x$kappa
-  else kappa <- NULL
-  distance <- seq(0, max.dist, length = length)
+  if(missing(max.dist)) max.dist <- max(dist(x$coords))
+  distance <- seq(0, max.dist, length = n)
   if (is.vector(x$cov.pars)) 
     sill.total <- x$nugget + x$cov.pars[1]
   else sill.total <- x$nugget + sum(x$cov.pars[, 1])
   gamma <- sill.total - cov.spatial(distance, cov.model = x$cov.model, 
-                                  kappa = kappa, cov.pars = x$cov.pars)
-  lines(distance, gamma, lwd = lwd, ...)
+                                  kappa = x$kappa, cov.pars = x$cov.pars)
+  lines(distance, gamma, ...)
   return(invisible())
 }
 

@@ -38,7 +38,11 @@ geostatistical model}
   \item{krige.var}{prediction variances.  }
 }
 %\references{ ~put references to the literature/web site here ~ }
-\author{ ~~who you are~~ }
+\author{
+  Paulo Justiniano Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
+  Peter J. Diggle \email{p.diggle@lancaster.ac.uk}.
+}
+
 %\note{ ~~further notes~~ 
 %
 % ~Make other sections like Warning with \section{Warning }{....} ~

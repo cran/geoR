@@ -411,7 +411,6 @@
 ".loss.vario" <-
   function (theta, g.l) 
 {
-  print(g.l$cov.model)
   if(g.l$cov.model == "linear")
     theta <- c(theta[1], 1, theta[-1])
   ##
