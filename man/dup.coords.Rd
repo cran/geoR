@@ -49,7 +49,11 @@ dup.coords(x, \dots)
 
 % ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link{as.geodata}}, \code{\link{duplicated}}.  }
+\seealso{\code{\link{as.geodata}} for the definition of geodata class,
+  \code{\link{duplicated}} for the base function to identify duplicated
+  values and \code{\link{jitterDupCoords}} for a function which jitters
+  duplicated coordinates.  }
+
 \examples{
 ## simulating data
 dt <- grf(30, cov.p=c(1, .3)) 
@@ -63,6 +67,7 @@ duplicated(dt)
 ## the default method:
 dup.coords(dt$coords)
 }
+
 \keyword{spatial}
 \keyword{manip}
 %\keyword{logic}

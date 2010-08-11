@@ -1,6 +1,30 @@
 
                 ===============================
- 		CHANGES IN geoR VERSION 1.6-27
+ 		CHANGES IN geoR VERSION 1.6-29
+		===============================
+
+NEW FEATURES
+
+        o new functions jitterDupCoords(), jitterDupCoords.default(), 
+          jitterDupCoords.geodata(), jitter2d(), allowing for jittering
+          (*Dup* for duplicated only) 2D coordinates  
+  
+        o 
+
+
+BUGS
+        o practicalRange() now returns Inf for the linear model for correlation function
+
+        o variog.model.env() now deals with "eyefit" objects. Runs for a object with a single model and issues an error if there is more than one model in the object, asking for rerun indicationg which one is the list to be used
+
+        o 
+          
+        o 
+
+ 
+
+                ===============================
+ 		CHANGES IN geoR VERSION 1.6-27/28
 		===============================
 
 NEW FEATURES

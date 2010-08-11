@@ -307,7 +307,7 @@
                                   res$coords[,2], sep=""))
     options(digits=op.dig)
     rep.dup <- duplicated(rep.lev)
-    cat(paste("as.geodata:", sum(rep.dup), "redundant locations found\n"))
+    cat(paste("as.geodata:", sum(rep.dup), "replicated data locations found. \n Consider using jitterDupCoords() for jittering replicated locations. \n"))
     if(is.function(rep.data.action) || rep.data.action == "first"){
       res$coords <- res$coords[!rep.dup,]
       measure.var.f <- function(x)
@@ -334,7 +334,7 @@
      ## any.coincide <- lapply(split(as.data.frame(res$coords), realisations), check.coincide)
      ## any.coincide <- as.vector(unlist(any.coincide))
       if(sum(any.coincide) > 0)
-        cat("WARNING: there are data at coincident or very closed locations, some of the geoR's functions may not work. Use function dup.coords() to locate duplicated coordinates. \n")      
+        cat("WARNING: there are data at coincident or very closed locations, some of the geoR's functions may not work.\n Use function dup.coords() to locate duplicated coordinates.\n Consider using jitterDupCoords() for jittering replicated locations \n")      
     }
   }
   ##

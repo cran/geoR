@@ -527,10 +527,8 @@
   print(round(est.pars, digits=digits))
   cat(paste("Practical Range with cor=0.05 for asymptotic range:", format(x$practicalRange, ...)))
   cat("\n")
-  if(x$weights == "equal")
-    cat("\nvariofit: minimised sum of squares = ")
-  else
-      cat("\nvariofit: minimised weighted sum of squares = ")
+  if(x$weights == "equal") cat("\nvariofit: minimised sum of squares = ")
+  else cat("\nvariofit: minimised weighted sum of squares = ")
   cat(round(x$value, digits=digits))
   cat("\n")
   return(invisible())
@@ -649,6 +647,13 @@
   ##
   ## reading input
   ##
+  if(class(model.pars) == "eyefit"){
+    if(length(model.pars) == 1L)
+      model.pars <- model.pars[[1]]
+    else
+      stop(paste("variog.model.env: more than one variograma model in the object",
+                 deparse(substitute(model.pars)), "\n  specify which i_th model in the list to be used using [[i]]"))
+  }
   if(!is.null(model.pars$beta)) beta <- model.pars$beta
   else beta <- 0
   if(!is.null(model.pars$cov.model))

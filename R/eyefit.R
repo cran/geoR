@@ -39,8 +39,7 @@ print.eyefit <- function(x, ...){
 
 eyefit <- function(vario, silent=FALSE){  
   require(tcltk) || stop("package tcltk is required")
-  ##    require(geoR) || stop("geoR support is absent")    
-  
+
   geterrmessage()  
   done <- tclVar(0)
   

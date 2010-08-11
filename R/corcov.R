@@ -21,6 +21,8 @@
     return(phi)
   if(any(cov.model %in% c("pure.nugget")))
     return(0)  
+  if(any(cov.model %in% c("pure.nugget")))
+    return(Inf)  
   findRange <- function(range, cm, p, k, cor)
     cov.spatial(range, cov.model = cm, kappa = k, cov.pars = c(1, p))-cor
   pr <- uniroot(findRange, interval = c(0, 50 * phi + 1), 
