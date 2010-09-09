@@ -224,7 +224,7 @@
       else res[[pos]] <- units.m.col
     }
     else
-      res[[pos]] <- obj[,units.m.col]
+      res[[pos]] <- obj[,units.m.col,drop=TRUE]
     if(!all(res[[pos]] > 0))
       stop("all values of units.m must be greater than zero")
     names(res)[pos] <- "units.m"
@@ -297,7 +297,6 @@
   if(!is.function(rep.units.action))
     rep.units.action <- match.arg(rep.units.action,
                                   choices = c("none", "first")) 
-#  if(! "package:stats" %in% search()) require(mva)
   ## check also whether this should be checked within each realisation 
   ##  if(sum(rep.dup) > 0){
   if(any(duplicated(res$coords, MAR=1))){
@@ -313,7 +312,7 @@
       measure.var.f <- function(x)
         return(summary(lm(x ~ as.factor(rep.lev)))$sigma^2)
       res$m.var <- drop(apply(as.matrix(res$data),2,measure.var.f))
-      rep.action.f <- function(x, rep.action){ 
+      rep.action.f <- function(x, rep.action){
         if(!is.function(rep.action) && rep.action == "first")
           return(x[!rep.dup])
         else
@@ -323,7 +322,7 @@
       if(!is.null(covar.col))
         res[[pos.covar]] <- drop(apply(res[[pos.covar]], 2, rep.action.f, rep.action=rep.covar.action))
       if(!is.null(units.m.col))
-        res$units.m <- sapply(res$units.m, rep.action.f, rep.action=rep.covar.action)
+        res$units.m <- drop(apply(as.matrix(res$units.m), 2 , rep.action.f, rep.action=rep.units.action))
       if(!is.null(res$realisations))
         res$realisations <- res$realisations[!rep.dup]
     }

@@ -11,7 +11,7 @@
   empirical variogram. Variograms models can be fitted by using weighted or ordinary least squares.
 }
 \usage{
-variofit(vario, ini.cov.pars, cov.model = "matern",
+variofit(vario, ini.cov.pars, cov.model,
          fix.nugget = FALSE, nugget = 0,
          fix.kappa = TRUE, kappa = 0.5,
          simul.number = NULL, max.dist = vario$max.dist,
@@ -29,8 +29,8 @@ variofit(vario, ini.cov.pars, cov.model = "matern",
   \item{cov.model}{a string with the name of the correlation
     function. For further details see documentation for
     \code{\link{cov.spatial}}. For the linear model use \code{cov.model
-      = "linear"}.
-    Defaults are equivalent to the \emph{exponential} model.  }
+      = "linear"}. Read values from \code{variomodel} object passed \code{ini.cov.pars},
+     otherwise default is the \emph{exponential} model.  }
   \item{fix.nugget}{logical, indicating whether the parameter
     \eqn{\tau^2}{tau^2} (nugget variance) should be regarded as fixed
     (\code{fix.nugget = TRUE}) or should

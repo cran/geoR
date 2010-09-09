@@ -18,10 +18,8 @@
 \title{Likelihood Based Parameter Estimation for Gaussian Random Fields}
 
 \description{
-  \emph{Maximum likelihood} (ML) or
-  \emph{restricted maximum likelihood} (REML)
-  parameter estimation for (transformed) Gaussian
-  random fields.
+  \emph{Maximum likelihood} (ML) or \emph{restricted maximum likelihood} (REML)
+  parameter estimation for (transformed) Gaussian random fields.
 }
 
 \usage{
@@ -29,8 +27,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
        trend = "cte", ini.cov.pars, fix.nugget = FALSE, nugget = 0,
        fix.kappa = TRUE, kappa = 0.5, fix.lambda = TRUE, lambda = 1,
        fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
-       cov.model = "matern", realisations,
-       lik.method = "ML", components = TRUE,
+       cov.model, realisations, lik.method = "ML", components = TRUE,
        nospatial = TRUE, limits = pars.limits(),
        print.pars = FALSE, messages, \dots)
 
@@ -114,7 +111,8 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
     details on anisotropy correction.  }
   \item{cov.model}{a string specifying the model for the correlation
     function. For further details see documentation for \code{\link{cov.spatial}}.
-    Defaults are equivalent to the \emph{exponential} model.  }
+    Reads values from an \code{variomodel} object passed to \code{ini.cov.pars} if any, otherwise
+    defaults to the \emph{exponential} model.  }
   \item{realisations}{optional. Logical or a vector indicating the number of replication
     for each datum. For further information see \code{DETAILS} below and
     documentation for \code{\link{as.geodata}}. }

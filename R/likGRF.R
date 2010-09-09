@@ -46,16 +46,12 @@
             fix.nugget = FALSE, nugget = 0, 
             fix.kappa = TRUE, kappa = 0.5, 
             fix.lambda = TRUE, lambda = 1, 
-            fix.psiA = TRUE, psiA = 0, 
-            fix.psiR = TRUE, psiR = 1, 
-            cov.model = "matern", realisations,
-            lik.method = "ML",
-            components = TRUE, nospatial = TRUE,
-            limits = pars.limits(), 
+            fix.psiA = TRUE, psiA = 0, fix.psiR = TRUE, psiR = 1, 
+            cov.model, realisations, lik.method = "ML",
+            components = TRUE, nospatial = TRUE, limits = pars.limits(), 
             print.pars = FALSE, messages, ...) 
 {
   name.geodata <- deparse(substitute(geodata))
-#  if(! "package:stats" %in% search()) require(mva)
   ##
   ## Checking input
   ##
@@ -67,6 +63,13 @@
     messages.screen <- as.logical(ifelse(is.null(getOption("geoR.messages")), TRUE, getOption("geoR.messages")))
   else messages.screen <- messages
   ##
+  if(!missing(ini.cov.pars)){
+    if(any(class(ini.cov.pars) == "eyefit"))
+      cov.model <- ini.cov.pars[[1]]$cov.model
+    if(any(class(ini.cov.pars) == "variomodel"))
+      cov.model <- ini.cov.pars$cov.model
+  }
+  if(missing(cov.model)) cov.model <- "matern"
   cov.model <- match.arg(cov.model, choices = .geoR.cov.models)
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(any(cov.model == c("power", "gneiting.matern", "gencauchy")))

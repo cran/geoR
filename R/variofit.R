@@ -1,11 +1,10 @@
 "variofit" <-
-  function (vario, ini.cov.pars, cov.model = "matern",
+  function (vario, ini.cov.pars, cov.model,
             fix.nugget = FALSE, nugget = 0, 
             fix.kappa = TRUE, kappa = 0.5,
             simul.number = NULL,  max.dist = vario$max.dist,
             weights, minimisation.function,
-            limits = pars.limits(), 
-            messages, ...) 
+            limits = pars.limits(), messages, ...) 
 {
   call.fc <- match.call()
   if(missing(messages))
@@ -13,6 +12,13 @@
   else messages.screen <- messages
   if(length(class(vario)) == 0 || all(class(vario) != "variogram"))
     warning("object vario should preferably be of the geoR's class \"variogram\"")
+  if(!missing(ini.cov.pars)){
+    if(any(class(ini.cov.pars) == "eyefit"))
+      cov.model <- ini.cov.pars[[1]]$cov.model
+    if(any(class(ini.cov.pars) == "variomodel"))
+      cov.model <- ini.cov.pars$cov.model
+  }
+  if(missing(cov.model)) cov.model <- "matern"
   cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if(cov.model == "stable") cov.model <- "powered.exponential"
   if(cov.model == "powered.exponential")
@@ -26,8 +32,10 @@
   }
   else
     weights <- match.arg(weights, choices = c("npairs", "equal", "cressie"))
-  if(messages.screen)
+  if(messages.screen){
+    cat(paste("variofit: covariance model used is", cov.model, "\n"))
     cat(paste("variofit: weights used:", weights, "\n"))
+  }
 #  if(missing(minimisation.function)){
 #    if(weights == "equal") minimisation.function <- "nls"
 #    else minimisation.function <- "optim"
@@ -62,7 +70,7 @@
     ## parameter estimation for model which does not require numerical minimisation
     ##
     minimisation.function <- "not used"
-    message <- "correlation function chosen does not require numerical minimisation"
+    message <- "correlation function does not require numerical minimisation"
     if(weights == "equal") lm.wei <- rep(1, length(XY$u))
     else lm.wei <- XY$n
     if(cov.model == "pure.nugget"){

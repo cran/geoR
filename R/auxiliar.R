@@ -10,6 +10,7 @@
   function(locations)
 {
   if(all(locations == "no")) return("no")
+  if(any(is.na(locations))) stop("NA's cannot be provided for the argument locations")
   if(inherits(locations, "SpatialPoints"))
     locations <- coordinates(locations)
   if(!is.list(locations) && is.vector(locations)) {

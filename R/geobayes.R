@@ -20,9 +20,11 @@
   }
   seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
   do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)
+  if(do.prediction && any(!is.numeric(locations)))
+		stop("krige.bayes: non numeric coordinates passed to the argument \"locations\"")
   base.env <- sys.frame(sys.nframe())
   message.prediction <- character()
-  phidist <- list()
+  phidist<- list()
   "krige.bayes.counter" <- 
     function(.temp.ap, n.points){  
       if(n.points <= 50) cat(paste(.temp.ap, ", ", sep=""))
@@ -245,7 +247,14 @@
   }
   n.posterior <- output$n.posterior
   messages.screen <- output$messages.screen
-  if(do.prediction){
+  if(!do.prediction) {
+    if(prior$beta.prior != "fixed" & prior$sigmasq.prior != "fixed"  &
+       prior$phi.prior != "fixed" & output$messages.screen){
+      cat("krige.bayes: no prediction locations provided.\n")
+      cat("             Only samples of the posterior for the parameters will be returned.\n")
+    }
+  }
+  else{
     n.predictive <- output$n.predictive
     if(is.null(n.predictive))
       n.predictive <- ifelse(prior$phi.prior == "fixed", 0, n.posterior)
@@ -271,14 +280,6 @@
     quantile.estimator <- output$quantile.estimator
     probability.estimator <- output$probability.estimator
     if(simulations.predictive & n.predictive == 0) n.predictive <- 1000
-  }
-  ##
-  if(!do.prediction) {
-    if(prior$beta.prior != "fixed" & prior$sigmasq.prior != "fixed"  &
-       prior$phi.prior != "fixed" & output$messages.screen){
-      cat("krige.bayes: no prediction locations provided.\n")
-      cat("             Only samples of the posterior for the parameters will be returned.\n")
-    }
   }
   ##
   ## Box-Cox transformation
@@ -319,7 +320,7 @@
       ##    locations <- locations.inside(locations, borders)
       locations <- locations[ind.loc0,,drop=TRUE]
       if(nrow(locations) == 0){
-        warning("\nkrige.bayes: no prediction to be performed.\n             There are no prediction locations inside the borders")
+        warning("\nkrige.bayes: no prediction to be performed.\n There are no prediction locations inside the borders")
         do.prediction <- FALSE
       }
       if(messages.screen)
@@ -328,9 +329,7 @@
     ##
     ## Checking for 1D prediction 
     ##
-    if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
-      krige1d <- TRUE
-    else krige1d <- FALSE
+    krige1d <- ifelse((length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1), TRUE, FALSE)
     ##
     ## Checking trend specification
     ##
@@ -348,7 +347,7 @@
       }
       else
         if(model$trend.d != model$trend.l)
-          stop("krige.bayes: especification of model$trend.l and model$trend.d must be similar")
+          stop("krige.bayes: especification of model$trend.l and model$trend.d must be compatible")
     }
     ##
     if(messages.screen){
@@ -484,8 +483,7 @@
         kb$posterior$beta <- list(distribution = "t",
                                   conditional = "normal")
       kb$posterior$beta$pars <- list(mean = bsp$beta.post,
-                                     var = bsp$S2.post *
-                                     bsp$beta.var.std.post)
+                                     var = bsp$S2.post * bsp$beta.var.std.post)
       attr(kb$posterior$beta$pars$var, "Size") <- beta.size
       class(kb$posterior$beta$pars$var) <- "betavar"
     }        
@@ -702,7 +700,6 @@
       cat("\n")
     }
     ##
-#    print(phidist$probphitausq)
     phidist$sum.prob <- sum(phidist$probphitausq)
     phidist$probphitausq <- phidist$probphitausq/phidist$sum.prob
     ##
@@ -885,13 +882,15 @@
       ##
       if(n.predictive == n.posterior) {
         include.it <- FALSE
-        n.predictive <- n.posterior
         phi.sam <- phidist$phitausq[ind,  ]
-        message.prediction <- c(message.prediction, "krige.bayes: phi/tausq.rel samples for the predictive are same as for the posterior")
+        message.prediction <- c(message.prediction, 
+                                "krige.bayes: phi/tausq.rel samples for the predictive are same as for the posterior")
         if(messages.screen)
           cat(message.prediction, "\n")
       }
       else {
+##phidist,  ind
+## n.predictive
         include.it <- TRUE
         ind <- sample((1:(dim(phidist$phitausq)[1])), n.predictive,
                       replace = TRUE, prob = as.vector(phidist$probphitausq))

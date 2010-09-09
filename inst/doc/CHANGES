@@ -1,5 +1,29 @@
 
                 ===============================
+            		CHANGES IN geoR VERSION 1.6-30
+		            ===============================
+
+NEW FEATURES
+
+        o variofit() and likfit() now extracts "cov.model" if a "variomodel" (or eyefit)
+          object is passed to "ini.cov.pars"
+
+  
+        o 
+
+
+BUGS
+        o as.geodata() was handling units.m wrongly in case of duplicated locations. (Thanks Barry Rowligson)
+
+        o 
+
+        o 
+          
+        o 
+
+ 
+
+                ===============================
  		CHANGES IN geoR VERSION 1.6-29
 		===============================
 
