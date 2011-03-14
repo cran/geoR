@@ -277,7 +277,7 @@ void loccoords(Real *xloc, Real *yloc, Real *xcoord, Real *ycoord,
     for (i=0; i<*nc; i++) {
       dx = (xloc[j] - xcoord[i]) ;
       dy = (yloc[j] - ycoord[i]) ;
-      res[ind++] = pythag(dx,dy) ;
+      res[ind++] = hypot(dx,dy) ;
     }
   }
   
@@ -333,7 +333,7 @@ void distdiag(Real *xloc, Real *yloc, Integer *nl, Real *res)
       else{
 	dx = (xloc[j] - xloc[i]) ;
 	dy = (yloc[j] - yloc[i]) ;
-	res[ind] = pythag(dx, dy) ;
+	res[ind] = hypot(dx, dy) ;
       }
       ind++ ;
     }
@@ -360,7 +360,7 @@ void diffpairs(Real *xloc, Real *yloc, Real *data, Integer *nl, Real *res1, Real
     for (i=j+1; i<*nl; i++) {
       dx = (xloc[j] - xloc[i]) ;
       dy = (yloc[j] - yloc[i]) ;
-      res1[ind] = pythag(dx, dy) ;
+      res1[ind] = hypot(dx, dy) ;
       res2[ind] = (data[j] - data[i]) ;
       ind++ ;
     }
@@ -383,7 +383,7 @@ void binit(Integer *n, Real *xc, Real *yc, Real *sim,
 	{
 	  dx = xc[i] - xc[j];
 	  dy = yc[i] - yc[j];
-	  dist = pythag(dx, dy);
+	  dist = hypot(dx, dy);
 	  
 	  if(dist <= *maxdist)
 	    {
@@ -720,7 +720,7 @@ void cor_diag(Real *xloc, Real *yloc, Integer *nl, Integer *cornr,
       else{
 	dx = (xloc[j] - xloc[i]) ;
 	dy = (yloc[j] - yloc[i]) ;
-	h  = pythag(dx,dy) ;
+	h  = hypot(dx,dy) ;
 	if(*cornr > 0){
 	  if(*phi > 0){
 	    res[ind] = corrfctvalue(*phi, kappa, h, *cornr);

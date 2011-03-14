@@ -104,10 +104,10 @@ cov.spatial(obj, cov.model= "matern",
     , 0  otherwise.}
   
   \bold{gaussian}\cr
-  \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^2]}{exp(-(h/phi)^2)} 
+  \deqn{\rho(h) = \exp[-(\frac{h}{\phi})^2]}{rho(h) = exp(-(h/phi)^2)} 
 
   \bold{exponential}\cr
-  \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{exp(-h/phi)}
+  \deqn{\rho(h) = \exp(-\frac{h}{\phi})}{rho(h) = exp(-h/phi)}
 
   \bold{matern}\cr
   \deqn{\rho(h) =

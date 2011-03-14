@@ -1,14 +1,15 @@
+## comments are Previous version before changes in RandomFields 2.*
 "geoR2RF" <-
-  function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars) 
+  function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 {
   cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
   if(missing(aniso.pars)) aniso.pars <- NULL
   if(missing(kappa)) kappa <- NULL
   if (length(cov.pars) != 2)
     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
-  RFmodel <- switch(cov.model, matern = "whittlematern", exponential = "exponential", 
-                    gaussian = "gauss", spherical = "spherical", circular = "circular", 
-                    cubic = "cubic", wave = "wave", power = "not compatible", 
+  RFmodel <- switch(cov.model, matern = "whittlematern", exponential = "exponential",
+                    gaussian = "gauss", spherical = "spherical", circular = "circular",
+                    cubic = "cubic", wave = "wave", power = "not compatible",
                     powered.exponential = "stable", cauchy = "cauchy",
                     gencauchy = "gencauchy", gneiting = "gneiting",
                     gneiting.matern = "not compatible", pure.nugget = "nugget")
@@ -16,22 +17,38 @@
     warning("geoR cov.model not compatible with RandomFields model")
     return(RFmodel)
   }
-  if (any(RFmodel == "gencauchy")) 
-    kappa <- rev(kappa)
-  if (!any(RFmodel == c("gencauchy", "whittlematern", "stable")))
-    kappa <- NULL
+  if (any(RFmodel == "gencauchy")) kappa <- rev(kappa)
+  if (!any(RFmodel == c("gencauchy", "whittlematern", "stable"))) kappa <- NULL
+#  if(is.null(aniso.pars))
+#    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
+#                "+",
+#                list(model="nugget", var=nugget)))
+#    else{
+#    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
+#                          -sin(aniso.pars[1]), cos(aniso.pars[1])), nc=2)) %*%
+#                            diag(c(aniso.pars[2], 1)/cov.pars[2])
+#    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
+#                "+",
+#                list(model="nugget", var=nugget, aniso=diag(1,2))))
   if(is.null(aniso.pars))
-    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
-                "+",
-                list(model="nugget", var=nugget)))
+    model <- list("+",
+                list("$",  var=cov.pars[1], scale=cov.pars[2],
+                if (is.null(kappa)) list(RFmodel) 
+ 		else list(RFmodel, k=kappa)), 
+                list("$", var=nugget, list("nugget")))
   else{
     mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
                           -sin(aniso.pars[1]), cos(aniso.pars[1])), nc=2)) %*%
                             diag(c(aniso.pars[2], 1)/cov.pars[2])
-    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
-                "+",
-                list(model="nugget", var=nugget, aniso=diag(1,2))))
+    model <- list("+",
+                list("$", var=cov.pars[1], aniso=mat,
+                if (is.null(kappa)) list(RFmodel) 
+                else
+                list(RFmodel, k=kappa)),
+                list("$", var=nugget, list("nugget")))
   }
+#  Print(model)
+  return(model)
 }
 
 "grf" <-

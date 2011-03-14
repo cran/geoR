@@ -19,6 +19,7 @@
     runif(1)
   }
   seed <- get(".Random.seed", envir=.GlobalEnv, inherits = FALSE)
+  locations <- .check.locations(locations)
   do.prediction <- ifelse(all(locations == "no"), FALSE, TRUE)
   if(do.prediction && any(!is.numeric(locations)))
 		stop("krige.bayes: non numeric coordinates passed to the argument \"locations\"")
