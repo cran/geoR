@@ -193,7 +193,7 @@
                             tausq.est = tausq,
                             sigmasq.est = sigmasq), pos=1)
   if(obj.likfit$transform.info$fix.lambda == TRUE)
-    eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=obj.likfit$transform.info$log.jacobian)), env=.GlobalEnv)
+    eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=obj.likfit$transform.info$log.jacobian)), envir=.GlobalEnv)
   ##
   ## 3. One-dimentional profile likelihoods
   ##
@@ -218,10 +218,10 @@
                                                 l = 10))
           }
           dimnames(ini.grid) <- list(NULL, NULL)
-          eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), env=.GlobalEnv)
+          eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), envir=.GlobalEnv)
           pl.sigmasq <- apply(matrix(sill.values,
                                      ncol = 1), 1, .proflik.aux2, ...)
-          eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+          eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
         }
         else {
           stop("not yet implemented for fixed nugget != 0")
@@ -240,10 +240,10 @@
                                             seq(0, 2 * tausq.rel, l = 4)))
         }
         dimnames(ini.grid) <- list(NULL, NULL)
-        eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), env=.GlobalEnv)
+        eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), envir=.GlobalEnv)
         pl.sigmasq <- apply(matrix(sill.values, ncol = 
                                    1), 1, .proflik.aux9, ...)
-        eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+        eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
       }
       v.ord <- order(c(sigmasq, sill.values))
       if(obj.likfit$transform.info$fix.lambda == TRUE)
@@ -260,10 +260,10 @@
       if(messages.screen) cat("proflik: computing profile likelihood for the range\n")
       if(n.cov.pars == 2) {
         if(tausq == 0) {
-          eval(expression(.temp.list$nugget <-  0), env=.GlobalEnv)
+          eval(expression(.temp.list$nugget <-  0), envir=.GlobalEnv)
           pl.phi <- apply(matrix(range.values,
                                  ncol = 1), 1, .proflik.aux0, ...)
-          eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+          eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
         }
         else {
           stop("not yet implemented for fixed nugget != 0"
@@ -323,14 +323,14 @@
     ##
     if(any(lambda.values != FALSE)) {
       assign(".temp.temp.list", get(".temp.list", pos=1), pos=1)
-      eval(substitute(.temp.temp.list$coords <- xxx, list(xxx= coords)), env=.GlobalEnv)
+      eval(substitute(.temp.temp.list$coords <- xxx, list(xxx= coords)), envir=.GlobalEnv)
       n.uni <- n.uni + 1
       if(messages.screen) cat("proflik: computing profile likelihood for lambda\n"
             )
       if(n.cov.pars == 2) {
         if(tausq == 0) {
-          eval(expression(.temp.temp.list$fixtau <-  TRUE), env=.GlobalEnv)
-          eval(substitute(.temp.temp.list$ini <- xxx, list(xxx= c(sigmasq,phi))), env=.GlobalEnv)
+          eval(expression(.temp.temp.list$fixtau <-  TRUE), envir=.GlobalEnv)
+          eval(substitute(.temp.temp.list$ini <- xxx, list(xxx= c(sigmasq,phi))), envir=.GlobalEnv)
           pl.lambda <- apply(as.matrix(lambda.values), 1, .proflik.aux23, ...)
         }
         else {
@@ -338,8 +338,8 @@
         }
       }
       if(n.cov.pars == 3) {
-        eval(expression(.temp.temp.list$fixtau <-  FALSE), env=.GlobalEnv)
-        eval(substitute(.temp.temp.list$ini <- xxx, list(xxx= phi)), env=.GlobalEnv)
+        eval(expression(.temp.temp.list$fixtau <-  FALSE), envir=.GlobalEnv)
+        eval(substitute(.temp.temp.list$ini <- xxx, list(xxx= phi)), envir=.GlobalEnv)
         pl.lambda <- apply(matrix(lambda.values,
                                   ncol = 1), 1, .proflik.aux23, ...)
       }
@@ -363,7 +363,7 @@
       if(messages.screen) cat("proflik: computing 2-D profile likelihood for the sill and range parameters\n")
       if(n.cov.pars == 2) {
         if(tausq == 0) {
-          eval(expression(.temp.list$nugget <-  0), env=.GlobalEnv)
+          eval(expression(.temp.list$nugget <-  0), envir=.GlobalEnv)
           if(get(".temp.list", pos=1)$fix.lambda == TRUE) {
             pl.sigmasqphi <- apply(cbind(0, sillrange.values, 1), 1, loglik.spatial, ...)
           }
@@ -402,9 +402,9 @@
         ini.grid <- as.matrix(seq(min(range.values),
                                   max(range.values), l = 10))
       dimnames(ini.grid) <- list(NULL, NULL)
-      eval(substitute(.temp.list$ini.grid <-  xxx, list(xxx=ini.grid)), env=.GlobalEnv)
+      eval(substitute(.temp.list$ini.grid <-  xxx, list(xxx=ini.grid)), envir=.GlobalEnv)
       pl.sigmasqtausq <- apply(sillnugget.values, 1, .proflik.aux15, ...)
-      eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+      eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
       names(pl.sigmasqtausq) <- NULL
       if(obj.likfit$transform.info$fix.lambda == TRUE)
         pl.sigmasqtausq <- pl.sigmasqtausq + obj.likfit$transform.info$log.jacobian
@@ -420,9 +420,9 @@
       if(messages.screen) cat("proflik: computing 2-D profile likelihood for the range and nugget\n"
             )
       eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= as.matrix(seq(sigmasq/4, 5 * 
-                                          sigmasq, l = 15)))), env=.GlobalEnv)
+                                          sigmasq, l = 15)))), envir=.GlobalEnv)
       pl.phitausq <- apply(rangenugget.values, 1, .proflik.aux17, ...)
-      eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+      eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
       names(pl.phitausq) <- NULL
       if(obj.likfit$transform.info$fix.lambda == TRUE)
         pl.phitausq <- pl.phitausq + obj.likfit$transform.info$log.jacobian
@@ -445,10 +445,10 @@
         ini.grid <- as.matrix(seq(min(range.values),
                                   max(range.values), l = 10))
       dimnames(ini.grid) <- list(NULL, NULL)
-      eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), env=.GlobalEnv)
+      eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), envir=.GlobalEnv)
       pl.sigmasqtausq.rel <- apply(sillnugget.rel.values, 1, 
                                    .proflik.aux19, ...)
-      eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+      eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
       names(pl.sigmasqtausq.rel) <- NULL
       if(obj.likfit$transform.info$fix.lambda == TRUE)
         pl.sigmasqtausq.rel <- pl.sigmasqtausq.rel + obj.likfit$transform.info$log.jacobian
@@ -487,12 +487,12 @@
       ini.grid <- as.matrix(seq(min(range.values), max(
                                                        range.values), l = 10))
       dimnames(ini.grid) <- list(NULL, NULL)
-      eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), env=.GlobalEnv)
+      eval(substitute(.temp.list$ini.grid <- xxx, list(xxx= ini.grid)), envir=.GlobalEnv)
       if(tausq == 0) {
-        eval(expression(.temp.list$nugget <-  0), env=.GlobalEnv)
+        eval(expression(.temp.list$nugget <-  0), envir=.GlobalEnv)
         pl.sigmasqlambda <- apply(silllambda.values, 1, .proflik.aux24, ...)
-        eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
-        eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+        eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
+        eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
       }
       else {
         stop("not yet implemented for fixed nugget != 0"
@@ -503,9 +503,9 @@
       ini.grid <- as.matrix(expand.grid(seq(min(range.values),
                                             max(range.values), l = 10), seq(0, 1, l = 5)))
       dimnames(ini.grid) <- list(NULL, NULL)
-      eval(substitute(.temp.list$ini.grid <-  xxx, list(xxx=ini.grid)), env=.GlobalEnv)
+      eval(substitute(.temp.list$ini.grid <-  xxx, list(xxx=ini.grid)), envir=.GlobalEnv)
       pl.sigmasqlambda <- apply(silllambda.values, 1, .proflik.aux27, ...)
-      eval(expression(.temp.list$ini.grid <-  NULL), env=.GlobalEnv)
+      eval(expression(.temp.list$ini.grid <-  NULL), envir=.GlobalEnv)
     }
     names(pl.sigmasqlambda) <- NULL
     result$silllambda <- list(sill = as.numeric(levels(as.factor(silllambda.values[,1]))), lambda = as.numeric(levels(as.factor(silllambda.values[,2]))), proflik.silllambda = pl.sigmasqlambda,
@@ -515,16 +515,16 @@
   ## 4.7 Profile for \phi and \lambda
   ##
   if(any(rangelambda.values != FALSE)) {
-    eval(substitute(.temp.list$data <-  xxx, list(xxx=.temp.list$z)), env=.GlobalEnv)
+    eval(substitute(.temp.list$data <-  xxx, list(xxx=.temp.list$z)), envir=.GlobalEnv)
     n.bi <- n.bi + 1
     cat("proflik: computing 2-D profile likelihood for the range and transformation parameters\n"
               )
     if(n.cov.pars == 2) {
       if(tausq == 0) {
-        eval(expression(.temp.list$nugget <-  0), env=.GlobalEnv)
+        eval(expression(.temp.list$nugget <-  0), envir=.GlobalEnv)
         pl.philambda <- apply(rangelambda.values, 1, 
                               .proflik.aux1, ...)
-        eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+        eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
       }
       else {
         stop("not yet implemented for fixed nugget != 0"
@@ -579,9 +579,9 @@
   ## This is an auxiliary function called by likfit.proflik
   ##
   if(get(".temp.list", pos=1)$fix.lambda == TRUE)
-    proflik <- .proflik.aux1(phi = phi)
+    proflik <- .proflik.aux1(philambda = phi)
   else {
-    eval(substitute(.temp.list$phi <-  xxx, list(xxx=phi)), env=.GlobalEnv)
+    eval(substitute(.temp.list$phi <-  xxx, list(xxx=phi)), envir=.GlobalEnv)
 #    proflik <-  - (optim(.temp.list$lambda, .proflik.aux1.1, method="L-BFGS-B", lower
 #                         = -2, upper = 2, ...)$value)
     proflik <-  - (optimise(.proflik.aux1.1, lower = -5, upper = 5, ...)$objective)
@@ -637,7 +637,7 @@
       (0.5/sigmasq) * main$ssresmat - 0.5 * sum(log(eigentrem$
                                                values)) - main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux11" <-
   function(tausq, ...)
@@ -645,11 +645,11 @@
   ## This function computes the value of the profile likelihood for the parameter \tau^2.
   ## It requires the minimisation of the function wrt \sigma^2, \phi and \lambda (if the case)  for each value of \tau^2.
   ## This is an auxiliary function called by proflik.
-  eval(substitute(.temp.list$nugget <-  xxx, list(xxx=as.vector(tausq))), env=.GlobalEnv)
+  eval(substitute(.temp.list$nugget <-  xxx, list(xxx=as.vector(tausq))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda == TRUE) {
     sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est),
-                            .proflik.aux12,method="L-BFGS-B",
+                            .proflik.aux12, method="L-BFGS-B",
                             lower = c(.temp.list$lower.sigmasq,
                               .temp.list$lower.phi),
                             upper=c(+Inf, .temp.list$upper.phi), ...)$value
@@ -659,7 +659,7 @@
                               phi.est, .temp.list$lambda), .proflik.aux12,method="L-BFGS-B",  lower = c(.temp.list$lower.sigmasq, .temp.list$lower.phi, -2),
                             upper = c( + Inf, .temp.list$upper.phi, 2), ...)$value
   }
-  eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
   return( - sigmasqphi.res)    
 }
 
@@ -682,7 +682,7 @@
       (n/2) - 0.5 * sum(log(eigentrem$values)) - 
         main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 
 ".proflik.aux12" <-
@@ -711,7 +711,7 @@
           0.5 * sum(log(eigentrem$values)) -
             main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux13" <-
   function(sigmasqphi, ...)
@@ -719,7 +719,7 @@
   ## This function computes the value of the 2-D profile likelihood for the parameters \sigma^2 and \phi when the nugget is included.
   ## It requires the minimisation of the function wrt \tau^2 and \lambda (if the case) for each value of (\sigma^2, \phi)
   ## This is an auxiliary function called by likfit.proflik
-  eval(substitute(.temp.list$sigmasqphi <-  xxx, list(xxx=as.vector(sigmasqphi))), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasqphi <-  xxx, list(xxx=as.vector(sigmasqphi))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda == TRUE) {
 ##      tausq.res <- optim(.temp.list$tausq.est, .proflik.aux14, method="L-BFGS-B", lower
@@ -731,7 +731,7 @@
                        c(.temp.list$tausq.est, .temp.list$lambda), .proflik.aux14, method="L-BFGS-B",lower = c(0, -2
                                                                                                       ), upper = c( +Inf, 2), ...)$value
   }
-  eval(expression(.temp.list$sigmasqphi <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$sigmasqphi <-  NULL), envir=.GlobalEnv)
   return( - tausq.res)
 }
 
@@ -756,7 +756,7 @@
     log.det.to.half + 0.5 * main$ssresmat - 0.5 * sum(log(
                                                      eigentrem$values)) - main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux15" <-
   function(sigmasqtausq, ...)
@@ -764,7 +764,7 @@
   ## This function computes the value of the 2-D profile likelihood for the parameters \sigma^2 and \tau^2
   ## It requires the minimisation of the function wrt \phi and also \lambda (if the case) for each value of (\sigma^2, \tau^2) 
   ## This is an auxiliary function called by likfit.proflik
-  eval(substitute(.temp.list$sigmasqtausq <-  xxx, list(xxx=as.vector(sigmasqtausq))), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasqtausq <-  xxx, list(xxx=as.vector(sigmasqtausq))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       .proflik.aux16))
@@ -779,7 +779,7 @@
                      lower = c(.temp.list$lower.phi, -2),
                      upper = c(.temp.list$upper.phi, 2), ...)$value
   }
-  eval(expression(.temp.list$sigmasqtausq <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$sigmasqtausq <-  NULL), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -805,7 +805,7 @@
                                                      eigentrem$values)) -
                                                        main$log.jacobian
   }
-    return(as.vector(round(neglik, dig=8)))
+    return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux17" <-
   function(phitausq, ...)
@@ -813,7 +813,7 @@
   ## This function computes the value of the 2-D profile likelihood for the parameters (\phi, \tau^2)
   ## It requires the minimisation of the function wrt \sigma^2 and \lambda (if the case) for each value of (\phi, \tau^2) 
   ## This is an auxiliary function called by likfit.proflik
-  eval(substitute(.temp.list$phitausq <-  xxx, list(xxx=as.vector(phitausq))), env=.GlobalEnv)
+  eval(substitute(.temp.list$phitausq <-  xxx, list(xxx=as.vector(phitausq))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda == TRUE) {
 ##    ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
@@ -828,7 +828,7 @@
                            ), .proflik.aux18, method="L-BFGS-B", lower = c(.temp.list$lower.sigmasq,
                                                                   -2), upper = c( + Inf, 2), ...)$value
   }
-  eval(expression(.temp.list$phitausq <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$phitausq <-  NULL), envir=.GlobalEnv)
   return( - sigmasq.res)
 }
 
@@ -854,7 +854,7 @@
                                                      eigentrem$values)) -
                                                        main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux19" <-
   function(sigmasqtausq.rel, ...)
@@ -862,7 +862,7 @@
   ## This function computes the value of the 2-D profile likelihood for the parameters (\sigma^2, \tau^2_{rel})
   ## It requires the minimisation of the function wrt \phi and \lambda (if the case) for each value of (\sigma^2, \tau^2_{rel})
   ## This is an auxiliary function called by likfit.proflik
-  eval(substitute(.temp.list$sigmasqtausq.rel <-  xxx, list(xxx=as.vector(sigmasqtausq.rel))), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasqtausq.rel <-  xxx, list(xxx=as.vector(sigmasqtausq.rel))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda == TRUE) {
 ##    phi.res <- optim(.temp.list$phi.est, .proflik.aux20, method="L-BFGS-B", lower = 
@@ -875,7 +875,7 @@
                      lower = c(.temp.list$lower.phi, -2),
                      upper = c(.temp.list$upper.phi, 2), ...)$value
   }
- eval(expression( .temp.list$sigmasqtausq.rel <-  NULL), env=.GlobalEnv)
+ eval(expression( .temp.list$sigmasqtausq.rel <-  NULL), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -887,7 +887,7 @@
   ## It requires the minimisation of the function wrt \phi and maybe \lambda for each value of \sigma^2
   ## This is an auxiliary function called by likfit.proflik
   ##
-  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=as.vector(sigmasq))), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=as.vector(sigmasq))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       .proflik.aux3))
@@ -905,7 +905,7 @@
                      lower = c(.temp.list$lower.phi, -2),
                      upper = c(.temp.list$upper.phi, 2), ...)$value
   }
-  eval(expression(.temp.list$sigmasq <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$sigmasq <-  NULL), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -940,7 +940,7 @@
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
   } 
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux21" <-
 function(phitausq.rel, ...)
@@ -999,7 +999,7 @@ function(phitausq.rel, ...)
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 
 ".proflik.aux22" <-
@@ -1024,7 +1024,7 @@ function(phitausq.rel, ...)
           0.5 * sum(log(eigentrem$values)) -
             main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 
 ".proflik.aux23" <-
@@ -1051,7 +1051,7 @@ function(phitausq.rel, ...)
     trend.mat <- ~ (.temp.list$xmat[,-1])
   lambda.res <- likfit(coords = .temp.temp.list$coords,
                        data = .temp.list$z,
-                       ini = ini.cov, trend = trend.mat,
+                       ini.cov.pars = ini.cov, trend = trend.mat,
                        fix.nugget = .temp.temp.list$fixtau,
                        lik.method = .temp.list$method.lik,
                        cov.model = .temp.list$cov.model,
@@ -1069,20 +1069,20 @@ function(phitausq.rel, ...)
   ## It requires the minimisation of the function wrt \phi for each value of (\sigma^2, \lambda)
   ## This is an auxiliary function called by proflik
   sigmasqlambda <- as.vector(sigmasqlambda)
-  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=sigmasqlambda[1])), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=sigmasqlambda[1])), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   lambda <- sigmasqlambda[2]
   if(lambda == 1) {
-    eval(expression(.temp.list$log.jacobian <-  0), env=.GlobalEnv)
+    eval(expression(.temp.list$log.jacobian <-  0), envir=.GlobalEnv)
   }
   else {
     if(any(.temp.list$z <= 0))
       stop("Transformation option not allowed when there are zeros or negative data"
            )
-    eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda - 1))))), env=.GlobalEnv)
+    eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda - 1))))), envir=.GlobalEnv)
     if(lambda == 0)
-      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), env=.GlobalEnv)
-    else eval(substitute(.temp.list$z <- xxx, list(xxx= ((.temp.list$z^lambda) - 1)/lambda)), env=.GlobalEnv)
+      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), envir=.GlobalEnv)
+    else eval(substitute(.temp.list$z <- xxx, list(xxx= ((.temp.list$z^lambda) - 1)/lambda)), envir=.GlobalEnv)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       .proflik.aux3))
@@ -1090,9 +1090,9 @@ function(phitausq.rel, ...)
 ##  phi.res <- optim(ini, .proflik.aux3, method="L-BFGS-B", lower = .temp.list$
 ##                   lower.phi, upper = .temp.list$upper.phi, ...)$value
   phi.res <- optimise(.proflik.aux3, lower = .temp.list$lower.phi, upper = .temp.list$upper.phi, ...)$objective
-  eval(expression(.temp.list$log.jacobian <-  NULL), env=.GlobalEnv)
-  eval(expression(.temp.list$sigmasq <-  NULL), env=.GlobalEnv)
-  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), env=.GlobalEnv)
+  eval(expression(.temp.list$log.jacobian <-  NULL), envir=.GlobalEnv)
+  eval(expression(.temp.list$sigmasq <-  NULL), envir=.GlobalEnv)
+  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -1103,22 +1103,22 @@ function(phitausq.rel, ...)
   ## It requires the minimisation of the function wrt \phi and \tau^2 and for each value of (\sigma^2,\lambda)
   ## This is an auxiliary function called by .proflik.
   sigmasqlambda <- as.vector(sigmasqlambda)
-  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=sigmasqlambda[1])), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=sigmasqlambda[1])), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   lambda <- sigmasqlambda[2]
   if(lambda == 1) {
-    eval(expression(.temp.list$log.jacobian <-  0), env=.GlobalEnv)
+    eval(expression(.temp.list$log.jacobian <-  0), envir=.GlobalEnv)
   }
   else {
-    eval(expression(.temp.list$fix.lambda <-  TRUE), env=.GlobalEnv)
+    eval(expression(.temp.list$fix.lambda <-  TRUE), envir=.GlobalEnv)
     if(any(.temp.list$z^(lambda - 1) <= 0))
       eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(.temp.list$z^(lambda -
-                                                         1))))), env=.GlobalEnv)
+                                                         1))))), envir=.GlobalEnv)
     else eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda -
-                                                           1))))), env=.GlobalEnv)
+                                                           1))))), envir=.GlobalEnv)
     if(lambda == 0)
-      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), env=.GlobalEnv)
-    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), env=.GlobalEnv)
+      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), envir=.GlobalEnv)
+    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), envir=.GlobalEnv)
   }
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       .proflik.aux10))
@@ -1126,9 +1126,9 @@ function(phitausq.rel, ...)
   phitausq.rel.res <- optim(ini, .proflik.aux10, method="L-BFGS-B",
                             lower = c(.temp.list$lower.phi,
                               0), upper=c(.temp.list$upper.phi, 100), ...)$value
-  eval(expression(.temp.list$log.jacobian <-  NULL), env=.GlobalEnv)
-  eval(expression(.temp.list$sigmasq <-  NULL), env=.GlobalEnv)
-  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), env=.GlobalEnv)
+  eval(expression(.temp.list$log.jacobian <-  NULL), envir=.GlobalEnv)
+  eval(expression(.temp.list$sigmasq <-  NULL), envir=.GlobalEnv)
+  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), envir=.GlobalEnv)
   return( - phitausq.rel.res)
 }
 
@@ -1145,7 +1145,7 @@ function(phitausq.rel, ...)
 ##  ini <- ini.seq[lambda.lik == max(lambda.lik)]
 ##  lambda.res <- optim(ini, .proflik.aux4, method="L-BFGS-B", lower = -2.5, upper = 2.5, ...)$value
   lambda.res <- optimise(.proflik.aux4, lower = -5, upper = 5, ...)$objective
-  eval(expression(.temp.list$sigmasqphi <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$sigmasqphi <-  NULL), envir=.GlobalEnv)
   return( - lambda.res)
 }
 
@@ -1160,11 +1160,11 @@ function(phitausq.rel, ...)
   if(.temp.list$fix.lambda == TRUE)
     proflik <- .proflik.aux21(phitausq.rel = phitausq.rel)
   else {
-    eval(substitute(.temp.list$phitausq.rel <-  xxx, list(xxx=phitausq.rel)), env=.GlobalEnv)
+    eval(substitute(.temp.list$phitausq.rel <-  xxx, list(xxx=phitausq.rel)), envir=.GlobalEnv)
 ##    proflik <-  - (optim(.temp.list$lambda, .proflik.aux21.1, method="L-BFGS-B", lower =
 ##                         -2, upper = 2, ...)$value)
     proflik <-  - (optimise(.proflik.aux21.1, lower = -5, upper = 5, ...)$objective)
-    eval(expression(.temp.list$phitausq.rel <-  NULL), env=.GlobalEnv)
+    eval(expression(.temp.list$phitausq.rel <-  NULL), envir=.GlobalEnv)
   }
   return(proflik)
 }
@@ -1200,7 +1200,7 @@ function(phitausq.rel, ...)
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 
 ".proflik.aux31" <-
@@ -1211,12 +1211,12 @@ function(phitausq.rel, ...)
   ## This is an auxiliary function called by .proflik.
   .temp.list <- get(".temp.list", pos=1)
   philambda <- as.vector(philambda)
-  eval(substitute(.temp.list$phi <- xxx, list(xxx= philambda[1])), env=.GlobalEnv)
+  eval(substitute(.temp.list$phi <- xxx, list(xxx= philambda[1])), envir=.GlobalEnv)
   .temp.list$lambda <- philambda[2]
 ##  tausq.rel.res <- optim(.temp.list$tausq.rel.est, .proflik.aux8, method="L-BFGS-B", lower = 
 ##                         0, upper=100, ...)$value
   tausq.rel.res <- optimise(.proflik.aux8, lower =  0, upper=1000, ...)$objective
-  eval(expression(.temp.list$phi <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$phi <-  NULL), envir=.GlobalEnv)
   return( - tausq.rel.res)
 }
 
@@ -1227,27 +1227,27 @@ function(phitausq.rel, ...)
                                         # It requires the minimisation of the function wrt \phi and \sigma^2 and for each value of (\tau^2,\lambda).
                                         # This is an auxiliary function called by .proflik.
   tausqlambda <- as.vector(tausqlambda)
-  eval(substitute(.temp.list$nugget <-  xxx, list(xxx=tausqlambda[1])), env=.GlobalEnv)
+  eval(substitute(.temp.list$nugget <-  xxx, list(xxx=tausqlambda[1])), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   lambda <- tausqlambda[2]
   if(lambda == 1) {
-    eval(expression(.temp.list$log.jacobian <-  0), env=.GlobalEnv)
+    eval(expression(.temp.list$log.jacobian <-  0), envir=.GlobalEnv)
   }
   else {
     if(any(.temp.list$z^(lambda - 1) <= 0))
       eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=log(prod(.temp.list$z^(lambda -
-                                                         1))))), env=.GlobalEnv)
-    else eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda - 1))))), env=.GlobalEnv)
+                                                         1))))), envir=.GlobalEnv)
+    else eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda - 1))))), envir=.GlobalEnv)
     if(lambda == 0)
-      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), env=.GlobalEnv)
-    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), env=.GlobalEnv)
+      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), envir=.GlobalEnv)
+    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), envir=.GlobalEnv)
   }
   sigmasqphi.res <- optim(c(.temp.list$sigmasq.est, .temp.list$phi.est), .proflik.aux12, method="L-BFGS-B",
                           lower = c(.temp.list$lower.sigmasq, .temp.list$
                             lower.phi), upper=c(+Inf, .temp.list$upper.phi), ...)$value
-  eval(expression(.temp.list$log.jacobian <-  NULL), env=.GlobalEnv)
-  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), env=.GlobalEnv)
-  eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$log.jacobian <-  NULL), envir=.GlobalEnv)
+  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), envir=.GlobalEnv)
+  eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
   return( - sigmasqphi.res)
 }
 
@@ -1258,28 +1258,28 @@ function(phitausq.rel, ...)
   ## It requires the minimisation of the function wrt \phi for each value of (\tau^2,\lambda).
   ## This is an auxiliary function called by .proflik.
   tausq.rellambda <- as.vector(tausq.rellambda)
-  eval(substitute(.temp.list$nugget.rel <-  xxx, list(xxx=tausq.rellambda[1])), env=.GlobalEnv)
+  eval(substitute(.temp.list$nugget.rel <-  xxx, list(xxx=tausq.rellambda[1])), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   lambda <- tausq.rellambda[2]
   if(lambda == 1) {
-    eval(expression(.temp.list$log.jacobian <-  0), env=.GlobalEnv)
+    eval(expression(.temp.list$log.jacobian <-  0), envir=.GlobalEnv)
   }
   else {
     if(any(.temp.list$z^(lambda - 1) <= 0))
       eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=log(prod(.temp.list$z^(lambda -
-                                                         1))))), env=.GlobalEnv)
+                                                         1))))), envir=.GlobalEnv)
     else eval(substitute(.temp.list$log.jacobian <-  xxx, list(xxx=sum(log(.temp.list$z^(lambda -
-                                                           1))))), env=.GlobalEnv)
+                                                           1))))), envir=.GlobalEnv)
     if(lambda == 0)
-      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), env=.GlobalEnv)
-    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), env=.GlobalEnv)
+      eval(substitute(.temp.list$z <-  xxx, list(xxx=log(.temp.list$z))), envir=.GlobalEnv)
+    else eval(substitute(.temp.list$z <-  xxx, list(xxx=((.temp.list$z^lambda) - 1)/lambda)), envir=.GlobalEnv)
   }
 ##  phi.res <- optim(.temp.list$phi.est, .proflik.aux6, method="L-BFGS-B", lower = .temp.list$
 ##                    lower.phi, upper=.temp.list$upper.phi, ...)$value
   phi.res <- optimise(.proflik.aux6, lower = .temp.list$lower.phi, upper=.temp.list$upper.phi, ...)$objective
-  eval(expression(.temp.list$log.jacobian <-  NULL), env=.GlobalEnv)
-  eval(expression(.temp.list$nugget.rel <-  NULL), env=.GlobalEnv)
-  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), env=.GlobalEnv)
+  eval(expression(.temp.list$log.jacobian <-  NULL), envir=.GlobalEnv)
+  eval(expression(.temp.list$nugget.rel <-  NULL), envir=.GlobalEnv)
+  eval(substitute(.temp.list$z <-  xxx, list(xxx=.temp.list$data)), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -1311,7 +1311,7 @@ function(phitausq.rel, ...)
                0.5 * sum(log(xx.eigen$values)) + main$log.det.to.half +
                (0.5) * main$ssresmat + 0.5 * sum(log(eigentrem$values)) + main$log.jacobian)
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux5" <-
   function(tausq.rel, ...)
@@ -1319,7 +1319,7 @@ function(phitausq.rel, ...)
   ## This function computes the value of the profile likelihood for the parameter \tau^2_{rel}.
   ## It requires the minimisation of the function wrt \phi and \lambda (if the case) for each value of \tau^2_{rel}.
   ## This is an auxiliary function called by .proflik.
-  eval(substitute(.temp.list$nugget.rel <-  xxx, list(xxx=as.vector(tausq.rel))), env=.GlobalEnv)
+  eval(substitute(.temp.list$nugget.rel <-  xxx, list(xxx=as.vector(tausq.rel))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda == TRUE) {
 ##    phi.res <- optim(.temp.list$phi.est, .proflik.aux6, method="L-BFGS-B", lower = 
@@ -1332,7 +1332,7 @@ function(phitausq.rel, ...)
                        lower = c(.temp.list$lower.phi, -2),
                        upper = c(.temp.list$upper.phi, 2), ...)$value
   }
-  eval(expression(.temp.list$nugget.rel <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$nugget.rel <-  NULL), envir=.GlobalEnv)
   return( - phi.res)
 }
 
@@ -1362,7 +1362,7 @@ function(phi.lambda, ...)
             0.5 * sum(log(eigentrem$values)) -
               main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux7" <-
   function(phi, ...)
@@ -1370,19 +1370,19 @@ function(phi.lambda, ...)
   ## This function computes the value of the profile likelihood for the parameter \phi when the nugget \tau^2 is included in the model
   ## It requires the minimisation of the function wrt relative \tau^2_{rel} for each value of \phi
   ## This is an auxiliary function called by .proflik.
-  eval(substitute(.temp.list$phi <-  xxx, list(xxx=as.vector(phi))), env=.GlobalEnv)
+  eval(substitute(.temp.list$phi <-  xxx, list(xxx=as.vector(phi))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   if(.temp.list$fix.lambda) {
-    eval(expression(.temp.list$lambda <-  1), env=.GlobalEnv)
+    eval(expression(.temp.list$lambda <-  1), envir=.GlobalEnv)
 ##    tausq.rel.res <- optim(.temp.list$tausq.rel.est, .proflik.aux8, method="L-BFGS-B", 
 ##                           lower = 0, upper=100, ...)$value
     tausq.rel.res <- optimise(.proflik.aux8, lower = 0, upper=1000, ...)$objective
-    eval(expression(.temp.list$lambda <-  NULL), env=.GlobalEnv)
+    eval(expression(.temp.list$lambda <-  NULL), envir=.GlobalEnv)
   }
   else {
     tausq.rel.res <- optim(c(.temp.list$tausq.rel.est, .temp.list$lambda), .proflik.aux8, method="L-BFGS-B", lower = c(0, -2), upper = c(100, 2), ...)$value
   }
-  eval(expression(.temp.list$phi <-  NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$phi <-  NULL), envir=.GlobalEnv)
   return( - tausq.rel.res)
 }
 
@@ -1409,7 +1409,7 @@ function(phi.lambda, ...)
                                                            n) + (n/2) - 0.5 * sum(log(eigentrem$values))) - 
                                                              main$log.jacobian
   }
-  return(as.vector(round(neglik, dig=8)))
+  return(as.vector(round(neglik, digits=8)))
 }
 ".proflik.aux9" <-
   function(sigmasq, ...)
@@ -1417,7 +1417,7 @@ function(phi.lambda, ...)
   ## This function computes the value of the profile likelihood for the parameter \sigma^2 when \tau^2 is included in the model
   ## It requires the minimisation of the function wrt \phi and \tau^2 for each value of \sigma^2
   ## This is an auxiliary function called by likfit.proflik
-  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=as.vector(sigmasq))), env=.GlobalEnv)
+  eval(substitute(.temp.list$sigmasq <-  xxx, list(xxx=as.vector(sigmasq))), envir=.GlobalEnv)
   .temp.list <- get(".temp.list", pos=1)
   ini.lik <- round(100000000. * apply(.temp.list$ini.grid, 1,
                                       .proflik.aux10))
@@ -1434,7 +1434,7 @@ function(phi.lambda, ...)
                                 lower = c(.temp.list$lower.phi, 0,-2),
                                 upper = c(.temp.list$upper.phi, 100, 2), ...)$value
   }
-  eval(expression(.temp.list$sigmasq <- NULL), env=.GlobalEnv)
+  eval(expression(.temp.list$sigmasq <- NULL), envir=.GlobalEnv)
   return( - phitausq.rel.res)
 }
 

@@ -226,7 +226,7 @@ eyefit <- function(vario, silent=FALSE){
                   phi = phi, kappa = kp1),
                 max.dist=maxdist)      
     oldClass(aux) <- "variomodel"
-    assign("eyefit.tmp", c(get("eyefit.tmp", env=eyefit.env),list(aux)), envir=eyefit.env)
+    assign("eyefit.tmp", c(get("eyefit.tmp", envir=eyefit.env),list(aux)), envir=eyefit.env)
     
     replot()
   }

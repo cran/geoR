@@ -48,8 +48,8 @@
     }
     else{
       if(messages.screen){
-        cat(paste("variog: computing variogram for direction = ", round(ang.deg, dig=3), " degrees (", round(ang.rad, dig=3), " radians)\n", sep=""))
-        cat(paste("        tolerance angle = ", round(tol.deg, dig=3), " degrees (", round(tol.rad, dig=3), " radians)\n", sep=""))
+        cat(paste("variog: computing variogram for direction = ", round(ang.deg, digits=3), " degrees (", round(ang.rad, digits=3), " radians)\n", sep=""))
+        cat(paste("        tolerance angle = ", round(tol.deg, digits=3), " degrees (", round(tol.rad, digits=3), " radians)\n", sep=""))
       }
     }
   }
@@ -259,7 +259,7 @@
     if(missing(max.dist)) max.dist <- max(u)
   }
   if(nt.ind){
-    if(!exists(".variog4.nomessage",w=1)) cat("variog: co-locatted data found, adding one bin at the origin\n")
+    if(!exists(".variog4.nomessage",where=1)) cat("variog: co-locatted data found, adding one bin at the origin\n")
     if(all(result$u[1:2] < 1e-11)) result$u[2] <- sum(result$bins.lim[2:3])/2
   }
   result <- c(result, list(var.mark = data.var, beta.ols = beta.ols,
@@ -306,7 +306,7 @@
   else umax <- max(u[u < max.dist])
   assign(".variog4.nomessage", TRUE, pos=1)
   for(angle in direction){
-    res[[as.character(round(dg[which(direction == angle)], dig=1))]] <-
+    res[[as.character(round(dg[which(direction == angle)], digits=1))]] <-
       variog(geodata=geodata,
              uvec=uvec, breaks = breaks, trend = trend,
              lambda = lambda, option = option,
@@ -321,7 +321,7 @@
              messages = messages.screen, keep.NA = TRUE)
     NULL
   }
-  if (exists(".variog4.nomessage", w=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
+  if (exists(".variog4.nomessage", where=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
   res$omnidirectional <- variog(geodata=geodata,
                                 uvec=uvec, breaks = breaks,
                                 trend = trend,

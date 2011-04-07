@@ -42,7 +42,7 @@
           stop("locations must be a 2 column matrix, data-frame or a list with 2 components")
         if(length(locations) > 2)
           warning("locations provided as a list with more than 2 components. Only the 2 first will be used as coordinates")
-        locations <- matrix(unlist(locations[1:2]), nc=2)
+        locations <- matrix(unlist(locations[1:2]), ncol=2)
       }
     }
   }

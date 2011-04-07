@@ -1,11 +1,45 @@
 
+
+
+                ===============================
+       		CHANGES IN geoR VERSION 1.6-34
+	        ===============================
+
+NEW FEATURES
+
+       o 
+
+
+BUGS
+
+      o fix in documentation of functions completing names of arguments 
+
+
+
+                ===============================
+       		CHANGES IN geoR VERSION 1.6-33
+	        ===============================
+
+NEW FEATURES
+
+       o replacement of pythag by hypot in the C code
+
+       o new geoR2RF() to adjust for changes in RandomFields
+         (thanks to Martin Schlather)
+
+
+BUGS
+
+      o
+
+
+
                 ===============================
        		CHANGES IN geoR VERSION 1.6-31
 	        ===============================
 
 NEW FEATURES
-
-        o 
+       o 
 
 
 BUGS

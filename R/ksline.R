@@ -410,7 +410,7 @@
   datawin <- data[order(dm0)[1:nwin]]
   ivwin <- varcov.spatial(coords = coordswin.c, cov.model = cov.model,
                           kappa = kappa, nugget = nugget, cov.pars = cov.pars, inv = TRUE,
-                          det = FALSE, func.inv = "cholesky", only.decomp = FALSE)$inverse
+                          det = FALSE, func.inv = "cholesky", only.decomposition = FALSE)$inverse
   avwin <- mean(datawin)
   sdwin <- sqrt(var(datawin))
   onewin <- rep(1, nwin)

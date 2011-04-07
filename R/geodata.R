@@ -125,7 +125,7 @@
 {
   res <- as.geodata.default(obj, coords.col = 1:2,
                             data.col = attributes(obj)$ncol.data,
-                            units.m = obj$units.m,
+                            units.m.col = obj$units.m,
                             covar.col = attributes(obj)$ncol.covariate,
                             realisations = obj$realisation)
   res$borders <- attributes(obj)$borders

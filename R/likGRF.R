@@ -224,7 +224,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
     rownames(ini.temp) <- "initial.value"
     if(messages.screen){
       cat(" selected values:\n")
-      print(rbind(format(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
+      print(rbind(format(ini.temp, digits=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa, fix.lambda, fix.psiR, fix.psiA), "fix", "est")))
       cat(paste("likelihood value:", max(grid.lik), "\n"))
     }
     dimnames(ini.temp) <- NULL
@@ -422,7 +422,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ##
   if(messages.screen) cat("likfit: end of numerical maximisation.\n")
   par.est <- lik.minim$par
-  if(any(par.est < 0)) par.est <- round(par.est, dig=12)
+  if(any(par.est < 0)) par.est <- round(par.est, digits=12)
   phi <- par.est[1]
   ##
   ## Values of the maximised likelihood
@@ -610,7 +610,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   if(fix.psiR & fix.psiA)
     remove(".likGRF.dists.vec", pos=1)
   else{
-    if(round(psiR, dig=6) != 1 | round(psiA, dig=6) != 0)
+    if(round(psiR, digits=6) != 1 | round(psiA, digits=6) != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
     rangevecdist <- function(x){range(as.vector(dist(x)))}
     range.dist <- lapply(split(as.data.frame(coords), realisations), rangevecdist)
@@ -689,7 +689,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ind.par.su <- c(rep(0, beta.size), ip$f.tausq, 0, 0, ip$f.kappa,
                   ip$f.psiR, ip$f.psiA,ip$f.lambda)
   par.su$status <- ifelse(ind.par.su,"fixed", "estimated")
-  par.su$values <- round(c(betahat, tausq, sigmasq, phi, kappa, psiR, psiA, lambda), dig=4)
+  par.su$values <- round(c(betahat, tausq, sigmasq, phi, kappa, psiR, psiA, lambda), digits=4)
   if(beta.size == 1) beta.name <- "beta"
   else beta.name <- paste("beta", 0:(beta.size-1), sep="")
   row.names(par.su) <- c(beta.name, "tausq", "sigmasq", "phi", "kappa",
@@ -1295,8 +1295,8 @@ ini.cov.pars <- ini.cov.pars[[1]]
   cat("Parameters of the spatial component:")
   cat("\n")
   cat(paste("   correlation function:", x$cov.model))
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", format(x$spatial.component[1,2], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", format(x$spatial.component[2,2], dig=digits)))
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", format(x$spatial.component[1,2], digits=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", format(x$spatial.component[2,2], digits=digits)))
   if(any(x$cov.model == c("matern", "powered.exponential",
      "cauchy", "gencauchy", "gneiting.matern"))){
     kappa <- x$spatial.component.extra["kappa",2]
@@ -1329,7 +1329,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   cat("\n")  
   cat("Parameter of the error component:")
   if(x$nugget.component[,1] == "estimated")
-    cat(paste("\n      (estimated) nugget = ", format(x$nugget.component[,2], dig=digits)))
+    cat(paste("\n      (estimated) nugget = ", format(x$nugget.component[,2], digits=digits)))
   else
     cat(paste("\n      (fixed) nugget =", x$nugget.component[,2]))
   cat("\n")
@@ -1338,7 +1338,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   cat("\n")
   lambda <- x$transformation[,2]
   if(x$transformation[,1] == "estimated")
-    cat(paste("      (estimated) Box-Cox parameter =", format(lambda, dig=digits)))
+    cat(paste("      (estimated) Box-Cox parameter =", format(lambda, digits=digits)))
   else{
     cat(paste("      (fixed) Box-Cox parameter =", lambda))
     if(abs(lambda - 1) <  0.0001) cat(" (no transformation)")

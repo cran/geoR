@@ -112,8 +112,8 @@
                             fix.lambda = fix.lambda, n = n,
                             minimisation.function=minimisation.function), pos=1)
   if(fix.lambda == TRUE) {
-    eval(substitute(.temp.list$lambda <-  xxx, list(xxx=lambda)), env=.GlobalEnv)
-    eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log.jacobian)), env=.GlobalEnv)
+    eval(substitute(.temp.list$lambda <-  xxx, list(xxx=lambda)), envir=.GlobalEnv)
+    eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log.jacobian)), envir=.GlobalEnv)
   }
   if ((cov.model == "pure.nugget") | all(ini==0) ){  
     if(messages.screen == TRUE)
@@ -340,8 +340,8 @@
             cat(paste("likfit: WARNING: ratio of estimates tau^2/sigma^2 < 0.01 (",round(lik.results$estimate[1], dig = 4), ")", sep = ""))
           cat("\n")
           reduce.pars <- 1
-          eval(expression(.temp.list$ftau <- 0), env=.GlobalEnv)
-          eval(expression(.temp.list$fixtau <- TRUE), env=.GlobalEnv)
+          eval(expression(.temp.list$ftau <- 0), envir=.GlobalEnv)
+          eval(expression(.temp.list$fixtau <- TRUE), envir=.GlobalEnv)
           if(fix.lambda == TRUE) {
             if (minimisation.function=="nlm"){
               assign(".temp.lower.phi", lower.phi, pos=1)
@@ -680,9 +680,9 @@
   else{
     if(length(theta) == 3) include.lambda <- TRUE else include.lambda <- FALSE 
     if(.temp.list$minimisation.function == "nlm"){
-      if (exists(".temp.phi", w=1)) remove(".temp.phi", pos=1, inherits = TRUE)
-      if (exists(".temp.lambda", w=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
-      if (exists(".temp.sill", w=1)) remove(".temp.sill", pos=1, inherits = TRUE)
+      if (exists(".temp.phi", where=1)) remove(".temp.phi", pos=1, inherits = TRUE)
+      if (exists(".temp.lambda", where=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
+      if (exists(".temp.sill", where=1)) remove(".temp.sill", pos=1, inherits = TRUE)
       theta.minimiser <- theta
       penalty <- 10000 * sum(.temp.lower - pmin(theta[1:2], .temp.lower))
       theta[1:2] <- pmax(theta[1:2], .temp.lower)
@@ -709,15 +709,15 @@
     n <- length(z)
     if (include.lambda){
       if(lambda == 1) {
-        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
+        eval(expression(.temp.list$log.jacobian <- 0), envir=.GlobalEnv)
       }
       else {
         if(any(z < 0))
           stop("Transformation option not allowed when there are zeros or negative data"
                )
         if(any(z^(lambda - 1) <= 0))
-          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), env=.GlobalEnv)
-        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), envir=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= sum(log(z^(lambda - 1))))), envir=.GlobalEnv)
         if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }
@@ -810,7 +810,7 @@ function(lambda)
     neglik <- 1e+32
   else{
     if(.temp.list$minimisation.function == "nlm"){
-      if (exists(".temp.lambda", w=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
+      if (exists(".temp.lambda", where=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
       lambda.minimiser <- lambda
       penalty <-  1000 * (.temp.lower.lambda - min(lambda, .temp.lower.lambda))
       lambda <- max(lambda, .temp.lower.lambda)
@@ -876,9 +876,9 @@ function(lambda)
   else{
     if(length(theta) == 3) include.lambda <- TRUE else include.lambda <- FALSE 
     if(.temp.list$minimisation.function == "nlm"){
-      if (exists(".temp.phi", w=1)) remove(".temp.phi", pos=1, inherits = TRUE)
-      if (exists(".temp.lambda", w=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
-      if (exists(".temp.nugget", w=1)) remove(".temp.nugget", pos=1, inherits = TRUE)
+      if (exists(".temp.phi", where=1)) remove(".temp.phi", pos=1, inherits = TRUE)
+      if (exists(".temp.lambda", where=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
+      if (exists(".temp.nugget", where=1)) remove(".temp.nugget", pos=1, inherits = TRUE)
       theta.minimiser <- theta
       penalty <- 10000 * sum(.temp.lower - pmin(theta[1:2], .temp.lower))
       theta[1:2] <- pmax(theta[1:2], .temp.lower)
@@ -911,8 +911,8 @@ function(lambda)
         if(any(z < 0))
           stop("Transformation option not allowed when there are zeros or negative data")
         if(any(z^(lambda - 1) <= 0))
-          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), env=.GlobalEnv)
-        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=log(prod(z^(lambda - 1))))), envir=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx=sum(log(z^(lambda - 1))))), envir=.GlobalEnv)
         if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }
@@ -1006,8 +1006,8 @@ function(lambda)
   else{
     if(length(theta) == 2) include.lambda <- TRUE else include.lambda <- FALSE 
     if(.temp.list$minimisation.function == "nlm"){
-      if (exists(".temp.phi", w=1)) remove(".temp.phi", pos=1, inherits = TRUE)
-      if (exists(".temp.lambda", w=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
+      if (exists(".temp.phi", where=1)) remove(".temp.phi", pos=1, inherits = TRUE)
+      if (exists(".temp.lambda", where=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
       phi <- phi.minimiser <- theta[1]
       penalty <-  100000 * (.temp.lower.phi - min(phi, .temp.lower.phi))
       phi <- max(phi, .temp.lower.phi)
@@ -1041,8 +1041,8 @@ function(lambda)
           stop("Transformation option not allowed when there are zeros or negative data"
                )
         if(any(z^(lambda - 1) <= 0))
-          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= log(prod(z^(lambda - 1))))), env=.GlobalEnv)
-        else eval(substitute(.temp.list$log.jacobian <-xxx, list(xxx= sum(log(z^(lambda - 1))))), env=.GlobalEnv)
+          eval(substitute(.temp.list$log.jacobian <- xxx, list(xxx= log(prod(z^(lambda - 1))))), envir=.GlobalEnv)
+        else eval(substitute(.temp.list$log.jacobian <-xxx, list(xxx= sum(log(z^(lambda - 1))))), envir=.GlobalEnv)
         if(lambda == 0) z <- log(z)
         else z <- ((z^lambda) - 1)/lambda
       }

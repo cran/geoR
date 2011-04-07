@@ -242,7 +242,7 @@
                                  sim.means = output$sim.means,
                                  sim.vars = output$sim.vars,
                                  signal = output$signal,
-                                 message = output$messages.screen)
+                                 messages = output$messages.screen)
       }
     }
   }
@@ -287,7 +287,7 @@
   ##
   if(abs(lambda-1) > 0.001) {
     if(messages.screen)
-      cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", round(lambda,dig=3), "\n"))
+      cat(paste("krige.bayes: Box-Cox's transformation performed for lambda =", round(lambda,digits=3), "\n"))
     data <- BCtransform(x=data, lambda = lambda)$data
   }
   ##
@@ -647,11 +647,11 @@
       if(do.prediction && moments){
         assign("expect", (get("expect", envir=expect.env) +
                           (bsp$pred.mean * bsp$probphitausq)),
-               env = expect.env)
+               envir= expect.env)
         assign("expect2", (get("expect2", envir=expect.env) +
                            ((bsp$pred.var + (bsp$pred.mean^2)) *
                              bsp$probphitausq)),
-               env = expect.env)
+               envir= expect.env)
       }
       phi.ind <- which.min(abs(phi.discrete - phi))
       nug.ind <- which.min(abs(tausq.rel.discrete - tausq.rel))
@@ -1024,7 +1024,7 @@
       ## Back transforming (To be include in C code???)
       ##
       if(abs(lambda - 1) > 0.001){
-        return(BCtransform(x=simul, lambda=lambda, inv=TRUE)$data)
+        return(BCtransform(x=simul, lambda=lambda, inverse=TRUE)$data)
       }
       else
         return(simul)
@@ -1264,7 +1264,7 @@
                                             number.col=number.col,
                                             messages.screen=messages)
     do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d", data="prediction")))
   }
   else{
@@ -1341,7 +1341,7 @@
                                             number.col=number.col,
                                             messages.screen=messages)
     do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d", data="prediction")))
   }
   else{
@@ -1420,7 +1420,7 @@
                                             number.col=number.col,
                                             messages.screen=messages)
     do.call("plot.1d", c(list(x = list(coords=locations, data = values.to.plot),
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d", data="prediction")))
   }
   else{
@@ -1587,7 +1587,7 @@
       stop("prior.control: argument phi.discrete with support points for phi must be provided\n")
     if(length(phi.prior.probs) != length(phi.discrete))
       stop("prior.control: user provided phi.prior and phi.discrete have incompatible dimensions\n")
-    if(round(sum(phi.prior.probs), dig=8) != 1)
+    if(round(sum(phi.prior.probs), digits=8) != 1)
       stop("prior.control: prior probabilities provided for phi do not add up to 1")
   }
   else
@@ -1631,7 +1631,7 @@
       stop("prior.control: argument tausq.rel.discrete with support points for tausq.rel must be provided\n")
     if(length(tausq.rel.prior.probs) != length(tausq.rel.discrete))
       stop("prior.control: user provided tausq.rel.prior and tausq.rel.discrete have incompatible dimensions\n")
-    if(round(sum(tausq.rel.prior.probs), dig=8) != 1)
+    if(round(sum(tausq.rel.prior.probs), digits=8) != 1)
       stop("prior.control: prior probabilities for tausq.rel provided do not add up to 1")
   }
   else

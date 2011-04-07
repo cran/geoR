@@ -100,7 +100,7 @@
           names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", 
                                "lambda")
           CVmod <- likfit(coords = cv.coords, data = cv.data, 
-                          ini = model$cov.pars, fix.nugget = fix.pars["tausq"], 
+                          ini.cov.pars = model$cov.pars, fix.nugget = fix.pars["tausq"], 
                           nugget = val.pars["tausq"], fix.kappa = fix.pars["kappa"], 
                           kappa = val.pars["kappa"], fix.psiR = fix.pars["psiR"], 
                           psiR = val.pars["psiR"], fix.psiA = fix.pars["psiA"], 
@@ -126,7 +126,7 @@
                           tolerance = variog.obj$tolerance,
                           unit.angle = "radians",
                           messages = FALSE, ...)
-          CVmod <- variofit(vario = CVvar, ini=model$cov.pars, cov.model = model$cov.model,
+          CVmod <- variofit(vario = CVvar, ini.cov.pars=model$cov.pars, cov.model = model$cov.model,
                             fix.nugget = model$fix.nugget, nugget = model$nugget,
                             fix.kappa = model$fix.kappa, kappa = model$kappa, max.dist = model$max.dist,
                             minimisation.function = model$minimisation.function,
@@ -158,7 +158,7 @@
       }
       names(fix.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
       names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
-      kr <- krige.conv(coords = cv.coords, data = cv.data, loc = coords.out,
+      kr <- krige.conv(coords = cv.coords, data = cv.data, locations = coords.out,
                        krige = krige.control(trend.d = ~cv.xmat + 0,
                          trend.l = ~xmat[ndata, , drop = FALSE] + 0,
                          cov.model = CVmod$cov.model, 
@@ -166,7 +166,7 @@
                          kappa = val.pars["kappa"],
                          lambda = val.pars["lambda"], 
                          aniso.pars = val.pars[c("psiA", "psiR")]),
-                       output = output.control(mess = FALSE))
+                       output = output.control(messages = FALSE))
       res <- c(data.out, kr$pred, kr$krige.var)
       if(output.reestimate) res <- c(res, CVpars)
       ##, err = (data.out - kr$pred), e.rel = (data.out - kr$pred)/sqrt(kr$krige.var), 
@@ -192,7 +192,7 @@
     }
     names(fix.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
     names(val.pars) <- c("tausq", "kappa", "psiA", "psiR", "lambda")
-    res <- krige.conv(coords = coords, data = data, loc = locations.xvalid,
+    res <- krige.conv(coords = coords, data = data, locations = locations.xvalid,
                       krige = krige.control(trend.d = ~xmat + 0,
                         trend.l = ~trend.spatial(trend = model$trend,
                                                  geodata = list(coords=locations.xvalid)) + 0,
@@ -200,7 +200,7 @@
                         cov.pars = model$cov.pars, nugget = model$nugget, 
                         kappa = val.pars["kappa"], lambda = val.pars["lambda"], 
                         aniso.pars = val.pars[c("psiA", "psiR")]),
-                      output = output.control(mess = FALSE))[1:2]
+                      output = output.control(messages = FALSE))[1:2]
     res <- data.frame(data.xvalid, res$pred, res$krige.var)
   } 
   if(messages.screen) cat("\nxvalid: end of cross-validation\n")

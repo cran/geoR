@@ -38,7 +38,7 @@
                 list("$", var=nugget, list("nugget")))
   else{
     mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
-                          -sin(aniso.pars[1]), cos(aniso.pars[1])), nc=2)) %*%
+                          -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
                             diag(c(aniso.pars[2], 1)/cov.pars[2])
     model <- list("+",
                 list("$", var=cov.pars[1], aniso=mat,
@@ -111,8 +111,8 @@
                                               ys=diff(bb[1,])/(nx-1))
         }
         else results$coords  <- splancs::gridpts(poly=borders, npts=n)
-        xgrid <- round(sort(unique(results$coords[,1])), dig=12)
-        ygrid <- round(sort(unique(results$coords[,2])), dig=12)
+        xgrid <- round(sort(unique(results$coords[,1])), digits=12)
+        ygrid <- round(sort(unique(results$coords[,2])), digits=12)
         attr(results, "xgrid") <- c(range(xgrid),unique(diff(xgrid)))
         attr(results, "ygrid") <- c(range(ygrid),unique(diff(ygrid)))
         names(attr(results, "xgrid")) <- c("xmin", "xmax", "xstep")
@@ -160,8 +160,8 @@
     }
   }
   n <- nrow(results$coords)
-  if (length(unique(round(results$coords[, 1], dig = 12))) == 1 |
-      length(unique(round(results$coords[, 2], dig = 12))) == 1) 
+  if (length(unique(round(results$coords[, 1], digits = 12))) == 1 |
+      length(unique(round(results$coords[, 2], digits = 12))) == 1) 
     sim1d <- TRUE
   else sim1d <- FALSE
   if (!RF && !is.null(aniso.pars)) {
@@ -219,7 +219,7 @@
                                                     nugget = nugget, 
                                                     cov.pars = cov.pars,
                                                     only.decomposition = TRUE,
-                                                    func.in = method)$sqrt.varcov, 
+                                                    func.inv = method)$sqrt.varcov, 
                                      matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)))
   }
   if (length(mean) != 1 & length(mean) != length(results$data)) 
@@ -315,8 +315,8 @@
   ##op <- par(no.readonly=TRUE)
   ##on.exit(par(op))
   ##
-  x1vals <- sort(unique(round(x$coords[,1], dig=12)))
-  x2vals <- sort(unique(round(x$coords[,2], dig=12)))
+  x1vals <- sort(unique(round(x$coords[,1], digits=12)))
+  x2vals <- sort(unique(round(x$coords[,2], digits=12)))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
@@ -369,8 +369,8 @@
 "persp.grf" <- 
   function(x, sim.number = 1, borders, ...)
 {
-  x1vals <- unique(round(x$coords[,1], dig=12))
-  x2vals <- unique(round(x$coords[,2], dig=12))
+  x1vals <- unique(round(x$coords[,1], digits=12))
+  x2vals <- unique(round(x$coords[,2], digits=12))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
@@ -403,8 +403,8 @@
 "contour.grf" <- 
   function(x, sim.number = 1, borders, filled = FALSE, ...)
 {
-  x1vals <- unique(round(x$coords[,1], dig=12))
-  x2vals <- unique(round(x$coords[,2], dig=12))
+  x1vals <- unique(round(x$coords[,1], digits=12))
+  x2vals <- unique(round(x$coords[,2], digits=12))
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...

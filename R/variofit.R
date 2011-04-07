@@ -174,7 +174,7 @@
       if(is.R()) rownames(ini.temp) <- "initial.value"
       if(messages.screen){
         cat(" selected values:\n")
-        print(rbind(round(ini.temp, dig=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
+        print(rbind(round(ini.temp, digits=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
         cat(paste("loss value:", min(grid.loss), "\n"))
       }
       names(ini.temp) <- NULL
@@ -225,7 +225,7 @@
           res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
                                                         cov.model=cov.model, kappa=kappa)),
                                          ncol=1),
-                     start=list(Tphi=Tphi.ini), data=XY, alg="plinear", ...)
+                     start=list(Tphi=Tphi.ini), data=XY, algorithm="plinear", ...)
         }
         else{
           if(cov.model == "powered.exponential")
@@ -234,13 +234,13 @@
                                                           kappa=(2*exp(Tkappa)/(1+exp(Tkappa))))),
                                            ncol=1),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
-                       data=XY, alg="plinear", ...)
+                       data=XY, algorithm="plinear", ...)
           else
             res <- nls((v-nugget) ~ matrix((1-cov.spatial(u,cov.pars=c(1,exp(Tphi)),
                                                           cov.model=cov.model,
                                                           kappa=exp(Tkappa))), ncol=1),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
-                       data=XY, alg="plinear", ...)       
+                       data=XY, algorithm="plinear", ...)       
           kappa <- exp(coef(res)["Tkappa"])
           names(kappa) <- NULL
         }
@@ -252,7 +252,7 @@
           XY$kappa <- kappa
           res <- nls(v ~ cbind(1,(1- cov.spatial(u, cov.pars=c(1,exp(Tphi)),
                                                  cov.model = cov.model, kappa=kappa))),
-                     start=list(Tphi=Tphi.ini), alg="plinear", data=XY, ...)
+                     start=list(Tphi=Tphi.ini), algorithm="plinear", data=XY, ...)
         }
         else{
           if(cov.model == "powered.exponential")
@@ -260,13 +260,13 @@
                                                    cov.model = cov.model,
                                                    kappa=(2*exp(Tkappa)/(1+exp(Tkappa)))))),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
-                       alg="plinear", data=XY, ...)
+                       algorithm="plinear", data=XY, ...)
           else
             res <- nls(v ~ cbind(1, (1-cov.spatial(u, cov.pars=c(1, exp(Tphi)),
                                                    cov.model = cov.model,
                                                    kappa=exp(Tkappa)))),
                        start=list(Tphi=Tphi.ini, Tkappa = Tkappa.ini),
-                       alg="plinear", data=XY, ...)
+                       algorithm="plinear", data=XY, ...)
           kappa <- exp(coef(res)["Tkappa"]);names(kappa) <- NULL
         }
         nugget <- coef(res)[".lin1"];names(nugget) <- NULL
@@ -279,7 +279,7 @@
       if(nugget < 0 | cov.pars[1] < 0){
         warning("\nvariofit: negative variance parameter found using the default option \"nls\".\n        Try another minimisation function and/or fix some of the parameters.\n")
         temp <- c(sigmasq=cov.pars[1], phi=cov.pars[2], tausq=nugget, kappa=kappa)
-        print(rbind(round(temp, dig=4),
+        print(rbind(round(temp, digits=4),
                     status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
         return(invisible())
       }
@@ -770,7 +770,7 @@
     cat("be patient - this can take a while to run\n")
   }
   geoR.count <- new.env()
-  assign(".geoR.count", 1, env=geoR.count)
+  assign(".geoR.count", 1, envir=geoR.count)
   .vf <- function(v){ 
     obj.variog$v <- v
     pars <- summary(variofit(obj.variog, messages=FALSE))$estimated.pars
@@ -778,11 +778,11 @@
     ##                               nugget = model.pars$nugget,
     ##                               messages=FALSE))$estimated.pars
     if(trace){
-      cat(paste("simulation", get(".geoR.count", env=geoR.count),
+      cat(paste("simulation", get(".geoR.count", envir=geoR.count),
                 "out of", nsim, "\n"))
       print(pars)
-      assign(".geoR.count", get(".geoR.count", env=geoR.count)+1,
-             env=geoR.count)
+      assign(".geoR.count", get(".geoR.count", envir=geoR.count)+1,
+             envir=geoR.count)
     }
     return(pars)
   }

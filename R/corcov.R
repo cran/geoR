@@ -137,11 +137,11 @@
         stop("for power model the phi parameters must be in the interval ]0,2[")
   }
   if(!is.null(env)){
-    assign("sigmasq", sigmasq, env=env)
-    assign("phi", phi, env=env)
-    assign("kappa", kappa, env=env)
-    assign("ns", ns, env=env)
-    assign("cov.model", cov.model, env=env)
+    assign("sigmasq", sigmasq, envir=env)
+    assign("phi", phi, envir=env)
+    assign("kappa", kappa, envir=env)
+    assign("ns", ns, envir=env)
+    assign("cov.model", cov.model, envir=env)
   }
   if(output)
     return(list(cov.model=cov.model, sigmasq=sigmasq, phi=phi, kappa=kappa, ns=ns))
@@ -156,13 +156,13 @@
   fn.env <- sys.frame(sys.nframe())
   .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                    env=fn.env, output=FALSE)
-  phi <- get("phi", env=fn.env)
-  sigmasq <- get("sigmasq", env=fn.env)
+  phi <- get("phi", envir=fn.env)
+  sigmasq <- get("sigmasq", envir=fn.env)
   ##
   ## computing correlations/covariances
   ##
   covs <- array(0, dim = dim(obj))
-  for(i in 1:get("ns", env=fn.env)) {
+  for(i in 1:get("ns", envir=fn.env)) {
     if(phi[i] < 1e-16)
       cov.model[i] <- "pure.nugget"
     obj.sc <- obj/phi[i]

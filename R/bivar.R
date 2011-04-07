@@ -65,7 +65,7 @@
   n2 <- ncol(dists.obj$dist12)
   n <- n1+n2
   ##
-  S <- matrix(0, nr=n1+n2, nc=n1+n2)
+  S <- matrix(0, nrow=n1+n2, ncol=n1+n2)
   if(scaled) fc <- 0
   else fc <- n * log(cov0.pars$sigma^2)
   ##
@@ -424,7 +424,7 @@
   ##
   res12 <- c((geodata1$data-object$mu[1]),(geodata2$data-object$mu[2]))
   ##
-  S012 <- matrix(0, nr = length(res12), ncol=nrow(locations))
+  S012 <- matrix(0, nrow = length(res12), ncol=nrow(locations))
   names(object$mu) <- NULL
   if(any(variable.to.predict == 1)){
     mu0 <- rep(object$mu[1], n0)
