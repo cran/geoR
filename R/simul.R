@@ -7,7 +7,7 @@
   if(missing(kappa)) kappa <- NULL
   if (length(cov.pars) != 2)
     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
-  RFmodel <- switch(cov.model, matern = "whittlematern", exponential = "exponential",
+  RFmodel <- switch(cov.model, matern = "whittle", exponential = "exponential",
                     gaussian = "gauss", spherical = "spherical", circular = "circular",
                     cubic = "cubic", wave = "wave", power = "not compatible",
                     powered.exponential = "stable", cauchy = "cauchy",
@@ -18,14 +18,14 @@
     return(RFmodel)
   }
   if (any(RFmodel == "gencauchy")) kappa <- rev(kappa)
-  if (!any(RFmodel == c("gencauchy", "whittlematern", "stable"))) kappa <- NULL
+  if (!any(RFmodel == c("gencauchy", "whittle", "stable"))) kappa <- NULL
 #  if(is.null(aniso.pars))
 #    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
 #                "+",
 #                list(model="nugget", var=nugget)))
 #    else{
 #    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
-#                          -sin(aniso.pars[1]), cos(aniso.pars[1])), nc=2)) %*%
+#                          -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
 #                            diag(c(aniso.pars[2], 1)/cov.pars[2])
 #    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
 #                "+",
@@ -122,6 +122,10 @@
   }
   else{
     results$coords <- as.matrix(grid)
+  	x1vals <- sort(unique(round(results$coords[,1], digits=12)))
+  	x2vals <- sort(unique(round(results$coords[,2], digits=12)))
+  	if(length(unique(diff(x1vals)) == 1) && length(unique(diff(x2vals)) == 1)) 
+	    attr(results, "grid") <- "reg"
     if (messages.screen) cat("grf: simulation on a set of locations provided by the user\n")
   }
   if (!is.matrix(results$coords) & !is.data.frame(results$coords)) {
@@ -317,6 +321,7 @@
   ##
   x1vals <- sort(unique(round(x$coords[,1], digits=12)))
   x2vals <- sort(unique(round(x$coords[,2], digits=12)))
+  #if(length(unique(x1vals) == 1) && length(unique(x2vals) == 1)) reggrid <- TRUE
   nx <- length(x1vals)
   ny <- length(x2vals)
   ldots <- match.call(expand.dots = FALSE)$...
@@ -351,7 +356,7 @@
       else
         x$data <- .geoR_fullGrid(x = x, borders = borders)
     }
-    do.call("image", c(list(x=x1vals, y=x2vals, z=matrix(x$data, nc=ny)),
+    do.call("image", c(list(x=x1vals, y=x2vals, z=matrix(x$data, ncol=ny)),
                        .ldots.set(ldots, type="image", data="simulation")))
     ##
     ## Adding the legend (if the case)

@@ -327,7 +327,7 @@
 #  gc(verbose = FALSE)
   kc$distribution <- "normal"
   kc$krige.var[kc$krige.var < 1e-8] <- 0
-#  if(any(round(kc$krige.var, dig=12) < 0))
+#  if(any(round(kc$krige.var, digits=12) < 0))
   if(any(kc$krige.var < 0))
     cat("krige.conv: negative kriging variance found! Investigate why this is happening.\n")
   ##
@@ -413,7 +413,7 @@
       if(any(kc$simulations < -1/lambda))
         warning("Truncation in the back-transformation: there are simulated values less than (- 1/lambda) in the normal scale.")
       kc$simulations <-
-        BCtransform(x=kc$simulations, lambda=lambda, inv=TRUE)$data
+        BCtransform(x=kc$simulations, lambda=lambda, inverse=TRUE)$data
     }
     ##
     ## mean/quantiles/probabilities estimators from simulations
@@ -586,7 +586,7 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
     do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   }
@@ -654,7 +654,7 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D'){
     do.call("plot.1d", c(list(x = values,
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   }
@@ -715,7 +715,7 @@
   ##
   if(!is.null(attr(x, 'sp.dim')) && attr(x, 'sp.dim') == '1D')
     do.call("plot.1d", c(list(x= values,
-                              x1vals = unique(round(locations[,1], dig=12))),
+                              x1vals = unique(round(locations[,1], digits=12))),
                          .ldots.set(ldots, type="plot.1d",
                                    data="prediction")))
   else{

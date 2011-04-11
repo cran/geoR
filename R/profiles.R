@@ -371,7 +371,7 @@
             pl.sigmasqphi <- apply(sillrange.values,
                                    1, .proflik.aux28, ...)
           }
-          eval(expression(.temp.list$nugget <-  NULL), env=.GlobalEnv)
+          eval(expression(.temp.list$nugget <-  NULL), envir=.GlobalEnv)
         }
         else {
           stop("not yet implemented for fixed nugget != 0"

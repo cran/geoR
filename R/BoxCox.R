@@ -59,7 +59,7 @@
                         data = data, xmat = xmat, lik.method = lik.method)
   }
   else{
-    lik.lambda <- optimize(.negloglik.boxcox, int = c(-5, 5), data = data,
+    lik.lambda <- optimize(.negloglik.boxcox, interval = c(-5, 5), data = data,
                            xmat = xmat, lik.method = lik.method)
     lik.lambda <- list(par = lik.lambda$minimum, value = lik.lambda$objective,
                        convergence = 0, message = "function optimize used")

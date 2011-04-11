@@ -337,7 +337,7 @@
         }
         if(automatic.refit == TRUE & (lik.results$estimate[1] < 0.01)) {
           if (messages.screen == TRUE)
-            cat(paste("likfit: WARNING: ratio of estimates tau^2/sigma^2 < 0.01 (",round(lik.results$estimate[1], dig = 4), ")", sep = ""))
+            cat(paste("likfit: WARNING: ratio of estimates tau^2/sigma^2 < 0.01 (",round(lik.results$estimate[1], digits=4), ")", sep = ""))
           cat("\n")
           reduce.pars <- 1
           eval(expression(.temp.list$ftau <- 0), envir=.GlobalEnv)
@@ -544,8 +544,8 @@
     cat("likfit: end of likelihood maximisation\n")
   }
   if(any(temp.pars < 0)){
-    temp.pars <- round(temp.pars, dig=14)
-    lik.results$estimate <- round(lik.results$estimate, dig=14)
+    temp.pars <- round(temp.pars, digits=14)
+    lik.results$estimate <- round(lik.results$estimate, digits=14)
   }
   if(minimisation.function == "optim") lik.results$minimum <- lik.results$value
   loglik <- -lik.results$minimum
@@ -624,7 +624,7 @@
   if (residuals == TRUE) 
     results$residuals <- round(cbind(residuals = residuals.est, 
                                      resid.trend = residuals.trend, resid.std = residuals.std, 
-                                     resid.trend.std = residuals.trend.std), dig = 12)
+                                     resid.trend.std = residuals.trend.std), digits=12)
   if(fix.lambda == FALSE) {
     if(lambda == 1) {
       log.jacobian <- 0
@@ -658,7 +658,7 @@
     cat("\n")
     print(c(nugget=results$nugget, sill=results$cov.pars[1], range=results$cov.pars[2]))
     if (fix.lambda == FALSE)
-      cat(paste("Box-Cox transformation parameter:", round(results$lambda, dig=4),"\n"))
+      cat(paste("Box-Cox transformation parameter:", round(results$lambda, digits=4),"\n"))
     if((results$cov.pars[1] < (0.01 * (results$nugget + results$cov.pars[1])))& results$cov.pars[2] > 0)
       cat("\nWARNING: estimated sill is less than 1 hundredth of the total variance. Consider re-examine the model excluding spatial dependence\n" )      
     if((results$cov.pars[2] > (10 * max.dist)) & results$cov.pars[1] > 0 )
@@ -905,7 +905,7 @@ function(lambda)
     n <- .temp.list$n
     if(include.lambda){
       if(lambda == 1) {
-        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
+        eval(expression(.temp.list$log.jacobian <- 0), envir=.GlobalEnv)
       }
       else {
         if(any(z < 0))
@@ -1034,7 +1034,7 @@ function(lambda)
     n <- .temp.list$n
     if(include.lambda){
       if(lambda == 1) {
-        eval(expression(.temp.list$log.jacobian <- 0), env=.GlobalEnv)
+        eval(expression(.temp.list$log.jacobian <- 0), envir=.GlobalEnv)
       }
       else {
         if(any(z <= 0))

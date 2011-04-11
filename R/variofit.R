@@ -614,8 +614,8 @@
     else
       cat(paste("\n      (estimated) extra parameter kappa = ", round(x$spatial.component.extra, digits=digits)))
   }
-  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(x$spatial.component[1], dig=digits)))
-  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(x$spatial.component[2], dig=digits)))
+  cat(paste("\n      (estimated) variance parameter sigmasq (partial sill) = ", round(x$spatial.component[1], digits=digits)))
+  cat(paste("\n      (estimated) cor. fct. parameter phi (range parameter)  = ", round(x$spatial.component[2], digits=digits)))
   cat("\n")
   ##
   cat("\n")  
@@ -623,7 +623,7 @@
   if(x$fix.nugget)
     cat(paste("\n      (fixed) nugget =", round(x$nugget.component, digits = digits)))
   else
-    cat(paste("\n      (estimated) nugget = ", round(x$nugget.component, dig=digits)))
+    cat(paste("\n      (estimated) nugget = ", round(x$nugget.component, digits=digits)))
   cat("\n")
   cat("\n")
   cat("Practical Range with cor=0.05 for asymptotic range:",

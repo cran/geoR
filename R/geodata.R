@@ -372,7 +372,7 @@
       attributes(x) <- NULL
       x.names <- names(x[[1]])
       x.n <- length(x)
-      x <- matrix(unlist(x), nr=x.n, byrow=TRUE)
+      x <- matrix(unlist(x), nrow=x.n, byrow=TRUE)
       colnames(x) <- x.names
       rownames(x) <- real.names
       return(x)

@@ -1,9 +1,9 @@
 
 
 
-                ===============================
-       		CHANGES IN geoR VERSION 1.6-34
-	        ===============================
+            =====================================
+       		CHANGES IN geoR VERSION 1.6-34/1.6-35
+	        =====================================
 
 NEW FEATURES
 
@@ -14,6 +14,7 @@ BUGS
 
       o fix in documentation of functions completing names of arguments 
 
+      o change in geoR2RF: "whittlematern" to "whittle" com conform with changes in RandomFields
 
 
                 ===============================

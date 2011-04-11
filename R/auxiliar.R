@@ -101,7 +101,7 @@
   psiA <- aniso.pars[1]
   psiR <- aniso.pars[2]
   if(psiR < 1){
-    psiR <- round(psiR, dig=8)
+    psiR <- round(psiR, digits=8)
     if(psiR < 1)
       stop("anisotropy ratio must be greater than 1")
   }
@@ -650,10 +650,10 @@
   locations <- locations[ind, ]
   ## added 23/02/2009:
   if(nrow(locations) == length(borders)) values <- values[ind]
-##  xx <- as.numeric(levels(as.factor(round(locations[, 1], dig = 8))))
+##  xx <- as.numeric(levels(as.factor(round(locations[, 1], digits = 8))))
   xx <- sort(unique(locations[, 1]))
   nx <- length(xx)
-##  yy <- as.numeric(levels(as.factor(round(locations[, 2], dig = 8))))
+##  yy <- as.numeric(levels(as.factor(round(locations[, 2], digits = 8))))
   yy <- sort(unique(locations[, 2]))
   ny <- length(yy)
   ##
