@@ -1,11 +1,9 @@
 \name{sample.geodata}
 \alias{sample.geodata}
-\alias{sample.grf}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{Sampling from geodata objects}
 \description{
-  This functions facilitates extracting 
-  samples from geodata objects.
+  This functions facilitates extracting samples from geodata objects.
 }
 \usage{
 sample.geodata(x, size, replace = FALSE, prob = NULL, coef.logCox,
@@ -39,12 +37,14 @@ sample.geodata(x, size, replace = FALSE, prob = NULL, coef.logCox,
 \value{
   a list which is an object of the class \code{geodata}.
 }
+
 %\references{ ~put references to the literature/web site here ~ }
 %\author{ ~~who you are~~ }
 %\note{ ~~further notes~~ 
 %
 % ~Make other sections like Warning with \section{Warning }{....} ~
 %}
+
 \seealso{\code{\link{as.geodata}}, \code{\link{sample}}.}
 \examples{
 par(mfrow=c(1,2))
@@ -54,7 +54,7 @@ y1 <- sample.geodata(S1, 80)
 points(y1$coords, pch=19)
 ## Now a preferential sampling
 y2 <- sample.geodata(S1, 80, coef=1.3)
-## which is equivalent to
+## which is equivalent topps
 ## y2 <- sample.geodata(S1, 80, prob=exp(1.3*S1$data))
 points(y2$coords, pch=19, col=2)
 ## and now a clustered (but not preferential)
@@ -65,5 +65,5 @@ y3 <- sample.geodata(S1, 80, prob=exp(1.3*S2$data))
 image(S2, col=gray(seq(0.9,0.1,l=100)))
 points(y3$coords, pch=19, col=4)
 }
-\keyword{spatial}% at least one, from doc/KEYWORDS
-\keyword{manip}% __ONLY ONE__ keyword per line
+\keyword{spatial}
+\keyword{manip}

@@ -484,17 +484,17 @@
 }
 
 "points.geodata" <-
-  function (x, coords = x$coords, data = x$data, 
-            data.col = 1, borders = x$borders,
-            pt.divide = c("data.proportional",
-              "rank.proportional", "quintiles",
-              "quartiles", "deciles", "equal"),
-            lambda=1, trend="cte", abs.residuals=FALSE,
-            weights.divide = "units.m",
-            cex.min, cex.max, cex.var,
-            pch.seq, col.seq, add.to.plot = FALSE,
-            x.leg, y.leg = NULL, dig.leg = 2, 
-            round.quantiles = FALSE, permute = FALSE, ...) 
+  function(x, coords = x$coords, data = x$data, 
+           data.col = 1, borders = x$borders,
+           pt.divide = c("data.proportional",
+             "rank.proportional", "quintiles",
+             "quartiles", "deciles", "equal"),
+           lambda=1, trend="cte", abs.residuals=FALSE,
+           weights.divide = "units.m",
+           cex.min, cex.max, cex.var,
+           pch.seq, col.seq, add.to.plot = FALSE,
+           x.leg, y.leg = NULL, dig.leg = 2, 
+           round.quantiles = FALSE, permute = FALSE, ...) 
 {
   ldots <- list(...)
   TYPE <- ldots$type
@@ -790,7 +790,7 @@
   return(invisible())
 }
 
-"sample.geodata" <- "sample.grf" <-
+"sample.geodata" <-
   function(x, size, replace = FALSE, prob = NULL,
            coef.logCox, external)
 {
@@ -818,3 +818,7 @@
   ind <- sample(1:nrow(x$coords), size = size, prob=prob)
   as.geodata(as.data.frame(x)[ind,])
 }
+
+
+
+

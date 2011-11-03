@@ -472,6 +472,7 @@
 "krige.control" <-
   function(type.krige = "ok",
            trend.d = "cte", trend.l = "cte",
+#           trend.d, trend.l,
            obj.model = NULL,
            beta, cov.model, cov.pars, kappa,
            nugget, micro.scale = 0, dist.epsilon = 1e-10, 
@@ -497,6 +498,10 @@
     if(missing(nugget)) nugget <- obj.model$nugget
     if(missing(lambda)) lambda <- obj.model$lambda
     if(missing(aniso.pars)) aniso.pars <- obj.model$aniso.pars
+## added
+    if(!is.null(obj.model$trend) && is.character(obj.model$trend))
+    trend.d <- trend.l <- obj.model$trend
+##    if(missing(trend.d)) trend.d <- obj.model$trend
   }
   else{
     if(missing(beta)) beta <- NULL
@@ -520,6 +525,8 @@
     if(length(aniso.pars) != 2 | mode(aniso.pars) != "numeric")
       stop("krige.control: anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
   ##
+  if((is.character(trend.d) | is.character(trend.l)) && (trend.d != trend.l))
+        stop("krige.control: trend.l specifications is different from trend.d")
   if(inherits(trend.d, "formula") | inherits(trend.l, "formula")){
     if((inherits(trend.d, "formula") == FALSE) | (inherits(trend.l, "formula") == FALSE))
       stop("krige.control: trend.d and trend.l must have similar specification")

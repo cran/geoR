@@ -54,16 +54,16 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
     \code{quantiles}, which contains values of corresponding
     estimated quantiles. For
     example, if \code{quantile = c(0.25, 0.50, 0.75)} the function
-    returns the quartiles of the distributions at each of the
+    returns the quartiles of the predictive distributions at each of the
     prediction locations.
-    If \code{quantile = TRUE} default values equals to \code{c(0.025, 0.5,
-      0.975)}, are assumed. 
-    A measure of uncertainty of the predictions, analogous to the kriging
-    standard error, can be computed by \eqn{(quantile0.975 - quantile0.025)/4}.
+    If \code{quantile = TRUE} default values \code{c(0.025, 0.5,
+      0.975)} are assumed. 
+    A measure of uncertainty of the predictions, an alternative to the kriging
+    standard error, computed by \eqn{(quantile_0.975 - quantile_0.025)/4}.
     Only used if prediction locations are provided in the argument
     \code{locations}.  }
-  \item{threshold}{a (optional) numerical vector.
-    If one or more values are provided, object named
+  \item{threshold}{Optional. A numerical vector.
+    If one or more values are provided, an object named
     \code{probabilities} is included in the output.
     This object contains, for each
     prediction location, the probability that the variable is less
@@ -72,13 +72,13 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
   \item{sim.means}{logical (optional). Indicates whether mean
     of each of the conditional simulations of the predictive
     distribution should be computed and returned. Defaults to
-  \code{TRUE} if simulations from the predictive are required.  } 
+  \code{TRUE}, if simulations from the predictive are required.  } 
   \item{sim.vars}{logical (optional). Indicates whether variance
     of each of the conditional simulations of the predictive
     distribution should be computed and returned. Defaults to \code{FALSE}.  } 
   \item{signal}{logical indicating whether the signal or the variable is
-    to be predicted. Defaults to \code{NULL} and changed internally in
-    the functions which call \code{output.control}. See \code{DETAILS}
+    to be predicted. Different defaults are set internally by
+    functions calling \code{output.control}. See \code{DETAILS}
     below.  }
   \item{messages}{logical. Indicates
     whether or not status messages are printed on the output device
@@ -92,7 +92,10 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
 
   This function is typically called by the \pkg{geoR}'s prediction functions
   \code{\link{krige.bayes}} and \code{\link{krige.conv}}
-  defining the output to be returned by these functions.
+  defining the output.
+
+  By default, \code{\link{krige.bayes}} sets \code{signal = TRUE}
+  and \code{\link{krige.conv}} sets \code{signal = FALSE}.
 
   The underlying model
   \deqn{Y(x) = \mu + S(x) + \epsilon}{Y(x) = mu + S(x) + e}
@@ -103,19 +106,16 @@ output.control(n.posterior, n.predictive, moments, n.back.moments,
   If \eqn{\tau^2 = 0}{tau^2 = 0} the \eqn{Y} and \eqn{S} are
   indistiguishable.\cr
 
-  If \eqn{\tau^2 > 0}{tau^2 > 0} and regarded as measurement error the
+  If \eqn{\tau^2 > 0}{tau^2 > 0} and regarded as measurement error, the
   option \code{signal} defines whether the \eqn{S} (\code{signal =
     TRUE}) or the variable \eqn{Y} (\code{signal = FALSE}) is to be
   predicted.\cr
   For the latter the predictions will "honor" the data,
-  i.e. at data locations predictions will coincide with the data.\cr
-  For unsampled locations, when there is no transformation of the data,
-  the predicted values will be the same
-  regardless whether \code{signal = TRUE} or \code{FALSE} but the
+  i.e. predicted values will coincide with the data, at data locations.\cr
+  For unsampled locations and untransformed data,
+  the predicted values equals data
+  regardless \code{signal = TRUE} or \code{FALSE}, however
   predictions variances will differ.
-
-  By default \code{\link{krige.bayes}} sets \code{signal = TRUE}
-  and \code{\link{krige.conv}} sets \code{signal = FALSE}.
 
   The function \code{\link{krige.conv}} has an argument
   \code{micro.scale}. If \eqn{micro.scale > 0} the error term is

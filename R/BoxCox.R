@@ -8,11 +8,10 @@
   xmat <- unclass(trend.spatial(trend = trend, geodata = object))
   if (nrow(xmat) != length(object$data)) 
     stop("coords and trend have incompatible sizes")
-  require(MASS)
-  boxcox(object$data ~ xmat + 0, ...)
+  MASS::boxcox(object$data ~ xmat + 0, ...)
 }
 
-"boxcox.fit" <-
+"boxcoxfit" <-
   function(object, xmat, lambda, lambda2 = NULL, add.to.data = 0,...)
 {
   call.fc <- match.call()
@@ -100,7 +99,7 @@
               loglik = loglik, optim.results = lik.lambda)
   ## res$hessian <- c(lambda = hess) 
   res$call <- call.fc
-  oldClass(res) <- "boxcox.fit"
+  oldClass(res) <- "boxcoxfit"
   return(res)
 }
 
@@ -134,7 +133,7 @@
   return(drop(neglik))
 }
 
-"print.boxcox.fit" <-
+"print.boxcoxfit" <-
   function(x, ...)
 {
   if(length(x$lambda) == 1) names(x$lambda) <- "lambda"
@@ -148,12 +147,12 @@
   return(invisible())
 }
 
-"plot.boxcox.fit" <-
+"plot.boxcoxfit" <-
   function(x, hist = TRUE, data = eval(x$call$object), ...)
 {
   if(is.null(data)) stop("data object not provided or not found")
   if(!is.null(x$call$xmat) && ncol(eval(x$call$xmat)) > 1)
-    stop("plot.boxcox.fit not valid when covariates are included")
+    stop("plot.boxcoxfit not valid when covariates are included")
   if(!is.null(x$call$add.to.data))
     data <- data + eval(x$call$add.to.data)
   y <- data
@@ -186,12 +185,12 @@
   return(invisible())
 }
 
-"lines.boxcox.fit" <-
+"lines.boxcoxfit" <-
   function(x, data = eval(x$call$object), ...)
 {
   if(is.null(data)) stop("data object not provided or not found")
   if(!is.null(x$call$xmat) && ncol(eval(x$call$xmat)) > 1)
-    stop("lines.boxcox.fit not valid when covariates are included")
+    stop("lines.boxcoxfit not valid when covariates are included")
   y <- data
   rd <- range(y)
   obj <- x

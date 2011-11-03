@@ -26,7 +26,7 @@
 \arguments{
   \item{x}{a list with the values for the following components: \code{cov.model}, \code{cov.pars},
     \code{nugget}, \code{kappa} , \code{max.dist}; or a numeric vector
-    with x-axis values for the variogram.
+    with values for x-axis values for the variogram (distances).
     This argument is not required if the other arguments in the function
     are provided, otherwise is compulsory.
     If a list is provided the arguments which match the list elements

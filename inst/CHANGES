@@ -1,4 +1,25 @@
 
+                =====================================
+       		   CHANGES IN geoR VERSION 1.6-36
+	        =====================================
+
+NEW FEATURES
+
+      o geoR has now a NAMESPACE
+
+      o changes in the DESCRIPTION file with dependends and suggests
+
+      o boxcox.fit() replaces by boxcoxfit()
+      
+      o cite.geoR() now removed. standard citation(package="geoR") should be used instead
+      
+      o CITATION information changed including Diggle & Ribeiro (2007)
+
+
+BUGS
+
+      o krige.control() now reads trend specification from obj.model properly
+
 
 
             =====================================
@@ -7,7 +28,8 @@
 
 NEW FEATURES
 
-       o 
+      o little changes in grf() to check for regular grid on coordinates
+        provides by the user 
 
 
 BUGS
@@ -17,7 +39,7 @@ BUGS
       o change in geoR2RF: "whittlematern" to "whittle" com conform with changes in RandomFields
 
 
-                ===============================
+            ===============================
        		CHANGES IN geoR VERSION 1.6-33
 	        ===============================
 
@@ -35,7 +57,7 @@ BUGS
 
 
 
-                ===============================
+            ===============================
        		CHANGES IN geoR VERSION 1.6-31
 	        ===============================
 
@@ -53,8 +75,8 @@ BUGS
         o fixes in variofit() for linear correlation model
 
 
-                ===============================
-                CHANGES IN geoR VERSION 1.6-30
+            ===============================
+             CHANGES IN geoR VERSION 1.6-30
 	        ===============================
 
 NEW FEATURES
@@ -68,7 +90,7 @@ BUGS
 
  
 
-                ===============================
+        ===============================
  		CHANGES IN geoR VERSION 1.6-29
 		===============================
 
@@ -84,7 +106,7 @@ BUGS
 
  
 
-                ===============================
+        ===============================
  		CHANGES IN geoR VERSION 1.6-27/28
 		===============================
 

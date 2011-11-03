@@ -703,7 +703,7 @@
               coords.lims = coords.lims))
 }
 
-.geoR_inout <- function(pts, poly, ...) {
+".geoR_inout" <- function(pts, poly, ...) {
   ## inout returns logical vector
   ## poly <- .check.borders(poly)
   ## pts <- SpatialPoints(coords=pts)
@@ -712,7 +712,7 @@
   !is.na(sp::overlay(SpatialPoints(coords=pts), .check.borders(poly)))
 }
 
-.geoR_pip <- function(pts, poly, ...) {
+".geoR_pip" <- function(pts, poly, ...) {
   ## pip returns the points matrix
   poly <- .check.borders(poly)
   pts <- sp::SpatialPoints(coords=pts)
@@ -761,6 +761,9 @@ or a vector with x-coordinates")
   if(is.null(y.by))
     y.by <- ifelse(is.null(ldots$by), ((y.coords[2] - y.coords[1])/y.length.out - 1), ldots$by)
   gy <- seq(from=y.coords[1], to=y.coords[2], by = y.by)
-  return(expand.grid(gx,gy))
+  res <- expand.grid(gx,gy)
+  attr(res, "x") <- gx
+  attr(res, "y") <- gy
+  return(res)
 }
 

@@ -744,6 +744,12 @@
   UseMethod("lines.variomodel")
 }
 
+#"lines.variomodel.list" <-
+#  function (x, ...)
+#{
+#do.call
+#}
+
 "lines.variomodel.default" <-
   function (x, cov.model, cov.pars, nugget, kappa,
             max.dist, scaled = FALSE, ...)

@@ -9,7 +9,7 @@
   Computes and optionally plots profile log-likelihoods for the parameter of the Box-Cox simple power transformation \eqn{y^lambda}.
 }
 \usage{
-boxcox.geodata(object, trend = "cte", ...)
+\method{boxcox}{geodata}(object, trend = "cte", ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

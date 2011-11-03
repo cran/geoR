@@ -3,7 +3,7 @@
 \alias{rboxcox}
 \alias{dboxcox}
 
-\concept{Box-Cox trransformation} 
+\concept{Box-Cox transformation} 
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -30,7 +30,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
     (see DETAILS below). Defaults to \code{NULL}.  }
   \item{n}{number of observations to be generated.  }
   \item{x}{a vector of quantiles (\code{dboxcox}) or an output of
-    \code{boxcox.fit} (\code{print}, \code{plot}, \code{lines}).  }
+    \code{boxcoxfit} (\code{print}, \code{plot}, \code{lines}).  }
   \item{mean}{a vector of mean values at the normal scale.  }
   \item{sd}{a vector of standard deviations at the normal scale.  }
 }
@@ -85,7 +85,7 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{The parameter estimation function \code{\link{boxcox.fit}},
+\seealso{The parameter estimation function \code{\link{boxcoxfit}},
   the function \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
   the function \code{\link[car]{box.cox}} in the package \pkg{car}.
 }

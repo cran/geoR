@@ -1,9 +1,9 @@
-\name{boxcox.fit}
+\name{boxcoxfit}
 
-\alias{boxcox.fit}
-\alias{print.boxcox.fit}
-\alias{plot.boxcox.fit}
-\alias{lines.boxcox.fit}
+\alias{boxcoxfit}
+\alias{print.boxcoxfit}
+\alias{plot.boxcoxfit}
+\alias{lines.boxcoxfit}
 \alias{.negloglik.boxcox}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
@@ -15,13 +15,13 @@
 }
 
 \usage{
-boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
+boxcoxfit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
 
-\method{print}{boxcox.fit}(x, \dots)
+\method{print}{boxcoxfit}(x, \dots)
 
-\method{plot}{boxcox.fit}(x, hist = TRUE, data = eval(x$call$object), \dots)
+\method{plot}{boxcoxfit}(x, hist = TRUE, data = eval(x$call$object), \dots)
 
-\method{lines}{boxcox.fit}(x, data = eval(x$call$object), \dots)
+\method{lines}{boxcoxfit}(x, data = eval(x$call$object), \dots)
 
 }
 
@@ -43,28 +43,28 @@ boxcox.fit(object, xmat, lambda, lambda2 = NULL, add.to.data = 0, \dots)
     value. Multiple values are allowed as for \code{lambda}.  }
   \item{add.to.data}{a constant value to be added to the data.  }
   \item{x}{a list, typically an output of the function
-    \code{boxcox.fit}.  }
+    \code{boxcoxfit}.  }
   \item{hist}{logical indicating whether histograms should to be
     plotted.  }
   \item{data}{data values. }
   \item{\dots}{extra parameters to be passed to the minimization
-    function \code{\link{optim}} (\code{boxcox.fit}), \code{\link{hist}}
+    function \code{\link{optim}} (\code{boxcoxfit}), \code{\link{hist}}
     (\code{plot}) or \code{\link{curve}} (\code{lines}).  }
   
 }
 
 \value{
   The functions returns the following results:
-  \item{boxcox.fit}{a list with estimated  parameters and results on
+  \item{boxcoxfit}{a list with estimated  parameters and results on
     the numerical minimization.  }
-  \item{print.boxcox.fit}{print estimated parameters. No values
+  \item{print.boxcoxfit}{print estimated parameters. No values
     returned.  }
-  \item{plot.boxcox.fit}{plots histogram of the data (optional) and
+  \item{plot.boxcoxfit}{plots histogram of the data (optional) and
     the model.  No values returned.  This function is only valid if
-    covariates are not included in \code{boxcox.fit}. }
-  \item{lines.boxcox.fit}{adds a line with the fitted model to the
+    covariates are not included in \code{boxcoxfit}. }
+  \item{lines.boxcoxfit}{adds a line with the fitted model to the
     current plot. No values returned.  This function is only valid if
-    covariates are not included in \code{boxcox.fit}.  }
+    covariates are not included in \code{boxcoxfit}.  }
 }
 
 \references{
@@ -94,7 +94,7 @@ set.seed(384)
 ## Simulating data
 simul <- rboxcox(100, lambda=0.5, mean=10, sd=2)
 ## Finding the ML estimates
-ml <- boxcox.fit(simul)
+ml <- boxcoxfit(simul)
 ml
 ## Ploting histogram and fitted model
 plot(ml)
@@ -108,15 +108,13 @@ for(lambda in seq(-.5, 1.5, by=0.5))
 ## Another example, now estimating lambda2
 ##
 simul <- rboxcox(100, lambda=0.5, mean=10, sd=2)
-ml <- boxcox.fit(simul, lambda2 = TRUE)
+ml <- boxcoxfit(simul, lambda2 = TRUE)
 ml
 plot(ml)
 ##
 ## An example with a regression model
 ##
-if(require(MASS)){
-  boxcox.fit(object = trees[,3], xmat = trees[,1:2])
-  }
+boxcoxfit(object = trees[,3], xmat = trees[,1:2])
 }
 
 \keyword{regression}
