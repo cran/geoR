@@ -2164,10 +2164,9 @@
       simul$beta <- rnorm(n, mean = post$beta$pars$mean[ind],
                           sd=sqrt(post$beta$pars$var[ind]))
     else{
-      require(MASS)
       if(post$phi$status == "fixed" & post$tausq.rel$status == "fixed"){
         simul[,1:beta.size] <-
-          mvrnorm(n=n, mu = post$beta$pars$mean,
+          MASS::mvrnorm(n=n, mu = post$beta$pars$mean,
                   Sigma = matrix(post$beta$pars$var, ncol=beta.size))
       }
       else{
@@ -2176,7 +2175,7 @@
           nr <- i %% nphi
           if(nr == 0) nr <- nphi
           beta.sim <-
-            mvrnorm(n=n, mu = post$beta$pars$mean[nr,nc,],
+            MASS::mvrnorm(n=n, mu = post$beta$pars$mean[nr,nc,],
                     Sigma = matrix(post$beta$pars$var[nr,nc,],
                       ncol=beta.size))
           return(beta.sim)
@@ -2400,13 +2399,13 @@
     }
     if(density.est){
       if(is.null(Ldots$width)){
-        if(require(MASS, quietly=TRUE))
+#       if(require(MASS, quietly=TRUE))
           plD <- density(y,width=bandwidth.nrd(y), ...)
-        else plD <- density(y, ...)
+#        else plD <- density(y, ...)
       }
       else
         plD <- lines(density(y, width = Ldots$width))
-      res$density.estimation[[ipar]] <- plD 
+  res$density.estimation[[ipar]] <- plD 
       ymax <- max(c(ymax, plD$y))
     }
     if(histogram){

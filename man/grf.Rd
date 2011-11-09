@@ -79,8 +79,8 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
     and then the coordinates are back-transformed such that the resulting
     field is anisotropic. Coordinates transformation is performed 
     by the function \code{\link{coords.aniso}}.  }
-  \item{mean}{a numerical vector of size 1 or the sema dimention of the
-    data to be simulated. }
+  \item{mean}{a numerical vector, scalar or the same length of the
+    data to be simulated. Defaults to zero.}
   \item{method}{simulation method with options for
     \code{"cholesky"}, \code{"svd"}, \code{"eigen"}, \code{"RF"}.
     Defaults to the \emph{Cholesky}

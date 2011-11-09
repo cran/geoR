@@ -12,6 +12,7 @@
     "powered.exponential", "stable", "cauchy", "gencauchy",
     "gneiting", "gneiting.matern", "pure.nugget")
 
+"geoRCovModels" <- .geoR.cov.models
 
 "practicalRange" <-
   function (cov.model, phi, kappa=0.5, correlation = 0.05, ...) 
@@ -237,18 +238,6 @@
            sqrt.inv = FALSE, try.another.decomposition = TRUE,
            only.inv.lower.diag = FALSE, ...) 
 {
-#  if(! "package:stats" %in% search()) require(mva)
-  ##
-##  op.sem <- options()$show.error.message
-##  options(show.error.message = FALSE)
-##  on.exit(options(show.error.message = op.sem))
-#  require(methods)
-#  if(!exists("trySilent")){
-#    error.now <- options()$show.error.messages
-##      on.exit(options(show.error.messages = TRUE))
-##   options(show.error.messages = FALSE)
-## }
-  ##
   func.inv <- match.arg(func.inv)
   cov.model <- sapply(cov.model, match.arg, choices = .geoR.cov.models)
   if(only.inv.lower.diag)  inv <- TRUE

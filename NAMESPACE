@@ -5,10 +5,19 @@ useDynLib(geoR)
 # exportPattern("^[^\\.]")
 #
 # Import all packages listed as Imports or Depends
-import(stats,sp,methods,tcltk,graphics)
+import(graphics)
 
+#importFrom(graphics,plot)
+#importFrom(graphics,persp)
+#importFrom(graphics,image)
+#importFrom(graphics,contour)
+
+import(stats,sp,methods)
 importFrom(MASS,boxcox)
+
 #importFrom(scatterplot3d,scatterplot3d)
+
+## dependencis for grf() in simul.R
 importFrom(splancs,csr)
 importFrom(splancs,gridpts)
 importFrom(RandomFields,GaussRF)
@@ -19,10 +28,12 @@ export(as.geodata,jitterDupCoords,zoom.coords,dup.coords,lines.variomodel)
 # exported functions (sample is not generic!!)
 export(sample.geodata,sample.posterior,sample.prior)
 export(output.control,krige.control,statistics.predictive)
+#export(rmvnorm)
 
 ## auxiliar.R
 export(coords.aniso,dinvchisq,legend.krige,locations.inside,pars.limits,plot.1d,
        polygrid,pred_grid,rinvchisq,set.coords.lims,trend.spatial)
+export(.geoR_inout,.geoR_pip)
 
 ##bivar.R     
 export(likfitBGCCM,loglikBGCCM,varcovBGCCM)
@@ -31,7 +42,7 @@ export(likfitBGCCM,loglikBGCCM,varcovBGCCM)
 export(backtransform.moments,BCtransform,dboxcox,rboxcox,boxcoxfit)
 
 ## corcov.R     
-export(cov.spatial,matern,practicalRange,varcov.spatial)
+export(cov.spatial,matern,practicalRange,varcov.spatial,geoRCovModels)
 
 ##Cwrappers.R  
 export(diffpairs,loccoords)
@@ -40,11 +51,12 @@ export(diffpairs,loccoords)
 export(eyefit)
 
 ## geobayes.R     
-export(krige.bayes,prior.control)
+export(krige.bayes,prior.control,model.control)
 
 ##geodata.R      
 export(is.geodata,read.geodata,as.geodata)
 export(points.geodata)
+export(plot.geodata)
 
 ##geoRdefunct.R  
 

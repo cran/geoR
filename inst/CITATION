@@ -7,7 +7,11 @@ citEntry(entry="Book",
                              as.person("Paulo J. Ribeiro Jr")), 
          publisher = "Springer",
          address = "New York",
-         year = "2007"
+         year = "2007",
+         textVersion=
+           paste("Diggle, P.J. & Ribeiro Jr, P.J.",
+                 "Model Based Geostatistics",
+                 "Springer, New York, 2007")
 )
 
 citEntry(entry="Article",

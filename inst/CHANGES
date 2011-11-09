@@ -9,9 +9,9 @@ NEW FEATURES
 
       o changes in the DESCRIPTION file with dependends and suggests
 
-      o boxcox.fit() replaces by boxcoxfit()
+      o boxcox.fit() replaced by boxcoxfit() (also the S3 class name and methods)
       
-      o cite.geoR() now removed. standard citation(package="geoR") should be used instead
+      o cite.geoR() now removed. Standard citation(package="geoR") should be used instead
       
       o CITATION information changed including Diggle & Ribeiro (2007)
 
@@ -22,8 +22,8 @@ BUGS
 
 
 
-            =====================================
-       		CHANGES IN geoR VERSION 1.6-34/1.6-35
+                =====================================
+       	        CHANGES IN geoR VERSION 1.6-34/1.6-35
 	        =====================================
 
 NEW FEATURES

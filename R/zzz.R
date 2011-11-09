@@ -1,3 +1,16 @@
+.onAttach <- function (lib, pkg) {
+    pkg.info <- drop(read.dcf(file=system.file("DESCRIPTION", package="geoR"),
+                              fields=c("Title","Version","Date")))
+
+   packageStartupMessage(paste("--------------------------------------------------------------\n",
+			       pkg.info["Title"]),"\n",
+			 " For an Introduction to geoR go to http://www.leg.ufpr.br/geoR\n",
+    paste(" geoR version ", pkg.info["Version"],
+              " (built on ", pkg.info["Date"], ") is now loaded\n", sep=""),
+			 "--------------------------------------------------------------\n"
+    )
+}
+
 #".First.lib" <- function(lib, pkg)
 #{
 #  library.dynam("geoR", package = pkg, lib.loc = lib)

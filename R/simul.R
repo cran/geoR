@@ -2,7 +2,7 @@
 "geoR2RF" <-
   function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 {
-  cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
+  cov.model <- match.arg(cov.model, choices =  geoRCovModels)
   if(missing(aniso.pars)) aniso.pars <- NULL
   if(missing(kappa)) kappa <- NULL
   if (length(cov.pars) != 2)
@@ -70,7 +70,7 @@
   }
   rseed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
   ## model setup
-  cov.model <- match.arg(cov.model, choices =  .geoR.cov.models)
+  cov.model <- match.arg(cov.model, choices =  geoRCovModels)
   if (cov.model == "stable") cov.model <- "powered.exponential"
   if (cov.model == "matern" && kappa == 0.5) cov.model <- "exponential"
   tausq <- nugget
@@ -100,8 +100,8 @@
     grid <- match.arg(grid, choices = c("irreg", "reg"))
     attr(results, "grid") <- grid    
     if(!missing(borders) & !sim1d){
-      if(!require(splancs))
-        stop("package splancs is required to simulate within borders provided by the user")
+     #if(!require(splancs, quietly=TRUE))
+     #   stop("package splancs is required to simulate within borders provided by the user")
       results$borders <- borders
       if(grid == "irreg") results$coords  <- splancs::csr(poly=borders, npoints=n)
       else{
@@ -178,19 +178,20 @@
   }
   if (missing(method)) {
     method <- "cholesky"
-    if (n > 500 && RF && require(RandomFields)) 
+  #  if (n > 500 && RF && require(RandomFields, quietly=TRUE)) 
+    if (n > 500 && RF) 
       method <- "RF"
   }
   method <- match.arg(method, choices = c("cholesky", "svd", 
                                 "eigen", "RF", "circular.embedding"))
-  if (method == "circular.embedding") {
-    if (require(RandomFields)) {
-      method <- "RF"
-      if (messages.screen) 
-        warning("method \"circular.embedding\" now uses algorithm from the package RandomFields")
-    }
-    else stop("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
-  }
+  #if (method == "circular.embedding") {
+  #  if (require(RandomFields, quietly=TRUE)) {
+  #    method <- "RF"
+  #    if (messages.screen) 
+  #      warning("method \"circular.embedding\" now uses algorithm from the package RandomFields")
+  #  }
+  #  else stop("Option for method \"circular.embedding\" requires the instalation of the package RandomFields")
+  #}
   if (messages.screen) {
     cat(messa$nst)
     cat(messa$nugget)
@@ -205,7 +206,7 @@
                            nrow = n, ncol = nsim)
   else {
     if (method == "RF") {
-      require(RandomFields)
+      #require(RandomFields, quietly=TRUE)
       assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
                        nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
       if (!exists("xpts") || is.null(xpts)){
@@ -226,7 +227,7 @@
                                                     func.inv = method)$sqrt.varcov, 
                                      matrix(rnorm((n * nsim)), nrow = n, ncol = nsim)))
   }
-  if (length(mean) != 1 & length(mean) != length(results$data)) 
+  if (length(mean) != 1 & length(mean) != dim(as.matrix(results$data))[1] & length(mean) != length(results$data)) 
     stop("the mean must be a scalar or a vector of the same size as the data")
   results$data <- results$data + mean
   if (lambda != 1) {

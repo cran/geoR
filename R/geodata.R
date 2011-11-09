@@ -349,7 +349,6 @@
 "summary.geodata" <-
   function(object, lambda=1, add.to.data = 0, by.realisations=TRUE,  ...)
 {
-#  if(! "package:stats" %in% search()) require(mva)
   res <- list()
   ##
   ## data transformation (Box-Cox)

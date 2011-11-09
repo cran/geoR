@@ -3,6 +3,7 @@
 \alias{cov.spatial}
 \alias{.cor.number}
 \alias{.check.cov.model}
+\alias{geoRCovModels}
 
 \encoding{latin1}
 
