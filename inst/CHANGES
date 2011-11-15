@@ -1,11 +1,22 @@
-
                 =====================================
-       		   CHANGES IN geoR VERSION 1.6-36
+       		   CHANGES IN geoR VERSION 1.7-2
+	        =====================================
+
+NEW FEATURES
+  
+      o trend.spatial() search for variables in formula in Spatial*DataFrame objects (package(sp))
+
+BUGS
+
+      o .nlmP() is now exported and visible again
+      
+                =====================================
+       		   CHANGES IN geoR VERSION 1.7-1
 	        =====================================
 
 NEW FEATURES
 
-      o geoR has now a NAMESPACE
+      o geoR has now a NAMESPACE exporting/importing functions
 
       o changes in the DESCRIPTION file with dependends and suggests
 

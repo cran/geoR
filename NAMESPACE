@@ -75,6 +75,7 @@ export(krweights,ksline)
 export(likfit,likfit.limits,likfit.nospatial,loglik.GRF,loglik.spatial)
 
 ##likOLD.R  
+export(.nlmP)
 
 ##profiles.R  
 export(proflik)
