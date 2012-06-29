@@ -13,7 +13,7 @@
     ## checking input
     if(!is.matrix(x) && !is.data.frame(x) || ncol(x) != 2)
       stop("jitterCoords.default: coords must be a matrix or data-frame with two columns")
-    ind <- dup.coords(x)
+    ind <- dup.coords(x, simplify=FALSE, USE.NAMES=FALSE)
     i <- 1
     while(i <= length(ind)){
       x[ind[[i]],] <- jitter2d(coords=x[ind[[i]],], ...)
@@ -229,7 +229,7 @@
     if(!is.null(rownames(x))) rownames(x[ap1 == n,])
     else (1:nrow(x))[ap1 == n]
     }
-  res <- sapply(as.numeric(names(ap2)), takecoords)
+  res <- sapply(as.numeric(names(ap2)), takecoords, ...)
   if(length(res) == 0) res <- NULL
   if(!is.null(res)) class(res) <- "duplicated.coords"
   return(res)

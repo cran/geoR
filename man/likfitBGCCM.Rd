@@ -19,12 +19,10 @@ likfitBGCCM(geodata1, geodata2, ini.sigmasq, ini.phi,
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{geodata1}{an object of the class \code{geodata} with the data
-  of the first variable. }
-  \item{geodata2}{an object of the class \code{geodata} with the data
-  of the first variable. }
+  \item{geodata1}{an object of the class \code{geodata} with the first variable. }
+  \item{geodata2}{an object of the class \code{geodata} with the second variable. }
   \item{ini.sigmasq}{optional, a vector with initial values for the
-  correlation range parameters. If not provided default values are used.  }
+        variance parameters. If not provided default values are used.  }
   \item{ini.phi}{optional, a vector with initial values for the
     correlation range parameters. If not provided default values are
     used. }

@@ -21,7 +21,8 @@ dup.coords(x, \dots)
   \item{x}{a two column numeric matrix or data frame.}
   \item{incomparables}{unused. Just for compatibility with
     the generic function \code{\link{duplicated}}.  }
-  \item{\dots}{unused. }
+  \item{\dots}{arguments passed to \code{\link{sapply}}. If \code{simplify = TRUE} (default) results
+  are returned as an array if possible (when the number of replicates are the same at each replicated location) }
 }
 %\details{
 %  ~~ If necessary, more details than the __description__  above ~~

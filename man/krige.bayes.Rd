@@ -272,50 +272,50 @@ post2prior(obj)
     model parameters. A list with the following possible components:\cr  }
 
   \itemize{   
-    \item{beta}{summary information on the posterior distribution
+    \item{beta }{summary information on the posterior distribution
       of the mean parameter \eqn{\beta}{beta}.  }
-    \item{sigmasq}{summary information on the posterior distribution
+    \item{sigmasq }{summary information on the posterior distribution
       of the variance parameter \eqn{\sigma^2}{sigma^2} (partial sill).  }
-    \item{phi}{summary information on the posterior distribution
+    \item{phi }{summary information on the posterior distribution
       of the correlation parameter \eqn{\phi}{phi} (range parameter) .  }
-    \item{tausq.rel}{summary information on the posterior distribution
+    \item{tausq.rel }{summary information on the posterior distribution
       of the relative nugget variance parameter
-      \eqn{\tau^2_{rel}}{tau^2_rel}.  }
+      \eqn{\tau^2_{rel} }{tau^2_rel}.  }
     \item{joint.phi.tausq.rel}{information on discrete the joint
       distribution of these parameters.  }
-    \item{sample}{a data.frame with a sample from the posterior
+    \item{sample }{a data.frame with a sample from the posterior
       distribution.
       Each column corresponds to one of the basic model parameters.  }
   }
   
-  \item{predictive}{results on the predictive distribution at the
+  \item{predictive }{results on the predictive distribution at the
     prediction locations, if provided.
     A list with the following possible components:  }
   
   \itemize{    
-    \item{mean}{expected values.  }
-    \item{variance}{expected variance.  }
-    \item{distribution}{type of posterior distribution.  }
-    \item{mean.simulations}{mean of the simulations at each locations.  }
-    \item{variance.simulations}{variance of the simulations at each locations.  }
-    \item{quantiles.simulations}{quantiles computed from the the simulations.  }
-    \item{probabilities.simulations}{probabilities computed from the simulations.  }
-    \item{simulations}{simulations from the predictive distribution.  }
+    \item{mean }{expected values.  }
+    \item{variance }{expected variance.  }
+    \item{distribution }{type of posterior distribution.  }
+    \item{mean.simulations }{mean of the simulations at each locations.  }
+    \item{variance.simulations }{variance of the simulations at each locations.  }
+    \item{quantiles.simulations }{quantiles computed from the the simulations.  }
+    \item{probabilities.simulations }{probabilities computed from the simulations.  }
+    \item{simulations }{simulations from the predictive distribution.  }
   }
   
-  \item{prior}{a list with information on the prior distribution
+  \item{prior }{a list with information on the prior distribution
     and hyper-parameters of the model parameters (\eqn{\beta, \sigma^2,
       \phi, \tau^2_{rel}}{beta, sigma^2, phi, tau^2_rel}).
   }
   
-  \item{model}{model specification as defined by \code{model.control}.  }
+  \item{model }{model specification as defined by \code{model.control}.  }
   
-  \item{.Random.seed}{system random seed before running the function.
+  \item{.Random.seed }{system random seed before running the function.
     Allows reproduction of results. If
     the \code{\link{.Random.seed}} is set to this value and the function is run
     again, it will produce exactly the same results.  }
   
-  \item{max.dist}{maximum distance found between two data locations.  }
+  \item{max.dist }{maximum distance found between two data locations.  }
   \item{call}{the function call.  }
   
 }

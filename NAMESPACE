@@ -51,7 +51,7 @@ export(diffpairs,loccoords)
 export(eyefit)
 
 ## geobayes.R     
-export(krige.bayes,prior.control,model.control)
+export(post2prior,krige.bayes,prior.control,model.control)
 
 ##geodata.R      
 export(is.geodata,read.geodata,as.geodata)

@@ -282,7 +282,7 @@
   function (trend, geodata, add.to.trend) 
 {  
   if(!missing(geodata)){
-    if(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp"))
+    if(any(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp")))
         geodata <- geodata@data
     attach(geodata, pos=2, warn.conflicts=FALSE)
     if(!is.null(geodata$covariate)){

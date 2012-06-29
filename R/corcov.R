@@ -1,3 +1,4 @@
+
 ##
 ## Correlations and covariances for the package geoR
 ## -------------------------------------------------
@@ -155,14 +156,15 @@
            kappa = 0.5)
 {
   fn.env <- sys.frame(sys.nframe())
-  .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+  geoR:::.check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                    env=fn.env, output=FALSE)
   phi <- get("phi", envir=fn.env)
   sigmasq <- get("sigmasq", envir=fn.env)
   ##
   ## computing correlations/covariances
   ##
-  covs <- array(0, dim = dim(obj))
+#  covs <- array(0, dim = dim(obj))
+  covs <- obj; covs[] <- 0 
   for(i in 1:get("ns", envir=fn.env)) {
     if(phi[i] < 1e-16)
       cov.model[i] <- "pure.nugget"
