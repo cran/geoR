@@ -82,17 +82,16 @@
       stop("coords and locations must have two columns")
     nc <- dimc[1]
     nl <- diml[1]
-    out <- as.double(rep(0, nc*nl))
-    .C("loccoords",
+    out <- .C("loccoords",
        as.double(as.vector(locations[,1])),
        as.double(as.vector(locations[,2])),
        as.double(as.vector(coords[,1])),
        as.double(as.vector(coords[,2])),
        as.integer(nl),
        as.integer(nc),
-       out, DUP=FALSE,
-       PACKAGE = "geoR")
-    attr(out, "dim") <- c(nc, nl)
+       out = as.double(rep(0, nc*nl)),
+       PACKAGE = "geoR")$out
+    dim(out) <- c(nc, nl)
     return(out)
   }
 
@@ -101,7 +100,7 @@
   {
     ## returns:
     ##   - the lower triangle of the matrix with euclidean distances
-    ##     between pairs of points, 
+    ##     between pairs of points,
     ##   - the difference between data values at these locations
     ##
     coords <- as.matrix(coords)
@@ -142,7 +141,6 @@
     if(dimc[2] != 2)
       stop("coords must have two columns")
     nc <- dimc[1]
-    out <- as.double(rep(0, (nc * (nc+1)/2)))
     .C("cor_diag",
        as.double(coords[,1]),
        as.double(coords[,2]),
@@ -150,9 +148,7 @@
        as.integer(.cor.number(cov.model)),
        as.double(phi),
        as.double(kappa),
-       out, DUP = FALSE,
-       PACKAGE = "geoR")
-    return(out)
+       out = as.double(rep(0, (nc * (nc+1)/2))), PACKAGE = "geoR")$out
   }
 }
 
@@ -183,7 +179,7 @@
     if(ncol.tmean != mod$Nsims)
       stop(".cond.sim: size of tmean does not matches with Nsims")
     diff.mean <- as.integer(1)
-  }      
+  }
   else
     diff.mean <- as.integer(0)
   if(coincide.cond) loccoin <- -loc.coincide

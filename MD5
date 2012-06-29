@@ -1,12 +1,12 @@
-c17bd7be61f68ff30b8966a20a44f4fc *DESCRIPTION
+03c586810168a7a8fa5fa3942c0be51a *DESCRIPTION
 a416df2a4e024f318890cb21b6425a83 *NAMESPACE
-d6cba7fa8da82d13d970a1a12cd2e4a9 *R/Cwrappers.R
+58dbd38765b8a35adf6f40b817a538ac *R/Cwrappers.R
 682eacc8c40fba9a7d4c763482975f02 *R/auxiliar.R
 89badb0f80ab1077565b382544dc9ac9 *R/bivar.R
 1f189109028ddc2a5cc6be2de5c97ea8 *R/boxcox.R
 2c4b51e9fb953bebedbddabbccb4b08b *R/corcov.R
 cde74c482d2794de5979b2237c40ea16 *R/eyefit.R
-a6209eb0f5657333f4fb60512bdd80ca *R/geoRdefunct.R
+af6022501b1cce20723867837e62c563 *R/geoRdefunct.R
 18d93a5ea0a2a508f915deaccb8a21e0 *R/geoRmisc.R
 42d47acf39942a359fa21350365e0ecb *R/geobayes.R
 b7a9f4b1129d3a1823b87c77186d2616 *R/geodata.R
