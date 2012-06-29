@@ -606,11 +606,12 @@
     if(mode(pt.divide) == "numeric"){
       if(length(pt.divide) == 1){
         n.quant <- pt.divide
+        data.quantile <- quantile(data, probs = seq(0, 1, by = (1/n.quant)))
         if (missing(col.seq))
           col.seq <- "gray"
       }
       else{
-        if(length(pt.divide <= length(data))){
+        if(length(pt.divide) <= length(data)){
           data.quantile <- pt.divide
           n.quant <- length(pt.divide) - 1
         }

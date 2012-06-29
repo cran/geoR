@@ -1,4 +1,4 @@
-ab0d782897e96edb6e5585f42b7dfcbd *DESCRIPTION
+c17bd7be61f68ff30b8966a20a44f4fc *DESCRIPTION
 a416df2a4e024f318890cb21b6425a83 *NAMESPACE
 d6cba7fa8da82d13d970a1a12cd2e4a9 *R/Cwrappers.R
 682eacc8c40fba9a7d4c763482975f02 *R/auxiliar.R
@@ -9,8 +9,8 @@ cde74c482d2794de5979b2237c40ea16 *R/eyefit.R
 a6209eb0f5657333f4fb60512bdd80ca *R/geoRdefunct.R
 18d93a5ea0a2a508f915deaccb8a21e0 *R/geoRmisc.R
 42d47acf39942a359fa21350365e0ecb *R/geobayes.R
-2d4317f169eac9e2a5dab8c293ee2ed6 *R/geodata.R
-c3a46bc64ad2984783016d9a5955c9dc *R/kriging.R
+b7a9f4b1129d3a1823b87c77186d2616 *R/geodata.R
+ca487b787c7d0fbd475d863193514d42 *R/kriging.R
 0d2164d11550946d7ea4d52c9a8f90a2 *R/krweights.R
 c2da5e267cf920e0acdc6d9135404c7d *R/ksline.R
 13954943a37e18dde8065905c6dc8f58 *R/likGRF.R
@@ -26,7 +26,7 @@ c89f7d30655ce6bce11050c1ff664aab *data/Ksat.rda
 15bc50fd412ec124a83ae4d058b83b46 *data/ca20.rda
 52cdfda9d987e2d4291b835522eccf9b *data/camg.rda
 fb9d856c12bb91ab23d869bc1f709c87 *data/elevation.rda
-2f2b4f1d5b0c6802dc93a7e4bb4e0771 *data/gambia.rda
+7e1a87643971b4490f047f9d6e4fffdc *data/gambia.rda
 29cacf60a4147b160a0ca28bd3355da8 *data/head.rda
 ad7c5e5fc6a74de8a45e7e7e11d6a634 *data/hoef.rda
 2d11ae8d67fb465a1cb658195c54d7fb *data/isaaks.rda
@@ -42,7 +42,7 @@ d58a01067577366f707631231ccc914c *data/soja98.rda
 b7d679fd773fe26766a6fedb7b354fe9 *data/wo.rda
 2fa4be39381a7ecbeb719ea61a3a6571 *data/wolfcamp.rda
 6fe257398da1900b908565b2c6cd5d28 *data/wrc.rda
-91c02cd8e4ad261fc61dc6915a39aad3 *inst/CHANGES
+5bf46ba532eebb975d8aa038f402db6c *inst/CHANGES
 aeabc1fb890c17276f19d4466d82df1a *inst/CITATION
 84f0e6581f0a5052770fb9ee175baebc *inst/doc/ToDo.geoR
 a09d9643c72a0b1f2110ef2b1d71fced *man/BoxCox.Rd
@@ -103,7 +103,7 @@ e73bbaa56f96c41e3b0d29c87df422d9 *man/plot.grf.Rd
 55e1ab0c72b63e3ccd8a2973c5949db6 *man/plot.krige.bayes.Rd
 ea339de8844b302fb142367b1e4b7da9 *man/plot.proflik.Rd
 3102d939448dde8bf7ec53b33e054a6f *man/plot.variog4.Rd
-023e2b2aa9a0dc4fa2360d8a28977218 *man/plot.variogram.Rd
+c4a86e0bbc88ef0ad753592887bf34d2 *man/plot.variogram.Rd
 a57510df289bfda878bf96023322a267 *man/plot.xvalid.Rd
 d17092106aa0c84fecce944e6430aab5 *man/points.geodata.Rd
 d6ef6a5cda8568db0b75cf1352fbadfd *man/polygrid.Rd

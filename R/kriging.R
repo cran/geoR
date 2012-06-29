@@ -8,9 +8,11 @@
     borders <- geodata$borders
   locations <- .check.locations(locations)
   ## Checking for 1D prediction 
+  krige1d <- FALSE
+  if(length(locations) > 2){
   if(length(unique(locations[,1])) == 1 | length(unique(locations[,2])) == 1)
     krige1d <- TRUE
-  else krige1d <- FALSE
+  }
   call.fc <- match.call()
   base.env <- sys.frame(sys.nframe())
   ##
@@ -171,6 +173,9 @@
     nloc0 <- nrow(locations)
     ind.loc0  <- .geoR_inout(locations, borders)
 #    locations <- locations.inside(locations, borders)
+    if(nrow(locations) == 1)
+    locations <- locations[ind.loc0,,drop=FALSE]
+    else
     locations <- locations[ind.loc0,,drop=TRUE]
     if(nrow(locations) == 0)
       stop("\nkrige.conv: there are no prediction locations inside the borders")
@@ -359,7 +364,7 @@
                                        ncol=n.predictive))
     }
     else{
-      coincide.cond <- (((round(1e12 * nugget) == 0) | !signal) & (!is.null(loc.coincide)))
+      coincide.cond <- ((isTRUE(all.equal(nugget, 0)) | !signal) & (!is.null(loc.coincide)))
       if(coincide.cond){
         nloc <- ni - length(loc.coincide)
         ind.not.coincide <- -(loc.coincide) 

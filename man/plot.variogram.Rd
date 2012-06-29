@@ -41,7 +41,7 @@
     number of pairs of points used to compute each bin.  } 
   \item{bin.cloud}{logical. If \code{TRUE}
     and the sample variogram
-    was computed with the option \code{keep.cloud = TRUE}, box-plots
+    was computed with the option \code{bin.cloud = TRUE}, box-plots
     of values at each bin are plotted instead of the empirical
     variograms.  }
   \item{\dots}{other arguments to be passed to the function

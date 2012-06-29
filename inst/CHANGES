@@ -1,5 +1,25 @@
             
                 =====================================
+       		   CHANGES IN geoR VERSION 1.7-4
+	        =====================================
+
+NEW FEATURES
+  
+      o
+
+
+BUGS
+
+      o fix points.geodata when argument "pt.divide" gets an scalar
+
+      o fix in krige.conv() when a single prediction location is provided
+
+      o package tcktl moved to "Suggests". eyefit() has require(tcltk)
+
+      o clarifictions in the documentation of "plot.variogram" for plotting the variogram cloud
+      
+            
+                =====================================
        		   CHANGES IN geoR VERSION 1.7-3
 	        =====================================
 
