@@ -772,12 +772,12 @@
   if(lowess) lines(lowess(data ~ coords[,1]))
   par(pty = "m")
   par(mar = c(4, 4, 1, 1))
-  if (scatter3d && !require(scatterplot3d)){
+  if (scatter3d && !requireNamespace("scatterplot3d", quietly=TRUE)){
     scatter3d <- FALSE
     cat("plot.geodata: the argument scatter3d=TRUE requires the package scatterplot3d\n which is not available, will plot an histogram instead")
   }
   if(scatter3d)
-    scatterplot3d:::scatterplot3d(x = coords[, 1],
+    scatterplot3d::scatterplot3d(x = coords[, 1],
                                   y = coords[, 2], z = data,
                                   box = FALSE, type = "h", pch = 16,
                                   xlab= "X Coord", ylab = "Y Coord", ...)

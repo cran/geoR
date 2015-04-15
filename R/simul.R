@@ -129,7 +129,7 @@
     if (messages.screen) cat("grf: simulation on a set of locations provided by the user\n")
   }
   if (!is.matrix(results$coords) & !is.data.frame(results$coords)) {
-    ## isto aqui nunca é chamado e pode ser eliminado???
+    ## isto aqui nunca eh chamado e pode ser eliminado???
     if (missing(nx)) {
       if (sim1d) nx <- ifelse(diff(xlims) == 0, 1, n)
       else nx <- ifelse((mode(grid)=="character" && grid=="reg"), round(sqrt(n)), n)
@@ -206,6 +206,7 @@
                            nrow = n, ncol = nsim)
   else {
     if (method == "RF") {
+      RandomFields::RFoldstyle(old=TRUE)
       #require(RandomFields, quietly=TRUE)
       assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
                        nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)

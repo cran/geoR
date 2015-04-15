@@ -178,6 +178,7 @@
   if(ncol(tmean) > 1){
     if(ncol.tmean != mod$Nsims)
       stop(".cond.sim: size of tmean does not matches with Nsims")
+
     diff.mean <- as.integer(1)
   }
   else

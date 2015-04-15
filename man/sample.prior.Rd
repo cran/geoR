@@ -51,7 +51,10 @@ sample.prior(n, kb.obj=NULL, prior=prior.control())
 \seealso{\code{\link{krige.bayes}} and \code{\link{sample.posterior}}.  }
 
 \examples{
-sample.prior(50, prior=prior.control(beta.prior = "normal", beta = .5, beta.var.std=0.1, sigmasq.prior="sc", sigmasq=1.2, df.sigmasq= 2, phi.prior="rec", phi.discrete = seq(0,2, l=21)))
+sample.prior(50, 
+             prior=prior.control(beta.prior = "normal", beta = .5, beta.var.std=0.1, 
+                                 sigmasq.prior="sc", sigmasq=1.2, df.sigmasq= 2, 
+                                 phi.prior="rec", phi.discrete = seq(0,2, l=21)))
 }
 
 

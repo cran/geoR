@@ -34,7 +34,7 @@
 
 \source{
   Data from the project \emph{Spatial Interpolation Comparison 97};
-  see \url{ftp://ftp.geog.uwo.ca/SIC97/}
+  see \url{http://www.ai-geostats.org/bin/view/AI_GEOSTATS/EventsSIC97}.
 }
 
 \references{

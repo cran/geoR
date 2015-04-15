@@ -162,9 +162,6 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
     and to unconditional simulation of random fields}. Tech. Report
   ST--99--10, Dept Maths and Stats, Lancaster University.
 
-  Schlather, M. \pkg{RandomFields}: \emph{Simulation and Analysis of Random
-  Fields}. R package. \url{http://www.cu.lu/~schlathe}.
-
   Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
   
   Further information on the package \pkg{geoR} can be found at:\cr

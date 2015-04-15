@@ -2399,9 +2399,9 @@
     }
     if(density.est){
       if(is.null(Ldots$width)){
-#       if(require(MASS, quietly=TRUE))
-          plD <- density(y,width=bandwidth.nrd(y), ...)
-#        else plD <- density(y, ...)
+       if(requireNamespace("MASS", quietly=TRUE))
+          plD <- density(y,width=MASS::bandwidth.nrd(y), ...)
+        else plD <- density(y, ...)
       }
       else
         plD <- lines(density(y, width = Ldots$width))

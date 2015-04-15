@@ -6,7 +6,7 @@
 ## to perform internal calculations
 ##
 
-".check.locations" <-
+".geoR.check.locations" <- ".check.locations" <-
   function(locations)
 {
   if(all(locations == "no")) return("no")
@@ -282,7 +282,8 @@
   function (trend, geodata, add.to.trend) 
 {  
   if(!missing(geodata)){
-    if(any(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp")))
+    # if(any(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp")))
+    if(any(class(geodata) %in% c("SpatialGridDataFrame","SpatialLinesDataFrame","SpatialPolygonsDataFrame","SpatialPointsDataFrame","SpatialPixelsDataFrame")))
         geodata <- geodata@data
     attach(geodata, pos=2, warn.conflicts=FALSE)
     if(!is.null(geodata$covariate)){
@@ -709,16 +710,16 @@
   ## inout returns logical vector
   ## poly <- .check.borders(poly)
   ## pts <- SpatialPoints(coords=pts)
-  ## res <- overlay(pts, poly)
+  ## res <- over(pts, poly)
   ## !is.na(res)
-  !is.na(sp::overlay(SpatialPoints(coords=pts), .check.borders(poly)))
+  !is.na(sp::over(SpatialPoints(coords=pts), .check.borders(poly)))
 }
 
 ".geoR_pip" <- function(pts, poly, ...) {
   ## pip returns the points matrix
   poly <- .check.borders(poly)
   pts <- sp::SpatialPoints(coords=pts)
-  res <- sp::overlay(pts, poly)
+  res <- sp::over(pts, poly)
   opts <- sp::coordinates(pts)[!is.na(res),]
   .check.locations(opts)
 }

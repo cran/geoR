@@ -1,11 +1,12 @@
 useDynLib(geoR)
 
 # Export all names
-# exportPattern(".")
-# exportPattern("^[^\\.]")
+#exportPattern(".")
+#exportPattern("^[^\\.]")
 #
 # Import all packages listed as Imports or Depends
 import(graphics)
+import(tcltk)
 
 #importFrom(graphics,plot)
 #importFrom(graphics,persp)
@@ -22,6 +23,14 @@ importFrom(splancs,csr)
 importFrom(splancs,gridpts)
 importFrom(RandomFields,GaussRF)
 
+## exports for geoRglm
+export(.geoR.check.locations)
+export(.check.locations,.cond.sim)
+export(.cor.number,.diagquadraticformXAX)
+export(.solve.geoR,.bilinearformXAY)
+export(hist.krige.bayes)
+export(.ldots.set,.prepare.graph.krige.bayes)
+
 # defined in geoR as generic functions :
 export(as.geodata,jitterDupCoords,zoom.coords,dup.coords,lines.variomodel)
 
@@ -33,7 +42,7 @@ export(output.control,krige.control,statistics.predictive)
 ## auxiliar.R
 export(coords.aniso,dinvchisq,legend.krige,locations.inside,pars.limits,plot.1d,
        polygrid,pred_grid,rinvchisq,set.coords.lims,trend.spatial)
-export(.geoR_inout,.geoR_pip)
+export(.geoR_inout,.geoR_pip,.solve.geoR)
 
 ##bivar.R     
 export(likfitBGCCM,loglikBGCCM,varcovBGCCM)
@@ -75,7 +84,7 @@ export(krweights,ksline)
 export(likfit,likfit.limits,likfit.nospatial,loglik.GRF,loglik.spatial)
 
 ##likOLD.R  
-export(.nlmP)
+#export(.nlmP)
 
 ##profiles.R  
 export(proflik)
@@ -92,10 +101,8 @@ export(variog,variog.mc.env,variog4)
 ##xvalid.R
 export(xvalid)
 
-
 # S3 Methods:
 S3method(as.data.frame,geodata)
-
 S3method(as.geodata, default)
 S3method(as.geodata,geodata.frame)
 S3method(as.geodata,SpatialPointsDataFrame)
@@ -149,6 +156,10 @@ S3method(print,summary.likGRF)
 S3method(print,summary.eyefit)
 S3method(print,summary.variofit)
 S3method(print,summary.xvalid)
+S3method(print,betavar)
+S3method(print,grf)                  
+S3method(print,posterior.krige.bayes) 
+S3method(print,summary.geodata)      
 
 S3method(plot,boxcoxfit)
 S3method(plot,eyefit)
@@ -160,7 +171,7 @@ S3method(plot,variog4)
 S3method(plot,variogram)
 S3method(plot,xvalid)
 
-#S3method(points,geodata)
+S3method(points,geodata)
 
 S3method(persp,grf)
 S3method(persp,krige.bayes)
@@ -182,3 +193,6 @@ S3method(summary,xvalid)
 S3method(zoom.coords,default)
 S3method(zoom.coords,geodata)
 
+S3method(residuals,likGRF)
+
+S3method(plot,"1d")

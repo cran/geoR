@@ -156,7 +156,7 @@
            kappa = 0.5)
 {
   fn.env <- sys.frame(sys.nframe())
-  geoR:::.check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
+  .check.cov.model(cov.model=cov.model, cov.pars=cov.pars, kappa=kappa,
                    env=fn.env, output=FALSE)
   phi <- get("phi", envir=fn.env)
   sigmasq <- get("sigmasq", envir=fn.env)

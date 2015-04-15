@@ -1705,3 +1705,72 @@ function(phi.lambda, ...)
               ssresmat = ssresmat,
               ixix = solve(xix), log.jacobian = log.jacobian))
 }
+
+
+".proflik.lambda" <-
+function(lambda)
+{
+  .temp.list <- get(".temp.list", pos=1)
+  .temp.lower.lambda <- get(".temp.lower.lambda", pos=1)
+  .temp.upper.lambda <- get(".temp.upper.lambda", pos=1)
+  if (any(is.na(lambda)) | any(lambda==Inf) | any(is.nan(lambda)))
+    neglik <- 1e+32
+  else{
+    if(.temp.list$minimisation.function == "nlm"){
+      if (exists(".temp.lambda", where=1)) remove(".temp.lambda", pos=1, inherits = TRUE)
+      lambda.minimiser <- lambda
+      penalty <-  1000 * (.temp.lower.lambda - min(lambda, .temp.lower.lambda))
+      lambda <- max(lambda, .temp.lower.lambda)
+      penalty <- penalty + 1000 * (.temp.upper.lambda - max(lambda, .temp.upper.lambda))
+      lambda <- min(lambda, .temp.upper.lambda)
+      if (round(1000 * lambda.minimiser) <= round(1000 * .temp.lower.lambda))
+        assign(".temp.lambda", lambda, pos=1)
+      if (round(1000 * lambda.minimiser) >= round(1000 * .temp.upper.lambda))
+        assign(".temp.lambda", lambda, pos=1)
+    }
+    z <- .temp.list$z
+    n <- .temp.list$n
+    if(lambda == 1) {
+      .temp.list$log.jacobian <- 0
+    }
+    else {
+      if(any(z < 0))
+        stop("Transformation option not allowed when there are zeros or negative data")
+      if(any(z^(lambda - 1) <= 0))
+        .temp.list$log.jacobian <- log(prod(z^(lambda - 1)))
+      else .temp.list$log.jacobian <- sum(log(z^(lambda - 1)))
+      if(lambda == 0)
+        z <- log(z)
+      else z <- ((z^lambda) - 1)/lambda
+    }
+    beta.size <- .temp.list$beta.size
+    kappa <- .temp.list$kappa
+    xmat <- .temp.list$xmat
+    txmat <- .temp.list$txmat
+    ixx <- solve(crossprod(xmat))
+    tausqhat <- (z %*% (diag(n) - xmat %*% ixx %*% txmat) %*% z)/n
+    if(.temp.list$method == "ML")
+      neglik <- ((n/2) * log(2 * pi) +
+                 (n/2) * log(tausqhat) +
+                 (n/2) -
+                 .temp.list$log.jacobian
+                 )
+    if(.temp.list$method == "RML") {
+      eigentrem <- eigen(ixx, symmetric = TRUE, only.values = TRUE)
+      neglik <- (((n - beta.size)/2) * log(2 * pi) +
+                 ((n - beta.size)/2) * log(tausqhat) +
+                 (n/2) -
+                 0.5 * sum(log(eigentrem$values)) -
+                 .temp.list$log.jacobian
+                 )
+    }
+  }
+  if(.temp.list$minimisation.function == "nlm")
+    return(as.vector(neglik + penalty))
+  else
+    return(as.vector(neglik))
+}
+
+
+
+

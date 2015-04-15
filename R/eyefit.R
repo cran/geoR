@@ -38,7 +38,7 @@ print.eyefit <- function(x, ...){
 }
 
 eyefit <- function(vario, silent=FALSE){  
-  if(!require(tcltk)) stop("package tcltk is required to run eyefit()")
+  if(!requireNamespace("tcltk", quietly=TRUE)) stop("package tcltk is required to run eyefit()")
 
   geterrmessage()  
   done <- tclVar(0)
