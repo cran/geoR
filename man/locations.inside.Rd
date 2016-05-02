@@ -45,7 +45,7 @@ locations.inside(locations, borders, as.is = TRUE, \ldots)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{\code{\link[sp]{overlay}},\code{\link[sp]{coordinates}},
+\seealso{\code{\link[sp]{over}},\code{\link[sp]{coordinates}},
     \code{\link[sp]{SpatialPoints}}.
 }
 

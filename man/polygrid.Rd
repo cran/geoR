@@ -12,7 +12,7 @@
 }
 
 \usage{
-polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
+polygrid(xgrid, ygrid, borders, vec.inout = FALSE, ...)
 }
 %- maybe also `usage' for other objects documented here.
 
@@ -24,7 +24,7 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
   \item{vec.inout}{logical. If \code{TRUE} a logical vector is included
     in the output indicating whether each point of the grid is inside
     the polygon.  Defaults to \code{FALSE}.  }
-  \item{\ldots}{currently not used (kept for back compatibility). }
+  \item{...}{currently not used (kept for back compatibility). }
 }
 
 \details{
@@ -33,7 +33,7 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
   \code{\link[base]{expand.grid}} and then it uses the geoR'
   internal function
   \code{.geoR_inout()} which wraps usage of \code{\link[sp]{SpatialPoints}}
-  and \code{\link[sp]{overlay}}
+  and \code{\link[sp]{over}}
   from the package \pkg{sp} to extract the points
   of the grid which are inside the polygon.
   
@@ -66,7 +66,7 @@ polygrid(xgrid, ygrid, borders, vec.inout = FALSE, \ldots)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{\code{\link{pred_grid}}, \code{\link{expand.grid}}, \code{\link[sp]{overlay}},
+\seealso{\code{\link{pred_grid}}, \code{\link{expand.grid}}, \code{\link[sp]{over}},
     \code{\link[sp]{SpatialPoints}}. 
 }
 

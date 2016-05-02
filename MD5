@@ -1,4 +1,4 @@
-42d6a87111806a67466d0b1aaf844cbe *DESCRIPTION
+b7c4b5c295984ce49ab629af7b21f6db *DESCRIPTION
 e053e0e8fe4e7f97a3d1a44fa60dc962 *NAMESPACE
 08f3dd76ab590bb2d3fb8dd2de254d2c *R/Cwrappers.R
 fe1b1474b100dda242c9d968a2da9217 *R/auxiliar.R
@@ -47,7 +47,7 @@ fe64285362db0592c0702c1058dc6fe4 *data/wrc.rda
 a09d9643c72a0b1f2110ef2b1d71fced *man/BoxCox.Rd
 05c9ca898cec48e35bf10f3c623c4a27 *man/InvChisquare.Rd
 ff8f56952d4eaa7ffcdde0857791e4d9 *man/Ksat.Rd
-5c77d005c31daab6ae3cc342e75790a8 *man/SIC.Rd
+d8bd621b6418b2f0d94e72172a044f97 *man/SIC.Rd
 143e1edecdceae07386bd06ac93a3e3c *man/as.geodata.Rd
 62a4db23f7b3ba648bf71e004ba338c6 *man/boxcox.geodata.Rd
 add15a592c81923948be6dac31b252fa *man/boxcoxfit.Rd
@@ -88,7 +88,7 @@ c2ee58d959850a721add22da3a8490b8 *man/legend.krige.Rd
 2d38e0227b9f6cf5a6ebfbb81d0e2b0e *man/lines.variomodel.grf.Rd
 f4c72cd8c9858f8da3192c2cd1810f5d *man/lines.variomodel.likGRF.Rd
 79d1c88d1eb9906415db9b8a643444dd *man/lines.variomodel.variofit.Rd
-d54e5ddc50f0ee5f1fcbaf031b749bb8 *man/locations.inside.Rd
+2061a606ca5ac032a71d561edf9c7a9c *man/locations.inside.Rd
 eda576d7eb872569290be8e987d751ab *man/loglik.GRF.Rd
 f1e87763818b00c4ccb43c72edff54b2 *man/matern.Rd
 9dfecf2720489213d726c47cd85ffea3 *man/names.geodata.Rd
@@ -105,7 +105,7 @@ ea339de8844b302fb142367b1e4b7da9 *man/plot.proflik.Rd
 c4a86e0bbc88ef0ad753592887bf34d2 *man/plot.variogram.Rd
 a57510df289bfda878bf96023322a267 *man/plot.xvalid.Rd
 d17092106aa0c84fecce944e6430aab5 *man/points.geodata.Rd
-d6ef6a5cda8568db0b75cf1352fbadfd *man/polygrid.Rd
+4a4db88a3c5fbff54d33e717c8824263 *man/polygrid.Rd
 3b44e4b85a3ab1c0cb70a956da6720e4 *man/practicalRange.Rd
 81346d9d08e220378e12dd5a3ca75edc *man/pred_grid.Rd
 d70a075e78358cf0ec87db5707d36714 *man/predict.BGCCM.Rd

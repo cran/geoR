@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.7-5.1
-Date: 2015-04-15
+Version: 1.7-5.2
+Date: 2016-05-02
 Title: Analysis of Geostatistical Data
 LazyLoad: yes
 LazyData: yes
@@ -14,6 +14,6 @@ Description: Geostatistical analysis including traditional, likelihood-based and
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR
 NeedsCompilation: yes
-Packaged: 2015-04-23 14:22:19 UTC; paulojus
+Packaged: 2016-05-02 09:21:53 UTC; rsb
 Repository: CRAN
-Date/Publication: 2015-04-23 17:00:37
+Date/Publication: 2016-05-02 14:27:02
