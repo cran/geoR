@@ -655,7 +655,7 @@
   ##
   ## reading input
   ##
-  if(class(model.pars) == "eyefit"){
+  if(any(class(model.pars) == "eyefit")){
     if(length(model.pars) == 1L)
       model.pars <- model.pars[[1]]
     else

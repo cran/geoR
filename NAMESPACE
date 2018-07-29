@@ -14,6 +14,10 @@ import(tcltk)
 #importFrom(graphics,contour)
 
 import(stats,sp,methods)
+
+importFrom("grDevices", "chull", "gray", "heat.colors", "terrain.colors")
+importFrom("utils", "getS3method", "read.table")
+
 importFrom(MASS,boxcox)
 
 #importFrom(scatterplot3d,scatterplot3d)
