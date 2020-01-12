@@ -1,4 +1,4 @@
-4255118835c1786c6e3115fe391095b0 *DESCRIPTION
+60a52305ef1658f7aae5121f7bf354f1 *DESCRIPTION
 f0dcf7bf4e376b045d3689b29fb197b2 *NAMESPACE
 08f3dd76ab590bb2d3fb8dd2de254d2c *R/Cwrappers.R
 fe1b1474b100dda242c9d968a2da9217 *R/auxiliar.R
@@ -140,4 +140,5 @@ cfa80152b4344f458d618c67da2ab56b *man/wolfcamp.Rd
 0ede007a879bf7fbc65eb2371cf9a72f *man/wrappers.Rd
 3df3838322567aa096d7e5df656f3406 *man/wrc.Rd
 346e63646529fe9915fe8a41eca1744d *man/xvalid.Rd
-bfb7b47799d7b6588b149c1c28e41c81 *src/geoR.c
+db3c9648fa016a873498d82abab5e7d7 *src/geoR.c
+e87bdd6b809617820773ad6fc22def21 *src/init.c

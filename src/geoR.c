@@ -391,10 +391,12 @@ void binit(Integer *n, Real *xc, Real *yc, Real *sim,
 	      if (*modulus) v = sqrt(sqrt(v*v));
 	      else v = (v*v)/2.0;
 	      ind = 0;
-	      while (dist >= lims[ind] && ind <= *nbins ) ind++ ;
+	      // was
+	      // while (dist >= lims[ind] && ind <= *nbins ) ind++ ;
+	      while (ind < *nbins && dist >= lims[ind]) ind++ ;
 	      if (dist < lims[ind])
 		{
-		  vbin[(ind-1)]+= v; 
+		vbin[(ind-1)]+= v; 
 		  cbin[(ind-1)]++;
 		  if(*sdcalc) sdbin[(ind-1)] += v*v;
 		}
