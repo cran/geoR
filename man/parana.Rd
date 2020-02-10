@@ -53,7 +53,7 @@
 
 \examples{
 summary(parana)
-plot(parana, bor=borders)
+plot(parana)
 }
 \keyword{datasets}
 

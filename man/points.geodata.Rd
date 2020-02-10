@@ -190,7 +190,7 @@ points(s100, xlab="Coord X", ylab="Coord Y", cex.max=1.7,
 points(s100, pt.divide="quintile", xlab="Coord X", ylab="Coord Y")
 par(op)
 
-points(ca20, pt.div='quartile', x.leg=4900, y.leg=5850, bor=borders)
+points(ca20, pt.div='quartile', x.leg=4900, y.leg=5850)
 
 par(mfrow=c(1,2), mar=c(3,3,1,1), mgp = c(2,1,0))
 points(s100, main="Original data")

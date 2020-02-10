@@ -202,8 +202,9 @@ ini.cov.pars <- ini.cov.pars[[1]]
   if(is.matrix(ini.cov.pars) | (length(nugget) > 1) | (length(kappa) > 1) | (length(lambda) > 1) | (length(psiR) > 1) | (length(psiA) > 1)){
     if(messages.screen) cat("likfit: searching for best initial value ...")
     ini.temp <- matrix(ini.cov.pars, ncol=2)
-    grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget), kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
-    assign(".likGRF.dists.vec",  lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
+    grid.ini <- as.matrix(expand.grid(sigmasq=unique(ini.temp[,1]), phi=unique(ini.temp[,2]), tausq=unique(nugget),
+                                      kappa=unique(kappa), lambda=unique(lambda), psiR=unique(psiR), psiA=unique(psiA)))
+    assign(".likGRF.dists.vec",  lapply(split(as.data.frame(coords), realisations), vecdist), envir=.geoR.env)
     temp.f <- function(parms, coords, data, temp.list)
       return(loglik.GRF(geodata = geodata,
                         coords = coords, data = as.vector(data),
@@ -235,7 +236,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
     psiR <- ini.temp[6]
     psiA <- ini.temp[7]
     grid.ini <- NULL
-    remove(".likGRF.dists.vec", pos=1)
+    remove(".likGRF.dists.vec", envir=.geoR.env)
   }
   ##
   tausq <- nugget
@@ -270,8 +271,8 @@ ini.cov.pars <- ini.cov.pars[[1]]
   if(fix.psiR & fix.psiA){
     if(psiR != 1 | psiA != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
-      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), pos=1)
-    range.dist <- range(get(".likGRF.dists.vec", pos=1))
+      assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords), realisations), vecdist), envir=.geoR.env)
+    range.dist <- range(get(".likGRF.dists.vec", envir=.geoR.env))
     max.dist <- max(range.dist)
     min.dist <- min(range.dist)
   }
@@ -608,7 +609,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ## Transforming coords for estimated anisotropy (if the case)
   ##
   if(fix.psiR & fix.psiA)
-    remove(".likGRF.dists.vec", pos=1)
+    remove(".likGRF.dists.vec", envir=.geoR.env)
   else{
     if(round(psiR, digits=6) != 1 | round(psiA, digits=6) != 0)
       coords <- coords.aniso(coords, aniso.pars=c(psiA, psiR))
@@ -1129,7 +1130,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
     coords.c <- coords.aniso(temp.list$coords, aniso.pars=c(psiA, psiR))
     vecdist <- function(x){as.vector(dist(x))}
     assign(".likGRF.dists.vec", lapply(split(as.data.frame(coords.c),
-                                             temp.list$realisations), vecdist), pos=1)
+                                             temp.list$realisations), vecdist), envir=.geoR.env)
   }
   ##
   ## Box-Cox transformation
@@ -1173,7 +1174,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
                   log.det.to.half = (n/2) * log(1+tausq))
     }
     else
-      v <- varcov.spatial(dists.lowertri = get(".likGRF.dists.vec", pos=1)[[i]],
+      v <- varcov.spatial(dists.lowertri = get(".likGRF.dists.vec", envir=.geoR.env)[[i]],
                           cov.model = temp.list$cov.model, kappa=kappa,
                           nugget = tausq, cov.pars=c(sigmasq, phi),
                           det = TRUE)
@@ -1508,12 +1509,12 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ixx <- solve(crossprod(xmat))
   if(temp.list$fix.lambda == FALSE){
     if (temp.list$minimisation.function == "nlm"){
-      assign(".temp.lower.lambda",-2, pos=1)
-      assign(".temp.upper.lambda", 2, pos=1)
+      assign(".temp.lower.lambda",-2, envir=.geoR.env)
+      assign(".temp.upper.lambda", 2, envir=.geoR.env)
       results <- nlm(.proflik.lambda, 1, ...)
-      if(exists(".temp.lambda")){
-        results$lambda <- get(".temp.lambda", pos=1)
-        remove(".temp.lambda", pos=1, inherits = TRUE)
+      if(exists(".temp.lambda", envir=.geoR.env)){
+        results$lambda <- get(".temp.lambda", envir=.geoR.env)
+        remove(".temp.lambda", envir=.geoR.env, inherits = TRUE)
       }
       else{
         results$lambda <- results$estimate

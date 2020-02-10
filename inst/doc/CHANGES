@@ -1,6 +1,39 @@
 
 
                 =====================================
+       		   CHANGES IN geoR VERSION 1.8-1
+	        =====================================
+
+Changes
+      o Removed the example in subarea() using geoRglm:::rongelap ultil the package gets back to CRAN 
+	      
+      o added reference to Diggle & Ribeiro (2007) on the description file
+
+
+Fixes
+       o no longer using attach() to address NOTE in CRAN checks 
+         (it mostly affects image() persp() and countour() functions)
+
+       o no longer writing/assigning objects to the global environment to address NOTE in CRAN checks
+  
+       o Brain's changes in C code to address valgrind issues
+
+
+
+                =====================================
+       		   CHANGES IN geoR VERSION 1.7-5
+	        =====================================
+
+BUGS/Fixes
+       o call to sp::overlay changed to sp::over()
+
+       o changes to fix issues on CRAN reported errors/warnings
+regarding namespaces and foreign calls
+
+
+
+
+                =====================================
        		CHANGES IN geoR VERSION 1.7-4
 	        =====================================
 
@@ -16,17 +49,22 @@ regarding namespaces and foreign calls
        		CHANGES IN geoR VERSION 1.6-34/1.6-35
 	        =====================================
 
-NEW FEATURES
-
-       o 
-
-
 BUGS
 
       o fix in documentation of functions completing names of arguments 
 
       o change in geoR2RF: "whittlematern" to "whittle" com conform with changes in RandomFields
 
+BUGS/fixes
+
+      o fix points.geodata when argument "pt.divide" gets an scalar
+
+      o fix in krige.conv() when a single prediction location is provided
+
+      o package tcktl moved to "Suggests". eyefit() has require(tcltk)
+
+      o clarifications in the documentation of "plot.variogram" for plotting the variogram cloud
+      
 
                 ===============================
        		CHANGES IN geoR VERSION 1.6-33
@@ -40,10 +78,78 @@ NEW FEATURES
          (thanks to Martin Schlather)
 
 
+                =====================================
+       		   CHANGES IN geoR VERSION 1.7-3
+	        =====================================
+
 BUGS
 
-      o
+      o fix in cov.spatial() to prevent defining array of 0 dimension
 
+      o $altitude is now consistently a vector in sic.100, sic.all and sic.367 
+
+      o fix in dup.coords() to adjust for jitterDupCoords() with equal number of replicates at replicated locations
+
+      o package tcktl back as Depends dependence 
+
+
+      
+                =====================================
+       		   CHANGES IN geoR VERSION 1.7-2
+	        =====================================
+
+NEW FEATURES
+  
+      o trend.spatial() search for variables in formula in Spatial*DataFrame objects (package(sp))
+
+
+BUGS
+
+      o fix in dup.coords() to adjust for jitterDupCoords() with equal number of replicates at replicated locations
+
+      o package tcktl back as Depends dependence 
+
+      o .nlmP() is now exported and visible again
+
+      
+                =====================================
+       		   CHANGES IN geoR VERSION 1.7-1
+	        =====================================
+
+NEW FEATURES
+
+      o geoR has now a NAMESPACE exporting/importing functions
+
+      o changes in the DESCRIPTION file with dependends and suggests
+
+      o boxcox.fit() replaced by boxcoxfit() (also the S3 class name and methods)
+      
+      o cite.geoR() now removed. Standard citation(package="geoR") should be used instead
+      
+      o CITATION information changed including Diggle & Ribeiro (2007)
+
+
+BUGS
+
+      o krige.control() now reads trend specification from obj.model properly
+
+
+
+                =====================================
+       	        CHANGES IN geoR VERSION 1.6-34/1.6-35
+	        =====================================
+
+NEW FEATURES
+
+      o little changes in grf() to check for regular grid on coordinates
+        provides by the user 
+
+
+BUGS
+
+      o fix in documentation of functions completing names of arguments 
+
+      o change in geoR2RF: "whittlematern" to "whittle" com conform with changes in RandomFields
 
 
                 ===============================

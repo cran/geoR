@@ -568,9 +568,9 @@
   size <- cex.min + ((cex.var.data[ind] - r.y[1]) *
                      (cex.max - cex.min))/(r.y[2] - r.y[1])
   ##
-  attach(x, pos=2, warn.conflicts=FALSE)
-  eval(borders, envir=as.environment(2))
-  detach(2)
+  #attach(x, pos=2, warn.conflicts=FALSE)
+  eval(borders, envir=as.environment(x))
+  #detach(2)
   if (!add.to.plot) {
     coords.lims <- set.coords.lims(coords=coords, borders = borders, ...)
     par(pty = "s")
@@ -714,9 +714,9 @@
   data <- as.matrix(data)
   data <- data[, col.data]
   if(missing(borders)) borders <- x$borders
-  attach(x, pos=2, warn.conflicts=FALSE)
-  eval(borders, envir=as.environment(2))
-  detach(2)
+  #attach(x, pos=2, warn.conflicts=FALSE)
+  eval(borders, envir=as.environment(x))
+  #detach(2)
   if (!is.null(weights.divide)) {
     if(all(weights.divide == "units.m")){
       if(!is.null(x$units.m) && identical(data, x$data)){

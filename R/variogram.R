@@ -256,8 +256,10 @@
     if(missing(max.dist)) max.dist <- max(u)
   }
   if(nt.ind){
-    if(!exists(".variog4.nomessage",where=1)) cat("variog: co-locatted data found, adding one bin at the origin\n")
-    if(all(result$u[1:2] < 1e-11)) result$u[2] <- sum(result$bins.lim[2:3])/2
+#      if(!exists(".variog4.nomessage",where=1))
+      if(!exists(".variog4.nomessage"))
+          cat("variog: co-locatted data found, adding one bin at the origin\n")
+      if(all(result$u[1:2] < 1e-11)) result$u[2] <- sum(result$bins.lim[2:3])/2
   }
   result <- c(result, list(var.mark = data.var, beta.ols = beta.ols,
                            output.type = option, max.dist = max.dist, 
@@ -300,7 +302,9 @@
   else dg <- direction
   if (missing(max.dist)) umax <- max(u)  
   else umax <- max(u[u < max.dist])
-  assign(".variog4.nomessage", TRUE, pos=1)
+  geoR.env <- new.env()
+  assign(".variog4.nomessage", TRUE, pos=geoR.env)
+  environment(variog) <- geoR.env
   for(angle in direction){
     res[[as.character(round(dg[which(direction == angle)], digits=1))]] <-
       variog(geodata=geodata,
@@ -314,10 +318,12 @@
              direction = angle,
              tolerance = tolerance,
              unit.angle = unit.angle,
-             messages = messages.screen, keep.NA = TRUE)
+             messages = messages.screen,
+             keep.NA = TRUE)
     NULL
   }
-  if (exists(".variog4.nomessage", where=1)) remove(".variog4.nomessage", pos=1, inherits = TRUE)
+#  if (exists(".variog4.nomessage", where=1))
+#      remove(".variog4.nomessage", pos=1, inherits = TRUE)
   res$omnidirectional <- variog(geodata=geodata,
                                 uvec=uvec, breaks = breaks,
                                 trend = trend,

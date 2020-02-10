@@ -76,19 +76,19 @@ r1dn <- zoom.coords(r1d, 1.7, xlim.o=range(r1b[,1],na.rm=TRUE), ylim.o=range(r1b
 points(r1dn, pch=19, cex=0.5)
 text(450,1340, "Western Region", cex=1.5)
 
-if(require(geoRglm)){
-data(rongelap)
-points(rongelap, bor=borders)
+#if(require(geoRglm)){
+#data(rongelap)
+#points(rongelap)
 ## zooming the western area
-rongwest <- subarea(rongelap, xlim=c(-6300, -4800))
-points(rongwest, bor=borders)
+#rongwest <- subarea(rongelap, xlim=c(-6300, -4800))
+#points(rongwest)
 ## now zooming in the same plot
-points(rongelap, bor=borders)
-rongwest.z <- zoom.coords(rongwest, xzoom=3, xoff=2000, yoff=3000)
-points(rongwest.z, bor=borders, add=TRUE)
-rect.coords(rongwest$sub, quiet=TRUE)
-rect.coords(rongwest.z$sub, quiet=TRUE)
-}
+#points(rongelap)
+#rongwest.z <- zoom.coords(rongwest, xzoom=3, xoff=2000, yoff=3000)
+#points(rongwest.z, add=TRUE)
+#rect.coords(rongwest$sub, quiet=TRUE)
+#rect.coords(rongwest.z$sub, quiet=TRUE)
+#}
 }
 \keyword{spatial}% at least one, from doc/KEYWORDS
 %\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

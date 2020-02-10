@@ -29,6 +29,6 @@
 %}
 \examples{
 summary(Ksat)
-plot(Ksat, border=borders)
+plot(Ksat)
 }
 \keyword{datasets}

@@ -1,3 +1,6 @@
+.geoR.env <- new.env()
+
+
 "variofit" <-
   function (vario, ini.cov.pars, cov.model,
             fix.nugget = FALSE, nugget = 0, 
@@ -312,8 +315,8 @@
         result$par <- result$estimate
         result$value <- result$minimum
         result$convergence <- result$code
-        if(!is.null(get(".temp.theta", pos =1)))
-          result$par <- get(".temp.theta", pos=1)
+        if(!is.null(get(".temp.theta", pos=.geoR.env)))
+          result$par <- get(".temp.theta", pos=.geoR.env)
       }
       else{
 #        if(fix.kappa == FALSE) ini <- c(ini, kappa)
@@ -425,7 +428,8 @@
   ## Imposing constraints for nlm
   ##
   if(g.l$m.f == "nlm"){
-    assign(".temp.theta",  NULL, pos=1)
+##    assign(".temp.theta",  NULL, pos=1)
+    assign(".temp.theta",  NULL, pos=.geoR.env)
     if(!g.l$fix.kappa){
       if(g.l$fix.nugget){
         if(g.l$cov.model == "power")
@@ -446,7 +450,10 @@
     penalty <- 10000 * sum(0 - pmin(theta.minimiser, 0))
     theta <- pmax(theta.minimiser, 0)
     if(!g.l$fix.kappa) theta <- c(theta.minimiser, Tkappa)
-    if (any(theta.minimiser < 0)) assign(".temp.theta", theta, pos=1)
+      if (any(theta.minimiser < 0)){
+          ##assign(".temp.theta", theta, pos=1)
+          assign(".temp.theta", theta, pos=.geoR.env)
+      }
     else penalty <- 0
   }
   else penalty <- 0
@@ -730,8 +737,9 @@
   }
   simula.bins <- apply(simula$data, 2, bin.f)
   simula.bins <- simula.bins[obj.variog$ind.bin,]
-  if(exists(".IND.geoR.variog.model.env", where=1))
-    return(simula.bins)
+#  if(exists(".IND.geoR.variog.model.env", where=1))
+  if(exists(".IND.geoR.variog.model.env"))
+      return(simula.bins)
   if(save.sim == FALSE) simula$data <- NULL
   ##
   ## computing envelops
@@ -759,11 +767,14 @@
   ##
   if(messages.screen)
     cat("Computing empirical variograms for simulations\n")
-  assign(".IND.geoR.variog.model.env", TRUE, pos =1)
+  ##  assign(".IND.geoR.variog.model.env", TRUE, pos =1)
+  geoR.env <- new.env()
+  assign(".IND.geoR.variog.model.env", TRUE, pos=geoR.env)
+  environment(variog.model.env) <- geoR.env
   vmat <- variog.model.env(geodata=geodata, coords=coords,
                            obj.variog=obj.variog, model.pars=model.pars,
                            nsim=nsim, messages = FALSE)
-  rm(".IND.geoR.variog.model.env", pos=1)
+##  rm(".IND.geoR.variog.model.env", pos=1)
   ##
   if(messages.screen){
     cat("Fitting models (variofit) for the simulated variograms\n")

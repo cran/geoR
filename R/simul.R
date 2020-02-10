@@ -208,14 +208,16 @@
     if (method == "RF") {
       RandomFields::RFoldstyle(old=TRUE)
       #require(RandomFields, quietly=TRUE)
-      assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
-                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
+##      assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+##                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
+      setRF <- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
       if (!exists("xpts") || is.null(xpts)){
         results$data <- RandomFields::GaussRF(x = results$coords[, 1],y = results$coords[, 2],
-                                model = get("setRF", pos=1), grid = FALSE, n = nsim)
+                                model = setRF, grid = FALSE, n = nsim)
       }
       else{
-        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = get("setRF", pos=1),
+        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = setRF,
                                             grid = TRUE, n = nsim), ncol = nsim))
       }
     }

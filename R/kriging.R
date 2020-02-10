@@ -569,8 +569,8 @@
   on.exit(par(op))
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x, pos=2, warn.conflicts=FALSE)
-  on.exit(detach(2))
+  #attach(x, pos=2, warn.conflicts=FALSE)
+  #on.exit(detach(2))
   if(missing(locations))
     locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
@@ -640,8 +640,8 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x, pos=2, warn.conflicts=FALSE)
-  on.exit(detach(2))
+  #attach(x, pos=2, warn.conflicts=FALSE)
+  #on.exit(detach(2))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)
@@ -715,8 +715,8 @@
 {
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
-  attach(x, pos=2, warn.conflicts=FALSE)
-  on.exit(detach(2))
+  #attach(x, pos=2, warn.conflicts=FALSE)
+  #on.exit(detach(2))
   if(missing(locations)) locations <-  eval(attr(x, "prediction.locations"), envir= attr(x, "parent.env"))
   if(is.null(locations)) stop("prediction locations must be provided")
   if(ncol(locations) != 2)

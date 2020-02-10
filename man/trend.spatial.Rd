@@ -67,14 +67,11 @@ trend.spatial(trend, geodata, add.to.trend)
   
   When the trend is specifed as \code{trend = ~ model}
   the terms included in the model will be searched for in the following
-  path sequence (in this order):
+  path sequence (modified in version 1.7-6, no longer attach objects):
   \enumerate{
+    \item in the object \code{geodata} (coerced to data-frame)
     \item in the users/session Global environment
     \item in the session search path
-    \item as elements of the list \code{geodata}
-    \item as columns in a data-frame \code{geodata$covariates}
-    \item as columns in a data-frame \code{geodata$data}
-    \item in remainder of the session search path
   }
 
   The argument \code{add.to.trend} adds terms to what is specified in

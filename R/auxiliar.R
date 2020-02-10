@@ -279,65 +279,75 @@
 }
 
 "trend.spatial" <-
-  function (trend, geodata, add.to.trend) 
+    function (trend, geodata, add.to.trend) 
 {  
-  if(!missing(geodata)){
-    # if(any(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp")))
-    if(any(class(geodata) %in% c("SpatialGridDataFrame","SpatialLinesDataFrame","SpatialPolygonsDataFrame","SpatialPointsDataFrame","SpatialPixelsDataFrame")))
-        geodata <- geodata@data
-    attach(geodata, pos=2, warn.conflicts=FALSE)
-    if(!is.null(geodata$covariate)){
-      attach(geodata$covariate, pos=3, warn.conflicts=FALSE)
-      on.exit(detach("geodata$covariate"), add=TRUE)
+    if(!missing(geodata)){
+        gd <- geodata
+        ## if(any(class(geodata) %in% ls(pattern=glob2rx("Spatial*DataFrame"), pos="package:sp")))
+        if(any(class(geodata) %in% c("SpatialGridDataFrame","SpatialLinesDataFrame","SpatialPolygonsDataFrame","SpatialPointsDataFrame","SpatialPixelsDataFrame"))){
+            geodata <- as.data.frame(gd)
+                                        #        geodata <- geodata@data
+            geodata$coords <- coordinates(gd)
+        }
+                                        #    attach(geodata, pos=2, warn.conflicts=FALSE)
+                                        #    if(!is.null(geodata$covariate)){
+                                        #      attach(geodata$covariate, pos=3, warn.conflicts=FALSE)
+                                        #      on.exit(detach("geodata$covariate"), add=TRUE)
+                                        #    }
+        if(any(class(geodata) == "geodata")){
+            geodata <- as.data.frame(gd)
+            geodata$coords <- gd$coords
+        }
+                                        #        on.exit(detach("geodata"), add=TRUE)
     }
-    on.exit(detach("geodata"), add=TRUE)
-  }
-  if(inherits(trend, "formula")) {
+    else geodata <- data.frame()
+    if(inherits(trend, "formula")) {
                                         #    require(methods)
                                         #    if(exists("trySilent")){
-    trend.mat <- try(model.matrix(trend), silent=TRUE)
+#        trend.mat <- try(model.matrix(trend), silent=TRUE)
+        trend.mat <- try(model.matrix(trend, data=geodata), silent=TRUE)
                                         #    }
                                         #    else{
                                         #      error.now <- options()$show.error.messages
                                         #      if (is.null(error.now) | error.now) 
-    ##      options(show.error.messages = FALSE)
+        ##      options(show.error.messages = FALSE)
                                         #     trend.mat <- try(model.matrix(trend))
                                         #   }    
-    if (inherits(trend.mat, "try-error")) 
-      stop("\ntrend elements not found")
-  }
-  else {
-    if(mode(trend) == "numeric")
-      trend.mat <- unclass(trend)
-    else if (trend == "cte"){
-      if(missing(geodata))
-        stop("argument geodata must be provided with trend=\"cte\"")
-      trend.mat <- as.matrix(rep(1, nrow(geodata$coords)))
+        if (inherits(trend.mat, "try-error")) 
+            stop("\ntrend elements/variables not found")
     }
-    else if (trend == "1st"){
-      if(missing(geodata))
-        stop("argument geodata must be provided with trend=\"1st\"")
-      trend.mat <- cbind(1, geodata$coords)
+    else {
+        if(mode(trend) == "numeric")
+            trend.mat <- unclass(trend)
+        else if (trend == "cte"){
+            if(missing(geodata))
+                stop("argument geodata must be provided with trend=\"cte\"")
+            trend.mat <- as.matrix(rep(1, nrow(geodata$coords)))
+        }
+        else if (trend == "1st"){
+            if(missing(geodata))
+                stop("argument geodata must be provided with trend=\"1st\"")
+            trend.mat <- cbind(1, geodata$coords)
+        }
+        else if (trend == "2nd"){ 
+            if(missing(geodata))
+                stop("argument geodata must be provided with trend=\"2nd\"")
+            trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
+                               geodata$coords[,2]^2,
+                               geodata$coords[,1] * geodata$coords[,2])
+        }
+        else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are the strings \"cte\", \"1st\", \"2nd\" or  a model formula")
     }
-    else if (trend == "2nd"){ 
-      if(missing(geodata))
-        stop("argument geodata must be provided with trend=\"2nd\"")
-      trend.mat <- cbind(1, geodata$coords, geodata$coords[,1]^2,
-                         geodata$coords[,2]^2,
-                         geodata$coords[,1] * geodata$coords[,2])
+    trend.mat <- as.matrix(trend.mat)
+    if(!missing(add.to.trend)){
+        if(missing(geodata))
+            trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend)[,-1])
+        else
+            trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend, geodata = geodata)[,-1])
     }
-    else stop("external trend must be provided for data locations to be estimated using the arguments trend.d and trend.l. Allowed values are the strings \"cte\", \"1st\", \"2nd\" or  a model formula")
-  }
-  trend.mat <- as.matrix(trend.mat)
-  if(!missing(add.to.trend)){
-    if(missing(geodata))
-      trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend)[,-1])
-    else
-      trend.mat <- cbind(trend.mat, trend.spatial(add.to.trend, geodata = geodata)[,-1])
-  }
-  dimnames(trend.mat) <- list(NULL, NULL)
-  oldClass(trend.mat) <- "trend.spatial"
-  return(trend.mat)
+    dimnames(trend.mat) <- list(NULL, NULL)
+    oldClass(trend.mat) <- "trend.spatial"
+    return(trend.mat)
 }
 
 ".nlmP" <- function(objfunc, params, lower = rep( -Inf, length(params)),
@@ -385,13 +395,13 @@
                        loneQQ = loneQQ,
                        uoneQQ = uoneQQ)
   
-  assign(".objfuncQQ", objfunc, pos=1)
-  assign(".bounds.list", .bounds.list, pos=1)
+  ##assign(".objfuncQQ", objfunc, pos=1)
+  ##assign(".bounds.list", .bounds.list, pos=1)
   
   ## reduce the parameter space by a scale to keep parameters
   ## away from the boundries
   
-  normaltomad <- function(normalparamsX)
+  "normaltomad" <- function(normalparamsX, .bounds.list)
     {
       madparamsX <- normalparamsX
       if(any(.bounds.list$bothlimQQ)) {
@@ -411,51 +421,52 @@
       return(madparamsX)
     }
 #  madtonormalQQ <<- function(madparamsX)
-  "madtonormalQQ" <- function(madparamsX)
-  {
-      normalparamsX <- madparamsX
-      
-      if(any(.bounds.list$bothlimQQ)) {
+    "madtonormalQQ" <- function(madparamsX, .bounds.list)
+    {
+        normalparamsX <- madparamsX
+        
+        if(any(.bounds.list$bothlimQQ)) {
 ###        madparamsX[((.bounds.list$bothlimQQ) & (madparamsX > 300))] <- 300
-        emad <- exp(madparamsX[.bounds.list$bothlimQQ])
-        normalparamsX[.bounds.list$bothlimQQ] <-
-          .bounds.list$dbothQQ * (emad/(1 + emad)) + .bounds.list$lbothQQ
-      }
-      
-      if(any(.bounds.list$loweronlyQQ)){
-        normalparamsX[.bounds.list$loweronlyQQ] <-
-          exp(madparamsX[.bounds.list$loweronlyQQ]) + .bounds.list$loneQQ
-      }
-      
-      if(any(.bounds.list$upperonlyQQ))
-        normalparamsX[.bounds.list$upperonlyQQ] <-
-          - exp(madparamsX[.bounds.list$upperonlyQQ]) + .bounds.list$uoneQQ
-      
-      if(exists(get(".ind.prof.phi", pos=1)))
-        if(is.nan(normalparamsX[get(".ind.prof.phi", pos=1)]))
-          normalparamsX[get(".ind.prof.phi", pos=1)] <- 0
-      
-      return(normalparamsX)
+            emad <- exp(madparamsX[.bounds.list$bothlimQQ])
+            normalparamsX[.bounds.list$bothlimQQ] <-
+                .bounds.list$dbothQQ * (emad/(1 + emad)) + .bounds.list$lbothQQ
+        }
+        
+        if(any(.bounds.list$loweronlyQQ)){
+            normalparamsX[.bounds.list$loweronlyQQ] <-
+                exp(madparamsX[.bounds.list$loweronlyQQ]) + .bounds.list$loneQQ
+        }
+        
+        if(any(.bounds.list$upperonlyQQ))
+            normalparamsX[.bounds.list$upperonlyQQ] <-
+            - exp(madparamsX[.bounds.list$upperonlyQQ]) + .bounds.list$uoneQQ
+        
+        if(exists(get(".ind.prof.phi", pos=1)))
+            if(is.nan(normalparamsX[get(".ind.prof.phi", pos=1)]))
+                normalparamsX[get(".ind.prof.phi", pos=1)] <- 0
+        
+        return(normalparamsX)
     }
-  
-  newobjfunc <- function(madparams) {
-    normalparams <-  get("madtonormalQQ", pos=1)(madparams)
     
-    get(".objfuncQQ", pos=1)(normalparams)
+    "newobjfunc" <- function(madparams, objfunc, .bounds.list, ...) {
+        ##normalparams <-  get("madtonormalQQ", pos=1)(madparams)
+        normalparams <-  madtonormalQQ(madparams, .bounds.list=.bounds.list)
+        ##get(".objfuncQQ", pos=1)(normalparams)
+        objfunc(normalparams, ...)      
+    }
+    ##assign("madtonormalQQ", madtonormalQQ, pos=1)
     
-  }
-  assign("madtonormalQQ", madtonormalQQ, pos=1)
-
-  startmadparams <- normaltomad(params)
-  result <- nlm(newobjfunc, startmadparams, ...)
-  result$madestimate <- result$estimate
-  result$estimate <- get("madtonormalQQ", pos=1)(result$madestimate)
-  remove(".bounds.list", pos=1, inherits=TRUE)
-  remove(".objfuncQQ", pos=1, inherits=TRUE)
-  remove("madtonormalQQ", pos=1, inherits=TRUE)
-  
+    startmadparams <- normaltomad(params, .bounds.list=.bounds.list)
+    result <- nlm(newobjfunc, startmadparams, objfunc=objfunc, .bounds.list=.bounds.list, ...)
+    result$madestimate <- result$estimate
+    #result$estimate <- get("madtonormalQQ", pos=1)(result$madestimate)
+    result$estimate <- madtonormalQQ(result$madestimate, .bounds.list=.bounds.list)
+    #remove(".bounds.list", pos=1, inherits=TRUE)
+    #remove(".objfuncQQ", pos=1, inherits=TRUE)
+    #remove("madtonormalQQ", pos=1, inherits=TRUE)
+    
 ###  return(result, madtonormalQQ(normaltomad(params)),params)
-  return(result)
+    return(result)
 }
 
 
