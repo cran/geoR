@@ -231,7 +231,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   \code{boxcox.ns}.
 
   \bold{Multiple initial values} can be specified providing a \eqn{n
-    \time 2}{n x 2} matrix for the argument \code{ini.cov.pars} and/or
+    \times 2}{n x 2} matrix for the argument \code{ini.cov.pars} and/or
   providing a vector for the values of the remaining model parameters.
   In this case the log-likelihood is computed for all combinations of
   the model parameters. The parameter set which maximises the
@@ -311,7 +311,7 @@ likfit(geodata, coords = geodata$coords, data = geodata$data,
   Further information on the package
   \pkg{geoR}
   can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 \author{

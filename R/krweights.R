@@ -15,7 +15,8 @@
     krige <- krige.control()
   else{
     ##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
-    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+##    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+    if(length(class(krige)) == 0 || !inherits(krige, "krige.geoR")){
       if(!is.list(krige))
         stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
       else{

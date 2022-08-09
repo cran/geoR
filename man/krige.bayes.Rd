@@ -322,7 +322,7 @@ post2prior(obj)
 
 
 \references{
-  Diggle, P.J. \& Ribeiro Jr, P.J. (2002) Bayesian inference in
+  Diggle, P.J. & Ribeiro Jr, P.J. (2002) Bayesian inference in
   Gaussian model-based geostatistics. Geographical and Environmental
   Modelling, Vol. 6, No. 2, 129-146.
   
@@ -335,12 +335,12 @@ post2prior(obj)
   \url{http://www.leg.ufpr.br/geoR/geoRdoc/bayeskrige.pdf}
 
   Further information about \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.  
+  \url{http://www.leg.ufpr.br/geoR/}.  
 
   For a extended list of examples of the usage
   see \url{http://www.leg.ufpr.br/geoR/tutorials/examples.krige.bayes.R}
   and/or the \pkg{geoR} tutorials page at
-  \url{http://www.leg.ufpr.br/geoR/tutorials}.
+  \url{http://www.leg.ufpr.br/geoR/tutorials/}.
 }
 
 \author{

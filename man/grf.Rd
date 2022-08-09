@@ -1,13 +1,13 @@
 \name{grf}
 
 \alias{grf}
-\alias{geoR2RF}
+%\alias{geoR2RF}
 \alias{.grf.aux1}
 \alias{grfclass}
 \alias{lines.grf}
 
 
-\concept{simulation of Gaussian random fields}
+\concept{Simulation of Gaussian random fields}
 
 %- Also NEED an `\alias' for EACH other topic documented here.
 
@@ -17,8 +17,8 @@
   \code{grf()} generates (unconditional)
   simulations of Gaussian random fields for
   given covariance parameters.
-  \code{geoR2RF} converts model specification used by \pkg{geoR}
-  to the correponding one in \pkg{RandomFields}.
+%  \code{geoR2RF} converts model specification used by \pkg{geoR}
+%  to the correponding one in \pkg{RandomFields}.
 }
 
 
@@ -27,9 +27,10 @@ grf(n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
     borders, nsim = 1, cov.model = "matern",
     cov.pars = stop("missing covariance parameters sigmasq and phi"), 
     kappa = 0.5, nugget = 0, lambda = 1, aniso.pars,
-    mean = 0, method, RF=TRUE, messages)
+    mean = 0, method, messages)
+%    mean = 0, method, RF=TRUE, messages)
 
-geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
+%geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 }
 
 %- maybe also `usage' for other objects documented here.
@@ -82,14 +83,14 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
   \item{mean}{a numerical vector, scalar or the same length of the
     data to be simulated. Defaults to zero.}
   \item{method}{simulation method with options for
-    \code{"cholesky"}, \code{"svd"}, \code{"eigen"}, \code{"RF"}.
+    \code{"cholesky"}, \code{"svd"}, \code{"eigen"}. %\code{"RF"}.
     Defaults to the \emph{Cholesky}
     decomposition.  See section \code{DETAILS} below.  }
-  \item{RF}{logical, with defaults to TRUE, indicating whether
-    the algorithm should try to use the function
-    \code{\link[RandomFields]{GaussRF}} from the package
-    \pkg{RandomFields} in case of \code{method} is missing
-    and the number of points is greater than 500. }
+%  \item{RF}{logical, with defaults to TRUE, indicating whether
+%    the algorithm should try to use the function
+%    \code{\link[RandomFields]{GaussRF}} from the package
+%    \pkg{RandomFields} in case of \code{method} is missing
+%    and the number of points is greater than 500. }
   \item{messages}{logical,  indicating
     whether or not status messages are printed on the screen (or output device)
     while the function is running. Defaults to \code{TRUE}.  } 
@@ -104,13 +105,13 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
   three methods differs in the way they compute the
   square root of the (positive definite) covariance matrix.
 
-  The previously available
-  method \code{method = "circular.embedding"} is no longer available
-  in \pkg{geoR}. For simulations in a fine grid and/or with a large number
-  of points use the package \pkg{RandomFields}.
+%  The previously available
+%  method \code{method = "circular.embedding"} is no longer available
+%  in \pkg{geoR}. For simulations in a fine grid and/or with a large number
+%  of points use the package \pkg{RandomFields}.
 
-  The option \code{"RF"} calls internally  the function
-  \code{\link[RandomFields]{GaussRF}} from the package \pkg{RandomFields}.
+%  The option \code{"RF"} calls internally  the function
+%  \code{\link[RandomFields]{GaussRF}} from the package \pkg{RandomFields}.
 
   The argument \code{borders}, if provides takes a
   polygon data set following argument \code{poly}
@@ -147,9 +148,9 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
     simulation.  }
   \item{call}{the function call.  }
 
-  \code{geoR2grf} returns a list with the components:
-  \item{model}{\pkg{RandomFields} name of the correlation model}
-  \item{param}{\pkg{RandomFields} parameter vector}
+%  \code{geoR2grf} returns a list with the components:
+%  \item{model}{\pkg{RandomFields} name of the correlation model}
+%  \item{param}{\pkg{RandomFields} parameter vector}
 }
 
 
@@ -165,7 +166,7 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
   Schlather, M. (2001) \emph{Simulation and Analysis of Random Fields}. R-News \bold{1} (2), p. 18-20.
   
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 
@@ -175,13 +176,11 @@ geoR2RF(cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
 }
 
 
-\seealso{\code{\link{plot.grf}} and \code{\link{image.grf}} for
-  graphical output,
-  \code{\link{coords.aniso}} for anisotropy coordinates transformation
-  and, \code{\link{chol}},
+\seealso{\code{\link{plot.grf}} and \code{\link{image.grf}} for graphical output,
+  \code{\link{coords.aniso}} for anisotropy coordinates transformation and \code{\link{chol}},
   \code{\link{svd}} and \code{\link{eigen}} for methods of matrix
-  decomposition and \code{\link[RandomFields]{GaussRF}} function
-  in the package \pkg{RandomFields}.
+  decomposition.
+%  and \code{\link[RandomFields]{GaussRF}} function in the package \pkg{RandomFields}.
 }
 
 \examples{

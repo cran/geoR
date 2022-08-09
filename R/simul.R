@@ -1,62 +1,63 @@
-## comments are Previous version before changes in RandomFields 2.*
-"geoR2RF" <-
-  function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
-{
-  cov.model <- match.arg(cov.model, choices =  geoRCovModels)
-  if(missing(aniso.pars)) aniso.pars <- NULL
-  if(missing(kappa)) kappa <- NULL
-  if (length(cov.pars) != 2)
-    stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
-  RFmodel <- switch(cov.model, matern = "whittle", exponential = "exponential",
-                    gaussian = "gauss", spherical = "spherical", circular = "circular",
-                    cubic = "cubic", wave = "wave", power = "not compatible",
-                    powered.exponential = "stable", cauchy = "cauchy",
-                    gencauchy = "gencauchy", gneiting = "gneiting",
-                    gneiting.matern = "not compatible", pure.nugget = "nugget")
-  if (RFmodel == "not compatible") {
-    warning("geoR cov.model not compatible with RandomFields model")
-    return(RFmodel)
-  }
-  if (any(RFmodel == "gencauchy")) kappa <- rev(kappa)
-  if (!any(RFmodel == c("gencauchy", "whittle", "stable"))) kappa <- NULL
-#  if(is.null(aniso.pars))
-#    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
-#                "+",
-#                list(model="nugget", var=nugget)))
-#    else{
-#    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
-#                          -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
-#                            diag(c(aniso.pars[2], 1)/cov.pars[2])
-#    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
-#                "+",
-#                list(model="nugget", var=nugget, aniso=diag(1,2))))
-  if(is.null(aniso.pars))
-    model <- list("+",
-                list("$",  var=cov.pars[1], scale=cov.pars[2],
-                if (is.null(kappa)) list(RFmodel) 
- 		else list(RFmodel, k=kappa)), 
-                list("$", var=nugget, list("nugget")))
-  else{
-    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
-                          -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
-                            diag(c(aniso.pars[2], 1)/cov.pars[2])
-    model <- list("+",
-                list("$", var=cov.pars[1], aniso=mat,
-                if (is.null(kappa)) list(RFmodel) 
-                else
-                list(RFmodel, k=kappa)),
-                list("$", var=nugget, list("nugget")))
-  }
-#  Print(model)
-  return(model)
-}
+## ## comments are Previous version before changes in RandomFields 2.*
+## "geoR2RF" <-
+##   function (cov.model, cov.pars, nugget = 0, kappa, aniso.pars)
+## {
+##   cov.model <- match.arg(cov.model, choices =  geoRCovModels)
+##   if(missing(aniso.pars)) aniso.pars <- NULL
+##   if(missing(kappa)) kappa <- NULL
+##   if (length(cov.pars) != 2)
+##     stop("cov.pars must be an vector of size 2 with values for the parameters sigmasq and phi")
+##   RFmodel <- switch(cov.model, matern = "whittle", exponential = "exponential",
+##                     gaussian = "gauss", spherical = "spherical", circular = "circular",
+##                     cubic = "cubic", wave = "wave", power = "not compatible",
+##                     powered.exponential = "stable", cauchy = "cauchy",
+##                     gencauchy = "gencauchy", gneiting = "gneiting",
+##                     gneiting.matern = "not compatible", pure.nugget = "nugget")
+##   if (RFmodel == "not compatible") {
+##     warning("geoR cov.model not compatible with RandomFields model")
+##     return(RFmodel)
+##   }
+##   if (any(RFmodel == "gencauchy")) kappa <- rev(kappa)
+##   if (!any(RFmodel == c("gencauchy", "whittle", "stable"))) kappa <- NULL
+## #  if(is.null(aniso.pars))
+## #    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, scale=cov.pars[2]),
+## #                "+",
+## #                list(model="nugget", var=nugget)))
+## #    else{
+## #    mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
+## #                          -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
+## #                            diag(c(aniso.pars[2], 1)/cov.pars[2])
+## #    return(list(list(model=RFmodel, var=cov.pars[1], kappa=kappa, aniso=mat), 
+## #                "+",
+## #                list(model="nugget", var=nugget, aniso=diag(1,2))))
+##   if(is.null(aniso.pars))
+##     model <- list("+",
+##                 list("$",  var=cov.pars[1], scale=cov.pars[2],
+##                 if (is.null(kappa)) list(RFmodel) 
+##  		else list(RFmodel, k=kappa)), 
+##                 list("$", var=nugget, list("nugget")))
+##   else{
+##     mat <- solve(matrix(c(cos(aniso.pars[1]), sin(aniso.pars[1]),
+##                           -sin(aniso.pars[1]), cos(aniso.pars[1])), ncol=2)) %*%
+##                             diag(c(aniso.pars[2], 1)/cov.pars[2])
+##     model <- list("+",
+##                 list("$", var=cov.pars[1], aniso=mat,
+##                 if (is.null(kappa)) list(RFmodel) 
+##                 else
+##                 list(RFmodel, k=kappa)),
+##                 list("$", var=nugget, list("nugget")))
+##   }
+## #  Print(model)
+##   return(model)
+## }
 
 "grf" <-
   function (n, grid = "irreg", nx, ny, xlims = c(0, 1), ylims = c(0, 1),
             borders, nsim = 1, cov.model = "matern",
             cov.pars = stop("missing covariance parameters sigmasq and phi"), 
-            kappa = 0.5, nugget = 0, lambda = 1, aniso.pars = NULL, mean = 0, 
-            method, RF = TRUE, messages) 
+            kappa = 0.5, nugget = 0, lambda = 1, aniso.pars = NULL, mean = 0, method,
+## RF = TRUE,
+            messages) 
 {
   ## checking input options
   call.fc <- match.call()
@@ -168,7 +169,8 @@
       length(unique(round(results$coords[, 2], digits = 12))) == 1) 
     sim1d <- TRUE
   else sim1d <- FALSE
-  if (!RF && !is.null(aniso.pars)) {
+  ## if (!RF && !is.null(aniso.pars)) {
+  if (!is.null(aniso.pars)) {
     if (length(aniso.pars) != 2 | mode(aniso.pars) != "numeric") 
       stop("anisotropy parameters must be provided as a numeric vector with two elements: the rotation angle (in radians) and the anisotropy ratio (a number greater than 1)")
     if (messages.screen) 
@@ -178,12 +180,13 @@
   }
   if (missing(method)) {
     method <- "cholesky"
-  #  if (n > 500 && RF && require(RandomFields, quietly=TRUE)) 
-    if (n > 500 && RF) 
-      method <- "RF"
+  ## #  if (n > 500 && RF && require(RandomFields, quietly=TRUE)) 
+  ##   if (n > 500 && RF) 
+  ##     method <- "RF"
   }
-  method <- match.arg(method, choices = c("cholesky", "svd", 
-                                "eigen", "RF", "circular.embedding"))
+  ## method <- match.arg(method, choices = c("cholesky", "svd", 
+  ##                               "eigen", "RF", "circular.embedding"))
+  method <- match.arg(method, choices = c("cholesky", "svd", "eigen"))
   #if (method == "circular.embedding") {
   #  if (require(RandomFields, quietly=TRUE)) {
   #    method <- "RF"
@@ -196,32 +199,33 @@
     cat(messa$nst)
     cat(messa$nugget)
     cat(messa$cov.structures)
-    if (method == "RF") 
-      cat("grf: simulation using the function GaussRF from package RandomFields \n")
-    else cat(paste("grf: decomposition algorithm used is: ", 
+    ## if (method == "RF") 
+    ##   cat("grf: simulation using the function GaussRF from package RandomFields \n")
+    ## else
+        cat(paste("grf: decomposition algorithm used is: ", 
                    method, "\n"))
   }
   if (all(phi == 0)) 
-    results$data <- matrix(rnorm((n * nsim), mean = 0, sd = sqrt(sill.total)), 
-                           nrow = n, ncol = nsim)
+      results$data <- matrix(rnorm((n * nsim), mean = 0, sd = sqrt(sill.total)), 
+                             nrow = n, ncol = nsim)
   else {
-    if (method == "RF") {
-      RandomFields::RFoldstyle(old=TRUE)
-      #require(RandomFields, quietly=TRUE)
-##      assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
-##                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
-      setRF <- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
-                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
-      if (!exists("xpts") || is.null(xpts)){
-        results$data <- RandomFields::GaussRF(x = results$coords[, 1],y = results$coords[, 2],
-                                model = setRF, grid = FALSE, n = nsim)
-      }
-      else{
-        results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = setRF,
-                                            grid = TRUE, n = nsim), ncol = nsim))
-      }
-    }
-    else
+##     if (method == "RF") {
+##       RandomFields::RFoldstyle(old=TRUE)
+##       #require(RandomFields, quietly=TRUE)
+## ##      assign("setRF", geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+## ##                       nugget = nugget, kappa = kappa, aniso.pars=aniso.pars), pos=1)
+##       setRF <- geoR2RF(cov.model = cov.model, cov.pars = cov.pars, 
+##                        nugget = nugget, kappa = kappa, aniso.pars=aniso.pars)
+##       if (!exists("xpts") || is.null(xpts)){
+##         results$data <- RandomFields::GaussRF(x = results$coords[, 1],y = results$coords[, 2],
+##                                 model = setRF, grid = FALSE, n = nsim)
+##       }
+##       else{
+##         results$data <- drop(matrix(RandomFields::GaussRF(x = xpts, y = ypts, model = setRF,
+##                                             grid = TRUE, n = nsim), ncol = nsim))
+##       }
+##     }
+##     else
       results$data <- drop(crossprod(varcov.spatial(coords = results$coords, 
                                                     cov.model = cov.model, kappa = kappa,
                                                     nugget = nugget, 
@@ -243,7 +247,8 @@
       cat(messa$transformation)
     cat("\n")
   }
-  if (!RF && !is.null(aniso.pars)) {
+  ## if (!RF && !is.null(aniso.pars)) {
+  if (!is.null(aniso.pars)) {
     if (messages.screen) 
       cat("grf: back-transforming to the anisotropic space \n")
     results$coords <- coords.aniso(coords = results$coords, 

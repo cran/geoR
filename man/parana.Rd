@@ -46,7 +46,7 @@
 }
 
 \references{
-  Diggle, P.J. \& Ribeiro Jr, P.J. (2002) Bayesian inference in
+  Diggle, P.J. & Ribeiro Jr, P.J. (2002) Bayesian inference in
   Gaussian model-based geostatistics. Geographical and Environmental
   Modelling, Vol. 6, No. 2, 129-146.
 }

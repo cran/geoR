@@ -74,7 +74,8 @@
     krige <- krige.control()
   else{
     ##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
-    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+##    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+    if(length(class(krige)) == 0 || !inherits(krige, "krige.geoR")){
       if(!is.list(krige))
         stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
       else{
@@ -251,7 +252,8 @@
 "subarea" <-
   function(geodata, xlim, ylim, ...)
 {
-  if(class(geodata) != "geodata")
+##  if(class(geodata) != "geodata")
+  if(!inherits(geodata, "geodata"))
     stop("an object of the class geodata must be provided")
   if(missing(xlim) & !missing(ylim)) xlim <- c(-Inf, +Inf)
   if(!missing(xlim) & missing(ylim)) ylim <- c(-Inf, +Inf)

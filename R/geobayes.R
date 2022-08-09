@@ -48,7 +48,8 @@
     model <- model.control()
   else{
 ##    if(is.null(class(model)) || class(model) != "model.geoR"){
-    if(length(class(model)) == 0 || class(model) != "model.geoR"){
+##    if(length(class(model)) == 0 || class(model) != "model.geoR"){
+    if(length(class(model)) == 0 || !inherits(model, "model.geoR")){
       if(!is.list(model))
         stop("krige.bayes: the argument model only takes a list or an output of the function model.control")
       else{
@@ -87,7 +88,8 @@
     prior <- prior.control()
   else{
 ##    if(is.null(class(prior)) || class(prior) != "prior.geoR"){
-    if(length(class(prior)) == 0 || class(prior) != "prior.geoR"){
+##    if(length(class(prior)) == 0 || class(prior) != "prior.geoR"){
+    if(length(class(prior)) == 0 || !inherits(prior, "prior.geoR")){
       if(!is.list(prior))
         stop("krige.bayes: the argument prior only takes a list or an output of the function prior.control")
       else{
@@ -201,7 +203,8 @@
   ##
   if(missing(output)) output <- output.control()
   else{
-    if(length(class(output)) == 0 || class(output) != "output.geoR"){
+##    if(length(class(output)) == 0 || class(output) != "output.geoR"){
+    if(length(class(output)) == 0 || !inherits(output, "output.geoR")){
       if(!is.list(output))
         stop("krige.bayes: the argument output only takes a list or an output of the function output.control")
       else{
@@ -296,7 +299,8 @@
   dimnames(coords) <- list(NULL, NULL)
   if(nrow(coords) != length(data))
     stop("krige.bayes: number of data is different of number of data locations (coordinates)")
-  if(class(model$trend.d) == "trend.spatial")
+##  if(class(model$trend.d) == "trend.spatial")
+  if(inherits(model$trend.d, "trend.spatial"))
     trend.data <- unclass(model$trend.d)
   else
     trend.data <- unclass(trend.spatial(trend=model$trend.d, geodata = geodata))
@@ -341,8 +345,10 @@
     else{
 ##      if((!is.null(class(model$trend.d)) && class(model$trend.d) == "trend.spatial") &
 ##         (!is.null(class(model$trend.l)) && class(model$trend.l) == "trend.spatial")){
-      if((length(class(model$trend.d)) > 0 && class(model$trend.d) == "trend.spatial") &
-         (length(class(model$trend.l)) > 0 && class(model$trend.l) == "trend.spatial")){
+##      if((length(class(model$trend.d)) > 0 && class(model$trend.d) == "trend.spatial") &
+##         (length(class(model$trend.l)) > 0 && class(model$trend.l) == "trend.spatial")){
+      if((length(class(model$trend.d)) > 0 && inherits(model$trend.d, "trend.spatial")) &
+         (length(class(model$trend.l)) > 0 && inherits(model$trend.l, "trend.spatial"))){
         if(ncol(model$trend.d) != ncol(model$trend.l))
           stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
       }
@@ -361,7 +367,8 @@
     }
     ##
     dimnames(locations) <- list(NULL, NULL)
-    if(class(model$trend.l) == "trend.spatial")
+##    if(class(model$trend.l) == "trend.spatial")
+    if(inherits(model$trend.l, "trend.spatial"))
       assign("trend.loc", unclass(model$trend.l), envir=pred.env)
     else
       assign("trend.loc", unclass(trend.spatial(trend=model$trend.l, geodata = list(coords = locations))), envir=pred.env)

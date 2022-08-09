@@ -98,7 +98,7 @@ variog4(geodata, coords = geodata$coords, data = geodata$data,
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 \author{Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr

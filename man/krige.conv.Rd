@@ -157,7 +157,7 @@ krige.control(type.krige = "ok", trend.d = "cte", trend.l = "cte",
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 %\note{}

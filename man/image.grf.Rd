@@ -50,7 +50,7 @@
 
 \references{
   Further information about the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 

@@ -25,7 +25,7 @@ importFrom(MASS,boxcox)
 ## dependencis for grf() in simul.R
 importFrom(splancs,csr)
 importFrom(splancs,gridpts)
-importFrom(RandomFields,GaussRF)
+#importFrom(RandomFields,GaussRF)
 
 ## exports for geoRglm
 export(.geoR.check.locations)
@@ -94,7 +94,8 @@ export(likfit,likfit.limits,likfit.nospatial,loglik.GRF,loglik.spatial)
 export(proflik)
 
 ##simul.R     
-export(geoR2RF,grf)
+export(grf)
+#export(geoR2RF,grf)
 
 ##variofit.R
 export(boot.variofit,variofit,variog.model.env)
@@ -200,3 +201,4 @@ S3method(zoom.coords,geodata)
 S3method(residuals,likGRF)
 
 S3method(plot,"1d")
+

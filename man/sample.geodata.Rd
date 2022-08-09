@@ -47,6 +47,7 @@ sample.geodata(x, size, replace = FALSE, prob = NULL, coef.logCox,
 
 \seealso{\code{\link{as.geodata}}, \code{\link{sample}}.}
 \examples{
+\dontrun{
 par(mfrow=c(1,2))
 S1 <- grf(2500,  grid="reg", cov.pars=c(1, .23))
 image(S1, col=gray(seq(0.9,0.1,l=100)))
@@ -64,6 +65,7 @@ y3 <- sample.geodata(S1, 80, prob=exp(1.3*S2$data))
 ## points(y3$coords, pch=19, col=4)
 image(S2, col=gray(seq(0.9,0.1,l=100)))
 points(y3$coords, pch=19, col=4)
+}
 }
 \keyword{spatial}
 \keyword{manip}

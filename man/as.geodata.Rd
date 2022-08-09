@@ -153,7 +153,7 @@ is.geodata(x)
 
 \references{
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 \author{

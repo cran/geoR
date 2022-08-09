@@ -1,5 +1,17 @@
 
 
+
+                =====================================
+       		   CHANGES IN geoR VERSION 1.9-0
+	        =====================================
+
+Changes
+      o All dependencies on RandomFields are now removed.
+        This affects grf() which now only runs with methods
+        'cholesky, 'svd' or 'eigen'  and therefore limited number of locations.
+
+
+
                 =====================================
        		   CHANGES IN geoR VERSION 1.8-1
 	        =====================================

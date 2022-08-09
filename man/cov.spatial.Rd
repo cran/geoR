@@ -135,17 +135,16 @@ cov.spatial(obj, cov.model= "matern",
   intrinsically stationary.
   The variogram function is given by:
   \deqn{\gamma(h) = \sigma^2 {h}^{\phi} \mbox{ , } 0 < \phi < 2,
-    \sigma^2 > 0}{sigma^2
-    * h^phi , 0 < phi < 2, sigma^2 > 0} 
+    \sigma^2 > 0}{sigma^2 * h^phi , 0 < phi < 2, sigma^2 > 0} 
 
   Since the corresponding process is not second order stationary the
   covariance and correlation functions are not defined.
   For internal calculations the \emph{geoR}
   functions uses the fact the this model possesses locally
   stationary representations with covariance functions of the form:
-  \deqn{C_(h) = \sigma^2 (A - h^\phi),}{C_(h) = sigma^2 (A - h^phi),}
+  \deqn{C_(h) = \sigma^2 (A - h^\phi)}{C_(h) = sigma^2 (A - h^phi)} ,
   where \eqn{A}{A} is a suitable constant as given in
-  Chilès \& Delfiner (pag. 511, eq. 7.35).
+  Chiles & Delfiner (pag. 511, eq. 7.35).
   
   The \emph{linear} model corresponds a particular case with
   \eqn{\phi = 1}{phi = 1}.
@@ -163,7 +162,9 @@ cov.spatial(obj, cov.model= "matern",
   where
   \eqn{s=0.301187465825}{}.
   For further details see documentation of the function
-  \code{\link[RandomFields]{CovarianceFct}} in the package
+%  \code{\link[RandomFields]{CovarianceFct} 
+  \code{CovarianceFct} 
+  in the package
   \code{RandomFields} from where we extract the following :\cr
   \emph{It is an alternative to the \code{gaussian} model since
   its graph is visually hardly distinguishable from the graph of
@@ -226,7 +227,7 @@ cov.spatial(obj, cov.model= "matern",
   
 
   Further information on the package \pkg{geoR} can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 \author{

@@ -22,7 +22,8 @@
     krige <- krige.control()
   else{
     ##    if(is.null(class(krige)) || class(krige) != "krige.geoR"){
-    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+##    if(length(class(krige)) == 0 || class(krige) != "krige.geoR"){
+      if(length(class(krige)) == 0 || !inherits(krige, "krige.geoR")){
       if(!is.list(krige))
         stop("krige.conv: the argument krige only takes a list or an output of the function krige.control")
       else{
@@ -84,7 +85,8 @@
     output <- output.control()
   else{
     ##    if(is.null(class(output)) || class(output) != "output.geoR"){
-    if(length(class(krige)) == 0 || class(output) != "output.geoR"){
+##    if(length(class(krige)) == 0 || class(output) != "output.geoR"){
+    if(length(class(krige)) == 0 || !inherits(output, "output.geoR")){
       if(!is.list(output))
         stop("krige.conv: the argument output can take only a list or an output of the function output.control")
       else{
@@ -198,7 +200,8 @@
                  "krige.conv: model with mean defined by covariates provided by the user"))
     cat("\n")
   }
-  if(class(krige$trend.d) == "trend.spatial")
+##  if(class(krige$trend.d) == "trend.spatial")
+  if(inherits(krige$trend.d, "trend.spatial"))
     trend.d <- unclass(krige$trend.d)
   else
     trend.d <- unclass(trend.spatial(trend=krige$trend.d, geodata = geodata))
@@ -208,12 +211,12 @@
   if(beta.prior == "deg")
     if(beta.size != length(beta))
       stop("size of mean vector is incompatible with trend specified") 
-  if(class(krige$trend.l) == "trend.spatial")
+##  if(class(krige$trend.l) == "trend.spatial")
+  if(inherits(krige$trend.l, "trend.spatial"))
     trend.l <- unclass(krige$trend.l)
   else
     trend.l <- unclass(trend.spatial(trend=krige$trend.l,
-                                     geodata = list(coords =
-    locations)))
+                                     geodata = list(coords = locations)))
   if(!is.null(borders))
     if(nrow(trend.l) == nloc0)
       trend.l <- trend.l[ind.loc0,,drop=FALSE]
@@ -491,7 +494,8 @@
     type.krige <- "sk"
   ##
   if(!is.null(obj.model)){
-    if(any(class(obj.model) == "eyefit")){
+##    if(any(class(obj.model) == "eyefit")){
+    if(any(inherits(obj.model, "eyefit"))){
       if(is.null(obj.model)) stop("eyefit object is NULL, you may have forgotten to save the fitted variogram model")
       if(length(obj.model) == 1) obj.model <- obj.model[[1]]
       else stop("select the eyefit model to be used (with [[ ]])")
@@ -539,8 +543,10 @@
   else{
 ##    if((!is.null(class(trend.d)) && class(trend.d) == "trend.spatial") &
 ##       (!is.null(class(trend.l)) && class(trend.l) == "trend.spatial")){
-    if((length(class(trend.d)) > 0 && class(trend.d) == "trend.spatial") &
-       (length(class(trend.l)) > 0 && class(trend.l) == "trend.spatial")){
+##    if((length(class(trend.d)) > 0 && class(trend.d) == "trend.spatial") &
+##       (length(class(trend.l)) > 0 && class(trend.l) == "trend.spatial")){
+    if((length(class(trend.d)) > 0 && inherits(trend.d, "trend.spatial")) &
+       (length(class(trend.l)) > 0 && inherits(trend.l, "trend.spatial"))){
       if(ncol(trend.d) != ncol(trend.l))
         stop("krige.bayes: trend.d and trend.l do not have the same number of columns")
     }

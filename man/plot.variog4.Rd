@@ -37,7 +37,7 @@
 
 \references{
   Further information about the \pkg{geoR} package can be found at:\cr
-  \url{http://www.leg.ufpr.br/geoR}.
+  \url{http://www.leg.ufpr.br/geoR/}.
 }
 
 \author{Paulo J. Ribeiro Jr. \email{paulojus@leg.ufpr.br}, \cr
