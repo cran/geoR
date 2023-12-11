@@ -85,9 +85,10 @@ dboxcox(x, lambda, lambda2 = NULL, mean = 0, sd = 1)
 
 % ~Make other sections like WARNING with \section{WARNING }{....} ~
 
-\seealso{The parameter estimation function \code{\link{boxcoxfit}},
-  the function \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
-  the function \code{\link[car]{box.cox}} in the package \pkg{car}.
+\seealso{The parameter estimation function is \code{\link{boxcoxfit}}.
+  Other packages has BoxCox related functions such as \code{\link[MASS]{boxcox}} in the package \pkg{MASS} and
+  the function \code{box.cox} in the package \samp{car}.
+%  the function \code{\link[car]{box.cox}} in the package \pkg{car}.
 }
 
 \examples{

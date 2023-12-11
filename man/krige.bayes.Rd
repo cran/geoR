@@ -271,7 +271,7 @@ post2prior(obj)
   \item{posterior}{results on on the posterior distribution of the
     model parameters. A list with the following possible components:\cr  }
 
-  \itemize{   
+  \describe{   
     \item{beta }{summary information on the posterior distribution
       of the mean parameter \eqn{\beta}{beta}.  }
     \item{sigmasq }{summary information on the posterior distribution
@@ -292,7 +292,7 @@ post2prior(obj)
     prediction locations, if provided.
     A list with the following possible components:  }
   
-  \itemize{    
+  \describe{    
     \item{mean }{expected values.  }
     \item{variance }{expected variance.  }
     \item{distribution }{type of posterior distribution.  }

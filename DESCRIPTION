@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.9-2
-Date: 2022-08-09
+Version: 1.9-3
+Date: 2023-12-11
 Title: Analysis of Geostatistical Data
 LazyLoad: yes
 LazyData: yes
@@ -12,12 +12,12 @@ Author: Paulo Justiniano Ribeiro Jr [aut, cre] <paulojus@ufpr.br>,
         Brian Ripley [ctb] 
 Maintainer: Paulo Justiniano Ribeiro Jr <paulojus@ufpr.br>
 Depends: R (>= 2.10), stats, methods
-Imports: MASS, sp, splancs, graphics
-Suggests: scatterplot3d, lattice, tcltk
+Imports: MASS, sp, splancs, graphics, tcltk
+Suggests: scatterplot3d, lattice
 Description: Geostatistical analysis including variogram-based, likelihood-based and Bayesian methods. Software companion for Diggle and Ribeiro (2007) <doi:10.1007/978-0-387-48536-2>. 
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR/
 NeedsCompilation: yes
-Packaged: 2022-08-09 14:22:39 UTC; paulojus
+Packaged: 2023-12-11 18:02:08 UTC; paulojus
 Repository: CRAN
-Date/Publication: 2022-08-09 16:00:05 UTC
+Date/Publication: 2023-12-11 19:00:02 UTC

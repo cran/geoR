@@ -43,14 +43,15 @@
   
   This function allows for two basic options to draw a line with a
   summary of the variogram function.
-  \enumerate{
-    \item[1.]{"variogram": }{for each sample of the parameters the variogram
+  \describe{
+    \item{"variogram": }{for each sample of the parameters the variogram
       function is computed at the support points defined in the
       argument \code{uvec}. Then a function provided by the user in the
       argument \code{summary.posterior} is used to compute a summary of
-      the values obtained at each support point.}
-    \item[2.]{"parameters": }{in this case summaries of the posterior
-      distribution of the model parameters as "plugged-in" in the
+      the values obtained at each support point.  
+    }
+    \item{"parameters": }{in this case summaries of the posterior
+      distribution of the model parameters as \dQuote{plugged-in} in the
       variogram function.
       One of the options \code{"mode"} (default) ,\code{"median"} or \code{"mean"}
       can be provided in the argument \code{summary.posterior}.

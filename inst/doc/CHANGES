@@ -1,8 +1,23 @@
 
 
+                =====================================
+       		   CHANGES IN geoR VERSION 1.9-3
+	        =====================================
+
+Changes
+      o data set rongelap was copied from geoRglm and included in geoR.
+
+
+Fixes
+      o import(tcltk) removed from NAMESPACE since the package is listed as Suggested 
+
+      o check for any() kappa in likGRF()
+
+      o fixes in Rd files following reccomendation from cran checks
+
 
                 =====================================
-       		   CHANGES IN geoR VERSION 1.9-0
+       		   CHANGES IN geoR VERSION 1.9-2
 	        =====================================
 
 Changes
@@ -28,7 +43,7 @@ Fixes
 
        o no longer writing/assigning objects to the global environment to address NOTE in CRAN checks
   
-       o Brain's changes in C code to address valgrind issues
+       o Brian's changes in C code to address valgrind issues
 
 
 

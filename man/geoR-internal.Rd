@@ -9,6 +9,7 @@
 \alias{.solve.geoR}
 \alias{print.grf}
 \alias{.check.locations}
+\alias{.geoR.check.locations}
 \alias{.check.borders}
 \alias{.check.coords}
 \alias{.geoR_inout}

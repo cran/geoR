@@ -31,7 +31,7 @@ trend.spatial(trend, geodata, add.to.trend)
   The argument \code{trend} defines the form of the mean and the
   following options are allowed:
   
-  \itemize{
+  \describe{
     \item{\code{"cte"}}{the mean is assumed to be constant over the region,
       in which case \eqn{\mu(x)= \mu}{mu(x) = mu}. This is the default
       option.  }

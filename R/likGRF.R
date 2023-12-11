@@ -1399,7 +1399,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ##
   ## Absurd values
   ##
-  if(kappa < 1e-04) return(-(.Machine$double.xmax^0.5))
+  if(any(kappa < 1e-04)) return(-(.Machine$double.xmax^0.5))
   if((nugget+sigmasq) < 1e-16) return(-(.Machine$double.xmax^0.5))
   ##
   ## Trend matrix

@@ -18,31 +18,32 @@ geoRdefunct()
 }
 
 \description{
-  The functions listed here are no longer part of the package \pkg{geoR} as they are not needed (any more).
+  The functions listed here are no longer part of the package \pkg{geoR}
+  as they are no longer needed.
 }
 
 \details{
   
   The following functions are now defunct:
   
-  \enumerate{
+  \describe{
     
-    \item{olsfit}{functionality incorporated by \code{\link{variofit}}.
-      From \code{geoR_1.0-6}.  }
+    \item{olsfit}{functionality incorporated by \code{\link{variofit}}
+      starting from package version \samp{1.0-6}.  }
     
-    \item{wlsfit}{functionality incorporated by \code{\link{variofit}}.
-      From \code{geoR_1.0-6}.  }
+    \item{wlsfit}{functionality incorporated by \code{\link{variofit}}
+      starting from package version \samp{1.0-6}.  }
     
-    \item{likfit.old}{functionality incorporated by \code{\link{likfit}}.
-      From \code{geoR_1.0-6}. The associated functions were also made
-      defunct: \cr
-      \code{likfit.nospatial}, \code{loglik.spatial}, \code{proflik.nug}, \code{proflik.phi}, \code{proflik.ftau}.  }
-
-    \item{distdiag}{functionally is redundant with
-      \code{\link{dist}}.  }
+    \item{likfit.old}{functionality incorporated by \code{\link{likfit}}
+      starting from package version \samp{1.0-6}.  
+      The related functions were also made defunct: \cr
+      \code{likfit.nospatial}, \code{loglik.spatial},
+      \code{proflik.nug}, \code{proflik.phi}, \code{proflik.ftau}.  }
+    
+    \item{distdiag}{functionally is redundant with \code{\link{dist}}.  }
   }
-
-
+  
+  
 }
 
 \seealso{\code{\link{variofit}}}

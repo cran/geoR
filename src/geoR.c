@@ -592,7 +592,7 @@ void chol(Real *inmatrix, Integer N)
       }
       if (Drow == Dcol) {
 	if (sum<=0.0) {
-	  error("%s%ld%s%e", "chol: matrix not pos def, diag[" , Drow , "]= " , sum);
+	  error("%s%d%s%e", "chol: matrix not pos def, diag[" , Drow , "]= " , sum);
 	  return;
 	}
 	Pcol[Drow]=sqrt(sum);
