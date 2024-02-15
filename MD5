@@ -1,4 +1,4 @@
-27a76100d3d4cdc09afb7c429bd9041a *DESCRIPTION
+0829449d74280d4521230f0f1770846b *DESCRIPTION
 0b8f49a939f914a5268b545c3fa03a64 *NAMESPACE
 08f3dd76ab590bb2d3fb8dd2de254d2c *R/Cwrappers.R
 1c84d8491c162e8f0e594a9d481361e9 *R/auxiliar.R
@@ -8,17 +8,17 @@
 649ab816b8fcb6f12ed10c8075b5b90a *R/eyefit.R
 af6022501b1cce20723867837e62c563 *R/geoRdefunct.R
 8b09e4e583def6cae0ccb7c2bfadae33 *R/geoRmisc.R
-f9beb0c17656d99c9804e8269141ad42 *R/geobayes.R
+95f6cdd59d00b391dd269576269292b1 *R/geobayes.R
 67096c50522da711437d8d80041fabdb *R/geodata.R
 b2c3dd486a0fdd3afcc0e10f45f78c54 *R/kriging.R
 f80ed37610127481ba79de773feec1dc *R/krweights.R
 c2da5e267cf920e0acdc6d9135404c7d *R/ksline.R
-718ec4ab0cbf6942ca8aa76a4a1ab486 *R/likGRF.R
-48b6602d55c1b1dd811ec700061a6470 *R/profiles.R
+891e496c89f9704c456e1409e5c3c61d *R/likGRF.R
+0bb2607a1e41e88c818913e8db04b5fe *R/profiles.R
 595cec06ce88f5db70fed8cf98cc0f11 *R/simul.R
-2a882041dfa94660ddb4798c0879d912 *R/variofit.R
+3b66509d7eaf0d2f962ed99edd0facd9 *R/variofit.R
 242ce4e4ccb144dd3ee2598b7a21d374 *R/variogram.R
-6243bdf8d42d2a76d8e5ad44e5fbac03 *R/xvalid.R
+37d01ac8bfa69749f7686553dc8640c9 *R/xvalid.R
 c5d86a84926d93788d4e7269017642a4 *R/zzz.R
 bb79be473d73120611f8a6d60afe2917 *data/Ksat.rda
 8d0e009b6514b260cc272597c2b46ff5 *data/SIC.rda
@@ -42,7 +42,7 @@ f14594b0e526e6277dfa8fdceed4a2f5 *data/soja98.rda
 0705f5508ed1df4a2bf9d5253c9b28d6 *data/wo.rda
 efba0243df3be5e821cd9e44070b4990 *data/wolfcamp.rda
 6f53d6b672a6fa6c37eed7154950a8a5 *data/wrc.rda
-11c18f4c39ca5fd1da9e3bd4cf1a5fcc *inst/doc/CHANGES
+4488de5576b6fe17d0cd6dc3180686a6 *inst/doc/CHANGES
 84f0e6581f0a5052770fb9ee175baebc *inst/doc/ToDo.geoR
 6a113d61e142ea6138bcd6d40a83c8df *man/BoxCox.Rd
 05c9ca898cec48e35bf10f3c623c4a27 *man/InvChisquare.Rd
@@ -143,4 +143,3 @@ ef5be1accd7e224083846e00a60328cd *man/wrappers.Rd
 96cc877cd631f14063644132aa5fad98 *man/xvalid.Rd
 9e41885e80f20cee55ab258b24a79652 *src/geoR.c
 e87bdd6b809617820773ad6fc22def21 *src/init.c
-d0db1fe303ddf2446edd9e5e68ee01bd *tests/ap

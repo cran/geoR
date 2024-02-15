@@ -1,6 +1,5 @@
 .geoR.env <- new.env()
 
-
 "variofit" <-
   function (vario, ini.cov.pars, cov.model,
             fix.nugget = FALSE, nugget = 0, 
@@ -174,7 +173,7 @@
       }
       grid.loss <- apply(grid.ini, 1, v.loss, u=XY$u, v=XY$v, n=XY$n, cov.model = cov.model, weights = weights)
       ini.temp <- grid.ini[which(grid.loss == min(grid.loss))[1],, drop=FALSE]
-      if(is.R()) rownames(ini.temp) <- "initial.value"
+      rownames(ini.temp) <- "initial.value"
       if(messages.screen){
         cat(" selected values:\n")
         print(rbind(round(ini.temp, digits=2), status=ifelse(c(FALSE, FALSE, fix.nugget, fix.kappa), "fix", "est")))
@@ -512,9 +511,7 @@
 "print.variofit" <-
   function(x, digits = "default", ...)
 {
-  if(is.R() & digits == "default")
-    digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
+  if(digits == "default") digits <- max(3, getOption("digits") - 3)
   if(x$fix.nugget){
     est.pars <- c(sigmasq = x$cov.pars[1], phi=x$cov.pars[2])
     if(x$fix.kappa == FALSE)
@@ -594,8 +591,7 @@
 {
   if(length(class(x)) == 0 || all(class(x) != "summary.variomodel"))
     stop("object is not of the class \"summary.variomodel\"")
-  if(is.R() & digits == "default") digits <- max(3, getOption("digits") - 3)
-  else digits <- options()$digits
+  if(digits == "default") digits <- max(3, getOption("digits") - 3)
   cat("Summary of the parameter estimation\n")
   cat("-----------------------------------\n")
   cat(paste("Estimation method:", x$pmethod, "\n"))

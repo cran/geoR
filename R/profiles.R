@@ -1454,10 +1454,8 @@ function(phi.lambda, ...)
   ##
   ## Saving original par() parameters
   ##
-#  if (is.R()) 
-#    par.ori <- par(no.readonly = TRUE)
-#  else par.ori <- par()
-#  on.exit(par(par.ori))
+##  par.ori <- par(no.readonly = TRUE)
+##  on.exit(par(par.ori))
   ##
   parask <- par()$ask
   par(ask = ask)

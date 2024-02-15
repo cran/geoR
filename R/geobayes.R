@@ -946,13 +946,8 @@
   ## =============================================================
   ##
   if(do.prediction && simulations.predictive){
-    if(is.R()){
       if(cov.model.number > 12)
         stop("simulation in krige.bayes not implemented for the choice of correlation function")
-    }
-    else
-      if(cov.model.number > 10)
-        stop("simulation in krige.bayes not implemented for the correlation function chosen")
     krige.bayes.aux20 <- function(phinug){
       iter <- get("counter", envir=counter.env)
       if(messages.screen & prior$phi.prior != "fixed")

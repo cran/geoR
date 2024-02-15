@@ -1,6 +1,14 @@
 
 
                 =====================================
+       		   CHANGES IN geoR VERSION 1.9-4
+	        =====================================
+
+Changes
+     o removal of is.R() call as requested by CRAN
+
+
+                =====================================
        		   CHANGES IN geoR VERSION 1.9-3
 	        =====================================
 

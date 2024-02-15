@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.9-3
-Date: 2023-12-11
+Version: 1.9-4
+Date: 2024-02-14
 Title: Analysis of Geostatistical Data
 LazyLoad: yes
 LazyData: yes
@@ -18,6 +18,6 @@ Description: Geostatistical analysis including variogram-based, likelihood-based
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR/
 NeedsCompilation: yes
-Packaged: 2023-12-11 18:02:08 UTC; paulojus
+Packaged: 2024-02-14 21:50:33 UTC; paulojus
 Repository: CRAN
-Date/Publication: 2023-12-11 19:00:02 UTC
+Date/Publication: 2024-02-15 05:30:02 UTC

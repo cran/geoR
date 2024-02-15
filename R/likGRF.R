@@ -380,10 +380,10 @@ ini.cov.pars <- ini.cov.pars[[1]]
   if(messages.screen) {
     cat("---------------------------------------------------------------\n")
     cat("likfit: likelihood maximisation using the function ")
-    if(is.R()){if(justone) cat("optimize.\n") else cat("optim.\n")} else cat("nlminb.\n")
+    if(justone) cat("optimize.\n") else cat("optim.\n")
     cat("likfit: Use control() to pass additional\n         arguments for the maximisation function.")
     cat("\n        For further details see documentation for ")
-    if(is.R()){if(justone) cat("optimize.\n") else cat("optim.\n")} else cat("nlminb.\n")        
+    if(justone) cat("optimize.\n") else cat("optim.\n")
     cat("likfit: It is highly advisable to run this function several\n        times with different initial values for the parameters.\n")
     cat("likfit: WARNING: This step can be time demanding!\n")
     cat("---------------------------------------------------------------\n")
@@ -428,10 +428,7 @@ ini.cov.pars <- ini.cov.pars[[1]]
   ##
   ## Values of the maximised likelihood
   ##
-  if(is.R())
-    loglik.max <- - lik.minim$value
-  else
-    loglik.max <- - lik.minim$objective
+  loglik.max <- - lik.minim$value
   ##
   ## Assigning values for estimated parameters
   ##
@@ -743,28 +740,28 @@ ini.cov.pars <- ini.cov.pars[[1]]
       lambda.ns <- lambda
     }
     else{
-      if(is.R())
+##      if(is.R())
         lik.lambda.ns <- optim(par=1, fn = .negloglik.boxcox,
                                method = "L-BFGS-B",
                                lower = limits$lambda["lower"],
                                upper = limits$lambda["upper"],
                                data = data, xmat = xmat,
                                lik.method = method.lik)
-      else
-        lik.lambda.ns <- nlminb(par=1, fn = .negloglik.boxcox,
-                                lower=limits$lambda["lower"],
-                                upper=limits$lambda["upper"],
-                                data = data, xmat = xmat,
-                                lik.method = method.lik)
+##      else
+##        lik.lambda.ns <- nlminb(par=1, fn = .negloglik.boxcox,
+##                                lower=limits$lambda["lower"],
+##                                upper=limits$lambda["upper"],
+##                                data = data, xmat = xmat,
+##                                lik.method = method.lik)
       lambda.ns <- lik.lambda.ns$par
       if(abs(lambda) < 0.0001) tdata.ns <- log(data)
       else tdata.ns <- ((data^lambda.ns)-1)/lambda.ns
       beta.ns <- .solve.geoR(crossprod(xmat),crossprod(xmat,tdata.ns))
       ss.ns <- sum((as.vector(tdata.ns - xmat %*% beta.ns))^2)
-      if(is.R())
+##      if(is.R())
         value.min.ns <- lik.lambda.ns$value
-      else
-        value.min.ns <- lik.lambda.ns$objective
+##      else
+##        value.min.ns <- lik.lambda.ns$objective
       if(method.lik == "ML"){
         loglik.ns <- (- value.min.ns)+ (n/2)*((-log(2*pi)) + log(n) - 1)
         nugget.ns <- ss.ns/n

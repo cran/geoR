@@ -249,10 +249,8 @@
   ##
   ## Saving original par() parameters
   ##
-  if (is.R()) 
     par.ori <- par(no.readonly = TRUE)
-  else par.ori <- par()
-  on.exit(par(par.ori))
+    on.exit(par(par.ori))
   ##
   ## checking input
   ##
@@ -355,11 +353,7 @@
       plot(coords, xlab = "Coord X", ylab = "Coord Y",
            type = "n", 
            xlim = coords.lims[, 1], ylim = coords.lims[, 2])
-      if (is.R()) {
-        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
-      }
-      else
-        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
       if(!is.null(borders))
         lines(borders)
     }
@@ -432,11 +426,7 @@
       ##
       plot(coords, xlab = "Coord X", ylab = "Coord Y", type = "n", 
            xlim = coords.lims[, 1], ylim = coords.lims[, 2])
-      if (is.R()) {
-        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
-      }
-      else
-        points(coords.order, pch = (c("x", "+"))[cut.order], col=(c(3, 4))[cut.order], cex = err.size)
+      points(coords.order, pch = (c("x", "+"))[cut.order], col=(c("red", "blue"))[cut.order], cex = err.size)
       if(!is.null(borders))
         lines(borders)
     }
