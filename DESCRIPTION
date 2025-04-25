@@ -1,16 +1,29 @@
 Package: geoR
-Version: 1.9-4
-Date: 2024-02-14
+Version: 1.9-5
+Date: 2025-04-25
 Title: Analysis of Geostatistical Data
 LazyLoad: yes
 LazyData: yes
-Author: Paulo Justiniano Ribeiro Jr [aut, cre] <paulojus@ufpr.br>,
-        Peter Diggle [aut, cre] <p.diggle@lancaster.ac.uk>,
-        Ole Christensen [ctb],
-        Martin Schlather [ctb],
-        Roger Bivand [ctb],
-        Brian Ripley [ctb] 
-Maintainer: Paulo Justiniano Ribeiro Jr <paulojus@ufpr.br>
+Authors@R: c(person(given = c("Paulo", "Justiniano"),
+                    family = "Ribeiro Jr",
+                    role = c("aut", "cre"),
+                    email = "paulojus@ufpr.br"),
+             person(given = "Peter",
+                    family = "Diggle",
+                    role = "aut",
+                    email = "p.diggle@lancaster.ac.uk"),
+             person(given = "Ole",
+                    family = "Christensen",
+                    role = "ctb"),
+             person(given = "Martin",
+                    family = "Schlather",
+                    role = "ctb"),
+             person(given = "Roger",
+                    family = "Bivand",
+                    role = "ctb"),
+             person(given = "Brian",
+                    family = "Ripley",
+                    role = "ctb"))
 Depends: R (>= 2.10), stats, methods
 Imports: MASS, sp, splancs, graphics, tcltk
 Suggests: scatterplot3d, lattice
@@ -18,6 +31,13 @@ Description: Geostatistical analysis including variogram-based, likelihood-based
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR/
 NeedsCompilation: yes
-Packaged: 2024-02-14 21:50:33 UTC; paulojus
+Packaged: 2025-04-25 20:06:54 UTC; paulojus
+Author: Paulo Justiniano Ribeiro Jr [aut, cre],
+  Peter Diggle [aut],
+  Ole Christensen [ctb],
+  Martin Schlather [ctb],
+  Roger Bivand [ctb],
+  Brian Ripley [ctb]
+Maintainer: Paulo Justiniano Ribeiro Jr <paulojus@ufpr.br>
 Repository: CRAN
-Date/Publication: 2024-02-15 05:30:02 UTC
+Date/Publication: 2025-04-25 21:10:02 UTC

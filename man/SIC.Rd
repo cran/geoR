@@ -34,7 +34,8 @@
 
 \source{
   Data from the project \emph{Spatial Interpolation Comparison 97};
-  see \url{https://wiki.52north.org/bin/view/AI_GEOSTATS/EventsSIC97}.
+see \url{https://soft.mines-paristech.fr/gstlearn/latest/data/benchmark/SIC97_Readme.pdf}.
+  %  see \url{https://wiki.52north.org/bin/view/AI_GEOSTATS/EventsSIC97}.
 }
 
 \references{
