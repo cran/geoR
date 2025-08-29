@@ -1,6 +1,6 @@
 Package: geoR
-Version: 1.9-5
-Date: 2025-04-25
+Version: 1.9-6
+Date: 2025-08-29
 Title: Analysis of Geostatistical Data
 LazyLoad: yes
 LazyData: yes
@@ -31,7 +31,7 @@ Description: Geostatistical analysis including variogram-based, likelihood-based
 License: GPL (>= 2)
 URL: http://www.leg.ufpr.br/geoR/
 NeedsCompilation: yes
-Packaged: 2025-04-25 20:06:54 UTC; paulojus
+Packaged: 2025-08-29 14:37:00 UTC; paulojus
 Author: Paulo Justiniano Ribeiro Jr [aut, cre],
   Peter Diggle [aut],
   Ole Christensen [ctb],
@@ -40,4 +40,4 @@ Author: Paulo Justiniano Ribeiro Jr [aut, cre],
   Brian Ripley [ctb]
 Maintainer: Paulo Justiniano Ribeiro Jr <paulojus@ufpr.br>
 Repository: CRAN
-Date/Publication: 2025-04-25 21:10:02 UTC
+Date/Publication: 2025-08-29 15:40:09 UTC

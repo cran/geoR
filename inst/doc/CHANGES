@@ -1,4 +1,19 @@
 
+                =====================================
+       		   CHANGES IN geoR VERSION 1.9-6
+	        =====================================
+
+Changes
+     o op <- par(no.readonly=TRUE); on.exit(par(op)) removed from image.kriging()
+
+
+                =====================================
+       		   CHANGES IN geoR VERSION 1.9-5
+	        =====================================
+
+Changes
+     o as requested by CRAN checks
+
 
                 =====================================
        		   CHANGES IN geoR VERSION 1.9-4

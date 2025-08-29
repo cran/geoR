@@ -1,4 +1,4 @@
-4956329d634338a3bd4213d0693ef3c7 *DESCRIPTION
+a7249c10d8a6977b4b7f21f82ba1aca5 *DESCRIPTION
 0b8f49a939f914a5268b545c3fa03a64 *NAMESPACE
 08f3dd76ab590bb2d3fb8dd2de254d2c *R/Cwrappers.R
 1c84d8491c162e8f0e594a9d481361e9 *R/auxiliar.R
@@ -10,7 +10,7 @@ af6022501b1cce20723867837e62c563 *R/geoRdefunct.R
 8b09e4e583def6cae0ccb7c2bfadae33 *R/geoRmisc.R
 95f6cdd59d00b391dd269576269292b1 *R/geobayes.R
 67096c50522da711437d8d80041fabdb *R/geodata.R
-b2c3dd486a0fdd3afcc0e10f45f78c54 *R/kriging.R
+8c5f7d8d6409ab306822f5df55f33341 *R/kriging.R
 f80ed37610127481ba79de773feec1dc *R/krweights.R
 c2da5e267cf920e0acdc6d9135404c7d *R/ksline.R
 891e496c89f9704c456e1409e5c3c61d *R/likGRF.R
@@ -42,7 +42,7 @@ f14594b0e526e6277dfa8fdceed4a2f5 *data/soja98.rda
 0705f5508ed1df4a2bf9d5253c9b28d6 *data/wo.rda
 efba0243df3be5e821cd9e44070b4990 *data/wolfcamp.rda
 6f53d6b672a6fa6c37eed7154950a8a5 *data/wrc.rda
-4488de5576b6fe17d0cd6dc3180686a6 *inst/doc/CHANGES
+1ffc3cc2fae4ebf2402742956e32d532 *inst/doc/CHANGES
 84f0e6581f0a5052770fb9ee175baebc *inst/doc/ToDo.geoR
 6a113d61e142ea6138bcd6d40a83c8df *man/BoxCox.Rd
 05c9ca898cec48e35bf10f3c623c4a27 *man/InvChisquare.Rd

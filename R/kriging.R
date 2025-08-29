@@ -571,8 +571,8 @@
   function (x, locations, borders, values = x$predict,
             coords.data, x.leg, y.leg, ...) 
 {
-  op <- par(no.readonly=TRUE)
-  on.exit(par(op))
+##  op <- par(no.readonly=TRUE)
+##  on.exit(par(op))
   ldots <- match.call(expand.dots = FALSE)$...
   if(missing(x)) x <- NULL
   #attach(x, pos=2, warn.conflicts=FALSE)
